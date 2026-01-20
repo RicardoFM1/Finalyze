@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user', [App\Http\Controllers\UserController::class, 'update']);
     Route::get('/dashboard/summary', [App\Http\Controllers\DashboardController::class, 'summary']);
     Route::post('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'createPreference']);
+    Route::post('/process_payment', [App\Http\Controllers\CheckoutController::class, 'processPayment']);
     
     // Plans Management (Admin)
     Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);
@@ -26,3 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reports
     Route::get('/reports/monthly', [App\Http\Controllers\ReportController::class, 'monthly']);
 });
+
+// Pubic Webhook
+Route::post('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
+

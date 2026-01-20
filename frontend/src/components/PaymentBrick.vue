@@ -94,8 +94,32 @@ const initMercadoPago = async () => {
                 },
                 onSubmit: ({ formData }) => {
                     return new Promise((resolve, reject) => {
-                        console.log('Dados do pagamento:', formData)
-                        resolve()
+                        fetch('http://localhost:8000/api/process_payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` // Fallback para token se necessário
+                            },
+                            body: JSON.stringify(formData),
+                        })
+                        .then((response) => response.json())
+                        .then((result) => {
+                            if (result.status === 'approved') {
+                                window.location.href = '/painel?status=success';
+                                resolve();
+                            } else if (result.status === 'in_process') {
+                                window.location.href = '/painel?status=pending';
+                                resolve();
+                            } else {
+                                error.value = "Pagamento não aprovado. Verifique os dados e tente novamente.";
+                                reject();
+                            }
+                        })
+                        .catch((err) => {
+                            console.error('Erro no processamento:', err)
+                            error.value = "Houve um erro técnico ao processar seu pagamento. Tente novamente mais tarde."
+                            reject()
+                        })
                     })
                 },
                 onError: (err) => {

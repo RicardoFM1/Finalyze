@@ -8,6 +8,22 @@ use MercadoPago\Client\Preference\PreferenceClient;
 
 class CheckoutController extends Controller
 {
+    private function setupMercadoPago()
+    {
+        $token = env('MERCADO_PAGO_ACCESS_TOKEN');
+        
+        if (!$token) {
+            throw new \Exception('Mercado Pago Token missing');
+        }
+
+        MercadoPagoConfig::setAccessToken($token);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        
+        if (config('app.env') === 'local') {
+            // O SDK v3 já desativa SSL internamente quando setRuntimeEnviroment(LOCAL) é chamado
+        }
+    }
+
     public function createPreference(Request $request)
     {
         $request->validate([
@@ -17,19 +33,10 @@ class CheckoutController extends Controller
             'items.*.quantity' => 'required|integer',
         ]);
 
-        $token = env('MERCADO_PAGO_ACCESS_TOKEN');
-        
-        if (!$token) {
-             \Illuminate\Support\Facades\Log::error('Mercado Pago Token missing');
-             return response()->json(['error' => 'Mercado Pago Token not configured'], 500);
-        }
-
-        MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
-
-        $client = new PreferenceClient();
-        
         try {
+            $this->setupMercadoPago();
+            $client = new PreferenceClient();
+            
             // Cast items to correct types specifically for SDK
             $items = array_map(function($item) {
                 return [
@@ -56,6 +63,7 @@ class CheckoutController extends Controller
                     "pending" => $baseUrl . "/pagamento?status=pending"
                 ],
                 "auto_return" => "approved",
+                "notification_url" => $baseUrl . "/api/webhook/mercadopago"
             ]);
 
             return response()->json(['id' => $preference->id]);
@@ -73,5 +81,62 @@ class CheckoutController extends Controller
             \Illuminate\Support\Facades\Log::error('Mercado Pago Error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function processPayment(Request $request)
+    {
+        try {
+            $this->setupMercadoPago();
+            $client = new \MercadoPago\Client\Payment\PaymentClient();
+
+            $payment = $client->create([
+                "token" => $request->token,
+                "issuer_id" => (int)$request->issuer_id,
+                "payment_method_id" => $request->payment_method_id,
+                "transaction_amount" => (float)$request->transaction_amount,
+                "installments" => (int)$request->installments,
+                "description" => $request->description,
+                "payer" => [
+                    "email" => $request->payer['email'],
+                    "identification" => [
+                        "type" => $request->payer['identification']['type'],
+                        "number" => $request->payer['identification']['number']
+                    ]
+                ]
+            ]);
+
+            return response()->json([
+                'status' => $payment->status,
+                'status_detail' => $payment->status_detail,
+                'id' => $payment->id
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Payment processing failed: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function handleWebhook(Request $request)
+    {
+        \Illuminate\Support\Facades\Log::info('Mercado Pago Webhook Received', $request->all());
+
+        if ($request->type === 'payment' && isset($request->data['id'])) {
+            $paymentId = $request->data['id'];
+            
+            try {
+                $this->setupMercadoPago();
+                $client = new \MercadoPago\Client\Payment\PaymentClient();
+                
+                $payment = $client->get($paymentId);
+                \Illuminate\Support\Facades\Log::info("Payment Update: ID {$paymentId} is now {$payment->status}");
+                
+                // TODO: Update subscription/transaction in database
+                
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error processing webhook payment: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json(['status' => 'success'], 200);
     }
 }
