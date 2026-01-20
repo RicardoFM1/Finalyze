@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = computed(() => !!token.value);
 
     // Mock API URL - change to real one
-    const API_URL = 'http://localhost:8080/api';
+    const API_URL = 'http://localhost:8000/api';
 
     async function login(email, password) {
         try {

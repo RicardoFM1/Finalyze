@@ -5,7 +5,7 @@
         <v-card class="text-center pa-6">
           <div class="position-relative d-inline-block">
              <v-avatar color="primary" size="120" class="mb-4">
-                <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || `http://localhost:8080/storage/${user.avatar}`" cover></v-img>
+                <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`" cover></v-img>
                 <span v-else class="text-h3 text-white">{{ getInitials(user.name) }}</span>
              </v-avatar>
              <v-btn icon="mdi-camera" size="small" color="white" class="position-absolute" style="bottom: 10px; right: 0" @click="triggerFileInput"></v-btn>
@@ -69,7 +69,7 @@ onMounted(async () => {
 
 const fetchUser = async () => {
     try {
-        const response = await fetch('http://localhost:8080/api/user', {
+        const response = await fetch('http://localhost:8000/api/user', {
              headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${authStore.token}`
@@ -111,7 +111,7 @@ const saveProfile = async () => {
             formData.append('avatar', selectedFile.value)
         }
 
-        const response = await fetch('http://localhost:8080/api/user', {
+        const response = await fetch('http://localhost:8000/api/user', {
             method: 'POST', // Use POST with _method=PUT for FormData
             headers: {
                 'Authorization': `Bearer ${authStore.token}`

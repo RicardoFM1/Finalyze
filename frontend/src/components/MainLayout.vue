@@ -36,7 +36,7 @@
         <v-list>
             <v-list-item 
                 v-if="authStore.user"
-                :prepend-avatar="authStore.user.avatar ? 'http://localhost:8080/storage/' + authStore.user.avatar : undefined"
+                :prepend-avatar="authStore.user.avatar ? 'http://localhost:8000/storage/' + authStore.user.avatar : undefined"
                 :prepend-icon="!authStore.user.avatar ? 'mdi-account-circle' : undefined"
                 :title="authStore.user.name"
                 :subtitle="authStore.user.email"

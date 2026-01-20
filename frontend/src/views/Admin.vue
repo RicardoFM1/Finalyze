@@ -132,7 +132,7 @@ onMounted(async () => {
 
 const fetchPlans = async () => {
     try {
-        const response = await fetch('http://localhost:8080/api/plans', {
+        const response = await fetch('http://localhost:8000/api/plans', {
              headers: {
                 'Accept': 'application/json',
                  'Authorization': `Bearer ${authStore.token}`
@@ -163,7 +163,7 @@ const closeDialog = () => {
 
 const savePlan = async () => {
     const isEdit = !!form.value.id
-    const url = isEdit ? `http://localhost:8080/api/plans/${form.value.id}` : 'http://localhost:8080/api/plans'
+    const url = isEdit ? `http://localhost:8000/api/plans/${form.value.id}` : 'http://localhost:8000/api/plans'
     const method = isEdit ? 'PUT' : 'POST'
 
     try {
@@ -201,7 +201,7 @@ const deletePlan = async () => {
     
     // Optimistic UI or wait? Let's wait.
     try {
-        await fetch(`http://localhost:8080/api/plans/${planToDelete.value.id}`, {
+        await fetch(`http://localhost:8000/api/plans/${planToDelete.value.id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${authStore.token}`

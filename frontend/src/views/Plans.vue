@@ -37,7 +37,7 @@ onMounted(async () => {
   
   try {
     // Public endpoint, but let's use fetch directly or axios if configured
-    const response = await fetch('http://localhost:8080/api/plans', {
+    const response = await fetch('http://localhost:8000/api/plans', {
         headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${authStore.token}` // Optional if public, but good practice if mixed

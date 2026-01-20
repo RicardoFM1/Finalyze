@@ -1,6 +1,7 @@
 <template>
   <v-container class="fill-height justify-center">
     <v-card width="600" class="pa-4">
+      
       <v-card-title>Complete sua Assinatura</v-card-title>
       <v-card-text>
         <p class="mb-4" v-if="planName">Você está assinando o plano <strong>{{ planName }}</strong>.</p>
@@ -31,7 +32,7 @@ onMounted(async () => {
 
     // Create Preference on Backend
     try {
-        const response = await fetch('http://localhost:8080/api/checkout/preference', {
+        const response = await fetch('http://localhost:8000/api/checkout/preference', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

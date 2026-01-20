@@ -124,7 +124,7 @@ onMounted(async () => {
 const fetchSummary = async () => {
     loading.value = true
     try {
-        const response = await fetch('http://localhost:8080/api/dashboard/summary', {
+        const response = await fetch('http://localhost:8000/api/dashboard/summary', {
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${authStore.token}`
@@ -143,7 +143,7 @@ const fetchSummary = async () => {
 const saveTransaction = async () => {
     saving.value = true
     try {
-        const response = await fetch('http://localhost:8080/api/transactions', {
+        const response = await fetch('http://localhost:8000/api/transactions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
