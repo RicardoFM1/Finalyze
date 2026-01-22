@@ -10,7 +10,7 @@ class CheckoutController extends Controller
 {
     private function setupMercadoPago()
     {
-        $token = env('MERCADO_PAGO_ACCESS_TOKEN');
+            $token = config('services.mercadopago.token');
         
         if (!$token) {
             throw new \Exception('Mercado Pago Token missing');
@@ -89,21 +89,27 @@ class CheckoutController extends Controller
             $this->setupMercadoPago();
             $client = new \MercadoPago\Client\Payment\PaymentClient();
 
-            $payment = $client->create([
-                "token" => $request->token,
-                "issuer_id" => (int)$request->issuer_id,
+            $data = [
                 "payment_method_id" => $request->payment_method_id,
                 "transaction_amount" => (float)$request->transaction_amount,
-                "installments" => (int)$request->installments,
                 "description" => $request->description,
                 "payer" => [
                     "email" => $request->payer['email'],
                     "identification" => [
-                        "type" => $request->payer['identification']['type'],
-                        "number" => $request->payer['identification']['number']
+                        "type" => $request->payer['identification']['type'] ?? null,
+                        "number" => $request->payer['identification']['number'] ?? null
                     ]
                 ]
-            ]);
+            ];
+
+            // Se não for PIX, adiciona token, issuer_id e installments
+            if ($request->payment_method_id !== 'pix') {
+                $data["token"] = $request->token;
+                $data["issuer_id"] = (int)$request->issuer_id;
+                $data["installments"] = (int)$request->installments;
+            }
+
+            $payment = $client->create($data);
 
             return response()->json([
                 'status' => $payment->status,
