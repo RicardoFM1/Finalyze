@@ -31,6 +31,7 @@ const loading = ref(true)
 
 onMounted(async () => {
   
+
   if (router.currentRoute.value.query.msg === 'no_plan') {
     toast.warning('Você precisa de um plano ativo para acessar essa área. Escolha um plano abaixo!')
   }
@@ -44,6 +45,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+
 })
 
 const handleSelectPlan = (plan) => {

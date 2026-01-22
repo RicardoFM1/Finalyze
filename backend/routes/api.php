@@ -34,5 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-// Pubic Webhook
+
 Route::post('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
+
+Route::fallback(function () {
+    return response()->json([
+        'message' => 'Rota não encontrada'
+    ], 404);
+});

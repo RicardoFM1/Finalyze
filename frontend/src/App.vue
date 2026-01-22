@@ -1,12 +1,23 @@
 <script setup>
 import MainLayout from './components/MainLayout.vue'
+import { useUiStore } from './stores/ui'
+const ui = useUiStore()
+
 </script>
 
 <template>
   <v-app>
     <MainLayout />
+
+
+    <v-overlay :value="ui.loading" absolute>
+      <v-progress-circular indeterminate color="primary" size="64"/>
+    </v-overlay>
+
   </v-app>
 </template>
+
+
 
 <style scoped>
 .logo {

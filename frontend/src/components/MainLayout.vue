@@ -37,7 +37,7 @@
             <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-chart-bar" title="Relatórios" to="/relatorios"></v-list-item>
             <v-list-item prepend-icon="mdi-account" title="Perfil" to="/perfil"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" to="/admin"></v-list-item>
-            <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" to="/planos"></v-list-item>
+            <v-list-item v-if="authStore.user?.plan_id === null" prepend-icon="mdi-tag-text-outline" title="Planos" to="/planos"></v-list-item>
             <v-list-item  color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" title="Sair"></v-list-item>
         </v-list>
 
