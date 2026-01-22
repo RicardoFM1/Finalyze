@@ -61,30 +61,18 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
+    const authPages = ['Login', 'Register'];
+    const protectedRoutes = ['Dashboard', 'Transactions', 'Profile', 'Reports', 'Admin', 'Checkout'];
 
-
-    if (token && (to.name === 'Login' || to.name === 'Register')) {
-        next('/painel');
+    if (token && authPages.includes(to.name)) {
+        return next('/painel');
     }
 
-    else if (to.path.startsWith('/painel') || to.path.startsWith('/lancamentos') || to.path.startsWith('/relatorios')) {
-        if (!token) {
-            next('/login');
-        } else {
-        
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (!user.plan_id && to.name !== 'Plans' && to.name !== 'Checkout' && to.name !== 'Profile' && user.role != "admin") {
-        
-                next({ path: '/planos', query: { msg: 'no_plan' } });
-     
-            }
-            next();
-        }
-    
+    if (!token && protectedRoutes.includes(to.name)) {
+        return next('/login');
     }
-    else {
-        next();
-    }
+
+    next();
 });
 
 export default router

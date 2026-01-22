@@ -36,13 +36,7 @@ onMounted(async () => {
   }
   
   try {
-  
-    const response = await fetch('http://localhost:8000/api/plans', {
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${authStore.token}` 
-        }
-    })
+    const response = await authStore.apiFetch('/plans')
     const data = await response.json()
     plans.value = data
   } catch (error) {

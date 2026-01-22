@@ -32,12 +32,8 @@ onMounted(async () => {
 
     // Create Preference on Backend
     try {
-        const response = await fetch('http://localhost:8000/api/checkout/preference', {
+        const response = await authStore.apiFetch('/checkout/preference', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            },
             body: JSON.stringify({
                 items: [
                     {

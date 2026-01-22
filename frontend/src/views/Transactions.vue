@@ -27,8 +27,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '../stores/auth'
 
+const authStore = useAuthStore()
 const loading = ref(false)
 const headers = [
   { title: 'Data', key: 'date', align: 'start' },
@@ -36,12 +38,23 @@ const headers = [
   { title: 'Categoria', key: 'category', align: 'start' },
   { title: 'Tipo', key: 'type', align: 'start' },
   { title: 'Valor', key: 'amount', align: 'end' },
-  { title: 'Ações', key: 'actions', align: 'end', sortable: false },
 ]
 
-const transactions = ref([
-    { id: 1, date: '2023-10-01', description: 'Salário', category: 'Salário', type: 'income', amount: 'R$ 5.000,00' },
-    { id: 2, date: '2023-10-05', description: 'Aluguel', category: 'Habitação', type: 'expense', amount: 'R$ 1.500,00' },
-    { id: 3, date: '2023-10-10', description: 'Supermercado', category: 'Alimentação', type: 'expense', amount: 'R$ 800,00' },
-])
+const transactions = ref([])
+
+const fetchTransactions = async () => {
+    loading.value = true
+    try {
+        const response = await authStore.apiFetch('/transactions')
+        if (response.ok) {
+            transactions.value = await response.json()
+        }
+    } catch (e) {
+        console.error(e)
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(fetchTransactions)
 </script>
