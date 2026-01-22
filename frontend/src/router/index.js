@@ -62,30 +62,25 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
 
-    // If logged in, prevent access to login/register
-    // If logged in, prevent access to login/register
+
     if (token && (to.name === 'Login' || to.name === 'Register')) {
         next('/painel');
     }
-    // Protected routes
+
     else if (to.path.startsWith('/painel') || to.path.startsWith('/lancamentos') || to.path.startsWith('/relatorios')) {
         if (!token) {
             next('/login');
         } else {
-            // Check for active plan (requires user data to be loaded in store usually)
-            // But store might not be ready. Let's assume user object is in localStorage for quick check
-            // or we rely on the component mounted check / backend 403.
-            // A better way is to use the store if persisted.
+        
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (!user.plan_id && to.name !== 'Plans' && to.name !== 'Checkout' && to.name !== 'Profile') {
-                // Allow Profile so they can logout or update info? Actually user said "impossível acessar essa parte"
-                // Redirect to plans with warning
-                // alert('Você precisa de um plano ativo para acessar o painel.'); // Bad UX, use toast in view or query param
+            if (!user.plan_id && to.name !== 'Plans' && to.name !== 'Checkout' && to.name !== 'Profile' && user.role != "admin") {
+        
                 next({ path: '/planos', query: { msg: 'no_plan' } });
-            } else {
-                next();
+     
             }
+            next();
         }
+    
     }
     else {
         next();

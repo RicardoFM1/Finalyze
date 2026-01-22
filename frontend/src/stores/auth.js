@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-// import axios from 'axios'; // We will configure axios later or use fetch
+
 
 export const useAuthStore = defineStore('auth', () => {
     const storedUser = localStorage.getItem('user');
@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isAuthenticated = computed(() => !!token.value);
 
-    // Mock API URL - change to real one
+
     const API_URL = 'http://localhost:8000/api';
 
     async function login(email, password) {
@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             localStorage.setItem('token', token.value);
 
-            // Fetch user data immediately
+            
             await fetchUser();
 
             return true;
@@ -82,7 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
-                localStorage.setItem('user', JSON.stringify(data));
+
             } else {
                 // Token invalid
                 logout();
@@ -96,7 +96,6 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
         // router.push('/login');
     }
 

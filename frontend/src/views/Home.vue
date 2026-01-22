@@ -36,7 +36,7 @@
         <v-card class="h-100 pa-4" variant="tonal">
           <v-card-item>
             <v-icon size="48" color="primary" class="mb-4">mdi-lock-check</v-icon>
-            <v-card-title class="text-h5 font-weight-bold">SegurançaTotal</v-card-title>
+            <v-card-title class="text-h5 font-weight-bold">Segurança Total</v-card-title>
             <v-card-text>Seus dados financeiros são criptografados e protegidos com segurança de nível bancário.</v-card-text>
           </v-card-item>
         </v-card>
