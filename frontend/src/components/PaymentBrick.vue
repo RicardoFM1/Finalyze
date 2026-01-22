@@ -43,7 +43,7 @@ const initMercadoPago = async () => {
     error.value = null
 
     try {
-        // Tentar encontrar o SDK por até 10 seg
+        
         let attempts = 0
         while (!window.MercadoPago && attempts < 20) {
             await new Promise(resolve => setTimeout(resolve, 500))
@@ -56,7 +56,7 @@ const initMercadoPago = async () => {
             return
         }
 
-        // NOTA: A Public Key deve ser a da sua conta real.
+       
         let publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY;
         
         if (!publicKey || publicKey.length > 50) {

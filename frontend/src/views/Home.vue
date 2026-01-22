@@ -8,10 +8,10 @@
           Junte-se a milhares de usuários que assumiram o controle do seu dinheiro.
         </p>
         <div class="d-flex gap-4 justify-center justify-md-start">
-            <v-btn color="primary" size="x-large" to="/planos" elevation="4">Ver Planos</v-btn>
+            <v-btn v-if="authStore.user?.plan_id == null" color="primary" size="x-large" to="/planos" elevation="4">Ver Planos</v-btn>
             <v-btn v-if="!authStore.isAuthenticated" variant="outlined" size="x-large" class="ml-4" to="/login">Entrar</v-btn>
-            <v-btn v-else-if="authStore.user?.role !== 'admin'" variant="outlined" size="x-large" class="ml-4" to="/painel">Ir para Painel</v-btn>
-            <v-btn v-else variant="outlined" size="x-large" class="ml-4" to="/admin">Painel Admin</v-btn>
+            <v-btn v-else-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" variant="outlined" size="x-large" class="ml-4" to="/painel">Ir para Painel</v-btn>
+            <v-btn v-if="authStore.user?.role === 'admin'" variant="outlined" size="x-large" class="ml-4" to="/admin">Painel Admin</v-btn>
         </div>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-center">

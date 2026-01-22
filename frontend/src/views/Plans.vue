@@ -30,7 +30,7 @@ const plans = ref([])
 const loading = ref(true)
 
 onMounted(async () => {
-  // Check if redirected due to missing plan
+  
   if (router.currentRoute.value.query.msg === 'no_plan') {
     toast.warning('Você precisa de um plano ativo para acessar essa área. Escolha um plano abaixo!')
   }

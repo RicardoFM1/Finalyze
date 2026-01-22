@@ -116,7 +116,7 @@ const saveProfile = async () => {
             // Update store
             const updated = await response.json()
             authStore.user = updated
-            localStorage.setItem('user', JSON.stringify(updated))
+           
             selectedFile.value = null // Clear selection
         } else {
              toast.error('Erro ao atualizar')

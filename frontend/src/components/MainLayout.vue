@@ -9,24 +9,11 @@
       <div class="d-flex align-center">
         <template v-if="!authStore.isAuthenticated">
             <v-btn to="/planos" variant="text" color="white" class="mx-1 text-none font-weight-medium">Planos</v-btn>
-            <v-btn to="/login" variant="elevated" color="white" class="ml-2 text-none font-weight-bold text-primary">
+            <v-btn to="/login" variant="elevated" color="white" class="ml-2 mr-2 text-none font-weight-bold text-primary">
             Entrar
             </v-btn>
         </template>
-        <template v-else>
-            <v-menu>
-                <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" variant="text" color="white" prepend-icon="mdi-account-circle">
-                        {{ authStore.user?.name || 'Conta' }}
-                    </v-btn>
-                </template>
-                <v-list>
-                    <v-list-item to="/perfil" prepend-icon="mdi-account" title="Perfil"></v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item @click="handleLogout" prepend-icon="mdi-logout" title="Sair" color="error"></v-list-item>
-                </v-list>
-            </v-menu>
-        </template>
+        
       </div>
     </v-app-bar>
 
@@ -44,22 +31,52 @@
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
-            <v-list-item prepend-icon="mdi-view-dashboard" title="Painel" to="/painel"></v-list-item>
-            <v-list-item prepend-icon="mdi-bank-transfer" title="Lançamentos" to="/lancamentos"></v-list-item>
-            <v-list-item prepend-icon="mdi-chart-bar" title="Relatórios" to="/relatorios"></v-list-item>
+           <v-list-item prepend-icon="mdi-home" title="Página inicial" to="/"></v-list-item>
+            <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-view-dashboard" title="Painel" to="/painel"></v-list-item>
+            <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-bank-transfer" title="Lançamentos" to="/lancamentos"></v-list-item>
+            <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-chart-bar" title="Relatórios" to="/relatorios"></v-list-item>
             <v-list-item prepend-icon="mdi-account" title="Perfil" to="/perfil"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" to="/admin"></v-list-item>
-             <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" to="/planos"></v-list-item>
+            <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" to="/planos"></v-list-item>
+            <v-list-item  color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" title="Sair"></v-list-item>
         </v-list>
 
-        <template v-slot:append>
-          <div class="pa-2">
-            <v-btn block color="error" variant="text" @click="handleLogout" prepend-icon="mdi-logout">
-              Sair
-            </v-btn>
-          </div>
-        </template>
+        
     </v-navigation-drawer>
+
+    <!-- Diálogo de Confirmação de Logout -->
+    <v-dialog v-model="confirmLogout" max-width="400" persistent transition="dialog-bottom-transition">
+        <v-card class="rounded-xl pa-4" elevation="10" style="backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9);">
+            <div class="text-center mb-4">
+                <v-avatar color="error-lighten-4" size="70" class="mb-2">
+                    <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
+                </v-avatar>
+                <h3 class="text-h5 font-weight-bold">Deseja sair?</h3>
+                <p class="text-body-1 text-medium-emphasis">Você precisará fazer login novamente para acessar seus dados.</p>
+            </div>
+            
+            <v-card-actions class="justify-center gap-2">
+                <v-btn 
+                    variant="text" 
+                    class="px-6 text-none font-weight-bold" 
+                    rounded="lg"
+                    @click="confirmLogout = false"
+                >
+                    Cancelar
+                </v-btn>
+                <v-btn 
+                    color="error" 
+                    variant="elevated" 
+                    class="px-8 text-none font-weight-bold" 
+                    elevation="2"
+                    rounded="lg"
+                    @click="handleLogout"
+                >
+                    Sair Agora
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 
     <v-main>
       <router-view></router-view>
@@ -70,19 +87,23 @@
 <script setup>
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { ref} from 'vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const confirmLogout = ref(false)
 
-// Fetch fresh user data on mount to ensure role is correct
+
 import { onMounted } from 'vue'
-onMounted(() => {
+onMounted(async () => {
     if (authStore.isAuthenticated) {
-        authStore.fetchUser()
+        await authStore.fetchUser()
     }
+    console.log(authStore.user)
 })
 
 const handleLogout = () => {
+    confirmLogout.value = false
     authStore.logout()
     router.push('/login')
 }

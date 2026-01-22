@@ -11,6 +11,9 @@
 
     <v-card elevation="2">
         <v-data-table :headers="headers" :items="transactions" :loading="loading">
+            <template v-slot:item.date="{ item }">
+                {{ new Date(item.date).toLocaleDateString('pt-BR') }}
+            </template>
             <template v-slot:item.type="{ item }">
                 <v-chip :color="item.type === 'income' ? 'success' : 'error'" size="small" class="text-uppercase font-weight-bold">
                     {{ item.type === 'income' ? 'Receita' : 'Despesa' }}
@@ -18,7 +21,8 @@
             </template>
             <template v-slot:item.amount="{ item }">
                 <span :class="item.type === 'income' ? 'text-success' : 'text-error'" class="font-weight-bold">
-                    {{ item.type === 'income' ? '+' : '-' }} {{ item.amount }}
+                    {{ item.type === 'income' ? '+' : '-' }} 
+                    {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount) }}
                 </span>
             </template>
         </v-data-table>

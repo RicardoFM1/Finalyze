@@ -4,15 +4,9 @@ import { useRouter } from 'vue-router';
 
 
 export const useAuthStore = defineStore('auth', () => {
-    const storedUser = localStorage.getItem('user');
+   
     const user = ref(null);
-    try {
-        if (storedUser && storedUser !== 'undefined') {
-            user.value = JSON.parse(storedUser);
-        }
-    } catch (e) {
-        localStorage.removeItem('user');
-    }
+   
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = 'http://localhost:8000/api';
     const router = useRouter();
@@ -72,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.user;
             localStorage.setItem('token', token.value);
-            localStorage.setItem('user', JSON.stringify(user.value));
+           
 
             return true;
         } catch (error) {
@@ -111,7 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
-                localStorage.setItem('user', JSON.stringify(user.value));
+               
             }
         } catch (e) {
             console.error(e);
@@ -122,7 +116,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        
     }
 
     return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch };
