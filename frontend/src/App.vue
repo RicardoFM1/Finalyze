@@ -10,8 +10,8 @@ const ui = useUiStore()
     <MainLayout />
 
 
-    <v-overlay :value="ui.loading" absolute>
-      <v-progress-circular indeterminate color="primary" size="64"/>
+    <v-overlay v-model="ui.loading" class="align-center justify-center" persistent absolute>
+      <v-progress-circular  indeterminate color="primary" size="64"/>
     </v-overlay>
 
   </v-app>

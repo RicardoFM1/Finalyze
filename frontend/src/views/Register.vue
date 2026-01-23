@@ -80,6 +80,7 @@
                   type="button"
                   class="mb-4 font-weight-bold"
                   elevation="4"
+                  @click="router.push('/')"
                 >
                   Página inicial
                 </v-btn>
