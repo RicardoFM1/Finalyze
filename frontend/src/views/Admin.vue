@@ -8,6 +8,9 @@
             <v-btn icon="mdi-plus" @click="openDialog()"></v-btn>
         </v-toolbar>
         <v-table>
+            <td colspan="4" class="text-center">
+      <v-progress-linear v-if="loadingPlans" indeterminate color="primary" />
+    </td>
             <thead>
                 <tr>
                     <th class="text-left">Nome</th>
@@ -79,7 +82,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue-darken-1" variant="text" @click="closeDialog">Cancelar</v-btn>
-                <v-btn color="blue-darken-1" variant="text" @click="savePlan">Salvar</v-btn>
+                <v-btn :loading="loadingSalvar" color="blue-darken-1" variant="text" @click="savePlan">Salvar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -101,6 +104,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
 
 const authStore = useAuthStore()
 const plans = ref([])
@@ -114,29 +118,30 @@ const form = ref({
     description: '',
     features: []
 })
-
+const loadingSalvar = ref(false)
 const saving = ref(false)
 const availableFeatures = [
-    'Transações Ilimitadas',
-    'Relatórios Detalhados',
-    'Suporte Prioritário',
-    'Exportação de Dados',
-    'Múltiplas Categorias',
-    'Planejamento de Metas',
-    'Acesso Mobile'
+    'Painel Financeiro',
+    'Lançamentos',
+    'Relatórios Gráficos',
+    'Exportação CSV',
+    'Chat IA de Suporte'
 ]
 
 onMounted(async () => {
    fetchPlans()
 })
-
+const loadingPlans = ref(false)
 const fetchPlans = async () => {
     try {
+        loadingPlans.value = true
         const response = await authStore.apiFetch('/plans')
         plans.value = await response.json()
     } catch (e) {
         console.error(e)
-    }
+    }finally {
+        loadingPlans.value = false
+    }   
 }
 
 const formatPrice = (value) => {
@@ -145,7 +150,7 @@ const formatPrice = (value) => {
 
 const openDialog = (item = null) => {
     if (item) {
-        form.value = { ...item, features: item.features || [], is_active: !!item.is_active } // Ensure array and boolean
+        form.value = { ...item, features: item.features || [], is_active: !!item.is_active } 
     } else {
         form.value = { id: null, name: '', price: 0, interval: 'mês', max_transactions: 100, description: '', features: [], is_active: true }
     }
@@ -160,7 +165,7 @@ const savePlan = async () => {
     const isEdit = !!form.value.id
     const endpoint = isEdit ? `/plans/${form.value.id}` : '/plans'
     const method = isEdit ? 'PUT' : 'POST'
-
+    loadingSalvar.value = true
     try {
         const response = await authStore.apiFetch(endpoint, {
             method: method,
@@ -169,12 +174,17 @@ const savePlan = async () => {
         
         if (response.ok) {
             closeDialog()
+            toast.success(`Plano ${isEdit ? 'atualizado' : 'criado'} com sucesso!`)
             fetchPlans()
         } else {
-            alert('Erro ao salvar plano')
+            toast.error('Erro ao salvar plano')
+            loadingSalvar.value = false
         }
     } catch (e) {
         console.error(e)
+    }finally {
+        loadingSalvar.value = false
+        fetchPlans()
     }
 }
 

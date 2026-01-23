@@ -138,7 +138,7 @@ const handleRegister = async () => {
     router.push('/login')
   } catch (err) {
     error.value = err.message || 'Erro ao cadastrar'
-    // Extract validation errors if available
+  
     if (err.response && err.response.data && err.response.data.errors) {
          error.value = Object.values(err.response.data.errors).flat().join('\n');
     }
