@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\StorePlanRequest;
+use App\Http\Requests\UpdatePlanRequest;
 use App\Models\Plan;
 
 class PlanController extends Controller
@@ -21,17 +23,9 @@ class PlanController extends Controller
         return Plan::orderBy('created_at', 'desc')->get();
     }
 
-    public function store(Request $request)
+    public function store(StorePlanRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric|min:0.01', // No free plans
-            'interval' => 'required|string',
-            'max_transactions' => 'required|integer',
-            'description' => 'nullable|string',
-            'features' => 'nullable|array',
-            'is_active' => 'boolean'
-        ]);
+        $validated = $request->validated();
 
         // Check if we will have less than 2 active plans? No, creating is adding.
         
@@ -43,16 +37,9 @@ class PlanController extends Controller
         return $plan;
     }
 
-    public function update(Request $request, Plan $plan)
+    public function update(UpdatePlanRequest $request, Plan $plan)
     {
-        $validated = $request->validate([
-            'name' => 'string',
-            'price' => 'numeric',
-            'interval' => 'string',
-            'max_transactions' => 'integer',
-            'description' => 'string',
-            'features' => 'array'
-        ]);
+        $validated = $request->validated();
 
         if (isset($validated['is_active']) && !$validated['is_active']) {
              // If trying to deactivate, check if we have enough active plans

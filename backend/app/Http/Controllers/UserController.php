@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,15 +13,11 @@ class UserController extends Controller
         return $request->user()->load('plan');
     }
 
-    public function update(Request $request)
+    public function update(UpdateUserRequest $request)
     {
         $user = Auth::user();
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'avatar' => 'nullable|image|max:2048'
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('avatar')) {
              // Delete old avatar if exists

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\CreatePreferenceRequest;
+use App\Http\Requests\ProcessPaymentRequest;
+use App\Http\Requests\HandleWebhookRequest;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 
@@ -24,14 +26,9 @@ class CheckoutController extends Controller
         }
     }
 
-    public function createPreference(Request $request)
+    public function createPreference(CreatePreferenceRequest $request)
     {
-        $request->validate([
-            'items' => 'required|array',
-            'items.*.title' => 'required|string',
-            'items.*.unit_price' => 'required|numeric',
-            'items.*.quantity' => 'required|integer',
-        ]);
+
 
         try {
             $this->setupMercadoPago();
@@ -83,7 +80,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function processPayment(Request $request)
+    public function processPayment(ProcessPaymentRequest $request)
     {
         try {
             $this->setupMercadoPago();
@@ -122,7 +119,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function handleWebhook(Request $request)
+    public function handleWebhook(HandleWebhookRequest $request)
     {
         \Illuminate\Support\Facades\Log::info('Mercado Pago Webhook Received', $request->all());
 
