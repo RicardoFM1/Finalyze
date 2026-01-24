@@ -73,7 +73,17 @@
                   Cadastrar
                 </v-btn>
               </v-form>
-
+               <v-btn
+                  block
+                  color="green"
+                  size="x-large"
+                  type="button"
+                  class="mb-4 font-weight-bold"
+                  elevation="4"
+                  @click="router.push('/')"
+                >
+                  Página inicial
+                </v-btn>
               <div class="text-center">
                 <span class="text-body-2 text-medium-emphasis">Já tem uma conta? </span>
                 <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">Entrar</router-link>
@@ -128,7 +138,7 @@ const handleRegister = async () => {
     router.push('/login')
   } catch (err) {
     error.value = err.message || 'Erro ao cadastrar'
-    // Extract validation errors if available
+  
     if (err.response && err.response.data && err.response.data.errors) {
          error.value = Object.values(err.response.data.errors).flat().join('\n');
     }

@@ -124,12 +124,7 @@ onMounted(async () => {
 const fetchSummary = async () => {
     loading.value = true
     try {
-        const response = await fetch('http://localhost:8000/api/dashboard/summary', {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            }
-        })
+        const response = await authStore.apiFetch('/dashboard/summary')
         if (response.ok) {
             summary.value = await response.json()
         }
@@ -143,12 +138,8 @@ const fetchSummary = async () => {
 const saveTransaction = async () => {
     saving.value = true
     try {
-        const response = await fetch('http://localhost:8000/api/transactions', {
+        const response = await authStore.apiFetch('/transactions', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            },
             body: JSON.stringify({
                 ...form.value,
                 amount: Number(form.value.amount) // Ensure number

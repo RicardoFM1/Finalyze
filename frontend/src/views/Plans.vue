@@ -30,19 +30,14 @@ const plans = ref([])
 const loading = ref(true)
 
 onMounted(async () => {
-  // Check if redirected due to missing plan
+  
+
   if (router.currentRoute.value.query.msg === 'no_plan') {
     toast.warning('Você precisa de um plano ativo para acessar essa área. Escolha um plano abaixo!')
   }
   
   try {
-    // Public endpoint, but let's use fetch directly or axios if configured
-    const response = await fetch('http://localhost:8000/api/plans', {
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${authStore.token}` // Optional if public, but good practice if mixed
-        }
-    })
+    const response = await authStore.apiFetch('/plans')
     const data = await response.json()
     plans.value = data
   } catch (error) {
@@ -50,6 +45,7 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+
 })
 
 const handleSelectPlan = (plan) => {
