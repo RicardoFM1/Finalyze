@@ -9,7 +9,7 @@ class Plan extends Model
 {
     use HasFactory;
 
-    protected $table = 'planos'; // Portuguese table name
+    protected $table = 'planos';
 
     protected $fillable = [
         'name',

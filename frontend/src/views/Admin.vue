@@ -94,7 +94,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue-darken-1" variant="text" @click="deleteDialog = false">Cancelar</v-btn>
-                <v-btn color="error" variant="text" @click="deletePlan">Excluir</v-btn>
+                <v-btn :loading="loadingSalvar" color="error" variant="text" @click="deletePlan">Excluir</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -177,7 +177,8 @@ const savePlan = async () => {
             toast.success(`Plano ${isEdit ? 'atualizado' : 'criado'} com sucesso!`)
             fetchPlans()
         } else {
-            toast.error('Erro ao salvar plano')
+            const data = await response.json()
+            toast.error(data.message || 'Erro ao salvar plano')
             loadingSalvar.value = false
         }
     } catch (e) {
@@ -199,16 +200,25 @@ const confirmDelete = (item) => {
 const deletePlan = async () => {
     if (!planToDelete.value) return 
     
-    // Optimistic UI or wait? Let's wait.
+   loadingSalvar.value = true
     try {
-        await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
+        const response = await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
             method: 'DELETE'
         })
         fetchPlans()
         deleteDialog.value = false
         planToDelete.value = null
+        if(response.ok){
+            toast.success("Plano deletado com sucesso")
+        } else {
+            const data = await response.json().catch(() => ({}))
+            toast.error(data.message || "Erro ao tentar deletar o plano")
+        }
     } catch (e) {
-        console.error(e)
+        console.log(e)
+        toast.error("Erro na comunicação com o servidor")
+    }finally {
+        loadingSalvar.value = false
     }
 }
 </script>

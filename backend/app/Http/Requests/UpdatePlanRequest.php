@@ -19,7 +19,8 @@ class UpdatePlanRequest extends FormRequest
             'interval' => 'string',
             'max_transactions' => 'integer',
             'description' => 'string',
-            'features' => 'array'
+            'features' => 'array',
+            'is_active' => 'boolean'
         ];
     }
 

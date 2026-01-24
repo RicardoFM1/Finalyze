@@ -14,14 +14,14 @@ class HandleWebhookRequest extends FormRequest
     public function rules()
     {
         return [
-            // Adicione as regras de validação necessárias para o webhook
+           
         ];
     }
 
     public function messages()
     {
         return [
-            // Mensagens personalizadas se necessário
+           
         ];
     }
 }
