@@ -7,15 +7,16 @@ use App\Http\Requests\StorePlanRequest;
 use App\Http\Requests\UpdatePlanRequest;
 use App\Models\Plan;
 use App\Models\User;
+use App\Models\Subscription;
 
 class PlanController extends Controller
 {
     public function index(Request $request)
     {
-       
+
         return Plan::where('is_active', true)->orderBy('created_at', 'desc')->get();
     }
-    
+
     public function adminIndex()
     {
         return Plan::orderBy('created_at', 'desc')->get();
@@ -25,10 +26,10 @@ class PlanController extends Controller
     {
         $validated = $request->validated();
 
-        
+
         return Plan::create($validated);
     }
-    
+
     public function show(Plan $plan)
     {
         return $plan;
@@ -39,11 +40,11 @@ class PlanController extends Controller
         $validated = $request->validated();
 
         if (isset($validated['is_active']) && !$validated['is_active']) {
-           
-             $activeCount = Plan::where('is_active', true)->where('id', '!=', $plan->id)->count();
-             if ($activeCount < 2) {
-                 return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
-             }
+
+            $activeCount = Plan::where('is_active', true)->where('id', '!=', $plan->id)->count();
+            if ($activeCount < 2) {
+                return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
+            }
         }
 
         $plan->update($validated);
@@ -56,10 +57,16 @@ class PlanController extends Controller
         if ($activeCount < 2) {
             return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
         }
-        $userPlan = User::where('plan_id', $plan->id)->first();
-        if($userPlan){
-            return response()->json(['message' => 'Este plano está sendo usado por um usuário.']);   
+
+        $hasUsers = User::where('plan_id', $plan->id)->exists();
+        $hasSubscriptions = Subscription::where('plan_id', $plan->id)->exists();
+
+        if ($hasUsers || $hasSubscriptions) {
+            return response()->json([
+                'message' => 'Este plano não pode ser excluído pois possui usuários ou assinaturas vinculadas.'
+            ], 422);
         }
+
         $plan->delete();
         return response()->noContent();
     }

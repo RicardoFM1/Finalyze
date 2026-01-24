@@ -8,7 +8,7 @@ const routes = [
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
   { path: '/cadastro', name: 'Register', component: () => import('../views/Register.vue') },
   { path: '/painel', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true, requiresPlan: true } },
-  { path: '/planos', name: 'Plans', component: () => import('../views/Plans.vue') },
+  { path: '/planos', name: 'Plans', component: () => import('../views/Plans.vue'), meta: { requiresNoPlan: true} },
   { path: '/lancamentos', name: 'Transactions', component: () => import('../views/Transactions.vue'), meta: { requiresAuth: true, requiresPlan: true } },
   { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true } },
@@ -54,10 +54,13 @@ router.beforeEach(async (to) => {
   }
 
 
-  if (to.meta.requiresPlan && !auth.user?.plan_id) {
+  if (to.meta.requiresPlan && !auth.user?.plan_id && auth.user?.role !== 'admin') {
     return { name: 'Plans', query: { msg: 'no_plan' } }
   }
 
+  if (to.meta.requiresNoPlan && auth.user?.plan_id){
+    return { name: 'NotFound'}
+  }
   return true
 })
 

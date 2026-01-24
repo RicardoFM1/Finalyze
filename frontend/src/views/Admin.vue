@@ -135,7 +135,7 @@ const loadingPlans = ref(false)
 const fetchPlans = async () => {
     try {
         loadingPlans.value = true
-        const response = await authStore.apiFetch('/plans')
+        const response = await authStore.apiFetch('/admin/plans')
         plans.value = await response.json()
     } catch (e) {
         console.error(e)
