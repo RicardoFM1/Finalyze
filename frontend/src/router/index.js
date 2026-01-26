@@ -1,95 +1,70 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
+import { nextTick } from 'vue'
 
 const routes = [
-    {
-        path: '/',
-        name: 'Home',
-        component: () => import('../views/Home.vue'),
-    },
-    {
-        path: '/login',
-        name: 'Login',
-        component: () => import('../views/Login.vue'),
-    },
-    {
-        path: '/cadastro',
-        name: 'Register',
-        component: () => import('../views/Register.vue'),
-    },
-    {
-        path: '/painel',
-        name: 'Dashboard',
-        component: () => import('../views/Dashboard.vue'),
-    },
-    {
-        path: '/planos',
-        name: 'Plans',
-        component: () => import('../views/Plans.vue'),
-    },
-    {
-        path: '/lancamentos',
-        name: 'Transactions',
-        component: () => import('../views/Transactions.vue'),
-    },
-    {
-        path: '/perfil',
-        name: 'Profile',
-        component: () => import('../views/Profile.vue'),
-    },
-    {
-        path: '/relatorios',
-        name: 'Reports',
-        component: () => import('../views/Reports.vue'),
-    },
-    {
-        path: '/admin',
-        name: 'Admin',
-        component: () => import('../views/Admin.vue'),
-    },
-    {
-        path: '/pagamento',
-        name: 'Checkout',
-        component: () => import('../views/Checkout.vue'),
-    },
-    // Add other routes here
+  { path: '/', name: 'Home', component: () => import('../views/Home.vue') },
+  { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
+  { path: '/cadastro', name: 'Register', component: () => import('../views/Register.vue') },
+  { path: '/painel', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true, requiresPlan: true } },
+  { path: '/planos', name: 'Plans', component: () => import('../views/Plans.vue') },
+  { path: '/lancamentos', name: 'Transactions', component: () => import('../views/Transactions.vue'), meta: { requiresAuth: true, requiresPlan: true } },
+  { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
+  { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true } },
+  { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
+  { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue'), meta: { requiresAuth: true } },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') },
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes,
+  history: createWebHistory(),
+  routes,
 })
 
-router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('token');
+router.beforeEach(async (to) => {
+  const auth = useAuthStore()
 
-    // If logged in, prevent access to login/register
-    // If logged in, prevent access to login/register
-    if (token && (to.name === 'Login' || to.name === 'Register')) {
-        next('/painel');
+  const ui = useUiStore()
+  ui.setLoading(true)
+  await nextTick()
+
+  if ((to.name === 'Login' || to.name === 'Register') && auth.isAuthenticated) {
+    return { name: 'Home' }
+  }
+
+
+  if (auth.isAuthenticated && !auth.user) {
+    try {
+      await auth.fetchUser()
+    } catch {
+      ui.setLoading(false)
+      return { name: 'Login' }
     }
-    // Protected routes
-    else if (to.path.startsWith('/painel') || to.path.startsWith('/lancamentos') || to.path.startsWith('/relatorios')) {
-        if (!token) {
-            next('/login');
-        } else {
-            // Check for active plan (requires user data to be loaded in store usually)
-            // But store might not be ready. Let's assume user object is in localStorage for quick check
-            // or we rely on the component mounted check / backend 403.
-            // A better way is to use the store if persisted.
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (!user.plan_id && to.name !== 'Plans' && to.name !== 'Checkout' && to.name !== 'Profile') {
-                // Allow Profile so they can logout or update info? Actually user said "impossível acessar essa parte"
-                // Redirect to plans with warning
-                // alert('Você precisa de um plano ativo para acessar o painel.'); // Bad UX, use toast in view or query param
-                next({ path: '/planos', query: { msg: 'no_plan' } });
-            } else {
-                next();
-            }
-        }
-    }
-    else {
-        next();
-    }
-});
+  }
+
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return { name: 'Login' }
+  }
+
+
+  if (to.meta.requiresAdmin && auth.user?.role !== 'admin') {
+    return { name: 'NotFound'}
+  }
+
+
+  if (to.meta.requiresPlan && !auth.user?.plan_id) {
+    return { name: 'Plans', query: { msg: 'no_plan' } }
+  }
+
+  return true
+})
+
+
+router.afterEach(() => {
+  const ui = useUiStore()
+  ui.setLoading(false)
+})
 
 export default router

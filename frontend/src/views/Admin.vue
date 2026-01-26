@@ -132,12 +132,7 @@ onMounted(async () => {
 
 const fetchPlans = async () => {
     try {
-        const response = await fetch('http://localhost:8000/api/plans', {
-             headers: {
-                'Accept': 'application/json',
-                 'Authorization': `Bearer ${authStore.token}`
-            }
-        })
+        const response = await authStore.apiFetch('/plans')
         plans.value = await response.json()
     } catch (e) {
         console.error(e)
@@ -163,17 +158,12 @@ const closeDialog = () => {
 
 const savePlan = async () => {
     const isEdit = !!form.value.id
-    const url = isEdit ? `http://localhost:8000/api/plans/${form.value.id}` : 'http://localhost:8000/api/plans'
+    const endpoint = isEdit ? `/plans/${form.value.id}` : '/plans'
     const method = isEdit ? 'PUT' : 'POST'
 
     try {
-        const response = await fetch(url, {
+        const response = await authStore.apiFetch(endpoint, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            },
             body: JSON.stringify(form.value)
         })
         
@@ -201,11 +191,8 @@ const deletePlan = async () => {
     
     // Optimistic UI or wait? Let's wait.
     try {
-        await fetch(`http://localhost:8000/api/plans/${planToDelete.value.id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${authStore.token}`
-            }
+        await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
+            method: 'DELETE'
         })
         fetchPlans()
         deleteDialog.value = false

@@ -69,12 +69,7 @@ onMounted(async () => {
 
 const fetchUser = async () => {
     try {
-        const response = await fetch('http://localhost:8000/api/user', {
-             headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            }
-        })
+        const response = await authStore.apiFetch('/user')
         const data = await response.json()
         user.value = data
     } catch (e) {
@@ -111,12 +106,8 @@ const saveProfile = async () => {
             formData.append('avatar', selectedFile.value)
         }
 
-        const response = await fetch('http://localhost:8000/api/user', {
+        const response = await authStore.apiFetch('/user', {
             method: 'POST', // Use POST with _method=PUT for FormData
-            headers: {
-                'Authorization': `Bearer ${authStore.token}`
-                // Do NOT set Content-Type header manually for FormData
-            },
             body: formData
         })
         
@@ -125,7 +116,7 @@ const saveProfile = async () => {
             // Update store
             const updated = await response.json()
             authStore.user = updated
-            localStorage.setItem('user', JSON.stringify(updated))
+           
             selectedFile.value = null // Clear selection
         } else {
              toast.error('Erro ao atualizar')

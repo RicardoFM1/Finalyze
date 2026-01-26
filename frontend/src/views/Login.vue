@@ -43,9 +43,13 @@
                   :rules="[v => !!v || 'Senha é obrigatória']"
                 ></v-text-field>
 
+<<<<<<< HEAD
                 <div class="d-flex justify-end mb-4">
                     <a href="#"  class="text-caption text-md-body-2" >Esqueceu a senha?</a>
                 </div>
+=======
+               
+>>>>>>> origin/Ricardo
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
                 
@@ -62,6 +66,17 @@
                   Entrar
                 </v-btn>
               </v-form>
+               <v-btn
+                  block
+                  color="green"
+                  size="x-large"
+                  type="button"
+                  class="mb-4 font-weight-bold"
+                  elevation="4"
+                  @click="router.push('/')"
+                >
+                  Página inicial
+                </v-btn>
 
               <div class="text-center mt-3 mt-md-6">
                 <span class="text-caption text-md-body-2 text-medium-emphasis">Novo por aqui? </span>

@@ -31,12 +31,7 @@ const chartOptions = ref({
 
 onMounted(async () => {
     try {
-        const response = await fetch('http://localhost:8000/api/reports/monthly', {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${authStore.token}`
-            }
-        })
+        const response = await authStore.apiFetch('/reports/monthly')
         const data = await response.json()
         
         chartData.value = data

@@ -7,11 +7,19 @@
           Acompanhe despesas, monitore receitas e alcance seus objetivos financeiros com nossa plataforma intuitiva.
           Junte-se a milhares de usuários que assumiram o controle do seu dinheiro.
         </p>
+<<<<<<< HEAD
         <div class="d-flex gap-2 gap-md-4 justify-center justify-md-start">
             <v-btn color="primary" size="large" class="py-2 py-md-4 text-body-2 text-md-body-1" to="/planos" elevation="4">Ver Planos</v-btn>
             <v-btn v-if="!authStore.isAuthenticated" variant="outlined" size="large" class="py-2 py-md-4 text-body-2 text-md-body-1" to="/login">Entrar</v-btn>
             <v-btn v-else-if="authStore.user?.role !== 'admin'" variant="outlined" size="large" class="py-2 py-md-4 text-body-2 text-md-body-1 ml-4" to="/painel">Ir para Painel</v-btn>
             <v-btn v-else variant="outlined" size="large" class="py-2 py-md-4 text-body-2 text-md-body-1 ml-4" to="/admin">Painel Admin</v-btn>
+=======
+        <div class="d-flex gap-4 justify-center justify-md-start">
+            <v-btn v-if="authStore.user?.plan_id == null" color="primary" size="x-large" to="/planos" elevation="4">Ver Planos</v-btn>
+            <v-btn v-if="!authStore.isAuthenticated" variant="outlined" size="x-large" class="ml-4" to="/login">Entrar</v-btn>
+            <v-btn v-else-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" variant="outlined" size="x-large" class="ml-4" to="/painel">Ir para Painel</v-btn>
+            <v-btn v-if="authStore.user?.role === 'admin'" variant="outlined" size="x-large" class="ml-4" to="/admin">Painel Admin</v-btn>
+>>>>>>> origin/Ricardo
         </div>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-center">
@@ -41,7 +49,7 @@
         <v-card class="h-100 pa-4" variant="tonal">
           <v-card-item>
             <v-icon size="48" color="primary" class="mb-4">mdi-lock-check</v-icon>
-            <v-card-title class="text-h5 font-weight-bold">SegurançaTotal</v-card-title>
+            <v-card-title class="text-h5 font-weight-bold">Segurança Total</v-card-title>
             <v-card-text>Seus dados financeiros são criptografados e protegidos com segurança de nível bancário.</v-card-text>
           </v-card-item>
         </v-card>
