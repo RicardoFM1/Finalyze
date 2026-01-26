@@ -69,6 +69,7 @@
                   :loading="loading"
                   class="mb-4 font-weight-bold"
                   elevation="4"
+                  :disabled="buttonDesativado"
                 >
                   Cadastrar
                 </v-btn>
@@ -97,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify';
@@ -147,4 +148,14 @@ const handleRegister = async () => {
     loading.value = false
   }
 }
+
+const buttonDesativado = computed(() => 
+form.value.name === '' 
+|| form.value.email === '' 
+|| form.value.password === '' 
+|| form.value.password_confirmation === '' 
+|| form.value.password !== form.value.password_confirmation
+|| !isValid.value
+)
+
 </script>
