@@ -43,13 +43,7 @@
                   :rules="[v => !!v || 'Senha é obrigatória']"
                 ></v-text-field>
 
-<<<<<<< HEAD
-                <div class="d-flex justify-end mb-4">
-                    <a href="#"  class="text-caption text-md-body-2" >Esqueceu a senha?</a>
-                </div>
-=======
                
->>>>>>> origin/Ricardo
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
                 
