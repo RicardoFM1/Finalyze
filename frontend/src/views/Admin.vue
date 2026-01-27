@@ -22,7 +22,7 @@
             <tbody>
                 <tr v-for="item in plans" :key="item.id">
                     <td>{{ item.name }}</td>
-                    <td>{{ formatPrice(item.price) }}</td>
+                    <td>{{ formatPrice(item.price_cents / 100) }}</td>
                     <td>{{ item.interval }}</td>
                     <td>
                         <v-btn icon="mdi-pencil" size="small" variant="text" color="info" @click="openDialog(item)"></v-btn>
@@ -46,7 +46,7 @@
                         </v-col>
                         <v-col cols="12" sm="6">
                             <v-text-field 
-                                v-model="form.price" 
+                                v-model="form.price_cents" 
                                 label="Preço" 
                                 prefix="R$"
                                 type="number" 
@@ -112,7 +112,7 @@ const dialog = ref(false)
 const form = ref({
     id: null,
     name: '',
-    price: 0,
+    price_cents: 0,
     interval: 'mês',
     max_transactions: 100,
     description: '',
@@ -150,9 +150,14 @@ const formatPrice = (value) => {
 
 const openDialog = (item = null) => {
     if (item) {
-        form.value = { ...item, features: item.features || [], is_active: !!item.is_active } 
+        form.value = { 
+            ...item, 
+            price_cents: item.price_cents / 100, // Converte para decimal para edição
+            features: item.features || [], 
+            is_active: !!item.is_active 
+        } 
     } else {
-        form.value = { id: null, name: '', price: 0, interval: 'mês', max_transactions: 100, description: '', features: [], is_active: true }
+        form.value = { id: null, name: '', price_cents: 0, interval: 'mês', max_transactions: 100, description: '', features: [], is_active: true }
     }
     dialog.value = true
 }
@@ -167,9 +172,15 @@ const savePlan = async () => {
     const method = isEdit ? 'PUT' : 'POST'
     loadingSalvar.value = true
     try {
+        // Prepara o payload convertendo de volta para centavos
+        const payload = {
+            ...form.value,
+            price_cents: Math.round(form.value.price_cents * 100)
+        }
+
         const response = await authStore.apiFetch(endpoint, {
             method: method,
-            body: JSON.stringify(form.value)
+            body: JSON.stringify(payload)
         })
         
         if (response.ok) {

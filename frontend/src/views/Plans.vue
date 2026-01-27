@@ -51,7 +51,7 @@ onMounted(async () => {
 const handleSelectPlan = (plan) => {
   
   if (authStore.isAuthenticated) {
-      router.push({ path: '/pagamento', query: { plan: plan.id } })
+      router.push({ path: '/pagamento' })
   } else {
     
       router.push({ path: '/login', query: { redirect: 'pagamento', plan: plan.id } })

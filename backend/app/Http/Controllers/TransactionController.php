@@ -17,8 +17,7 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
         
-        // Quota check logic would go here
-        // if ($user->transactions()->count() >= $user->plan->max_transactions) ...
+      
         
         $validated = $request->validated();
 

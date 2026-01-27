@@ -12,17 +12,16 @@ class CheckoutController extends Controller
 {
     private function setupMercadoPago()
     {
-            $token = config('services.mercadopago.token');
-        
+        $token = config('services.mercadopago.token');
+
         if (!$token) {
             throw new \Exception('Mercado Pago Token missing');
         }
 
         MercadoPagoConfig::setAccessToken($token);
         MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
-        
+
         if (config('app.env') === 'local') {
-            // O SDK v3 já desativa SSL internamente quando setRuntimeEnviroment(LOCAL) é chamado
         }
     }
 
@@ -33,10 +32,8 @@ class CheckoutController extends Controller
         try {
             $this->setupMercadoPago();
             $client = new PreferenceClient();
-            
-            // Cast items to correct types specifically for SDK
 
-            // Buscar plano pelo id e usar price_cents
+
             $planId = $request->input('plan_id');
             $plan = \App\Models\Plan::findOrFail($planId);
             $items = [[
@@ -47,7 +44,7 @@ class CheckoutController extends Controller
 
             // FORCING NGORK URL FOR TESTING
             $baseUrl = 'https://elina-unrabbinical-consuelo.ngrok-free.dev';
-            
+
             error_log("DEBUG PAGAMENTO - Base URL: " . $baseUrl);
             \Illuminate\Support\Facades\Log::info('Creating Mercado Pago Preference', [
                 'baseUrl' => $baseUrl,
@@ -64,6 +61,15 @@ class CheckoutController extends Controller
                 "auto_return" => "approved",
                 "notification_url" => $baseUrl . "/api/webhook/mercadopago"
             ]);
+
+            // Persistir no Banco de Dados
+            \App\Models\Subscription::updateOrCreate(
+                ['user_id' => auth()->id(), 'status' => 'pending'],
+                [
+                    'plan_id' => $plan->id,
+                    'mercado_pago_id' => $preference->id,
+                ]
+            );
 
             return response()->json(['id' => $preference->id]);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
@@ -82,26 +88,54 @@ class CheckoutController extends Controller
         }
     }
 
+    public function getLatestPreference()
+    {
+        try {
+            $subscription = \App\Models\Subscription::where('user_id', auth()->id())
+                ->where('status', 'pending')
+                ->latest()
+                ->firstOrFail();
+
+            // Buscar o plano
+            $plan = \App\Models\Plan::findOrFail($subscription->plan_id);
+
+            return response()->json([
+                'id' => $subscription->mercado_pago_id,
+                'plan' => $plan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Nenhuma preferência pendente encontrada'], 404);
+        }
+    }
+
     public function processPayment(ProcessPaymentRequest $request)
     {
         try {
             $this->setupMercadoPago();
             $client = new \MercadoPago\Client\Payment\PaymentClient();
 
+       
+            $user = auth()->user();
+
             $data = [
                 "payment_method_id" => $request->payment_method_id,
                 "transaction_amount" => (float)$request->transaction_amount,
                 "description" => $request->description,
                 "payer" => [
-                    "email" => $request->payer['email'],
+                    "email" => $user->email, 
                     "identification" => [
-                        "type" => $request->payer['identification']['type'] ?? null,
+                        "type" => $request->payer['identification']['type'] ?? 'CPF',
                         "number" => $request->payer['identification']['number'] ?? null
-                    ]
+                    ],
+                    "first_name" => explode(' ', $user->name)[0], 
+                    "last_name" => implode(' ', array_slice(explode(' ', $user->name), 1)) ?? 'User'
+                ],
+                "metadata" => [
+                    "user_id" => $user->id
                 ]
             ];
 
-            // Se não for PIX, adiciona token, issuer_id e installments
+            
             if ($request->payment_method_id !== 'pix') {
                 $data["token"] = $request->token;
                 $data["issuer_id"] = (int)$request->issuer_id;
@@ -115,6 +149,16 @@ class CheckoutController extends Controller
                 'status_detail' => $payment->status_detail,
                 'id' => $payment->id
             ]);
+        } catch (\MercadoPago\Exceptions\MPApiException $e) {
+            \Illuminate\Support\Facades\Log::error('Mercado Pago Payment Error', [
+                'status' => $e->getApiResponse()?->getStatusCode(),
+                'content' => $e->getApiResponse()?->getContent()
+            ]);
+
+            $errorContent = json_decode($e->getApiResponse()?->getContent(), true);
+            $message = $errorContent['message'] ?? $e->getMessage();
+
+            return response()->json(['error' => $message, 'details' => $errorContent], 422);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Payment processing failed: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
@@ -127,16 +171,16 @@ class CheckoutController extends Controller
 
         if ($request->type === 'payment' && isset($request->data['id'])) {
             $paymentId = $request->data['id'];
-            
+
             try {
                 $this->setupMercadoPago();
                 $client = new \MercadoPago\Client\Payment\PaymentClient();
-                
+
                 $payment = $client->get($paymentId);
                 \Illuminate\Support\Facades\Log::info("Payment Update: ID {$paymentId} is now {$payment->status}");
+
                 
-                // TODO: Update subscription/transaction in database
-                
+
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Error processing webhook payment: ' . $e->getMessage());
             }

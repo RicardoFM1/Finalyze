@@ -12,21 +12,22 @@ Route::get('/plans', [App\Http\Controllers\PlanController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [App\Http\Controllers\UserController::class, 'show']);
     Route::put('/user', [App\Http\Controllers\UserController::class, 'update']);
+    Route::get('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'getLatestPreference']);
     Route::post('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'createPreference']);
     Route::post('/process_payment', [App\Http\Controllers\CheckoutController::class, 'processPayment']);
 
-    
+
     Route::middleware('has_plan')->group(function () {
         Route::get('/dashboard/summary', [App\Http\Controllers\DashboardController::class, 'summary']);
 
-       
+
         Route::apiResource('transactions', App\Http\Controllers\TransactionController::class);
 
-      
+
         Route::get('/reports/monthly', [App\Http\Controllers\ReportController::class, 'monthly']);
     });
 
- 
+
     Route::middleware('admin')->group(function () {
         Route::get('/admin/plans', [App\Http\Controllers\PlanController::class, 'adminIndex']);
         Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);

@@ -20,15 +20,14 @@
 
 <script setup>
 import { onMounted, ref, watch, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
-const props = defineProps({
-  preferenceId: String,
-  amount: {
-    type: Number,
-    default: 29.90
-  }
-})
 
+const authStore = useAuthStore()
+const amount = ref(null)
+const preferenceId = ref(null)
+const planId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const brickMounted = ref(false)
@@ -37,7 +36,7 @@ let brickController = null
 const reload = () => window.location.reload()
 
 const initMercadoPago = async () => {
-    if (!props.preferenceId) return
+    if (!preferenceId.value || brickMounted.value) return
     
     loading.value = true
     error.value = null
@@ -74,8 +73,8 @@ const initMercadoPago = async () => {
 
         brickController = await bricksBuilder.create('payment', 'paymentBrick_container', {
             initialization: {
-                amount: props.amount,
-                preferenceId: props.preferenceId,
+                amount: amount.value,
+                preferenceId: preferenceId.value,
             },
             customization: {
                 paymentMethods: {
@@ -90,7 +89,7 @@ const initMercadoPago = async () => {
                 onReady: () => {
                     loading.value = false
                     brickMounted.value = true
-                    console.log('Brick ready!')
+                    
                 },
                 onSubmit: ({ formData }) => {
                     return new Promise((resolve, reject) => {
@@ -98,7 +97,7 @@ const initMercadoPago = async () => {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}` // Fallback para token se necessário
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` 
                             },
                             body: JSON.stringify(formData),
                         })
@@ -136,9 +135,27 @@ const initMercadoPago = async () => {
     }
 }
 
-onMounted(initMercadoPago)
+
+onMounted(async () => {
+    try {
+        const response = await authStore.apiFetch('/checkout/preference')
+        if (!response.ok) throw new Error('Preferência não encontrada')
+        
+        const data = await response.json()
+        
+        // Atribuindo os valores - O watch cuidará de chamar o initMercadoPago
+        amount.value = data.plan.price_cents / 100 
+        planId.value = data.plan.id
+        preferenceId.value = data.id 
+        
+    } catch(e) {
+        console.error('Erro ao carregar checkout:', e)
+        router.push('/planos')
+    }
+})
 onUnmounted(() => { if (brickController) brickController.unmount() })
-watch(() => props.preferenceId, (newId) => { if (newId) initMercadoPago() })
+watch(() => preferenceId.value, (newId) => { if (newId) initMercadoPago() })
+
 </script>
 
 <style scoped>

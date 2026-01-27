@@ -14,21 +14,15 @@ class CreatePreferenceRequest extends FormRequest
     public function rules()
     {
         return [
-            'items' => 'required|array',
-            'items.*.title' => 'required|string',
-            'items.*.unit_price' => 'required|numeric',
-            'items.*.quantity' => 'required|integer',
+            'plan_id' => 'required|exists:planos,id',
         ];
     }
 
     public function messages()
     {
         return [
-            'items.required' => 'Os itens são obrigatórios.',
-            'items.array' => 'Os itens devem ser um array.',
-            'items.*.title.required' => 'O título do item é obrigatório.',
-            'items.*.unit_price.required' => 'O preço do item é obrigatório.',
-            'items.*.quantity.required' => 'A quantidade do item é obrigatória.'
+            'plan_id.required' => 'O ID do plano é obrigatório.',
+            'plan_id.exists' => 'O plano selecionado é inválido.',
         ];
     }
 }

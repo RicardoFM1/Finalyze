@@ -14,7 +14,18 @@ class ProcessPaymentRequest extends FormRequest
     public function rules()
     {
         return [
-            // Adicione as regras de validação necessárias para processar o pagamento
+            'transaction_amount' => 'required|numeric',
+            'token' => 'required|string',
+            'description' => 'required|string',
+            'installments' => 'required|integer',
+            'payment_method_id' => 'required|string',
+            'issuer_id' => 'required|integer',
+            'payer' => 'required|array',
+            'payer.email' => 'required|email',
+            'payer.identification' => 'required|array',
+            'payer.identification.type' => 'required|string',
+            'payer.identification.number' => 'required|string'
+        ];
         ];
     }
 
