@@ -4,7 +4,7 @@
       
       <v-card-title>Complete sua Assinatura</v-card-title>
       <v-card-text>
-        <p class="mb-4" v-if="planName">Você está assinando o plano <strong>{{ planName }}</strong>.</p>
+        <p class="mb-4" v-if="planName">Você está assinando o plano <strong>{{ selectedPlan.value.name }}</strong>.</p>
         <PaymentBrick :preferenceId="preferenceId" v-if="preferenceId" />
         <v-alert v-else type="info" class="mt-4">
             <v-progress-circular indeterminate size="20" class="mr-2"></v-progress-circular>
@@ -25,6 +25,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const preferenceId = ref(null)
 const planName = ref('Selecionado')
+const selectedPlan = ref(null)
 
 onMounted(async () => {
     const planId = route.query.plan
@@ -33,8 +34,8 @@ onMounted(async () => {
     const plansResponse = await authStore.apiFetch('/plans')
     plans.push(...(await plansResponse.json()))
     console.log("plans", plans)
-    const selectedPlan = plans.find(p => p.id === parseInt(planId))
-    console.log('Plano selecionado:', selectedPlan)
+    selectedPlan.value = plans.find(p => p.id === parseInt(planId))
+    console.log('Plano selecionado:', selectedPlan.value)
     try {
         const response = await authStore.apiFetch('/checkout/preference', {
             method: 'POST',
