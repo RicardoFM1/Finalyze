@@ -15,7 +15,7 @@ class StorePlanRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'price' => 'required|numeric|min:0.01',
+            'price_cents' => 'required|integer|min:1',
             'interval' => 'required|string',
             'max_transactions' => 'required|integer',
             'description' => 'nullable|string',
@@ -28,9 +28,9 @@ class StorePlanRequest extends FormRequest
     {
         return [
             'name.required' => 'O nome é obrigatório.',
-            'price.required' => 'O preço é obrigatório.',
-            'price.numeric' => 'O preço deve ser numérico.',
-            'price.min' => 'O preço deve ser maior que zero.',
+            'price_cents.required' => 'O preço é obrigatório.',
+            'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
+            'price_cents.min' => 'O preço deve ser maior que zero.',
             'interval.required' => 'O intervalo é obrigatório.',
             'max_transactions.required' => 'O número máximo de transações é obrigatório.'
         ];

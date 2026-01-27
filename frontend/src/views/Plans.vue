@@ -49,11 +49,11 @@ onMounted(async () => {
 })
 
 const handleSelectPlan = (plan) => {
-  // If logged in, go to checkout directly
+  
   if (authStore.isAuthenticated) {
       router.push({ path: '/pagamento', query: { plan: plan.id } })
   } else {
-      // If not, go to login with redirect
+    
       router.push({ path: '/login', query: { redirect: 'pagamento', plan: plan.id } })
   }
 }

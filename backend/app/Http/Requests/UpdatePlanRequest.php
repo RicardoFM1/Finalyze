@@ -15,7 +15,7 @@ class UpdatePlanRequest extends FormRequest
     {
         return [
             'name' => 'string',
-            'price' => 'numeric',
+                'price_cents' => 'integer',
             'interval' => 'string',
             'max_transactions' => 'integer',
             'description' => 'string',
@@ -28,7 +28,7 @@ class UpdatePlanRequest extends FormRequest
     {
         return [
             'name.string' => 'O nome deve ser uma string.',
-            'price.numeric' => 'O preço deve ser numérico.',
+                'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
             'interval.string' => 'O intervalo deve ser uma string.',
             'max_transactions.integer' => 'O número máximo de transações deve ser um inteiro.'
         ];

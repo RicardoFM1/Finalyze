@@ -3,7 +3,7 @@
     <v-card-item>
       <v-card-title class="text-h5 font-weight-bold">{{ plan.name }}</v-card-title>
       <v-card-subtitle>
-        <span class="text-h4 font-weight-black">{{ formatPrice(plan.price) }}</span> / {{ plan.interval }}
+        <span class="text-h4 font-weight-black">{{ formatPrice(plan.price_cents) }}</span> / {{ plan.interval }}
       </v-card-subtitle>
     </v-card-item>
 

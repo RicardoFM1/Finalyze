@@ -29,17 +29,21 @@ const planName = ref('Selecionado')
 onMounted(async () => {
     const planId = route.query.plan
     if (!planId) return
-
-    // Create Preference on Backend
+    const plans = []
+    const plansResponse = await authStore.apiFetch('/plans')
+    plans.push(...(await plansResponse.json()))
+    console.log("plans", plans)
+    const selectedPlan = plans.find(p => p.id === parseInt(planId))
+    console.log('Plano selecionado:', selectedPlan)
     try {
         const response = await authStore.apiFetch('/checkout/preference', {
             method: 'POST',
             body: JSON.stringify({
                 items: [
                     {
-                        title: `Assinatura Plano ${planId}`,
+                        planId: `${planId}`,
                         quantity: 1,
-                        unit_price: 29.90 // TODO: Fetch real price from plan ID
+                        unit_price: 29.90
                     }
                 ]
             })

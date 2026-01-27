@@ -35,13 +35,15 @@ class CheckoutController extends Controller
             $client = new PreferenceClient();
             
             // Cast items to correct types specifically for SDK
-            $items = array_map(function($item) {
-                return [
-                    "title" => $item['title'],
-                    "quantity" => (int)$item['quantity'],
-                    "unit_price" => (float)$item['unit_price']
-                ];
-            }, $request->items);
+
+            // Buscar plano pelo id e usar price_cents
+            $planId = $request->input('plan_id');
+            $plan = \App\Models\Plan::findOrFail($planId);
+            $items = [[
+                "title" => $plan->name,
+                "quantity" => 1,
+                "unit_price" => $plan->price_cents / 100
+            ]];
 
             // FORCING NGORK URL FOR TESTING
             $baseUrl = 'https://elina-unrabbinical-consuelo.ngrok-free.dev';
