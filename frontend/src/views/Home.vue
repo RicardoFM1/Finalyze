@@ -14,6 +14,7 @@
             <v-btn v-if="authStore.user?.role === 'admin'" variant="outlined" size="x-large" class="ml-4" to="/admin">Painel Admin</v-btn>
         </div>
       </v-col>
+      
       <v-col cols="12" md="6" class="d-flex justify-center">
         <v-icon size="300" color="primary" icon="mdi-finance"></v-icon>
       </v-col>
@@ -32,6 +33,7 @@
           </v-card-item>
         </v-card>
       </v-col>
+      
       <v-col cols="12" md="4">
         <v-card class="h-100 pa-4" variant="tonal">
           <v-card-item>
@@ -41,6 +43,7 @@
           </v-card-item>
         </v-card>
       </v-col>
+
       <v-col cols="12" md="4">
         <v-card class="h-100 pa-4" variant="tonal">
           <v-card-item>

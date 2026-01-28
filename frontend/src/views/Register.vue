@@ -7,39 +7,39 @@
             <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
               <div class="text-center">
                 <v-icon size="80" color="white" class="mb-6">mdi-finance</v-icon>
-                <h2 class="text-h4 font-weight-bold text-white mb-2">Junte-se a nós</h2>
-                <p class="text-white text-opacity-75">Comece sua jornada para a liberdade financeira hoje mesmo.</p>
+                <h2 class="text-h4 font-weight-bold text-white mb-2">{{ $t('auth.join_us_title') }}</h2>
+                <p class="text-white text-opacity-75">{{ $t('auth.join_us_subtitle') }}</p>
               </div>
             </v-col>
             <v-col cols="12" md="7" class="pa-8">
               <div class="text-center mb-8">
-                <h2 class="text-h4 font-weight-bold text-primary">Criar Conta</h2>
-                <p class="text-medium-emphasis">Preencha seus dados abaixo</p>
+                <h2 class="text-h4 font-weight-bold text-primary">  {{ $t('register.title') }}</h2>
+                <p class="text-medium-emphasis">{{ $t('register.subtitle') }}</p>
               </div>
               
               <v-form @submit.prevent="handleRegister" v-model="isValid">
                  <v-text-field
                   v-model="form.name"
-                  label="Nome Completo"
+                  :label="$t('register.name_label')"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
                   color="primary"
-                  :rules="[v => !!v || 'Nome é obrigatório']"
+                  :rules="[v => !!v || $t('register.rules.name_required')]"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="form.email"
-                  label="E-mail"
+                  :label="$t('register.email_label')"
                   prepend-inner-icon="mdi-email"
                   variant="outlined"
                   color="primary"
                   type="email"
-                  :rules="[v => !!v || 'E-mail é obrigatório']"
+                  :rules="[v => !!v || $t('register.rules.email_required')]"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="form.password"
-                  label="Senha"
+                  :label="$t('register.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
                   color="primary"
@@ -51,12 +51,12 @@
 
                 <v-text-field
                   v-model="form.password_confirmation"
-                  label="Confirmar Senha"
+                  :label="$t('register.password_confirm_label')"
                   prepend-inner-icon="mdi-lock-check"
                   variant="outlined"
                   color="primary"
                   type="password"
-                  :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.password || 'As senhas não coincidem']"
+                  :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.password || $t('register.rules.passwords_match')]"
                 ></v-text-field>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
@@ -70,23 +70,24 @@
                   class="mb-4 font-weight-bold"
                   elevation="4"
                 >
-                  Cadastrar
+                  {{ $t('register.btn_submit') }}
                 </v-btn>
               </v-form>
-               <v-btn
-                  block
-                  color="green"
-                  size="x-large"
-                  type="button"
-                  class="mb-4 font-weight-bold"
-                  elevation="4"
-                  @click="router.push('/')"
-                >
-                  Página inicial
-                </v-btn>
+              <v-btn
+              block
+              color="green"
+              size="x-large"
+              type="button"
+              class="mb-4 font-weight-bold"
+              elevation="4"
+              @click="router.push('/')"
+              >
+                {{ $t('register.btn_home') }}
+              </v-btn>
+
               <div class="text-center">
-                <span class="text-body-2 text-medium-emphasis">Já tem uma conta? </span>
-                <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">Entrar</router-link>
+                <span class="text-body-2 text-medium-emphasis"> {{ $t('register.has_account_text') }} </span>
+                <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">{{ $t('register.login_link') }}</router-link>
               </div>
             </v-col>
           </v-row>
@@ -118,7 +119,7 @@ const isValid = ref(false)
 const error = ref('')
 
 const passwordRules = [
-  v => !!v || 'Senha é obrigatória',
+  v => !!v || $t('register.rules.pass_required'),
   v => v.length >= 8 || 'Mínimo 8 caracteres',
   v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
   v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',

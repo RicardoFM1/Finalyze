@@ -5,14 +5,28 @@ import vuetify from './plugins/vuetify'
 import router from './router'
 import { createPinia } from 'pinia'
 import Vue3Toastify, { toast } from 'vue3-toastify';
+import { createI18n } from 'vue-i18n'
+import pt from "./components/Language/pt.json";
+import en from "./components/Language/en.json";
 
-const app = createApp(App)
+const pinia = createPinia();
+const i18n = createI18n({
+    legacy: false,
+    locale: 'pt', 
+    messages: {
+        pt: pt,
+        en: en,
+    },
+});
 
-app.use(createPinia())
-app.use(router)
-app.use(vuetify)
+const app = createApp(App);
+
+app.use(pinia); 
+app.use(router);
+app.use(vuetify);
+app.use(i18n); 
 app.use(Vue3Toastify, {
     autoClose: 3000,
 });
 
-app.mount('#app')
+app.mount('#app');
