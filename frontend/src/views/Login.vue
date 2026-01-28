@@ -63,9 +63,8 @@
                <v-btn
                   block
                   color="green"
-                  size="x-large"
                   type="button"
-                  class="mb-4 font-weight-bold"
+                  class="mt-3 py-2 py-md-4 text-body-2 text-md-body-1"
                   elevation="4"
                   @click="router.push('/')"
                 >
