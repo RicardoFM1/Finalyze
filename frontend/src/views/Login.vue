@@ -1,28 +1,37 @@
 <template>
-  <v-container class="fill-height" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
+  <v-container class="fill-height py-4 py-md-0" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
     <v-row align="center" justify="center" class="h-100">
       <v-col cols="12" md="8" lg="6" xl="4">
-        <v-card elevation="24" rounded="lg" class="overflow-hidden">
+        <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
           <v-row no-gutters>
-             <v-col cols="12" md="7" class="pa-8">
-              <div class="text-center mb-8">
-                <h2 class="text-h4 font-weight-bold text-primary">Bem-vindo(a)</h2>
-                <p class="text-medium-emphasis">Entre para acessar suas finanças</p>
+             <v-col cols="12" md="7" class="pa-4 pa-md-8">
+              <div class="text-center mb-4 mb-md-8">
+               <h2 class="text-h6 text-md-h4 font-weight-bold text-primary">
+                Bem-vindo(a)
+              </h2>
+
+               <p class="text-body-2 text-md-body-1 text-medium-emphasis">
+                Entre para acessar suas finanças
+              </p>
+
               </div>
               
               <v-form @submit.prevent="handleLogin" v-model="isValid">
                 <v-text-field
+                  density="compact"
                   v-model="form.email"
                   label="E-mail"
-                  prepend-inner-icon="mdi-email"
+                  :prepend-inner-icon="showIcon ? 'mdi-email' : ''"
                   variant="outlined"
                   color="primary"
                   type="email"
-                  class="mb-2"
+                  class="mb-1 mb-md-2"
                   :rules="[v => !!v || 'E-mail é obrigatório']"
                 ></v-text-field>
 
                 <v-text-field
+                class="mb-1 mb-md-2"
+                  density="compact"
                   v-model="form.password"
                   label="Senha"
                   prepend-inner-icon="mdi-lock"
@@ -39,12 +48,13 @@
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
                 
                 <v-btn
-                  block
+                  
                   color="primary"
-                  size="x-large"
+                  block
+                  size="default"
+                  class="py-2 py-md-4 text-body-2 text-md-body-1"
                   type="submit"
                   :loading="loading"
-                  class="mb-4 font-weight-bold"
                   elevation="4"
                   :disabled="buttonDesativado"
                 >
@@ -63,9 +73,9 @@
                   Página inicial
                 </v-btn>
 
-              <div class="text-center">
-                <span class="text-body-2 text-medium-emphasis">Novo por aqui? </span>
-                <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none">Criar Conta</router-link>
+              <div class="text-center mt-3 mt-md-6">
+                <span class="text-caption text-md-body-2 text-medium-emphasis">Novo por aqui? </span>
+                <router-link to="/cadastro" class="text-caption text-md-body-2 text-primary font-weight-bold text-decoration-none">Criar Conta</router-link>
               </div>
             </v-col>
             <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
@@ -136,3 +146,4 @@ const buttonDesativado = computed(() =>
   !isValid.value
 )
 </script>
+
