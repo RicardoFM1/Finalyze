@@ -1,14 +1,12 @@
 <template>
   <v-layout>
     <v-app-bar color="primary" elevation="2">
-  <v-app-bar-nav-icon
+       <v-app-bar-nav-icon
   v-if="authStore.isAuthenticated"
   @click="toggleDrawer"
   class="mr-2"
   variant="text"
 />
-
-
   <v-toolbar-title
     class="font-weight-bold app-title"
     style="cursor: pointer"
@@ -20,21 +18,25 @@
 
   <v-spacer />
 
-  <div class="d-flex align-center d-none d-md-flex">
-    <template v-if="!authStore.isAuthenticated">
-      <v-btn to="/planos" variant="text" color="white" class="mx-1">
-        Planos
-      </v-btn>
-      <v-btn
-        to="/login"
-        variant="elevated"
-        color="white"
-        class="ml-2 font-weight-bold text-primary"
-      >
-        Entrar
-      </v-btn>
-    </template>
+  
+  <div
+    v-if="!authStore.isAuthenticated && !isAuthPage"
+    class="d-flex align-center d-none d-md-flex"
+  >
+    <v-btn to="/planos" variant="text" color="white" class="mx-1">
+      Planos
+    </v-btn>
+
+    <v-btn
+      to="/login"
+      variant="elevated"
+      color="white"
+      class="ml-2 font-weight-bold text-primary"
+    >
+      Entrar
+    </v-btn>
   </div>
+
 </v-app-bar>
 
 
@@ -114,7 +116,7 @@
 
 <script setup>
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter,useRoute } from 'vue-router'
 import { ref, computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { watch } from 'vue'
@@ -122,6 +124,7 @@ import { watch } from 'vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const confirmLogout = ref(false)
 
 const drawer = ref(false)
@@ -139,6 +142,9 @@ const toggleDrawer = () => {
   }
 }
 
+const isAuthPage = computed(() => {
+  return route.path === '/login' || route.path === '/cadastro'
+})
 
 
 import { onMounted } from 'vue'
