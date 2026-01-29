@@ -37,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-Route::post('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
+Route::any('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
 
 Route::fallback(function () {
     return response()->json([
