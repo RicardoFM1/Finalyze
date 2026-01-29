@@ -109,61 +109,86 @@ class CheckoutController extends Controller
     }
 
     public function processPayment(ProcessPaymentRequest $request)
-    {
-        try {
-            $this->setupMercadoPago();
-            $client = new \MercadoPago\Client\Payment\PaymentClient();
-
-       
-            $user = auth()->user();
-
-            $data = [
-                "payment_method_id" => $request->payment_method_id,
-                "transaction_amount" => (float)$request->transaction_amount,
-                "description" => $request->description,
-                "payer" => [
-                    "email" => $user->email, 
-                    "identification" => [
-                        "type" => $request->payer['identification']['type'] ?? 'CPF',
-                        "number" => $request->payer['identification']['number'] ?? null
-                    ],
-                    "first_name" => explode(' ', $user->name)[0], 
-                    "last_name" => implode(' ', array_slice(explode(' ', $user->name), 1)) ?? 'User'
-                ],
-                "metadata" => [
-                    "user_id" => $user->id
-                ]
-            ];
-
-            
-            if ($request->payment_method_id !== 'pix') {
-                $data["token"] = $request->token;
-                $data["issuer_id"] = (int)$request->issuer_id;
-                $data["installments"] = (int)$request->installments;
-            }
-
-            $payment = $client->create($data);
-
-            return response()->json([
-                'status' => $payment->status,
-                'status_detail' => $payment->status_detail,
-                'id' => $payment->id
-            ]);
-        } catch (\MercadoPago\Exceptions\MPApiException $e) {
-            \Illuminate\Support\Facades\Log::error('Mercado Pago Payment Error', [
-                'status' => $e->getApiResponse()?->getStatusCode(),
-                'content' => $e->getApiResponse()?->getContent()
-            ]);
-
-            $errorContent = json_decode($e->getApiResponse()?->getContent(), true);
-            $message = $errorContent['message'] ?? $e->getMessage();
-
-            return response()->json(['error' => $message, 'details' => $errorContent], 422);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Payment processing failed: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+{
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['error' => 'Usuário não autenticado'], 401);
     }
+
+    \Illuminate\Support\Facades\Log::info('ProcessPayment Request', [
+        'user_id' => $user->id,
+        'request' => $request->all()
+    ]);
+
+    try {
+        $this->setupMercadoPago();
+        $client = new \MercadoPago\Client\Payment\PaymentClient();
+
+        // Verifica se todos os campos obrigatórios estão presentes
+        $transactionAmount = (float) $request->transaction_amount;
+        if (!$transactionAmount || $transactionAmount <= 0) {
+            return response()->json(['error' => 'transaction_amount inválido'], 422);
+        }
+
+        $paymentMethodId = $request->payment_method_id;
+        if (!$paymentMethodId) {
+            return response()->json(['error' => 'payment_method_id é obrigatório'], 422);
+        }
+
+        $payer = $request->payer ?? [];
+        $payerIdNumber = $payer['identification']['number'] ?? null;
+        if (!$payerIdNumber) {
+            return response()->json(['error' => 'Número de identificação do pagador é obrigatório'], 422);
+        }
+
+        $data = [
+            "transaction_amount" => $transactionAmount,
+            "payment_method_id" => $paymentMethodId,
+            "description" => $request->description ?? "Assinatura",
+            "payer" => [
+                "email" => $user->email,
+                "first_name" => explode(' ', $user->name)[0] ?? 'User',
+                "last_name" => implode(' ', array_slice(explode(' ', $user->name), 1)) ?? 'User',
+                "identification" => [
+                    "type" => $payer['identification']['type'] ?? 'CPF',
+                    "number" => $payerIdNumber
+                ]
+            ],
+            "metadata" => [
+                "user_id" => $user->id
+            ]
+        ];
+
+        // Campos obrigatórios para cartão de crédito
+        if ($paymentMethodId !== 'pix') {
+            if (empty($request->token) || empty($request->issuer_id) || empty($request->installments)) {
+                return response()->json(['error' => 'Token, issuer_id e installments são obrigatórios para cartão'], 422);
+            }
+            $data["token"] = $request->token;
+            $data["issuer_id"] = (int)$request->issuer_id;
+            $data["installments"] = (int)$request->installments;
+        }
+
+        $payment = $client->create($data);
+
+        return response()->json([
+            'status' => $payment->status,
+            'status_detail' => $payment->status_detail,
+            'id' => $payment->id
+        ]);
+    } catch (\MercadoPago\Exceptions\MPApiException $e) {
+        \Illuminate\Support\Facades\Log::error('MPApiException', [
+            'message' => $e->getMessage(),
+            'content' => $e->getApiResponse()?->getContent()
+        ]);
+        return response()->json(['error' => 'Erro na API Mercado Pago', 'details' => $e->getApiResponse()?->getContent()], 422);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('ProcessPayment Exception', ['message' => $e->getMessage()]);
+        return response()->json(['error' => 'Falha ao processar pagamento: '.$e->getMessage()], 500);
+    }
+}
+
+
 
     public function handleWebhook(HandleWebhookRequest $request)
     {
