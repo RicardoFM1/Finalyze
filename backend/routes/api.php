@@ -15,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'getLatestPreference']);
     Route::post('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'createPreference']);
     Route::post('/checkout/process_payment', [App\Http\Controllers\CheckoutController::class, 'processPayment']);
+    Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checkPaymentStatus']);
 
 
 

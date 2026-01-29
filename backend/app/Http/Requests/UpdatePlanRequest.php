@@ -15,11 +15,11 @@ class UpdatePlanRequest extends FormRequest
     {
         return [
             'name' => 'string',
-                'price_cents' => 'integer',
+            'price_cents' => 'integer',
             'interval' => 'string',
             'max_transactions' => 'integer',
             'description' => 'string',
-            'features' => 'array',
+            'features' => 'array|min:1',
             'is_active' => 'boolean'
         ];
     }
@@ -28,9 +28,10 @@ class UpdatePlanRequest extends FormRequest
     {
         return [
             'name.string' => 'O nome deve ser uma string.',
-                'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
+            'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
             'interval.string' => 'O intervalo deve ser uma string.',
-            'max_transactions.integer' => 'O número máximo de transações deve ser um inteiro.'
+            'max_transactions.integer' => 'O número máximo de transações deve ser um inteiro.',
+            'features.min' => 'É necessário informar pelo menos uma função.'
         ];
     }
 }

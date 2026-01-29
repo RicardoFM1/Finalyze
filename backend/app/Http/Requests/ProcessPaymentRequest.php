@@ -15,17 +15,16 @@ class ProcessPaymentRequest extends FormRequest
     {
         return [
             'transaction_amount' => 'required|numeric',
-            'token' => 'required|string',
-            'description' => 'required|string',
-            'installments' => 'required|integer',
             'payment_method_id' => 'required|string',
-            'issuer_id' => 'required|integer',
-            'payer' => 'required|array',
-            'payer.email' => 'required|email',
-            'payer.identification' => 'required|array',
-            'payer.identification.type' => 'required|string',
-            'payer.identification.number' => 'required|string'
-        ];
+            'token' => 'nullable|string',
+            'description' => 'nullable|string',
+            'installments' => 'nullable|integer',
+            'issuer_id' => 'nullable|integer',
+            'payer' => 'nullable|array',
+            'payer.email' => 'nullable|email',
+            'payer.identification' => 'nullable|array',
+            'payer.identification.type' => 'nullable|string',
+            'payer.identification.number' => 'nullable|string'
         ];
     }
 

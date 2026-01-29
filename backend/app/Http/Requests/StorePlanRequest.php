@@ -19,7 +19,7 @@ class StorePlanRequest extends FormRequest
             'interval' => 'required|string',
             'max_transactions' => 'required|integer',
             'description' => 'nullable|string',
-            'features' => 'nullable|array',
+            'features' => 'required|array|min:1',
             'is_active' => 'boolean'
         ];
     }
@@ -32,7 +32,9 @@ class StorePlanRequest extends FormRequest
             'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
             'price_cents.min' => 'O preço deve ser maior que zero.',
             'interval.required' => 'O intervalo é obrigatório.',
-            'max_transactions.required' => 'O número máximo de transações é obrigatório.'
+            'max_transactions.required' => 'O número máximo de transações é obrigatório.',
+            'features.required' => 'Pelo menos uma função deve ser informada.',
+            'features.min' => 'É necessário informar pelo menos uma função.'
         ];
     }
 }

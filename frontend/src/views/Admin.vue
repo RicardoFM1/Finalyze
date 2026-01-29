@@ -167,6 +167,10 @@ const closeDialog = () => {
 }
 
 const savePlan = async () => {
+    if (!form.value.features || form.value.features.length === 0) {
+        toast.error('O plano deve ter pelo menos uma funcionalidade selecionada.')
+        return
+    }
     const isEdit = !!form.value.id
     const endpoint = isEdit ? `/plans/${form.value.id}` : '/plans'
     const method = isEdit ? 'PUT' : 'POST'

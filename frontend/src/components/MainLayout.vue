@@ -63,7 +63,7 @@
         <v-divider></v-divider>
         <v-list density="compact" nav>
            <v-list-item prepend-icon="mdi-home" title="Página inicial"to="/" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-view-dashboard" title="Painel" to="/painel"  @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null " prepend-icon="mdi-view-dashboard" title="Painel" to="/painel"  @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-bank-transfer" title="Lançamentos" to="/lancamentos"  @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin' || authStore.user?.plan_id != null" prepend-icon="mdi-chart-bar" title="Relatórios" to="/relatorios"  @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-account" title="Perfil" to="/perfil" @click="!isDesktop && (drawer = false)"></v-list-item>
