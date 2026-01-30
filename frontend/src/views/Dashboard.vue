@@ -8,7 +8,6 @@
     </v-row>
 
     <v-row class="mb-6">
-        <!-- Loading State -->
         <v-col v-if="loading" cols="12">
             <v-skeleton-loader type="article"></v-skeleton-loader>
         </v-col>
@@ -73,7 +72,6 @@
     </v-row>
 
 
-    <!-- Dialog de Novo Lançamento -->
     <v-dialog v-model="dialog" max-width="500px">
         <v-card>
             <v-card-title>Novo Lançamento</v-card-title>
@@ -142,15 +140,15 @@ const saveTransaction = async () => {
             method: 'POST',
             body: JSON.stringify({
                 ...form.value,
-                amount: Number(form.value.amount) // Ensure number
+                amount: Number(form.value.amount) 
             })
         })
 
         if (response.ok) {
             toast.success('Lançamento adicionado!')
             dialog.value = false
-            fetchSummary() // Refresh data
-            // Reset form
+            fetchSummary()
+           
             form.value = {
                 type: 'expense',
                 amount: '',

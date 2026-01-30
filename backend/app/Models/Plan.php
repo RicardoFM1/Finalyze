@@ -9,11 +9,12 @@ class Plan extends Model
 {
     use HasFactory;
 
-    protected $table = 'planos'; // Portuguese table name
+    protected $table = 'planos';
+
 
     protected $fillable = [
         'name',
-        'price',
+        'price_cents',
         'interval',
         'description',
         'features',
@@ -21,8 +22,19 @@ class Plan extends Model
         'is_active'
     ];
 
+
     protected $casts = [
         'features' => 'array',
-        'price' => 'decimal:2'
+        'price_cents' => 'integer'
     ];
+
+    public function getPriceAttribute()
+    {
+        return $this->price_cents / 100;
+    }
+
+    public function setPriceAttribute($value)
+    {
+        $this->attributes['price_cents'] = (int)round($value * 100);
+    }
 }

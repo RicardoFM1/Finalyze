@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router';
 
 
 export const useAuthStore = defineStore('auth', () => {
-   
+
     const user = ref(null);
-   
+
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = 'http://localhost:8000/api';
     const router = useRouter();
@@ -66,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.user;
             localStorage.setItem('token', token.value);
-           
+
 
             return true;
         } catch (error) {
@@ -105,7 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
-               
+
             }
         } catch (e) {
             console.error(e);
@@ -116,8 +116,16 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         localStorage.removeItem('token');
-        
+
     }
 
-    return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch };
+    function hasFeature(featureName) {
+        if (user.value?.role === 'admin') return true;
+
+
+        const features = user.value?.plan?.features || [];
+        return features.includes(featureName);
+    }
+
+    return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };
 });

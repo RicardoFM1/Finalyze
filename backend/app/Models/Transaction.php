@@ -9,11 +9,11 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $table = 'lancamentos'; // Portuguese table name
+    protected $table = 'lancamentos'; 
 
     protected $fillable = [
         'user_id',
-        'type', // 'income', 'expense' (keeping internal values in English or Portuguese? User asked for table names. Code values can remain English for standard, or I can change ENUMs too. Let's keep ENUMs English for easier coding unless requested)
+        'type', 
         'amount',
         'category',
         'description',

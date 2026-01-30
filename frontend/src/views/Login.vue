@@ -1,18 +1,33 @@
 <template>
-  <v-container class="fill-height" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
+  <v-container class="fill-height py-4 py-md-0" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
     <v-row align="center" justify="center" class="h-100">
       <v-col cols="12" md="8" lg="6" xl="4">
-        <v-card elevation="24" rounded="lg" class="overflow-hidden">
+        <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
           <v-row no-gutters>
+<<<<<<< HEAD
              <v-col cols="12" md="7" class="pa-8">
               <div class="text-center mb-8">
                 <h2 class="text-h4 font-weight-bold text-primary">{{ $t('auth.join_us_title') }}</h2>
                 <p class="text-medium-emphasis">{{ $t('auth.join_us_subtitle') }}</p>
+=======
+             <v-col cols="12" md="7" class="pa-4 pa-md-8">
+              <div class="text-center mb-4 mb-md-8">
+               <h2 class="text-h6 text-md-h4 font-weight-bold text-primary">
+                Bem-vindo(a)
+              </h2>
+
+               <p class="text-body-2 text-md-body-1 text-medium-emphasis">
+                Entre para acessar suas finanças
+              </p>
+
+>>>>>>> origin/Ricardo
               </div>
               
               <v-form @submit.prevent="handleLogin" v-model="isValid">
                 <v-text-field
+                  density="compact"
                   v-model="form.email"
+<<<<<<< HEAD
                   :label="$t('login.email_label')"
                   prepend-inner-icon="mdi-email"
                   variant="outlined"
@@ -20,9 +35,20 @@
                   type="email"
                   class="mb-2"
                   :rules="[v => !!v || $t('login.rules.email_required')]"
+=======
+                  label="E-mail"
+                  :prepend-inner-icon="showIcon ? 'mdi-email' : ''"
+                  variant="outlined"
+                  color="primary"
+                  type="email"
+                  class="mb-1 mb-md-2"
+                  :rules="[v => !!v || 'E-mail é obrigatório']"
+>>>>>>> origin/Ricardo
                 ></v-text-field>
 
                 <v-text-field
+                class="mb-1 mb-md-2"
+                  density="compact"
                   v-model="form.password"
                   :label="$t('login.password_label')"
                   prepend-inner-icon="mdi-lock"
@@ -39,13 +65,15 @@
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
                 
                 <v-btn
-                  block
+                  
                   color="primary"
-                  size="x-large"
+                  block
+                  size="default"
+                  class="py-2 py-md-4 text-body-2 text-md-body-1"
                   type="submit"
                   :loading="loading"
-                  class="mb-4 font-weight-bold"
                   elevation="4"
+                  :disabled="buttonDesativado"
                 >
                   {{ $t('login.btn_login') }}
                 </v-btn>
@@ -53,18 +81,23 @@
                <v-btn
                   block
                   color="green"
-                  size="x-large"
                   type="button"
-                  class="mb-4 font-weight-bold"
+                  class="mt-3 py-2 py-md-4 text-body-2 text-md-body-1"
                   elevation="4"
                   @click="router.push('/')"
                 >
                   {{ $t('login.btn_back_home') }}
                 </v-btn>
 
+<<<<<<< HEAD
               <div class="text-center">
                 <span class="text-body-2 text-medium-emphasis">{{ $t('login.has_account_text') }} </span>
                 <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none">{{ $t('login.login_link') }}</router-link>
+=======
+              <div class="text-center mt-3 mt-md-6">
+                <span class="text-caption text-md-body-2 text-medium-emphasis">Novo por aqui? </span>
+                <router-link to="/cadastro" class="text-caption text-md-body-2 text-primary font-weight-bold text-decoration-none">Criar Conta</router-link>
+>>>>>>> origin/Ricardo
               </div>
             </v-col>
             <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
@@ -82,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify';
@@ -105,16 +138,17 @@ const handleLogin = async () => {
   if (!isValid.value) return
   
   loading.value = true
-  error.value = ''
   
   try {
     await authStore.login(form.value.email, form.value.password)
-    toast.success("Login realizado com sucesso!")
+    
+      toast.success("Login realizado com sucesso!")
+    
     
     const redirectPath = route.query.redirect || '/painel'
     const planId = route.query.plan
     
-    // If there's a plan selected, we might want to store it or pass it along
+  
     if (planId) {
         router.push({ path: '/' + redirectPath, query: { plan: planId } })
     } else {
@@ -122,10 +156,15 @@ const handleLogin = async () => {
     }
     
   } catch (err) {
-    error.value = 'Credenciais inválidas'
-    toast.error(error.value)
+    toast.error(err.message || 'Erro ao fazer login')
   } finally {
     loading.value = false
   }
 }
+const buttonDesativado = computed(() => 
+  form.value.email === '' || 
+  form.value.password === '' || 
+  !isValid.value
+)
 </script>
+
