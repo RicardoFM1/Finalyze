@@ -89,6 +89,7 @@
 import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -198,7 +199,10 @@ const pollPaymentStatus = async () => {
                 // Vou adicionar um snackbar de sucesso de pagamento.
                 
                 // Redireciona
-                window.location.href = '/painel?status=success'
+                toast.success('Pagamento aprovado!')
+                setTimeout(() => {
+                    window.location.href = '/'
+                }, 2000)
             } else if (data.status === 'rejected' || data.status === 'cancelled') {
                  clearInterval(pollInterval)
                  showQrDialog.value = false
@@ -312,7 +316,10 @@ const initMercadoPago = async () => {
 
               if (response.ok) {
                 if (result.status === 'approved') {
-                    window.location.href = '/painel?status=success'
+                  toast.success('Pagamento aprovado!')
+                    setTimeout(() => {
+                        window.location.href = '/'
+                    }, 2000)
                 } 
                 else if ((result.status === 'in_process' || result.status === 'pending') && result.qr_code) {
                    // MOSTRAR QR CODE

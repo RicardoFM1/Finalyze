@@ -43,8 +43,8 @@ class CheckoutController extends Controller
                 "unit_price" => $plan->price_cents / 100
             ]];
 
-            // FORCING NGORK URL FOR TESTING
-            $baseUrl = 'https://elina-unrabbinical-consuelo.ngrok-free.dev';
+
+            $baseUrl = 'https://roentgenographic-unsensuous-shizue.ngrok-free.dev';
 
             error_log("DEBUG PAGAMENTO - Base URL: " . $baseUrl);
             \Illuminate\Support\Facades\Log::info('Creating Mercado Pago Preference', [
@@ -63,7 +63,7 @@ class CheckoutController extends Controller
                 "notification_url" => $baseUrl . "/api/webhook/mercadopago"
             ]);
 
-            // Persistir no Banco de Dados
+            
             \App\Models\Subscription::updateOrCreate(
                 ['user_id' => auth()->id(), 'status' => 'pending'],
                 [
@@ -138,7 +138,7 @@ class CheckoutController extends Controller
 
             $plan_id = $request->input('plan_id');
 
-            // CRIAÇÃO DA ASSINATURA COMO RASTREIO
+          
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'plan_id' => (int)$plan_id,
@@ -149,9 +149,9 @@ class CheckoutController extends Controller
             $payer = $request->payer ?? [];
             $payerIdNumber = $payer['identification']['number'] ?? null;
             if (!$payerIdNumber) {
-                // FALLBACK PARA TESTES (CPF Válido de Teste)
+              
                 if (config('app.env') !== 'production') {
-                    $payerIdNumber = '19119119100'; // CPF de teste comum
+                    $payerIdNumber = '19119119100'; 
                     $payer['identification']['type'] = 'CPF';
                 } else {
                     return response()->json(['error' => 'Número de identificação do pagador é obrigatório'], 422);
