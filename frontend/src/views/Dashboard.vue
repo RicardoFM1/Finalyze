@@ -2,8 +2,8 @@
   <v-container>
     <v-row>
       <v-col cols="12" class="mb-4">
-        <h1 class="text-h4 font-weight-bold">Painel</h1>
-        <p class="text-subtitle-1">Visão geral da sua saúde financeira</p>
+        <h1 class="text-h4 font-weight-bold">{{ $t('features.dashboard') }}</h1>
+        <p class="text-subtitle-1">{{ $t('features.pe') }}</p>
       </v-col>
     </v-row>
 
@@ -16,7 +16,7 @@
           <v-col cols="12" md="4">
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Receitas</v-card-title>
+                <v-card-title class="text-h6">{{ $t('features.RE') }}</v-card-title>
                 <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.income }}</div>
               </v-card-item>
             </v-card>
@@ -24,7 +24,7 @@
           <v-col cols="12" md="4">
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Despesas</v-card-title>
+                <v-card-title class="text-h6">{{ $t('features.DS') }}</v-card-title>
                 <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.expense }}</div>
               </v-card-item>
             </v-card>
@@ -32,7 +32,7 @@
           <v-col cols="12" md="4">
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Saldo</v-card-title>
+                <v-card-title class="text-h6">{{ $t('features.balance') }}</v-card-title>
                 <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.balance }}</div>
               </v-card-item>
             </v-card>
@@ -56,7 +56,7 @@
                 </template>
               </v-list-item>
               <div v-if="!summary.recent_activity?.length" class="text-center pa-4 text-medium-emphasis">
-                  Nenhuma atividade recente.
+                {{ $t('features.Ne') }} 
               </div>
            </v-list>
         </v-card>
@@ -64,8 +64,8 @@
       <v-col cols="12" md="4">
         <v-card title="Ações Rápidas">
             <v-card-text>
-                <v-btn block color="primary" class="mb-2" prepend-icon="mdi-plus" @click="dialog = true">Adicionar Lançamento</v-btn>
-                <v-btn block variant="outlined" class="mb-2" to="/relatorios">Ver Relatórios</v-btn>
+                <v-btn block color="primary" class="mb-2" prepend-icon="mdi-plus" @click="dialog = true">{{ $t('transactions.new') }}</v-btn>
+                <v-btn block variant="outlined" class="mb-2" to="/relatorios">{{ $t('features.reports') }}</v-btn>
             </v-card-text>
         </v-card>
       </v-col>
@@ -74,7 +74,7 @@
 
     <v-dialog v-model="dialog" max-width="500px">
         <v-card>
-            <v-card-title>Novo Lançamento</v-card-title>
+            <v-card-title></v-card-title>
             <v-card-text>
                 <v-form @submit.prevent="saveTransaction">
                     <v-select v-model="form.type" :items="[{title: 'Receita', value: 'income'}, {title: 'Despesa', value: 'expense'}]" label="Tipo" required></v-select>
@@ -82,7 +82,7 @@
                     <v-text-field v-model="form.category" label="Categoria" required></v-text-field>
                     <v-text-field v-model="form.date" label="Data" type="date" required></v-text-field>
                     <v-text-field v-model="form.description" label="Descrição"></v-text-field>
-                    <v-btn type="submit" color="primary" block class="mt-4" :loading="saving">Salvar</v-btn>
+                    <v-btn type="submit" color="primary" block class="mt-4" :loading="saving">{{ $t('common.save') }}</v-btn>
                 </v-form>
             </v-card-text>
         </v-card>

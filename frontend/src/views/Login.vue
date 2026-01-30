@@ -4,30 +4,16 @@
       <v-col cols="12" md="8" lg="6" xl="4">
         <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
           <v-row no-gutters>
-<<<<<<< HEAD
              <v-col cols="12" md="7" class="pa-8">
               <div class="text-center mb-8">
                 <h2 class="text-h4 font-weight-bold text-primary">{{ $t('auth.join_us_title') }}</h2>
                 <p class="text-medium-emphasis">{{ $t('auth.join_us_subtitle') }}</p>
-=======
-             <v-col cols="12" md="7" class="pa-4 pa-md-8">
-              <div class="text-center mb-4 mb-md-8">
-               <h2 class="text-h6 text-md-h4 font-weight-bold text-primary">
-                Bem-vindo(a)
-              </h2>
-
-               <p class="text-body-2 text-md-body-1 text-medium-emphasis">
-                Entre para acessar suas finanças
-              </p>
-
->>>>>>> origin/Ricardo
               </div>
               
               <v-form @submit.prevent="handleLogin" v-model="isValid">
                 <v-text-field
                   density="compact"
                   v-model="form.email"
-<<<<<<< HEAD
                   :label="$t('login.email_label')"
                   prepend-inner-icon="mdi-email"
                   variant="outlined"
@@ -35,15 +21,6 @@
                   type="email"
                   class="mb-2"
                   :rules="[v => !!v || $t('login.rules.email_required')]"
-=======
-                  label="E-mail"
-                  :prepend-inner-icon="showIcon ? 'mdi-email' : ''"
-                  variant="outlined"
-                  color="primary"
-                  type="email"
-                  class="mb-1 mb-md-2"
-                  :rules="[v => !!v || 'E-mail é obrigatório']"
->>>>>>> origin/Ricardo
                 ></v-text-field>
 
                 <v-text-field
@@ -89,15 +66,9 @@
                   {{ $t('login.btn_back_home') }}
                 </v-btn>
 
-<<<<<<< HEAD
               <div class="text-center">
                 <span class="text-body-2 text-medium-emphasis">{{ $t('login.has_account_text') }} </span>
                 <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none">{{ $t('login.login_link') }}</router-link>
-=======
-              <div class="text-center mt-3 mt-md-6">
-                <span class="text-caption text-md-body-2 text-medium-emphasis">Novo por aqui? </span>
-                <router-link to="/cadastro" class="text-caption text-md-body-2 text-primary font-weight-bold text-decoration-none">Criar Conta</router-link>
->>>>>>> origin/Ricardo
               </div>
             </v-col>
             <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">

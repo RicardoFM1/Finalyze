@@ -1,7 +1,6 @@
 <template>
   <v-layout>
     <v-app-bar color="primary" elevation="2">
-<<<<<<< HEAD
       <v-toolbar-title class="font-weight-bold" style="cursor: pointer" @click="$router.push('/')">
         <v-icon icon="mdi-chart-pie" class="mr-2"></v-icon>
         Finalyze
@@ -18,45 +17,6 @@
         
       </div>
     </v-app-bar>
-=======
-       <v-app-bar-nav-icon
-  v-if="authStore.isAuthenticated"
-  @click="toggleDrawer"
-  class="mr-2"
-  variant="text"
-/>
-  <v-toolbar-title
-    class="font-weight-bold app-title"
-    style="cursor: pointer"
-    @click="$router.push('/')"
-  >
-    <v-icon icon="mdi-chart-pie" class="mr-2" />
-    Finalyze
-  </v-toolbar-title>
-
-  <v-spacer />
-
-  
-  <div
-    v-if="!authStore.isAuthenticated && !isAuthPage"
-    class="d-flex align-center d-none d-md-flex"
-  >
-    <v-btn to="/planos" variant="text" color="white" class="mx-1">
-      Planos
-    </v-btn>
-
-    <v-btn
-      to="/login"
-      variant="elevated"
-      color="white"
-      class="ml-2 font-weight-bold text-primary"
-    >
-      Entrar
-    </v-btn>
-  </div>
-
-</v-app-bar>
->>>>>>> origin/Ricardo
 
 
     <v-navigation-drawer
@@ -100,8 +60,8 @@
                 <v-avatar color="error-lighten-4" size="70" class="mb-2">
                     <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
                 </v-avatar>
-                <h3 class="text-h5 font-weight-bold">Deseja sair?</h3>
-                <p class="text-body-1 text-medium-emphasis">Você precisará fazer login novamente para acessar seus dados.</p>
+                <h3 class="text-h5 font-weight-bold">{{ $t('features.DS') }}</h3>
+                <p class="text-body-1 text-medium-emphasis">{{ $t('features.VDS') }}</p>
             </div>
             
             <v-card-actions class="justify-center gap-2">
@@ -111,7 +71,7 @@
                     rounded="lg"
                     @click="confirmLogout = false"
                 >
-                    Cancelar
+                    {{ $t('features.stay_new') }}
                 </v-btn>
                 <v-btn 
                     color="error" 
@@ -121,7 +81,7 @@
                     rounded="lg"
                     @click="handleLogout"
                 >
-                    Sair Agora
+                    {{ $t('features.leave_new') }}
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -135,21 +95,13 @@
 
 <script setup>
 import { useAuthStore } from '../stores/auth'
-<<<<<<< HEAD
 import { useRouter } from 'vue-router'
-import { ref} from 'vue'
+import { ref, computed, watch} from 'vue'
+import { useDisplay} from 'vuetify'
 import LanguageSelector from './Language/LanguageSelector.vue'
-=======
-import { useRouter,useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
-import { useDisplay } from 'vuetify'
-import { watch } from 'vue'
-
->>>>>>> origin/Ricardo
 
 const authStore = useAuthStore()
 const router = useRouter()
-const route = useRoute()
 const confirmLogout = ref(false)
 
 const drawer = ref(false)

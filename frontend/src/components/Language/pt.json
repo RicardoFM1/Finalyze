@@ -15,7 +15,9 @@
       "security_title": "Segurança Total",
       "security_text": "Seus dados financeiros são criptografados e protegidos com segurança de nível bancário.",
       "goals_title": "Metas Financeiras",
-      "goals_text": "Defina metas financeiras e acompanhe seu progresso automaticamente."
+      "goals_text": "Defina metas financeiras e acompanhe seu progresso automaticamente.",
+      "DS": "Deseja sair?",
+      "VDS":"Você precisará fazer login novamente para acessar seus dados."
     }
   },
 
@@ -116,11 +118,23 @@
 },
 
 "features": {
-  "dashboard": "Painel Financeiro",
+  "dashboard": "Painel",
+  "pe": "Visão geral da sua saúde financeira",
+  "RE": "Receitas", 
+  "DS": "Despesas",
   "transactions": "Transações",
-  "reports": "Gráficos e relatórios",
+  "reports": "Ver Relatórios",
   "csv_export": "Exportação CSV",
-  "ai_support": "Chat de suporte IA"
+  "ai_support": "Chat de suporte IA",
+  "balance": "Saldo",
+  "Ne": "Nenhuma atividade recente",
+  "PPE": "Pagamento Pendente Encontrado",
+  "VEIP": "Você já iniciou o pagamento para o plano {pendingPlanName}",
+  "continue_or_cancel": "Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?",
+  "cancel_previous": "Cancelar Anterior",
+  "continue_payment": "Continuar Pagamento",
+  "leave_new":"Sair agora"
+
 },
 
 "common": {

@@ -30,7 +30,6 @@ const selectedPlan = ref(null)
 
 onMounted(async () => {
     try {
-<<<<<<< HEAD
         const response = await authStore.apiFetch('/checkout/preference', {
             method: 'POST',
             body: JSON.stringify({
@@ -43,11 +42,6 @@ onMounted(async () => {
                 ]
             })
         })
-=======
-        const response = await authStore.apiFetch('/checkout/preference')
-        if (!response.ok) throw new Error('Preferência não encontrada')
-        
->>>>>>> origin/Ricardo
         const data = await response.json()
         preferenceId.value = data.id
         planName.value = data.plan.name

@@ -1,19 +1,8 @@
 <template>
-<<<<<<< HEAD
   <v-container>
     <div class="text-center mb-10">
       <h1 class="text-h3 font-weight-bold mb-2">{{ $t('plans.title') }}</h1>
       <p class="text-subtitle-1 text-medium-emphasis">{{ $t('plans.subtitle') }}</p>
-=======
-  <v-container class="py-12 px-4 px-md-10 bg-surface">
-    <div class="header-section text-center mb-16 px-4">
-      <h1 class="hero-animate text-h4 text-md-h2 font-weight-black mb-4 primary--text">
-        Invista no seu Futuro Financeiro
-      </h1>
-      <p class="subtitle-animate text-body-1 text-md-h6 text-medium-emphasis mx-auto" style="max-width: 700px">
-        Escolha o plano perfeito para transformar seus hábitos e alcançar a liberdade que você merece. Transparentes, simples e focados em você.
-      </p>
->>>>>>> origin/Ricardo
     </div>
 
     <v-row v-if="loading" justify="center" align="center" style="min-height: 40vh">
