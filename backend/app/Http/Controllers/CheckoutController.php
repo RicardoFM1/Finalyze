@@ -127,7 +127,6 @@ class CheckoutController extends Controller
             $this->setupMercadoPago();
             $client = new \MercadoPago\Client\Payment\PaymentClient();
 
-            // Verifica se todos os campos obrigatórios estão presentes
             $transactionAmount = (float) $request->transaction_amount;
             if (!$transactionAmount || $transactionAmount <= 0) {
                 return response()->json(['error' => 'transaction_amount inválido'], 422);
@@ -193,7 +192,6 @@ class CheckoutController extends Controller
             if ($paymentMethodId === 'pix') {
                 $data["date_of_expiration"] = now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O');
             }
-            // Campos obrigatórios para cartão de crédito
             if ($paymentMethodId !== 'pix') {
                 if (empty($request->token) || empty($request->issuer_id) || empty($request->installments)) {
                     return response()->json(['error' => 'Token, issuer_id e installments são obrigatórios para cartão'], 422);
@@ -327,7 +325,6 @@ class CheckoutController extends Controller
                     'starts_at' => now(),
                     'ends_at' => $newEndsAt
                 ]);
-
 
                 \App\Models\Billing::create([
                     'user_id' => $subscription->user_id,

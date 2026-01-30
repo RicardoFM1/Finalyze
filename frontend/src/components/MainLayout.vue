@@ -152,7 +152,6 @@ onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUser()
     }
-    console.log(authStore.user)
 })
 
 const handleLogout = () => {

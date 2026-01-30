@@ -8,7 +8,6 @@
     </v-row>
 
     <v-row class="mb-6">
-        <!-- Loading State -->
         <v-col v-if="loading" cols="12">
             <v-skeleton-loader type="article"></v-skeleton-loader>
         </v-col>
@@ -73,7 +72,6 @@
     </v-row>
 
 
-    <!-- Dialog de Novo Lançamento -->
     <v-dialog v-model="dialog" max-width="500px">
         <v-card>
             <v-card-title>Novo Lançamento</v-card-title>

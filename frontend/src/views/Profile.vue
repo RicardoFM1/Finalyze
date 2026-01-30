@@ -28,7 +28,6 @@
       </v-tabs>
 
       <v-window v-model="activeTab">
-        <!-- Tab: Personal Info -->
         <v-window-item value="personal">
           <v-row class="pa-6 pa-md-10">
             <v-col cols="12" md="4" class="text-center">
@@ -97,7 +96,6 @@
           </v-row>
         </v-window-item>
 
-        <!-- Tab: Subscription -->
         <v-window-item value="subscription" class="bg-grey-lighten-5">
           <v-container class="pa-6 pa-md-10">
             <div v-if="loadingSub" class="text-center py-10">
@@ -197,7 +195,6 @@
           </v-container>
         </v-window-item>
 
-        <!-- Tab: Billing -->
         <v-window-item value="billing">
           <v-container class="pa-6 pa-md-10">
             <h3 class="text-h6 font-weight-bold mb-6">Últimos Pagamentos</h3>
@@ -341,7 +338,6 @@ const payAhead = () => {
     router.push('/planos')
 }
 
-// Visual calculations
 const progressPercentage = computed(() => {
     if (!subscriptionData.value.subscription) return 0
     const start = new Date(subscriptionData.value.subscription.starts_at).getTime()
@@ -360,7 +356,6 @@ const daysRemaining = computed(() => {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 })
 
-// Original profile logic
 const fileInput = ref(null)
 const previewAvatar = ref(null)
 const selectedFile = ref(null)

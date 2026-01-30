@@ -20,7 +20,6 @@ class UserController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
             if ($user->avatar) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
             }

@@ -30,8 +30,6 @@ class ProcessPaymentRequest extends FormRequest
 
     public function messages()
     {
-        return [
-            // Mensagens personalizadas se necessário
-        ];
+        return [];
     }
 }
