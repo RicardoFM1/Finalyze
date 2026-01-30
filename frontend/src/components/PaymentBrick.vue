@@ -25,7 +25,6 @@
       <v-btn block color="error" class="mt-4" @click="reload">Recarregar Página</v-btn>
     </v-alert>
 
-    <!-- QR CODE DIALOG -->
     <v-dialog v-model="showQrDialog" persistent max-width="480">
       <v-card class="rounded-xl overflow-hidden" elevation="10">
         <div class="bg-primary px-6 py-4 text-center">
@@ -34,14 +33,13 @@
         </div>
 
         <v-card-text class="pa-6 text-center">
-          <!-- QR Image Container -->
           <div class="d-flex justify-center mb-6">
              <div class="rounded-lg border pa-2 bg-white elevation-2" v-if="qrCodeBase64">
                 <img :src="'data:image/png;base64,' + qrCodeBase64" style="width: 200px; height: 200px; display: block;" />
              </div>
           </div>
 
-          <!-- Copy Paste Section -->
+          
           <div class="bg-grey-lighten-4 rounded-lg pa-4 mb-4 text-left">
              <div class="text-caption font-weight-bold text-grey-darken-1 mb-2">Pix Copia e Cola</div>
              
@@ -103,7 +101,6 @@ const brickMounted = ref(false)
 const cpf = ref('')
 let brickController = null
 
-// QR Code States
 const showQrDialog = ref(false)
 const showCopiedStart = ref(false)
 const qrCodeBase64 = ref(null)
@@ -189,16 +186,10 @@ const pollPaymentStatus = async () => {
             const data = await response.json()
             if (data.status === 'approved') {
                 clearInterval(pollInterval)
-                showCopiedStart.value = false // Fecha o anterior se houver
+                showCopiedStart.value = false 
                 
-                // Exibe feedback de sucesso
                 showQrDialog.value = false
-                // Usando um estado de sucesso global ou reutilizando o snackbar com mensagem customizada?
-                // Vamos reutilizar o showCopiedStart mas mudando o texto seria ideal, mas para simplificar:
-                // Criar um novo estado seria melhor, mas vou usar alert/redirect rápido por enquanto ou melhor:
-                // Vou adicionar um snackbar de sucesso de pagamento.
                 
-                // Redireciona
                 toast.success('Pagamento aprovado!')
                 setTimeout(() => {
                     window.location.href = '/'
@@ -221,7 +212,6 @@ const initMercadoPago = async () => {
   error.value = null
 
   try {
-    // Espera o script do Mercado Pago carregar
     let attempts = 0
     while (!window.MercadoPago && attempts < 20) {
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -274,7 +264,6 @@ const initMercadoPago = async () => {
               return
             }
 
-            // Injeta o CPF se não vier do brick (ex: Pix muitas vezes não pede)
             if (!formData.payer) formData.payer = {}
             if (!formData.payer.identification) formData.payer.identification = {}
             
@@ -284,7 +273,7 @@ const initMercadoPago = async () => {
                formData.payer.identification.type = cleanDoc.length > 11 ? 'CNPJ' : 'CPF'
             }
 
-            // Validação manual
+ 
             const docClean = cpf.value.replace(/\D/g, '')
             if (docClean.length <= 11 && !validateCPF(docClean)) { error.value = 'CPF inválido.'; reject(); return }
             if (docClean.length > 11 && !validateCNPJ(docClean)) { error.value = 'CNPJ inválido.'; reject(); return }
@@ -322,13 +311,10 @@ const initMercadoPago = async () => {
                     }, 2000)
                 } 
                 else if ((result.status === 'in_process' || result.status === 'pending') && result.qr_code) {
-                   // MOSTRAR QR CODE
                    qrCodeBase64.value = result.qr_code_base64
                    qrCodeCopy.value = result.qr_code
                    paymentId.value = result.id
                    showQrDialog.value = true
-                   
-                   // Iniciar Polling
                    if (pollInterval) clearInterval(pollInterval)
                    pollInterval = setInterval(pollPaymentStatus, 3000)
 

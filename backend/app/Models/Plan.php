@@ -28,13 +28,11 @@ class Plan extends Model
         'price_cents' => 'integer'
     ];
 
-    // Accessor para retornar o preço em reais
     public function getPriceAttribute()
     {
         return $this->price_cents / 100;
     }
 
-    // Mutator para definir o preço em reais
     public function setPriceAttribute($value)
     {
         $this->attributes['price_cents'] = (int)round($value * 100);

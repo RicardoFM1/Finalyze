@@ -16,6 +16,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'createPreference']);
     Route::post('/checkout/process_payment', [App\Http\Controllers\CheckoutController::class, 'processPayment']);
     Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checkPaymentStatus']);
+    Route::post('/checkout/cancel-subscription', [App\Http\Controllers\CheckoutController::class, 'cancelSubscription']);
+
+    Route::get('/subscriptions', [App\Http\Controllers\SubscriptionController::class, 'index']);
+    Route::post('/subscriptions/toggle-auto-renew', [App\Http\Controllers\SubscriptionController::class, 'toggleAutoRenew']);
+    Route::post('/subscriptions/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel']);
 
 
 

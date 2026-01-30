@@ -115,7 +115,6 @@ const handleLogin = async () => {
   if (!isValid.value) return
   
   loading.value = true
- 
   
   try {
     await authStore.login(form.value.email, form.value.password)

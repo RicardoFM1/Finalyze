@@ -9,6 +9,8 @@ use App\Models\Subscription;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 
+use Illuminate\Http\Request;
+
 class CheckoutController extends Controller
 {
     private function setupMercadoPago()
@@ -63,7 +65,7 @@ class CheckoutController extends Controller
                 "notification_url" => $baseUrl . "/api/webhook/mercadopago"
             ]);
 
-            
+
             \App\Models\Subscription::updateOrCreate(
                 ['user_id' => auth()->id(), 'status' => 'pending'],
                 [
@@ -97,7 +99,6 @@ class CheckoutController extends Controller
                 ->latest()
                 ->firstOrFail();
 
-            // Buscar o plano
             $plan = \App\Models\Plan::findOrFail($subscription->plan_id);
 
             return response()->json([
@@ -111,6 +112,7 @@ class CheckoutController extends Controller
 
     public function processPayment(ProcessPaymentRequest $request)
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
@@ -138,20 +140,29 @@ class CheckoutController extends Controller
 
             $plan_id = $request->input('plan_id');
 
-          
-            $subscription = Subscription::create([
-                'user_id' => $user->id,
-                'plan_id' => (int)$plan_id,
-                'status' => 'pending',
-                'starts_at' => now(),
-            ]);
+
+            $existingPending = Subscription::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->where('plan_id', (int)$plan_id)
+                ->first();
+
+            if ($existingPending) {
+                $subscription = $existingPending;
+            } else {
+                $subscription = Subscription::create([
+                    'user_id' => $user->id,
+                    'plan_id' => (int)$plan_id,
+                    'status' => 'pending',
+                    'starts_at' => now(),
+                ]);
+            }
 
             $payer = $request->payer ?? [];
             $payerIdNumber = $payer['identification']['number'] ?? null;
             if (!$payerIdNumber) {
-              
+
                 if (config('app.env') !== 'production') {
-                    $payerIdNumber = '19119119100'; 
+                    $payerIdNumber = '19119119100';
                     $payer['identification']['type'] = 'CPF';
                 } else {
                     return response()->json(['error' => 'Número de identificação do pagador é obrigatório'], 422);
@@ -178,6 +189,10 @@ class CheckoutController extends Controller
                     "subscription_id" => (string)$subscription->id
                 ]
             ];
+
+            if ($paymentMethodId === 'pix') {
+                $data["date_of_expiration"] = now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O');
+            }
             // Campos obrigatórios para cartão de crédito
             if ($paymentMethodId !== 'pix') {
                 if (empty($request->token) || empty($request->issuer_id) || empty($request->installments)) {
@@ -217,7 +232,6 @@ class CheckoutController extends Controller
             $client = new \MercadoPago\Client\Payment\PaymentClient();
             $payment = $client->get($id);
 
-            // AUTO-HEALING: Atualiza o plano se aprovado (caso o webhook falhe)
             if ($payment->status === 'approved') {
                 $this->_updateUserPlan($payment);
             }
@@ -229,6 +243,25 @@ class CheckoutController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Payment not found'], 404);
         }
+    }
+    public function cancelSubscription(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Usuário não autenticado'], 401);
+        }
+
+        $subscription = Subscription::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if ($subscription) {
+            $subscription->update(['status' => 'cancelled']);
+            return response()->json(['message' => 'Assinatura cancelada com sucesso']);
+        }
+
+        return response()->json(['error' => 'Nenhuma assinatura pendente encontrada'], 404);
     }
 
 
@@ -269,40 +302,58 @@ class CheckoutController extends Controller
 
         $userId = $metadata->user_id ?? null;
         $planId = $metadata->plan_id ?? null;
-        $subscriptionId = $metadata->subscription_id ?? $payment->external_reference; // Fallback para external_reference
+        $subscriptionId = $metadata->subscription_id ?? $payment->external_reference;
 
         if ($subscriptionId) {
             $subscription = \App\Models\Subscription::find($subscriptionId);
             if ($subscription) {
+
+                $newEndsAt = now()->addMonth();
+
+
+                $activeSub = \App\Models\Subscription::where('user_id', $subscription->user_id)
+                    ->where('status', 'active')
+                    ->where('id', '!=', $subscription->id)
+                    ->first();
+
+                if ($activeSub && $activeSub->ends_at && $activeSub->ends_at->isFuture()) {
+                    $newEndsAt = $activeSub->ends_at->addMonth();
+                    $activeSub->update(['status' => 'cancelled']);
+                }
+
                 $subscription->update([
                     'mercado_pago_id' => $payment->id,
                     'status' => 'active',
-                    'ends_at' => now()->addMonth() // Ajustar se necessário baseado no plano
+                    'starts_at' => now(),
+                    'ends_at' => $newEndsAt
                 ]);
-                \Illuminate\Support\Facades\Log::info("Subscription {$subscriptionId} activated.");
 
-                // Agora atualiza o usuário baseado na assinatura validada
+
+                \App\Models\Billing::create([
+                    'user_id' => $subscription->user_id,
+                    'subscription_id' => $subscription->id,
+                    'amount_cents' => (int)($payment->transaction_amount * 100),
+                    'status' => 'paid',
+                    'payment_method' => $payment->payment_method_id,
+                    'mercado_pago_id' => (string)$payment->id,
+                    'paid_at' => now()
+                ]);
+
+                \Illuminate\Support\Facades\Log::info("Subscription {$subscriptionId} activated. Ends at: " . $newEndsAt);
+
                 $userId = $subscription->user_id;
                 $planId = $subscription->plan_id;
             }
         }
 
         if ($userId && $planId) {
-            $updated = \Illuminate\Support\Facades\DB::table('users')
+            \Illuminate\Support\Facades\DB::table('users')
                 ->where('id', (int)$userId)
                 ->update([
                     'plan_id' => (int)$planId,
                     'subscription_status' => 'active',
                     'updated_at' => now()
                 ]);
-
-            if ($updated) {
-                \Illuminate\Support\Facades\Log::info("Plan Activation SUCCESS (DB): User {$userId} correctly updated to plan {$planId}.");
-            } else {
-                \Illuminate\Support\Facades\Log::warning("Plan Activation (DB): User {$userId} not found or data already up to date.");
-            }
-        } else {
-            \Illuminate\Support\Facades\Log::warning("Plan Activation Failed: Could not identify User/Plan/Subscription from metadata.", (array)$metadata);
         }
     }
 }

@@ -142,15 +142,15 @@ const saveTransaction = async () => {
             method: 'POST',
             body: JSON.stringify({
                 ...form.value,
-                amount: Number(form.value.amount) // Ensure number
+                amount: Number(form.value.amount) 
             })
         })
 
         if (response.ok) {
             toast.success('Lançamento adicionado!')
             dialog.value = false
-            fetchSummary() // Refresh data
-            // Reset form
+            fetchSummary()
+           
             form.value = {
                 type: 'expense',
                 amount: '',

@@ -152,7 +152,7 @@ const openDialog = (item = null) => {
     if (item) {
         form.value = { 
             ...item, 
-            price_cents: item.price_cents / 100, // Converte para decimal para edição
+            price_cents: item.price_cents / 100,
             features: item.features || [], 
             is_active: !!item.is_active 
         } 
@@ -176,7 +176,7 @@ const savePlan = async () => {
     const method = isEdit ? 'PUT' : 'POST'
     loadingSalvar.value = true
     try {
-        // Prepara o payload convertendo de volta para centavos
+      
         const payload = {
             ...form.value,
             price_cents: Math.round(form.value.price_cents * 100)
