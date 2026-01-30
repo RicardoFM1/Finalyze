@@ -1,8 +1,8 @@
 <template>
   <v-container>
-    <h1 class="text-h4 font-weight-bold mb-4">Relatórios Financeiros</h1>
+    <h1 class="text-h4 font-weight-bold mb-4">{{ $t('reports.title') }}</h1>
     <v-card class="mb-6 pa-4">
-        <v-card-title>Receitas vs Despesas (Últimos 6 Meses)</v-card-title>
+        <v-card-title>{{ $t('reports.subtitle') }}</v-card-title>
         <v-card-text v-if="loaded" style="height: 400px; position: relative;">
             <Bar :data="chartData" :options="chartOptions" />
         </v-card-text>

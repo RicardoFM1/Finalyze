@@ -4,46 +4,107 @@
       <v-col cols="12" md="4">
         <v-card class="text-center pa-6">
           <div class="position-relative d-inline-block">
-             <v-avatar color="primary" size="120" class="mb-4">
-                <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`" cover></v-img>
-                <span v-else class="text-h3 text-white">{{ getInitials(user.name) }}</span>
-             </v-avatar>
-             <v-btn icon="mdi-camera" size="small" color="white" class="position-absolute" style="bottom: 10px; right: 0" @click="triggerFileInput"></v-btn>
+            <v-avatar color="primary" size="120" class="mb-4">
+              <v-img
+                v-if="user.avatar || previewAvatar"
+                :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`"
+                cover
+              />
+              <span v-else class="text-h3 text-white">
+                {{ getInitials(user.name) }}
+              </span>
+            </v-avatar>
+
+            <v-btn
+              icon="mdi-camera"
+              size="small"
+              color="white"
+              class="position-absolute"
+              style="bottom: 10px; right: 0"
+              @click="triggerFileInput"
+            />
           </div>
-          <input type="file" ref="fileInput" class="d-none" accept="image/*" @change="handleFileChange">
-          
-          <h2 class="text-h5 font-weight-bold">{{ user.name }}</h2>
-          <p class="text-subtitle-1 text-medium-emphasis">{{ user.email }}</p>
-          <v-chip :color="user.role === 'admin' ? 'purple' : 'info'" class="mt-2">{{ user.role === 'admin' ? 'Administrador' : (user.plan ? user.plan.name : 'Sem Plano') }}</v-chip>
+
+          <input
+            type="file"
+            ref="fileInput"
+            class="d-none"
+            accept="image/*"
+            @change="handleFileChange"
+          />
+
+          <h2 class="text-h5 font-weight-bold">
+            {{ getInitials(user.name) }}
+          </h2>
+
+          <p class="text-subtitle-1 text-medium-emphasis">
+            {{ user.email }}
+          </p>
+
+          <v-chip
+            :color="user.role === 'admin' ? 'purple' : 'info'"
+            class="mt-2"
+          >
+            {{ user.role === 'admin'
+              ? 'Admin'
+              : (user.plan ? user.plan.name : $t('profile.free')) }}
+          </v-chip>
         </v-card>
       </v-col>
+
       <v-col cols="12" md="8">
-        <v-card title="Detalhes do Perfil" class="mb-4">
-            <v-card-text>
-                <v-form @submit.prevent="saveProfile">
-                    <v-row>
-                        <v-col cols="12" md="6">
-                            <v-text-field v-model="user.name" label="Nome Completo" variant="outlined"></v-text-field>
-                        </v-col>
-                         <v-col cols="12" md="6">
-                            <v-text-field v-model="user.email" label="E-mail" variant="outlined"></v-text-field>
-                        </v-col>
-                    </v-row>
-                    <v-btn type="submit" color="primary" :loading="saving">Salvar Alterações</v-btn>
-                </v-form>
-            </v-card-text>
+        <v-card :title="$t('profile.title')" class="mb-4">
+          <v-card-text>
+            <v-form @submit.prevent="saveProfile">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="user.name"
+                    :label="$t('profile.name_label')"
+                    variant="outlined"
+                  />
+                </v-col>
+
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="user.email"
+                    :label="$t('profile.email_label')"
+                    variant="outlined"
+                  />
+                </v-col>
+              </v-row>
+
+              <v-btn type="submit" color="primary" :loading="saving">
+                {{ $t('profile.btn_update') }}
+              </v-btn>
+            </v-form>
+          </v-card-text>
         </v-card>
 
-        <v-card title="Assinatura">
-            <v-card-text>
-                <div class="d-flex align-center justify-space-between">
-                    <div>
-                        <div class="text-h6">Plano Atual: {{ user.plan ? user.plan.name : 'Gratuito' }}</div>
-                        <div class="text-subtitle-2 text-medium-emphasis">Status: {{ user.subscription_status === 'active' ? 'Ativo' : 'Inativo' }}</div>
-                    </div>
-                    <v-btn variant="outlined" color="primary" to="/planos">Upgrade / Mudar Plano</v-btn>
+        <v-card :title="$t('profile.signature')">
+          <v-card-text>
+            <div class="d-flex align-center justify-space-between">
+              <div>
+                <div class="text-h6">
+                  {{ $t('profile.current_plan', {
+                    plan: user.plan ? user.plan.name : $t('profile.free')
+                  }) }}
                 </div>
-            </v-card-text>
+
+                <div class="text-subtitle-2 text-medium-emphasis">
+                  {{ $t('profile.status', {
+                    status: user.subscription_status === 'active'
+                      ? $t('profile.active')
+                      : $t('profile.inactive')
+                  }) }}
+                </div>
+              </div>
+
+              <v-btn variant="outlined" color="primary" to="/planos">
+                {{ $t('profile.btn_upgrade') }}
+              </v-btn>
+            </div>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -54,6 +115,9 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const authStore = useAuthStore()
 const user = ref({
@@ -112,17 +176,17 @@ const saveProfile = async () => {
         })
         
         if (response.ok) {
-            toast.success('Perfil atualizado!')
+            toast.success(t('profile.toast_success'))
             // Update store
             const updated = await response.json()
             authStore.user = updated
            
             selectedFile.value = null // Clear selection
         } else {
-             toast.error('Erro ao atualizar')
+             toast.error(t('profile.toast_error'))
         }
     } catch (e) {
-        toast.error('Erro de conexão')
+        toast.error(t('profile.toast_connection_error'))
     } finally {
         saving.value = false
     }

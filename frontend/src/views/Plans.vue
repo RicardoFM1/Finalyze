@@ -1,8 +1,8 @@
 <template>
   <v-container>
     <div class="text-center mb-10">
-      <h1 class="text-h3 font-weight-bold mb-2">Preços Simples e Transparentes</h1>
-      <p class="text-subtitle-1 text-medium-emphasis">Escolha o plano que se adapta aos seus objetivos financeiros</p>
+      <h1 class="text-h3 font-weight-bold mb-2">{{ $t('plans.title') }}</h1>
+      <p class="text-subtitle-1 text-medium-emphasis">{{ $t('plans.subtitle') }}</p>
     </div>
 
     <v-row v-if="loading" justify="center" class="mt-8">

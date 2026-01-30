@@ -8,9 +8,10 @@
       <v-spacer></v-spacer>
       <div class="d-flex align-center">
         <template v-if="!authStore.isAuthenticated">
-            <v-btn to="/planos" variant="text" color="white" class="mx-1 text-none font-weight-medium">Planos</v-btn>
+          <LanguageSelector />
+            <v-btn to="/planos" variant="text" color="white" class="mx-1 text-none font-weight-medium">{{ $t('landing.btn_plans') }}</v-btn>
             <v-btn to="/login" variant="elevated" color="white" class="ml-2 mr-2 text-none font-weight-bold text-primary">
-            Entrar
+            {{ $t('landing.btn_login') }}
             </v-btn>
         </template>
         
@@ -88,6 +89,7 @@
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { ref} from 'vue'
+import LanguageSelector from './Language/LanguageSelector.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()

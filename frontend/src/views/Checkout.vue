@@ -2,13 +2,13 @@
   <v-container class="fill-height justify-center">
     <v-card width="600" class="pa-4">
       
-      <v-card-title>Complete sua Assinatura</v-card-title>
+      <v-card-title>{{ $t('checkout.title') }}</v-card-title>
       <v-card-text>
-        <p class="mb-4" v-if="planName">Você está assinando o plano <strong>{{ planName }}</strong>.</p>
+        <p class="mb-4" v-if="planName">{{ $t('checkout.subtitle', { planName }) }}</p>
         <PaymentBrick :preferenceId="preferenceId" v-if="preferenceId" />
         <v-alert v-else type="info" class="mt-4">
             <v-progress-circular indeterminate size="20" class="mr-2"></v-progress-circular>
-            Gerando pagamento...
+            {{ $t('checkout.Gen_pagament') }}
         </v-alert>
       </v-card-text>
     </v-card>
@@ -37,7 +37,7 @@ onMounted(async () => {
             body: JSON.stringify({
                 items: [
                     {
-                        title: `Assinatura Plano ${planId}`,
+                        title: `Subscription Plan ${planId}`,
                         quantity: 1,
                         unit_price: 29.90 // TODO: Fetch real price from plan ID
                     }
