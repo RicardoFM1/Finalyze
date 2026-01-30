@@ -8,7 +8,7 @@
     </v-row>
 
     <v-row class="mb-6">
-        <!-- Loading State -->
+        
         <v-col v-if="loading" cols="12">
             <v-skeleton-loader type="article"></v-skeleton-loader>
         </v-col>
@@ -17,24 +17,24 @@
           <v-col cols="12" md="4">
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Receitas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.income }}</div>
+                <v-card-title class=" text-body-3 text-weight-bold">Receitas</v-card-title>
+                <div class="text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.income) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Despesas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.expense }}</div>
+                <v-card-title class="text-body-3 text-weight-bold">Despesas</v-card-title>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.expense) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
-                <v-card-title class="text-h6">Saldo</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.balance }}</div>
+                <v-card-title class="text-body-3 text-weight-bold">Saldo</v-card-title>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.balance) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -52,7 +52,8 @@
               >
                 <template v-slot:append>
                     <span :class="item.type === 'income' ? 'text-success' : 'text-error'" class="font-weight-bold">
-                        {{ item.type === 'income' ? '+' : '-' }} R$ {{ Number(item.amount).toFixed(2).replace('.', ',') }}
+                       {{ item.type === 'income' ? '+' : '-' }} R$ {{ formatCurrency(item.amount) }}
+
                     </span>
                 </template>
               </v-list-item>
@@ -65,15 +66,15 @@
       <v-col cols="12" md="4">
         <v-card title="Ações Rápidas">
             <v-card-text>
-                <v-btn block color="primary" class="mb-2" prepend-icon="mdi-plus" @click="dialog = true">Adicionar Lançamento</v-btn>
-                <v-btn block variant="outlined" class="mb-2" to="/relatorios">Ver Relatórios</v-btn>
+                <v-btn block color="primary" class="mb-2 text-body-2 font-weight-bold" prepend-icon="mdi-plus" @click="dialog = true">Adicionar Lançamento</v-btn>
+                <v-btn block variant="outlined" class="mb-2 text-body-2 font-weight-bold" to="/relatorios">Ver Relatórios</v-btn>
             </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
 
-    <!-- Dialog de Novo Lançamento -->
+    
     <v-dialog v-model="dialog" max-width="500px">
         <v-card>
             <v-card-title>Novo Lançamento</v-card-title>
@@ -167,4 +168,16 @@ const saveTransaction = async () => {
         saving.value = false
     }
 }
+
+
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return '0,00'
+
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number(value))
+}
+
 </script>
