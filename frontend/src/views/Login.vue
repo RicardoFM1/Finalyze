@@ -56,6 +56,7 @@
                   type="submit"
                   :loading="loading"
                   elevation="4"
+                  :disabled="buttonDesativado"
                 >
                   Entrar
                 </v-btn>
@@ -91,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify';
@@ -114,16 +115,17 @@ const handleLogin = async () => {
   if (!isValid.value) return
   
   loading.value = true
-  error.value = ''
   
   try {
     await authStore.login(form.value.email, form.value.password)
-    toast.success("Login realizado com sucesso!")
+    
+      toast.success("Login realizado com sucesso!")
+    
     
     const redirectPath = route.query.redirect || '/painel'
     const planId = route.query.plan
     
-    // If there's a plan selected, we might want to store it or pass it along
+  
     if (planId) {
         router.push({ path: '/' + redirectPath, query: { plan: planId } })
     } else {
@@ -131,11 +133,15 @@ const handleLogin = async () => {
     }
     
   } catch (err) {
-    error.value = 'Credenciais inválidas'
-    toast.error(error.value)
+    toast.error(err.message || 'Erro ao fazer login')
   } finally {
     loading.value = false
   }
 }
+const buttonDesativado = computed(() => 
+  form.value.email === '' || 
+  form.value.password === '' || 
+  !isValid.value
+)
 </script>
 

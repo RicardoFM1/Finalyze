@@ -8,6 +8,9 @@
             <v-btn icon="mdi-plus" @click="openDialog()"></v-btn>
         </v-toolbar>
         <v-table>
+            <td colspan="4" class="text-center">
+      <v-progress-linear v-if="loadingPlans" indeterminate color="primary" />
+    </td>
             <thead>
                 <tr>
                     <th class="text-left">Nome</th>
@@ -19,7 +22,7 @@
             <tbody>
                 <tr v-for="item in plans" :key="item.id">
                     <td>{{ item.name }}</td>
-                    <td>{{ formatPrice(item.price) }}</td>
+                    <td>{{ formatPrice(item.price_cents / 100) }}</td>
                     <td>{{ item.interval }}</td>
                     <td>
                         <v-btn icon="mdi-pencil" size="small" variant="text" color="info" @click="openDialog(item)"></v-btn>
@@ -43,7 +46,7 @@
                         </v-col>
                         <v-col cols="12" sm="6">
                             <v-text-field 
-                                v-model="form.price" 
+                                v-model="form.price_cents" 
                                 label="Preço" 
                                 prefix="R$"
                                 type="number" 
@@ -79,7 +82,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue-darken-1" variant="text" @click="closeDialog">Cancelar</v-btn>
-                <v-btn color="blue-darken-1" variant="text" @click="savePlan">Salvar</v-btn>
+                <v-btn :loading="loadingSalvar" color="blue-darken-1" variant="text" @click="savePlan">Salvar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -91,7 +94,7 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue-darken-1" variant="text" @click="deleteDialog = false">Cancelar</v-btn>
-                <v-btn color="error" variant="text" @click="deletePlan">Excluir</v-btn>
+                <v-btn :loading="loadingSalvar" color="error" variant="text" @click="deletePlan">Excluir</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -101,6 +104,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
 
 const authStore = useAuthStore()
 const plans = ref([])
@@ -108,35 +112,36 @@ const dialog = ref(false)
 const form = ref({
     id: null,
     name: '',
-    price: 0,
+    price_cents: 0,
     interval: 'mês',
     max_transactions: 100,
     description: '',
     features: []
 })
-
+const loadingSalvar = ref(false)
 const saving = ref(false)
 const availableFeatures = [
-    'Transações Ilimitadas',
-    'Relatórios Detalhados',
-    'Suporte Prioritário',
-    'Exportação de Dados',
-    'Múltiplas Categorias',
-    'Planejamento de Metas',
-    'Acesso Mobile'
+    'Painel Financeiro',
+    'Lançamentos',
+    'Relatórios Gráficos',
+    'Exportação CSV',
+    'Chat IA de Suporte'
 ]
 
 onMounted(async () => {
    fetchPlans()
 })
-
+const loadingPlans = ref(false)
 const fetchPlans = async () => {
     try {
-        const response = await authStore.apiFetch('/plans')
+        loadingPlans.value = true
+        const response = await authStore.apiFetch('/admin/plans')
         plans.value = await response.json()
     } catch (e) {
         console.error(e)
-    }
+    }finally {
+        loadingPlans.value = false
+    }   
 }
 
 const formatPrice = (value) => {
@@ -145,9 +150,14 @@ const formatPrice = (value) => {
 
 const openDialog = (item = null) => {
     if (item) {
-        form.value = { ...item, features: item.features || [], is_active: !!item.is_active } // Ensure array and boolean
+        form.value = { 
+            ...item, 
+            price_cents: item.price_cents / 100,
+            features: item.features || [], 
+            is_active: !!item.is_active 
+        } 
     } else {
-        form.value = { id: null, name: '', price: 0, interval: 'mês', max_transactions: 100, description: '', features: [], is_active: true }
+        form.value = { id: null, name: '', price_cents: 0, interval: 'mês', max_transactions: 100, description: '', features: [], is_active: true }
     }
     dialog.value = true
 }
@@ -157,24 +167,40 @@ const closeDialog = () => {
 }
 
 const savePlan = async () => {
+    if (!form.value.features || form.value.features.length === 0) {
+        toast.error('O plano deve ter pelo menos uma funcionalidade selecionada.')
+        return
+    }
     const isEdit = !!form.value.id
     const endpoint = isEdit ? `/plans/${form.value.id}` : '/plans'
     const method = isEdit ? 'PUT' : 'POST'
-
+    loadingSalvar.value = true
     try {
+      
+        const payload = {
+            ...form.value,
+            price_cents: Math.round(form.value.price_cents * 100)
+        }
+
         const response = await authStore.apiFetch(endpoint, {
             method: method,
-            body: JSON.stringify(form.value)
+            body: JSON.stringify(payload)
         })
         
         if (response.ok) {
             closeDialog()
+            toast.success(`Plano ${isEdit ? 'atualizado' : 'criado'} com sucesso!`)
             fetchPlans()
         } else {
-            alert('Erro ao salvar plano')
+            const data = await response.json()
+            toast.error(data.message || 'Erro ao salvar plano')
+            loadingSalvar.value = false
         }
     } catch (e) {
         console.error(e)
+    }finally {
+        loadingSalvar.value = false
+        fetchPlans()
     }
 }
 
@@ -189,16 +215,25 @@ const confirmDelete = (item) => {
 const deletePlan = async () => {
     if (!planToDelete.value) return 
     
-    // Optimistic UI or wait? Let's wait.
+   loadingSalvar.value = true
     try {
-        await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
+        const response = await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
             method: 'DELETE'
         })
         fetchPlans()
         deleteDialog.value = false
         planToDelete.value = null
+        if(response.ok){
+            toast.success("Plano deletado com sucesso")
+        } else {
+            const data = await response.json().catch(() => ({}))
+            toast.error(data.message || "Erro ao tentar deletar o plano")
+        }
     } catch (e) {
-        console.error(e)
+        console.log(e)
+        toast.error("Erro na comunicação com o servidor")
+    }finally {
+        loadingSalvar.value = false
     }
 }
 </script>

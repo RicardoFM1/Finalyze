@@ -13,7 +13,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         
-        // Get last 6 months
+        
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
             $months[] = Carbon::now()->subMonths($i)->format('Y-m');
