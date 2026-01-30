@@ -49,7 +49,7 @@
               <v-chip
                 :color="user.role === 'admin' ? 'deep-purple' : 'primary'"
                 variant="flat"
-                class="font-weight-bold ml-10"
+                class="font-weight-bold"
               >
                 {{ user.role === 'admin' ? 'ADMINISTRADOR' : 'CLIENTE' }}
               </v-chip>
@@ -198,8 +198,11 @@
         <v-window-item value="billing">
           <v-container class="pa-6 pa-md-10">
             <h3 class="text-h6 font-weight-bold mb-6">Últimos Pagamentos</h3>
-            
-            <v-table v-if="subscriptionData.history && subscriptionData.history.length > 0" class="billing-table">
+            <div v-if="loadingSub" class="text-center py-10">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            </div>
+
+            <v-table v-else-if="subscriptionData.history && subscriptionData.history.length > 0 && !loadingSub" class="billing-table">
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">Data</th>
@@ -228,6 +231,7 @@
             <div v-else class="text-center py-10 text-medium-emphasis">
               Nenhum histórico de faturamento encontrado.
             </div>
+            
           </v-container>
         </v-window-item>
       </v-window>
@@ -290,7 +294,6 @@ const fetchUser = async () => {
         console.error(e)
     }
 }
-
 const fetchSubscription = async () => {
     try {
         loadingSub.value = true
