@@ -49,7 +49,7 @@
               <v-chip
                 :color="user.role === 'admin' ? 'deep-purple' : 'primary'"
                 variant="flat"
-                class="font-weight-bold ml-10"
+                class="font-weight-bold m-10"
               >
                 {{ user.role === 'admin' ? 'ADMINISTRADOR' : 'CLIENTE' }}
               </v-chip>
@@ -76,6 +76,30 @@
                       bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-email"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="user.cpf"
+                      label="CPF"
+                      variant="outlined"
+                      bg-color="grey-lighten-4"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-card-account-details"
+                      :rules="cpfRules"
+                      @input="formatCPF"
+                      maxlength="14"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="user.birth_date"
+                      label="Data de Nascimento"
+                      type="date"
+                      variant="outlined"
+                      bg-color="grey-lighten-4"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-calendar"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -106,7 +130,7 @@
               <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
               <h3 class="text-h5 mt-4">Nenhum plano ativo</h3>
               <p class="text-medium-emphasis mb-6">Você ainda não assinou nenhum de nossos planos financeiros.</p>
-              <v-btn color="primary" to="/planos" size="large" rounded="xl">Ver Planos Agora</v-btn>
+              <v-btn color="primary" :to="{ name: 'Plans' }" size="large" rounded="xl">Ver Planos Agora</v-btn>
             </div>
 
             <div v-else>
@@ -137,7 +161,7 @@
                       ></v-progress-linear>
                     </div>
 
-                    <v-btn block color="white" variant="flat" class="text-primary font-weight-bold" to="/planos" rounded="lg">
+                    <v-btn block color="white" variant="flat" class="text-primary font-weight-bold" :to="{ name: 'Plans' }" rounded="lg">
                       Mudar de Plano
                     </v-btn>
                   </v-card>
@@ -263,7 +287,9 @@ const user = ref({
     email: '',
     role: '',
     plan: null,
-    avatar: null
+    avatar: null,
+    cpf: '',
+    birth_date: ''
 })
 
 const subscriptionData = ref({
@@ -286,6 +312,18 @@ const fetchUser = async () => {
         const response = await authStore.apiFetch('/user')
         const data = await response.json()
         user.value = data
+        
+        // Format CPF for display if exists
+        if (user.value.cpf) {
+          formatCPF({ target: { value: user.value.cpf } })
+        }
+        
+        // Ensure birth_date is YYYY-MM-DD for the date input
+        if (user.value.birth_date && typeof user.value.birth_date === 'string') {
+          user.value.birth_date = user.value.birth_date.substring(0, 10)
+        } else {
+          user.value.birth_date = '' // Ensure it's not null/undefined for the input
+        }
     } catch (e) {
         console.error(e)
     }
@@ -335,7 +373,7 @@ const cancelSubscription = async () => {
 }
 
 const payAhead = () => {
-    router.push('/planos')
+    router.push({ name: 'Plans' })
 }
 
 const progressPercentage = computed(() => {
@@ -378,6 +416,12 @@ const saveProfile = async () => {
         const formData = new FormData()
         formData.append('name', user.value.name)
         formData.append('email', user.value.email)
+        if (user.value.cpf && typeof user.value.cpf === 'string') {
+            formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
+        }
+        if (user.value.birth_date) {
+            formData.append('birth_date', user.value.birth_date)
+        }
         formData.append('_method', 'PUT') 
         
         if (selectedFile.value) {
@@ -393,9 +437,26 @@ const saveProfile = async () => {
             toast.success('Perfil atualizado!')
             const updated = await response.json()
             authStore.user = updated
+            user.value = { ...updated }
+            
+            // Re-format after update
+            if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
+            if (user.value.birth_date && typeof user.value.birth_date === 'string') {
+              user.value.birth_date = user.value.birth_date.substring(0, 10)
+            } else {
+              user.value.birth_date = ''
+            }
+            
             selectedFile.value = null 
         } else {
-             toast.error('Erro ao atualizar')
+             const errorData = await response.json().catch(() => ({}))
+             if (errorData.errors) {
+                 // Show the first validation error message
+                 const firstErrorKey = Object.keys(errorData.errors)[0]
+                 toast.warning(errorData.errors[firstErrorKey][0])
+             } else {
+                 toast.error(errorData.message || 'Erro ao atualizar perfil')
+             }
         }
     } catch (e) {
         toast.error('Erro de conexão')
@@ -416,6 +477,39 @@ const formatDate = (dateString) => {
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+const validateCPF = (cpf) => {
+  cpf = cpf.replace(/\D/g, '')
+  if (cpf === '') return false
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
+  let add = 0
+  for (let i = 0; i < 9; i++) add += parseInt(cpf.charAt(i)) * (10 - i)
+  let rev = 11 - (add % 11)
+  if (rev === 10 || rev === 11) rev = 0
+  if (rev !== parseInt(cpf.charAt(9))) return false
+  add = 0
+  for (let i = 0; i < 10; i++) add += parseInt(cpf.charAt(i)) * (11 - i)
+  rev = 11 - (add % 11)
+  if (rev === 10 || rev === 11) rev = 0
+  return rev === parseInt(cpf.charAt(10))
+}
+
+const cpfRules = [
+  v => !v || validateCPF(v) || 'CPF inválido'
+]
+
+const formatCPF = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+  if (value.length > 11) value = value.substring(0, 11)
+  if (value.length > 9) {
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  } else if (value.length > 6) {
+    value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3')
+  } else if (value.length > 3) {
+    value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2')
+  }
+  user.value.cpf = value
 }
 </script>
 

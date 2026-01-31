@@ -8,10 +8,10 @@
           Junte-se a milhares de usuários que assumiram o controle do seu dinheiro.
         </p>
         <div class="d-flex gap-2 gap-md-4 justify-center justify-md-start">
-            <v-btn v-if="authStore.user?.plan_id === null || authStore.user?.role === 'admin'" color="primary" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1" to="/planos" elevation="4">Ver Planos</v-btn>
-            <v-btn v-if="!authStore.isAuthenticated" variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1" to="/login">Entrar</v-btn>
-            <v-btn v-else-if="authStore.user?.role !== 'admin'" variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1 ml-4" to="/painel">Ir para Painel</v-btn>
-            <v-btn v-else variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1 ml-4" to="/admin">Painel Admin</v-btn>
+            <v-btn color="primary" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1" :to="{ name: 'Plans' }" elevation="4">Ver Planos</v-btn>
+            <v-btn v-if="!authStore.isAuthenticated" variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1" :to="{ name: 'Login' }">Entrar</v-btn>
+            <v-btn v-else-if="authStore.user?.role !== 'admin'" variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1 ml-4" :to="{ name: 'Dashboard' }">Ir para Painel</v-btn>
+            <v-btn v-else variant="outlined" size="large" class="py-2 py-md-2 text-body-2 text-md-body-1 ml-4" :to="{ name: 'Admin' }">Painel Admin</v-btn>
         </div>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-center">

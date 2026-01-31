@@ -14,27 +14,27 @@ class Plan extends Model
 
     protected $fillable = [
         'name',
-        'price_cents',
-        'interval',
         'description',
-        'features',
         'max_transactions',
         'is_active'
     ];
 
 
     protected $casts = [
-        'features' => 'array',
-        'price_cents' => 'integer'
+        'is_active' => 'boolean',
+        'max_transactions' => 'integer'
     ];
 
-    public function getPriceAttribute()
+    public function periods()
     {
-        return $this->price_cents / 100;
+        return $this->belongsToMany(Period::class, 'plan_period')
+            ->withPivot('price_cents', 'discount_percentage')
+            ->withTimestamps();
     }
 
-    public function setPriceAttribute($value)
+    public function features()
     {
-        $this->attributes['price_cents'] = (int)round($value * 100);
+        return $this->belongsToMany(Feature::class, 'plan_feature')
+            ->withTimestamps();
     }
 }

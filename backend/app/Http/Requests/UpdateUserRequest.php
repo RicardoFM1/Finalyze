@@ -17,7 +17,9 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $userId,
-            'avatar' => 'nullable|image|max:2048'
+            'avatar' => 'nullable|image|max:2048',
+            'cpf' => 'nullable|string|size:11|unique:users,cpf,' . $userId,
+            'birth_date' => 'nullable|date|before:' . now()->subYears(18)->format('Y-m-d')
         ];
     }
 
@@ -29,7 +31,11 @@ class UpdateUserRequest extends FormRequest
             'email.email' => 'O e-mail deve ser válido.',
             'email.unique' => 'Este e-mail já está em uso.',
             'avatar.image' => 'O avatar deve ser uma imagem.',
-            'avatar.max' => 'O avatar não pode ter mais de 2MB.'
+            'avatar.max' => 'O avatar não pode ter mais de 2MB.',
+            'cpf.size' => 'O CPF deve ter 11 dígitos.',
+            'cpf.unique' => 'Este CPF já está cadastrado.',
+            'birth_date.date' => 'Data de nascimento inválida.',
+            'birth_date.before' => 'Você deve ter pelo menos 18 anos.'
         ];
     }
 }

@@ -65,7 +65,7 @@
         <v-card title="Ações Rápidas">
             <v-card-text>
                 <v-btn block color="primary" class="mb-2" prepend-icon="mdi-plus" @click="dialog = true">Adicionar Lançamento</v-btn>
-                <v-btn block variant="outlined" class="mb-2" to="/relatorios">Ver Relatórios</v-btn>
+                <v-btn block variant="outlined" class="mb-2" :to="{ name: 'Reports' }">Ver Relatórios</v-btn>
             </v-card-text>
         </v-card>
       </v-col>

@@ -14,25 +14,38 @@ class PlanController extends Controller
     public function index(Request $request)
     {
 
-        return Plan::where('is_active', true)->orderBy('created_at', 'desc')->get();
+        return Plan::with(['periods', 'features'])->where('is_active', true)->orderBy('created_at', 'desc')->get();
     }
 
     public function adminIndex()
     {
-        return Plan::orderBy('created_at', 'desc')->get();
+        return Plan::with(['periods', 'features'])->orderBy('created_at', 'desc')->get();
     }
 
     public function store(StorePlanRequest $request)
     {
         $validated = $request->validated();
+        $plan = Plan::create($validated);
 
+        if ($request->has('features')) {
+            $plan->features()->sync($request->features);
+        }
 
-        return Plan::create($validated);
+        if ($request->has('periods')) {
+            foreach ($request->periods as $periodData) {
+                $plan->periods()->attach($periodData['id'], [
+                    'price_cents' => $periodData['price_cents'],
+                    'discount_percentage' => $periodData['discount_percentage'] ?? 0
+                ]);
+            }
+        }
+
+        return $plan->load(['periods', 'features']);
     }
 
     public function show(Plan $plan)
     {
-        return $plan;
+        return $plan->load(['periods', 'features']);
     }
 
     public function update(UpdatePlanRequest $request, Plan $plan)
@@ -40,7 +53,6 @@ class PlanController extends Controller
         $validated = $request->validated();
 
         if (isset($validated['is_active']) && !$validated['is_active']) {
-
             $activeCount = Plan::where('is_active', true)->where('id', '!=', $plan->id)->count();
             if ($activeCount < 2) {
                 return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
@@ -48,7 +60,23 @@ class PlanController extends Controller
         }
 
         $plan->update($validated);
-        return $plan;
+
+        if ($request->has('features')) {
+            $plan->features()->sync($request->features);
+        }
+
+        if ($request->has('periods')) {
+            $syncData = [];
+            foreach ($request->periods as $periodData) {
+                $syncData[$periodData['id']] = [
+                    'price_cents' => $periodData['price_cents'],
+                    'discount_percentage' => $periodData['discount_percentage'] ?? 0
+                ];
+            }
+            $plan->periods()->sync($syncData);
+        }
+
+        return $plan->load(['periods', 'features']);
     }
 
     public function destroy(Plan $plan)

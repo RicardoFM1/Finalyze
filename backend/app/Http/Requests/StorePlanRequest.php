@@ -14,12 +14,15 @@ class StorePlanRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string',
-            'price_cents' => 'required|integer|min:1',
-            'interval' => 'required|string',
+            'name' => 'required|string|max:255',
             'max_transactions' => 'required|integer',
             'description' => 'nullable|string',
             'features' => 'required|array|min:1',
+            'features.*' => 'exists:features,id',
+            'periods' => 'required|array|min:1',
+            'periods.*.id' => 'required|exists:periods,id',
+            'periods.*.price_cents' => 'required|integer|min:0',
+            'periods.*.discount_percentage' => 'nullable|integer|min:0|max:100',
             'is_active' => 'boolean'
         ];
     }

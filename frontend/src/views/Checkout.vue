@@ -1,45 +1,306 @@
 <template>
-  <v-container class="fill-height justify-center">
-    <v-card width="600" class="pa-4">
-      
-      <v-card-title>Complete sua Assinatura</v-card-title>
-      <v-card-text>
-        <p class="mb-4" v-if="planName">Você está assinando o plano <strong>{{ planName }}</strong>.</p>
-        <PaymentBrick :preferenceId="preferenceId" v-if="preferenceId" />
-        <v-alert v-else type="info" class="mt-4">
-            <v-progress-circular indeterminate size="20" class="mr-2"></v-progress-circular>
-            Gerando pagamento...
-        </v-alert>
-      </v-card-text>
-    </v-card>
+  <v-container class="py-10">
+    <v-row justify="center">
+      <v-col cols="12" md="10" lg="8">
+        <v-card class="rounded-xl overflow-hidden" elevation="12">
+          <v-stepper v-model="step" :items="['Identificação', 'Pagamento']" hide-actions>
+            <template v-slot:item.1>
+              <div v-if="!authStore.isAuthenticated">
+                <v-tabs v-model="authTab" color="primary" grow class="mb-6">
+                  <v-tab value="login">Entrar</v-tab>
+                  <v-tab value="register">Cadastrar</v-tab>
+                </v-tabs>
+
+                <v-window v-model="authTab">
+                  <v-window-item value="login">
+                    <v-form @submit.prevent="handleLogin" class="pa-4">
+                      <v-text-field 
+                        v-model="loginForm.email" 
+                        label="E-mail" 
+                        variant="outlined" 
+                        prepend-inner-icon="mdi-email"
+                      ></v-text-field>
+                      <v-text-field 
+                        v-model="loginForm.password" 
+                        label="Senha" 
+                        :type="showPassword ? 'text' : 'password'" 
+                        variant="outlined" 
+                        prepend-inner-icon="mdi-lock"
+                        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append-inner="showPassword = !showPassword"
+                      ></v-text-field>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading">Entrar e Continuar</v-btn>
+                    </v-form>
+                  </v-window-item>
+
+                  <v-window-item value="register">
+                    <v-form @submit.prevent="handleRegister" class="pa-4">
+                      <v-row>
+                        <v-col cols="12" md="6">
+                          <v-text-field v-model="registerForm.name" label="Nome Completo" variant="outlined"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field v-model="registerForm.email" label="E-mail" variant="outlined"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field 
+                            v-model="registerForm.password" 
+                            label="Senha" 
+                            :type="showRegisterPassword ? 'text' : 'password'" 
+                            variant="outlined"
+                            :append-inner-icon="showRegisterPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                            @click:append-inner="showRegisterPassword = !showRegisterPassword"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field 
+                            v-model="registerForm.password_confirmation" 
+                            label="Confirmar Senha" 
+                            :type="showRegisterPassword ? 'text' : 'password'" 
+                            variant="outlined"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field 
+                            v-model="registerForm.cpf" 
+                            label="CPF" 
+                            variant="outlined"
+                            @input="formatCPF"
+                            maxlength="14"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" md="6">
+                          <v-text-field v-model="registerForm.birth_date" label="Data de Nascimento" type="date" variant="outlined"></v-text-field>
+                        </v-col>
+                      </v-row>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading">Cadastrar e Continuar</v-btn>
+                    </v-form>
+                  </v-window-item>
+                </v-window>
+              </div>
+              <div v-else class="text-center pa-10">
+                <v-icon color="success" size="64" icon="mdi-account-check" class="mb-4"></v-icon>
+                <h3 class="text-h5 mb-2">Identificado como {{ authStore.user?.name }}</h3>
+                <p class="text-medium-emphasis mb-6">Você está pronto para prosseguir com o pagamento.</p>
+                <v-btn color="primary" size="large" @click="step = 2">Continuar para Pagamento</v-btn>
+              </div>
+            </template>
+
+            <template v-slot:item.2>
+               <div class="pa-4">
+                  <div class="d-flex align-center mb-6">
+                    <v-btn icon="mdi-arrow-left" variant="text" @click="step = 1" class="mr-2"></v-btn>
+                    <h3 class="text-h5 font-weight-bold">Dados de Pagamento</h3>
+                  </div>
+
+                  <v-alert v-if="planInfo" type="info" variant="tonal" class="mb-6 rounded-lg">
+                    Você selecionou o plano <strong>{{ planInfo.name }}</strong> ({{ periodInfo?.name }}).
+                    <div class="text-h6 mt-2">Total: {{ formatPrice(periodInfo?.pivot?.price_cents / 100) }}</div>
+                  </v-alert>
+
+                  <PaymentBrick 
+                    v-if="preferenceId" 
+                    :preferenceId="preferenceId" 
+                    :plan-id="planId"
+                    :period-id="periodId"
+                  />
+                  <div v-else-if="!checkoutError" class="text-center py-10">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    <p class="mt-4">Preparando ambiente de pagamento...</p>
+                  </div>
+                  <v-alert v-else type="error" variant="tonal" class="mt-4">
+                    {{ checkoutError }}
+                    <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">Tentar Novamente</v-btn>
+                  </v-alert>
+               </div>
+            </template>
+          </v-stepper>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import PaymentBrick from '../components/PaymentBrick.vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
+import PaymentBrick from '../components/PaymentBrick.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+const step = ref(1)
+const authTab = ref('login')
+const loading = ref(false)
 const preferenceId = ref(null)
-const planName = ref('Selecionado')
-const selectedPlan = ref(null)
+const checkoutError = ref(null)
+const showPassword = ref(false)
+const showRegisterPassword = ref(false)
+
+const planId = ref(route.query.plan)
+const periodId = ref(route.query.period)
+const planInfo = ref(null)
+const periodInfo = ref(null)
+
+const loginForm = ref({ email: '', password: '' })
+const registerForm = ref({ 
+    name: '', email: '', password: '', password_confirmation: '', 
+    cpf: '', birth_date: '' 
+})
 
 onMounted(async () => {
-    try {
-        const response = await authStore.apiFetch('/checkout/preference')
-        if (!response.ok) throw new Error('Preferência não encontrada')
-        
-        const data = await response.json()
-        preferenceId.value = data.id
-        planName.value = data.plan.name
-        selectedPlan.value = data.plan
-    } catch (e) {
-        console.error('Erro ao carregar checkout:', e)
-        router.push('/planos')
+    // 1. If authenticated, ALWAYS check for a pending preference first
+    if (authStore.isAuthenticated) {
+        try {
+            const response = await authStore.apiFetch('/checkout/preference')
+            if (response.ok) {
+                const data = await response.json()
+                preferenceId.value = data.id
+                planInfo.value = data.plan
+                planId.value = data.plan.id
+                // If the user came with a specific query that matches the pending, use it to set periodInfo
+                if (route.query.period && data.plan.periods) {
+                     const found = data.plan.periods.find(p => p.id == route.query.period)
+                     if (found) {
+                         periodId.value = found.id
+                         periodInfo.value = found
+                     }
+                }
+                
+                // If we still don't have periodInfo, try to use what the backend sent
+                if (!periodInfo.value && data.period_id) {
+                    periodInfo.value = data.plan.periods.find(p => p.id == data.period_id)
+                    periodId.value = data.period_id
+                }
+
+                step.value = 2
+            }
+        } catch (e) {
+            console.warn('No pending preference found or error:', e)
+        }
+    }
+
+    // 2. If no preference found but we have query params, prepare the planInfo
+    if (!preferenceId.value && planId.value) {
+        try {
+            const response = await authStore.apiFetch(`/plans`)
+            const plans = await response.json()
+            planInfo.value = plans.find(p => p.id == planId.value)
+            
+            if (planInfo.value && periodId.value) {
+                periodInfo.value = planInfo.value.periods.find(p => p.id == periodId.value)
+            } else if (planInfo.value) {
+                // Default to first period if missing
+                periodInfo.value = planInfo.value.periods[0]
+                periodId.value = periodInfo.value?.id
+            }
+
+            // If already authenticated and we have plan info, init payment
+            if (authStore.isAuthenticated) {
+                step.value = 2
+                await initPayment()
+            }
+        } catch (e) {
+            console.error('Error loading plan info:', e)
+        }
+    }
+
+    // 3. Fallback: if even after checks we have no preference and no plan selected, go to plans
+    if (!preferenceId.value && !planId.value) {
+        router.push({ name: 'Plans' })
     }
 })
+
+watch(step, (newStep) => {
+    if (newStep === 2 && authStore.isAuthenticated && !preferenceId.value) {
+        initPayment()
+    }
+})
+
+const handleLogin = async () => {
+    loading.value = true
+    try {
+        await authStore.login(loginForm.value.email, loginForm.value.password)
+        toast.success('Login realizado com sucesso!')
+        step.value = 2
+    } catch (e) {
+        toast.error(e.message || 'Erro ao fazer login')
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleRegister = async () => {
+    loading.value = true
+    try {
+        const cleanCpf = registerForm.value.cpf.replace(/\D/g, '')
+        await authStore.register(
+            registerForm.value.name,
+            registerForm.value.email,
+            registerForm.value.password,
+            registerForm.value.password_confirmation,
+            cleanCpf,
+            registerForm.value.birth_date
+        )
+        toast.success('Cadastro realizado com sucesso!')
+        step.value = 2
+    } catch (e) {
+        let msg = e.message || 'Erro ao realizar cadastro'
+        // Handle validation errors if they exist in the response
+        if (e.response && e.response.data && e.response.data.errors) {
+            msg = Object.values(e.response.data.errors).flat().join('\n')
+        }
+        toast.error(msg)
+    } finally {
+        loading.value = false
+    }
+}
+
+const initPayment = async () => {
+    if (!planId.value || !periodId.value) {
+        console.warn('[Checkout] Missing planId or periodId for initPayment')
+        return
+    }
+    
+    checkoutError.value = null
+    try {
+        const response = await authStore.apiFetch('/checkout/preference', {
+            method: 'POST',
+            body: JSON.stringify({
+                plan_id: planId.value,
+                period_id: periodId.value
+            })
+        })
+        const data = await response.json()
+        if (response.ok) {
+            preferenceId.value = data.id
+        } else {
+            throw new Error(data.error || 'Erro ao gerar preferência')
+        }
+    } catch (e) {
+        console.error('Init payment error:', e)
+        checkoutError.value = e.message || 'Falha ao iniciar ambiente de pagamento. Verifique sua conexão.'
+        toast.error(checkoutError.value)
+    }
+}
+
+const formatPrice = (value) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+const formatCPF = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+  if (value.length > 11) value = value.substring(0, 11)
+  if (value.length > 9) {
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  } else if (value.length > 6) {
+    value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3')
+  } else if (value.length > 3) {
+    value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2')
+  }
+  registerForm.value.cpf = value
+}
 </script>

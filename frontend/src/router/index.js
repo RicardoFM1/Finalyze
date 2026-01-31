@@ -13,7 +13,7 @@ const routes = [
   { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Relatórios Gráficos' } },
   { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
-  { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue'), meta: { requiresAuth: true } },
+  { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue') },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') },
 ]
 
@@ -55,7 +55,7 @@ router.beforeEach(async (to) => {
 
 
   if (to.meta.requiresPlan && !auth.user?.plan_id && auth.user?.role !== 'admin') {
-    return { name: 'Plans', query: { msg: 'no_plan' } }
+    return { name: 'Plans' }
   }
 
 

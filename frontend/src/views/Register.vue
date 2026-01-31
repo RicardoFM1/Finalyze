@@ -49,14 +49,35 @@
                   :rules="passwordRules"
                 ></v-text-field>
 
+                  <v-text-field
+                    v-model="form.password_confirmation"
+                    label="Confirmar Senha"
+                    prepend-inner-icon="mdi-lock-check"
+                    variant="outlined"
+                    color="primary"
+                    :type="showPass ? 'text' : 'password'"
+                    :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.password || 'As senhas não coincidem']"
+                  ></v-text-field>
+
                 <v-text-field
-                  v-model="form.password_confirmation"
-                  label="Confirmar Senha"
-                  prepend-inner-icon="mdi-lock-check"
+                  v-model="form.cpf"
+                  label="CPF"
+                  prepend-inner-icon="mdi-card-account-details"
                   variant="outlined"
                   color="primary"
-                  type="password"
-                  :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.password || 'As senhas não coincidem']"
+                  @input="formatCPF"
+                  maxlength="14"
+                  :rules="[v => !!v || 'CPF é obrigatório']"
+                ></v-text-field>
+
+                <v-text-field
+                  v-model="form.birth_date"
+                  label="Data de Nascimento"
+                  prepend-inner-icon="mdi-calendar"
+                  variant="outlined"
+                  color="primary"
+                  type="date"
+                  :rules="[v => !!v || 'Data de nascimento é obrigatória']"
                 ></v-text-field>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
@@ -81,7 +102,7 @@
                   type="button"
                   class="mb-4 font-weight-bold"
                   elevation="4"
-                  @click="router.push('/')"
+                  @click="router.push({ name: 'Home' })"
                 >
                   Página inicial
                 </v-btn>
@@ -110,7 +131,9 @@ const form = ref({
   name: '',
   email: '',
   password: '',
-  password_confirmation: ''
+  password_confirmation: '',
+  cpf: '',
+  birth_date: ''
 })
 
 const showPass = ref(false)
@@ -134,9 +157,17 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
-    await authStore.register(form.value.name, form.value.email, form.value.password, form.value.password_confirmation)
-    toast.success("Cadastro realizado com sucesso! Faça login para continuar.")
-    router.push('/login')
+    const cleanCpf = form.value.cpf.replace(/\D/g, '')
+    await authStore.register(
+      form.value.name, 
+      form.value.email, 
+      form.value.password, 
+      form.value.password_confirmation,
+      cleanCpf,
+      form.value.birth_date
+    )
+    toast.success("Cadastro realizado com sucesso!")
+    router.push({ name: 'Dashboard' })
   } catch (err) {
     error.value = err.message || 'Erro ao cadastrar'
   
@@ -154,8 +185,22 @@ form.value.name === ''
 || form.value.email === '' 
 || form.value.password === '' 
 || form.value.password_confirmation === '' 
+|| form.value.cpf === ''
+|| form.value.birth_date === ''
 || form.value.password !== form.value.password_confirmation
 || !isValid.value
 )
 
+const formatCPF = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+  if (value.length > 11) value = value.substring(0, 11)
+  if (value.length > 9) {
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  } else if (value.length > 6) {
+    value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3')
+  } else if (value.length > 3) {
+    value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2')
+  }
+  form.value.cpf = value
+}
 </script>

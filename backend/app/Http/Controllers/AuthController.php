@@ -17,9 +17,14 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'cpf' => $request->cpf,
+            'birth_date' => $request->birth_date,
         ]);
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
+            'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user->load('plan')
         ]);

@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function show(Request $request)
     {
-        return $request->user()->load('plan');
+        return $request->user()->load('plan.features');
     }
 
     public function update(UpdateUserRequest $request)

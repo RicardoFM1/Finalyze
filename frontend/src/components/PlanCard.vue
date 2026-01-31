@@ -14,12 +14,37 @@
 
     <v-card-item class="pt-8 pb-4 text-center">
       <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.name }}</v-card-title>
+      
+      <v-select
+        v-model="selectedPeriodId"
+        :items="plan.periods"
+        item-title="name"
+        item-value="id"
+        variant="underlined"
+        density="compact"
+        class="period-select mx-auto mb-2"
+        style="max-width: 150px"
+        hide-details
+      ></v-select>
+
       <div class="price-container my-4">
         <span class="currency">R$</span>
-        <span class="price-integer">{{ Math.floor(plan.price_cents / 100) }}</span>
-        <span class="price-decimal">,{{ (plan.price_cents % 100).toString().padStart(2, '0') }}</span>
-        <span class="interval text-medium-emphasis">/mês</span>
+        <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
+        <span class="price-decimal">,{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+        <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
+      
+      <v-chip 
+        v-if="currentDiscount > 0" 
+        color="success" 
+        variant="flat" 
+        size="small" 
+        class="mb-3 font-weight-bold"
+      >
+        <v-icon start size="small">mdi-tag</v-icon>
+        {{ currentDiscount }}% de desconto
+      </v-chip>
+      
       <v-card-subtitle class="description-text px-4" v-html="plan.description"></v-card-subtitle>
     </v-card-item>
 
@@ -27,21 +52,22 @@
       <v-divider class="mb-6 opacity-20"></v-divider>
       <v-list density="comfortable" class="bg-transparent pa-0">
         <v-list-item 
-          v-for="(feature, i) in plan.features" 
-          :key="i" 
+          v-for="feature in plan.features" 
+          :key="feature.id" 
           class="px-0 py-1"
           min-height="32"
         >
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature }}</span>
+          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.name }}</span>
         </v-list-item>
       </v-list>
     </v-card-text>
 
     <v-card-actions class="pa-6 pt-2">
       <v-btn
+        :disabled="disabled"
         :loading="loadingEscolher"
         :color="isCurrentPlan ? 'success' : (isFeatured ? 'primary' : 'primary')"
         variant="flat"
@@ -62,6 +88,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 const router = useRouter()
+const authStore = useAuthStore()
 const props = defineProps({
   plan: {
     type: Object,
@@ -70,13 +97,36 @@ const props = defineProps({
   isFeatured: {
     type: Boolean,
     default: false
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
-defineEmits(['select'])
+const selectedPeriodId = ref(props.plan.periods?.[1]?.id || props.plan.periods?.[0]?.id)
 
-const loadingEscolher = ref(false)
-const authStore = useAuthStore()
-const preferenceId = ref(null)
+const selectedPeriod = computed(() => {
+    return props.plan.periods.find(p => p.id === selectedPeriodId.value)
+})
+
+const currentPrice = computed(() => {
+    return selectedPeriod.value?.pivot?.price_cents || 0
+})
+
+const selectedPeriodSlug = computed(() => {
+    const slug = selectedPeriod.value?.slug || 'monthly'
+    const map = {
+        'weekly': 'sem',
+        'monthly': 'mês',
+        'quarterly': 'tri',
+        'yearly': 'ano'
+    }
+    return map[slug] || 'mês'
+})
+
+const currentDiscount = computed(() => {
+    return selectedPeriod.value?.pivot?.discount_percentage || 0
+})
 
 const isCurrentPlan = computed(() => {
     return authStore.user?.plan_id === props.plan.id
@@ -87,25 +137,14 @@ const buttonText = computed(() => {
     if (authStore.user?.plan_id) return 'Mudar para ' + props.plan.name
     return 'Escolher ' + props.plan.name
 })
-const clickEscolha = async () => {
-try {
-  loadingEscolher.value = true
-        const response = await authStore.apiFetch('/checkout/preference', {
-            method: 'POST',
-            body: JSON.stringify({
-                plan_id: props.plan.id
-            })
-        })
-        const data = await response.json()
-        preferenceId.value = data.id
-        if (response.ok){
-          router.push({ path: '/pagamento' })
-        }
-    } catch (e) {
-        console.error('Erro ao criar preferência:', e)
-    }finally{
-      loadingEscolher.value = false 
-    }
+
+const emit = defineEmits(['select'])
+
+const clickEscolha = () => {
+    emit('select', { 
+        plan: props.plan, 
+        period: selectedPeriod.value 
+    })
 }
 
 const formatPrice = (value) => {
@@ -189,11 +228,11 @@ const formatPrice = (value) => {
 
 .description-text {
   font-size: 0.9rem;
-  line-height: 1.4;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 1.5;
+  min-height: 48px;
+  display: block;
+  text-align: center;
+  white-space: normal;
 }
 
 .action-btn {

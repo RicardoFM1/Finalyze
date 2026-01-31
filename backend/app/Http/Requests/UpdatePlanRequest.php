@@ -14,12 +14,15 @@ class UpdatePlanRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'string',
-            'price_cents' => 'integer',
-            'interval' => 'string',
+            'name' => 'string|max:255',
             'max_transactions' => 'integer',
-            'description' => 'string',
+            'description' => 'nullable|string',
             'features' => 'array|min:1',
+            'features.*' => 'exists:features,id',
+            'periods' => 'array|min:1',
+            'periods.*.id' => 'required|exists:periods,id',
+            'periods.*.price_cents' => 'required|integer|min:0',
+            'periods.*.discount_percentage' => 'nullable|integer|min:0|max:100',
             'is_active' => 'boolean'
         ];
     }

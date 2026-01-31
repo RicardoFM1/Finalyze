@@ -34,13 +34,18 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (response.status === 401) {
                 logout();
-                router.push('/login');
+                // Avoid infinite redirect if already trying to login/register or in checkout
+                if (router.currentRoute.value.name !== 'Login' &&
+                    router.currentRoute.value.name !== 'Register' &&
+                    router.currentRoute.value.name !== 'Checkout') {
+                    router.push({ name: 'Login' });
+                }
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Sessão expirada. Faça login novamente.');
             }
 
             if (response.status === 403) {
-                router.push('/planos');
+                router.push({ name: 'Plans' });
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Acesso negado. Verifique seu plano.');
             }
@@ -75,11 +80,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function register(name, email, password, password_confirmation) {
+    async function register(name, email, password, password_confirmation, cpf, birth_date) {
         try {
             const response = await apiFetch('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ name, email, password, password_confirmation })
+                body: JSON.stringify({ name, email, password, password_confirmation, cpf, birth_date })
             });
 
             const data = await response.json();
@@ -119,12 +124,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     }
 
-    function hasFeature(featureName) {
+    function hasFeature(featureSlug) {
         if (user.value?.role === 'admin') return true;
 
-
         const features = user.value?.plan?.features || [];
-        return features.includes(featureName);
+        return features.some(f => f.slug === featureSlug || f.name === featureSlug);
     }
 
     return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };

@@ -38,11 +38,15 @@ class CheckoutController extends Controller
 
 
             $planId = $request->input('plan_id');
+            $periodId = $request->input('period_id');
+
             $plan = \App\Models\Plan::findOrFail($planId);
+            $period = $plan->periods()->where('periods.id', $periodId)->firstOrFail();
+
             $items = [[
-                "title" => $plan->name,
+                "title" => $plan->name . " (" . $period->name . ")",
                 "quantity" => 1,
-                "unit_price" => $plan->price_cents / 100
+                "unit_price" => $period->pivot->price_cents / 100
             ]];
 
 
@@ -58,8 +62,8 @@ class CheckoutController extends Controller
                 "items" => $items,
                 "back_urls" => [
                     "success" => $baseUrl . "/?status=success",
-                    "failure" => $baseUrl . "/pagamento?status=failure",
-                    "pending" => $baseUrl . "/pagamento?status=pending"
+                    "failure" => $baseUrl . "/?status=failure",
+                    "pending" => $baseUrl . "/?status=pending"
                 ],
                 "auto_return" => "approved",
                 "notification_url" => $baseUrl . "/api/webhook/mercadopago"
@@ -70,6 +74,7 @@ class CheckoutController extends Controller
                 ['user_id' => auth()->id(), 'status' => 'pending'],
                 [
                     'plan_id' => $plan->id,
+                    'period_id' => $period->id,
                     'mercado_pago_id' => $preference->id,
                 ]
             );
@@ -99,11 +104,14 @@ class CheckoutController extends Controller
                 ->latest()
                 ->firstOrFail();
 
-            $plan = \App\Models\Plan::findOrFail($subscription->plan_id);
+            $plan = \App\Models\Plan::with(['features', 'periods'])->findOrFail($subscription->plan_id);
+            $period = $plan->periods()->where('periods.id', $subscription->period_id)->first();
 
             return response()->json([
                 'id' => $subscription->mercado_pago_id,
-                'plan' => $plan
+                'plan' => $plan,
+                'period_id' => $subscription->period_id,
+                'price_cents' => $period ? $period->pivot->price_cents : 0
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Nenhuma preferência pendente encontrada'], 404);
@@ -138,7 +146,11 @@ class CheckoutController extends Controller
             }
 
             $plan_id = $request->input('plan_id');
+            $period_id = $request->input('period_id');
 
+            $plan = \App\Models\Plan::findOrFail($plan_id);
+            $period = $plan->periods()->where('periods.id', $period_id)->firstOrFail();
+            $transactionAmount = $period->pivot->price_cents / 100;
 
             $existingPending = Subscription::where('user_id', $user->id)
                 ->where('status', 'pending')
@@ -157,7 +169,7 @@ class CheckoutController extends Controller
             }
 
             $payer = $request->payer ?? [];
-            $payerIdNumber = $payer['identification']['number'] ?? null;
+            $payerIdNumber = $payer['identification']['number'] ?? $user->cpf;
             if (!$payerIdNumber) {
 
                 if (config('app.env') !== 'production') {
@@ -171,7 +183,7 @@ class CheckoutController extends Controller
             $data = [
                 "transaction_amount" => $transactionAmount,
                 "payment_method_id" => $paymentMethodId,
-                "description" => $request->description ?? "Assinatura",
+                "description" => ($request->description ?? "Assinatura") . " - " . $plan->name . " (" . $period->name . ")",
                 "payer" => [
                     "email" => $user->email,
                     "first_name" => explode(' ', $user->name)[0] ?? 'User',
@@ -185,7 +197,9 @@ class CheckoutController extends Controller
                 "metadata" => [
                     "user_id" => (string)$user->id,
                     "plan_id" => (string)$plan_id,
-                    "subscription_id" => (string)$subscription->id
+                    "period_id" => (string)$period_id,
+                    "subscription_id" => (string)$subscription->id,
+                    "days_count" => (string)$period->days_count
                 ]
             ];
 
@@ -209,7 +223,9 @@ class CheckoutController extends Controller
                 'id' => $payment->id,
                 'qr_code' => $payment->point_of_interaction?->transaction_data?->qr_code,
                 'qr_code_base64' => $payment->point_of_interaction?->transaction_data?->qr_code_base64,
-                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url
+                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url,
+                'plan_name' => $plan->name,
+                'period_name' => $period->name
             ]);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             \Illuminate\Support\Facades\Log::error('MPApiException', [
@@ -306,7 +322,8 @@ class CheckoutController extends Controller
             $subscription = \App\Models\Subscription::find($subscriptionId);
             if ($subscription) {
 
-                $newEndsAt = now()->addMonth();
+                $daysCount = $metadata->days_count ?? 30;
+                $newEndsAt = now()->addDays((int)$daysCount);
 
 
                 $activeSub = \App\Models\Subscription::where('user_id', $subscription->user_id)
@@ -315,7 +332,7 @@ class CheckoutController extends Controller
                     ->first();
 
                 if ($activeSub && $activeSub->ends_at && $activeSub->ends_at->isFuture()) {
-                    $newEndsAt = $activeSub->ends_at->addMonth();
+                    $newEndsAt = $activeSub->ends_at->addDays((int)$daysCount);
                     $activeSub->update(['status' => 'cancelled']);
                 }
 

@@ -37,6 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::get('/admin/plans', [App\Http\Controllers\PlanController::class, 'adminIndex']);
+        Route::get('/admin/periods', function () {
+            return \App\Models\Period::all();
+        });
+        Route::get('/admin/features', function () {
+            return \App\Models\Feature::all();
+        });
         Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);
         Route::put('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'update']);
         Route::delete('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'destroy']);

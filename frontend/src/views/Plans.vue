@@ -24,7 +24,7 @@
         class="d-flex justify-center mb-8 px-md-4"
         :style="{ animationDelay: (index * 0.1) + 's' }"
       >
-        <PlanCard :plan="plan" :is-featured="index === 1" @select="handleSelectPlan" />
+        <PlanCard :plan="plan" :is-featured="index === 1" :disabled="checkingPreference" @select="handleSelectPlan" />
       </v-col>
     </v-row>
 
@@ -72,23 +72,27 @@ const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
 const loading = ref(true)
+const checkingPreference = ref(false)
 const showPendingDialog = ref(false)
 const pendingPlanName = ref('')
 const cancelling = ref(false)
 const currentSubscription = ref(null)
 
 onMounted(async () => {
-  
-
-  if (router.currentRoute.value.query.msg === 'no_plan') {
-    toast.warning('Você precisa de um plano ativo para acessar essa área. Escolha um plano abaixo!')
-  }
-  
   try {
     const plansResponse = await authStore.apiFetch('/plans')
-    plans.value = await plansResponse.json()
+    if (plansResponse.ok) {
+        plans.value = await plansResponse.json()
+    }
+  } catch (error) {
+    console.error('Erro ao buscar planos:', error)
+  } finally {
+    loading.value = false
+  }
 
-    if (authStore.isAuthenticated) {
+  if (authStore.isAuthenticated) {
+    checkingPreference.value = true
+    try {
         const prefResponse = await authStore.apiFetch('/checkout/preference')
         if (prefResponse.ok) {
             const data = await prefResponse.json()
@@ -98,25 +102,24 @@ onMounted(async () => {
                 showPendingDialog.value = true
             }
         }
+    } catch (e) {
+        console.error('Erro ao buscar preferência:', e)
+    } finally {
+        checkingPreference.value = false
     }
-  } catch (error) {
-    console.error('Erro ao buscar dados:', error)
-  } finally {
-    loading.value = false
   }
 
 })
 
-const handleSelectPlan = (plan) => {
-  if (authStore.isAuthenticated) {
-      router.push({ path: '/pagamento' })
-  } else {
-      router.push({ path: '/login', query: { redirect: 'pagamento', plan: plan.id } })
-  }
+const handleSelectPlan = ({ plan, period }) => {
+    router.push({ 
+        name: 'Checkout', 
+        query: { plan: plan.id, period: period.id } 
+    })
 }
 
 const continuePayment = () => {
-    router.push('/pagamento')
+    router.push({ name: 'Checkout' })
 }
 
 const cancelSubscription = async () => {

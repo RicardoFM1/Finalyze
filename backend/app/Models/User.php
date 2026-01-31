@@ -18,7 +18,9 @@ class User extends Authenticatable
         'role',
         'plan_id',
         'subscription_status',
-        'avatar'
+        'avatar',
+        'cpf',
+        'birth_date'
     ];
 
     protected $hidden = [
@@ -31,7 +33,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'birth_date' => 'date',
         ];
+    }
+
+    protected $appends = ['birth_date_formatted'];
+
+    public function getBirthDateFormattedAttribute()
+    {
+        return $this->birth_date ? $this->birth_date->format('d/m/Y') : null;
     }
 
     public function transactions()
