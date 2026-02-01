@@ -96,9 +96,9 @@ onMounted(async () => {
         const prefResponse = await authStore.apiFetch('/checkout/preference')
         if (prefResponse.ok) {
             const data = await prefResponse.json()
-            if (data.id && data.plan) {
+            if (data.id && data.plano) {
                 currentSubscription.value = data
-                pendingPlanName.value = data.plan.name
+                pendingPlanName.value = data.plano.nome
                 showPendingDialog.value = true
             }
         }

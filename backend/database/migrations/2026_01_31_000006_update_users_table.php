@@ -9,15 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('cpf')->nullable()->unique();
-            $table->date('birth_date')->nullable();
+            $table->foreignId('plano_id')->nullable()->after('eh_admin')->constrained('planos');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['cpf', 'birth_date']);
+            $table->dropForeign(['plano_id']);
+            $table->dropColumn('plano_id');
         });
     }
 };

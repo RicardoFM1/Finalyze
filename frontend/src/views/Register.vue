@@ -19,7 +19,7 @@
               
               <v-form @submit.prevent="handleRegister" v-model="isValid">
                  <v-text-field
-                  v-model="form.name"
+                  v-model="form.nome"
                   label="Nome Completo"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
@@ -38,7 +38,7 @@
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="form.password"
+                  v-model="form.senha"
                   label="Senha"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
@@ -50,13 +50,13 @@
                 ></v-text-field>
 
                   <v-text-field
-                    v-model="form.password_confirmation"
+                    v-model="form.senha_confirmation"
                     label="Confirmar Senha"
                     prepend-inner-icon="mdi-lock-check"
                     variant="outlined"
                     color="primary"
                     :type="showPass ? 'text' : 'password'"
-                    :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.password || 'As senhas não coincidem']"
+                    :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.senha || 'As senhas não coincidem']"
                   ></v-text-field>
 
                 <v-text-field
@@ -71,13 +71,13 @@
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="form.birth_date"
+                  v-model="form.data_nascimento"
                   label="Data de Nascimento"
                   prepend-inner-icon="mdi-calendar"
                   variant="outlined"
                   color="primary"
                   type="date"
-                  :rules="[v => !!v || 'Data de nascimento é obrigatória']"
+                  :rules="[v => !!v || 'Data de nascimento é obrigatória', validateAge]"
                 ></v-text-field>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
@@ -128,12 +128,12 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form = ref({
-  name: '',
+  nome: '',
   email: '',
-  password: '',
-  password_confirmation: '',
+  senha: '',
+  senha_confirmation: '',
   cpf: '',
-  birth_date: ''
+  data_nascimento: ''
 })
 
 const showPass = ref(false)
@@ -150,6 +150,18 @@ const passwordRules = [
   v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
 ]
 
+const validateAge = (v) => {
+  if (!v) return true
+  const birth = new Date(v)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+}
+
 const handleRegister = async () => {
   if (!isValid.value) return 
   
@@ -159,12 +171,12 @@ const handleRegister = async () => {
   try {
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
     await authStore.register(
-      form.value.name, 
+      form.value.nome, 
       form.value.email, 
-      form.value.password, 
-      form.value.password_confirmation,
+      form.value.senha, 
+      form.value.senha_confirmation,
       cleanCpf,
-      form.value.birth_date
+      form.value.data_nascimento
     )
     toast.success("Cadastro realizado com sucesso!")
     router.push({ name: 'Dashboard' })
@@ -181,13 +193,13 @@ const handleRegister = async () => {
 }
 
 const buttonDesativado = computed(() => 
-form.value.name === '' 
+form.value.nome === '' 
 || form.value.email === '' 
-|| form.value.password === '' 
-|| form.value.password_confirmation === '' 
+|| form.value.senha === '' 
+|| form.value.senha_confirmation === '' 
 || form.value.cpf === ''
-|| form.value.birth_date === ''
-|| form.value.password !== form.value.password_confirmation
+|| form.value.data_nascimento === ''
+|| form.value.senha !== form.value.senha_confirmation
 || !isValid.value
 )
 

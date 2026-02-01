@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('faturamentos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('subscription_id')->constrained('assinaturas')->onDelete('cascade');
-            $table->integer('amount_cents');
+            $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
+            $table->foreignId('assinatura_id')->constrained('assinaturas')->onDelete('cascade');
+            $table->integer('valor_centavos');
             $table->string('status'); // paid, pending, failed
-            $table->string('payment_method')->nullable();
+            $table->string('metodo_pagamento')->nullable();
             $table->string('mercado_pago_id')->nullable();
-            $table->timestamp('paid_at')->nullable();
+            $table->timestamp('pago_em')->nullable();
             $table->timestamps();
         });
     }

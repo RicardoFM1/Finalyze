@@ -17,7 +17,7 @@
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Receitas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.income }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.receita }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -25,7 +25,7 @@
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Despesas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.expense }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.despesa }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -33,7 +33,7 @@
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Saldo</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.balance }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.saldo }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -44,18 +44,18 @@
       <v-col cols="12" md="8">
         <v-card title="Atividade Recente">
            <v-list lines="two">
-              <v-list-item v-for="item in summary.recent_activity" :key="item.id" 
-                :title="item.description || item.category" 
-                :subtitle="`${item.type === 'income' ? 'Receita' : 'Despesa'} - ${item.category}`" 
-                :prepend-icon="item.type === 'income' ? 'mdi-cash-plus' : 'mdi-cash-minus'"
+              <v-list-item v-for="item in summary.atividades_recentes" :key="item.id" 
+                :title="item.descricao || item.categoria" 
+                :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} - ${item.categoria}`" 
+                :prepend-icon="item.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-minus'"
               >
                 <template v-slot:append>
-                    <span :class="item.type === 'income' ? 'text-success' : 'text-error'" class="font-weight-bold">
-                        {{ item.type === 'income' ? '+' : '-' }} R$ {{ Number(item.amount).toFixed(2).replace('.', ',') }}
+                    <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
+                        {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ Number(item.valor).toFixed(2).replace('.', ',') }}
                     </span>
                 </template>
               </v-list-item>
-              <div v-if="!summary.recent_activity?.length" class="text-center pa-4 text-medium-emphasis">
+              <div v-if="!summary.atividades_recentes?.length" class="text-center pa-4 text-medium-emphasis">
                   Nenhuma atividade recente.
               </div>
            </v-list>
@@ -76,12 +76,12 @@
         <v-card>
             <v-card-title>Novo Lançamento</v-card-title>
             <v-card-text>
-                <v-form @submit.prevent="saveTransaction">
-                    <v-select v-model="form.type" :items="[{title: 'Receita', value: 'income'}, {title: 'Despesa', value: 'expense'}]" label="Tipo" required></v-select>
-                    <v-text-field v-model="form.amount" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
-                    <v-text-field v-model="form.category" label="Categoria" required></v-text-field>
-                    <v-text-field v-model="form.date" label="Data" type="date" required></v-text-field>
-                    <v-text-field v-model="form.description" label="Descrição"></v-text-field>
+                <v-form @submit.prevent="salvarLancamento">
+                    <v-select v-model="form.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
+                    <v-text-field v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
+                    <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
+                    <v-text-field v-model="form.data" label="Data" type="date" required></v-text-field>
+                    <v-text-field v-model="form.descricao" label="Descrição"></v-text-field>
                     <v-btn type="submit" color="primary" block class="mt-4" :loading="saving">Salvar</v-btn>
                 </v-form>
             </v-card-text>
@@ -99,18 +99,18 @@ const authStore = useAuthStore()
 const dialog = ref(false)
 const saving = ref(false)
 const summary = ref({
-    income: 0,
-    expense: 0,
-    balance: 0,
-    recent_activity: []
+    receita: 0,
+    despesa: 0,
+    saldo: 0,
+    atividades_recentes: []
 })
 
 const form = ref({
-    type: 'expense',
-    amount: '',
-    category: '',
-    date: new Date().toISOString().substr(0, 10),
-    description: ''
+    tipo: 'despesa',
+    valor: '',
+    categoria: '',
+    data: new Date().toISOString().substr(0, 10),
+    descricao: ''
 })
 
 const loading = ref(true)
@@ -133,14 +133,21 @@ const fetchSummary = async () => {
     }
 }
 
-const saveTransaction = async () => {
+const salvarLancamento = async () => {
     saving.value = true
     try {
-        const response = await authStore.apiFetch('/transactions', {
+        const valor = Number(form.value.valor)
+        if (isNaN(valor) || valor <= 0) {
+            toast.warning('Por favor, informe um valor válido.')
+            saving.value = false
+            return
+        }
+
+        const response = await authStore.apiFetch('/lancamentos', {
             method: 'POST',
             body: JSON.stringify({
                 ...form.value,
-                amount: Number(form.value.amount) 
+                valor: valor 
             })
         })
 
@@ -150,11 +157,11 @@ const saveTransaction = async () => {
             fetchSummary()
            
             form.value = {
-                type: 'expense',
-                amount: '',
-                category: '',
-                date: new Date().toISOString().substr(0, 10),
-                description: ''
+                tipo: 'despesa',
+                valor: '',
+                categoria: '',
+                data: new Date().toISOString().substr(0, 10),
+                descricao: ''
             }
         } else {
             toast.error('Erro ao salvar lançamento')

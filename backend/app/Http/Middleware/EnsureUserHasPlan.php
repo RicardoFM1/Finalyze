@@ -16,7 +16,7 @@ class EnsureUserHasPlan
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || ($user->role !== 'admin' && !$user->plan_id)) {
+        if (!$user || (!$user->admin && !$user->plano_id)) {
             return response()->json(['message' => 'Forbidden: Plan required.'], 403);
         }
 

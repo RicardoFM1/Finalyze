@@ -10,18 +10,18 @@ return new class extends Migration
     {
         Schema::create('lancamentos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['income', 'expense']);
-            $table->decimal('amount', 10, 2);
-            $table->string('category');
-            $table->string('description')->nullable();
-            $table->date('date');
+            $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
+            $table->enum('tipo', ['receita', 'despesa']);
+            $table->decimal('valor', 10, 2);
+            $table->string('categoria');
+            $table->string('descricao')->nullable();
+            $table->date('data');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('transactions');
+        Schema::dropIfExists('lancamentos');
     }
 };

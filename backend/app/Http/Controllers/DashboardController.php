@@ -9,19 +9,19 @@ class DashboardController extends Controller
 {
     public function summary(Request $request)
     {
-        $user = Auth::user();
+        $usuario = Auth::user();
 
-        $income = $user->transactions()->where('type', 'income')->sum('amount');
-        $expense = $user->transactions()->where('type', 'expense')->sum('amount');
-        $balance = $income - $expense;
+        $receita = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
+        $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
+        $saldo = $receita - $despesa;
 
-        $recent = $user->transactions()->latest()->take(5)->get();
+        $recentes = $usuario->lancamentos()->latest()->take(5)->get();
 
         return response()->json([
-            'income' => $income,
-            'expense' => $expense,
-            'balance' => $balance,
-            'recent_activity' => $recent
+            'receita' => $receita,
+            'despesa' => $despesa,
+            'saldo' => $saldo,
+            'atividades_recentes' => $recentes
         ]);
     }
 }

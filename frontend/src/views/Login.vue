@@ -32,7 +32,7 @@
                 <v-text-field
                 class="mb-1 mb-md-2"
                   density="compact"
-                  v-model="form.password"
+                  v-model="form.senha"
                   label="Senha"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
@@ -103,7 +103,7 @@ const authStore = useAuthStore()
 
 const form = ref({
   email: '',
-  password: ''
+  senha: ''
 })
 
 const loading = ref(false)
@@ -117,7 +117,7 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
-    await authStore.login(form.value.email, form.value.password)
+    await authStore.login(form.value.email, form.value.senha)
     
       toast.success("Login realizado com sucesso!")
     
@@ -135,7 +135,7 @@ const handleLogin = async () => {
         'painel': 'Dashboard',
         'planos': 'Plans',
         'perfil': 'Profile',
-        'lancamentos': 'Transactions',
+        'lancamentos': 'Lancamentos',
         'relatorios': 'Reports'
     };
     
@@ -155,7 +155,7 @@ const handleLogin = async () => {
 }
 const buttonDesativado = computed(() => 
   form.value.email === '' || 
-  form.value.password === '' || 
+  form.value.senha === '' || 
   !isValid.value
 )
 </script>

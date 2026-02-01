@@ -21,7 +21,7 @@
                         prepend-inner-icon="mdi-email"
                       ></v-text-field>
                       <v-text-field 
-                        v-model="loginForm.password" 
+                        v-model="loginForm.senha" 
                         label="Senha" 
                         :type="showPassword ? 'text' : 'password'" 
                         variant="outlined" 
@@ -37,14 +37,14 @@
                     <v-form @submit.prevent="handleRegister" class="pa-4">
                       <v-row>
                         <v-col cols="12" md="6">
-                          <v-text-field v-model="registerForm.name" label="Nome Completo" variant="outlined"></v-text-field>
+                          <v-text-field v-model="registerForm.nome" label="Nome Completo" variant="outlined"></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field v-model="registerForm.email" label="E-mail" variant="outlined"></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field 
-                            v-model="registerForm.password" 
+                            v-model="registerForm.senha" 
                             label="Senha" 
                             :type="showRegisterPassword ? 'text' : 'password'" 
                             variant="outlined"
@@ -54,7 +54,7 @@
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field 
-                            v-model="registerForm.password_confirmation" 
+                            v-model="registerForm.senha_confirmation" 
                             label="Confirmar Senha" 
                             :type="showRegisterPassword ? 'text' : 'password'" 
                             variant="outlined"
@@ -70,7 +70,7 @@
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
-                          <v-text-field v-model="registerForm.birth_date" label="Data de Nascimento" type="date" variant="outlined"></v-text-field>
+                          <v-text-field v-model="registerForm.data_nascimento" label="Data de Nascimento" type="date" variant="outlined" :rules="[v => !!v || 'Campo obrigatório', validateAge]"></v-text-field>
                         </v-col>
                       </v-row>
                       <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading">Cadastrar e Continuar</v-btn>
@@ -80,7 +80,7 @@
               </div>
               <div v-else class="text-center pa-10">
                 <v-icon color="success" size="64" icon="mdi-account-check" class="mb-4"></v-icon>
-                <h3 class="text-h5 mb-2">Identificado como {{ authStore.user?.name }}</h3>
+                <h3 class="text-h5 mb-2">Identificado como {{ authStore.user?.nome }}</h3>
                 <p class="text-medium-emphasis mb-6">Você está pronto para prosseguir com o pagamento.</p>
                 <v-btn color="primary" size="large" @click="step = 2">Continuar para Pagamento</v-btn>
               </div>
@@ -94,8 +94,8 @@
                   </div>
 
                   <v-alert v-if="planInfo" type="info" variant="tonal" class="mb-6 rounded-lg">
-                    Você selecionou o plano <strong>{{ planInfo.name }}</strong> ({{ periodInfo?.name }}).
-                    <div class="text-h6 mt-2">Total: {{ formatPrice(periodInfo?.pivot?.price_cents / 100) }}</div>
+                    Você selecionou o plano <strong>{{ planInfo.nome }}</strong> ({{ periodInfo?.nome }}).
+                    <div class="text-h6 mt-2">Total: {{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</div>
                   </v-alert>
 
                   <PaymentBrick 
@@ -145,10 +145,10 @@ const periodId = ref(route.query.period)
 const planInfo = ref(null)
 const periodInfo = ref(null)
 
-const loginForm = ref({ email: '', password: '' })
+const loginForm = ref({ email: '', senha: '' })
 const registerForm = ref({ 
-    name: '', email: '', password: '', password_confirmation: '', 
-    cpf: '', birth_date: '' 
+    nome: '', email: '', senha: '', senha_confirmation: '', 
+    cpf: '', data_nascimento: '' 
 })
 
 onMounted(async () => {
@@ -162,8 +162,8 @@ onMounted(async () => {
                 planInfo.value = data.plan
                 planId.value = data.plan.id
                 // If the user came with a specific query that matches the pending, use it to set periodInfo
-                if (route.query.period && data.plan.periods) {
-                     const found = data.plan.periods.find(p => p.id == route.query.period)
+                if (route.query.period && data.plan.periodos) {
+                     const found = data.plan.periodos.find(p => p.id == route.query.period)
                      if (found) {
                          periodId.value = found.id
                          periodInfo.value = found
@@ -172,7 +172,7 @@ onMounted(async () => {
                 
                 // If we still don't have periodInfo, try to use what the backend sent
                 if (!periodInfo.value && data.period_id) {
-                    periodInfo.value = data.plan.periods.find(p => p.id == data.period_id)
+                    periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
                     periodId.value = data.period_id
                 }
 
@@ -188,13 +188,13 @@ onMounted(async () => {
         try {
             const response = await authStore.apiFetch(`/plans`)
             const plans = await response.json()
-            planInfo.value = plans.find(p => p.id == planId.value)
+            planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
             
             if (planInfo.value && periodId.value) {
-                periodInfo.value = planInfo.value.periods.find(p => p.id == periodId.value)
+                periodInfo.value = planInfo.value.periodos.find(p => p.id == periodId.value)
             } else if (planInfo.value) {
                 // Default to first period if missing
-                periodInfo.value = planInfo.value.periods[0]
+                periodInfo.value = planInfo.value.periodos[0]
                 periodId.value = periodInfo.value?.id
             }
 
@@ -220,10 +220,22 @@ watch(step, (newStep) => {
     }
 })
 
+const validateAge = (v) => {
+  if (!v) return true
+  const birth = new Date(v)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+}
+
 const handleLogin = async () => {
     loading.value = true
     try {
-        await authStore.login(loginForm.value.email, loginForm.value.password)
+        await authStore.login(loginForm.value.email, loginForm.value.senha)
         toast.success('Login realizado com sucesso!')
         step.value = 2
     } catch (e) {
@@ -238,12 +250,12 @@ const handleRegister = async () => {
     try {
         const cleanCpf = registerForm.value.cpf.replace(/\D/g, '')
         await authStore.register(
-            registerForm.value.name,
+            registerForm.value.nome,
             registerForm.value.email,
-            registerForm.value.password,
-            registerForm.value.password_confirmation,
+            registerForm.value.senha,
+            registerForm.value.senha_confirmation,
             cleanCpf,
-            registerForm.value.birth_date
+            registerForm.value.data_nascimento
         )
         toast.success('Cadastro realizado com sucesso!')
         step.value = 2
@@ -270,8 +282,8 @@ const initPayment = async () => {
         const response = await authStore.apiFetch('/checkout/preference', {
             method: 'POST',
             body: JSON.stringify({
-                plan_id: planId.value,
-                period_id: periodId.value
+                plano_id: planId.value,
+                periodo_id: periodId.value
             })
         })
         const data = await response.json()

@@ -8,17 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('periods', function (Blueprint $table) {
+        Schema::create('periodos', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Semanal, Mensal, Trimestral, Anual
+            $table->string('nome'); // Semanal, Mensal, Trimestral, Anual
             $table->string('slug')->unique(); // weekly, monthly, quarterly, yearly
-            $table->integer('days_count')->default(0);
+            $table->integer('quantidade_dias')->default(0);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('periods');
+        Schema::dropIfExists('periodos');
     }
 };

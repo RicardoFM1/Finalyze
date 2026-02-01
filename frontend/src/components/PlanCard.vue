@@ -13,12 +13,12 @@
     </div>
 
     <v-card-item class="pt-8 pb-4 text-center">
-      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.name }}</v-card-title>
+      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.nome }}</v-card-title>
       
       <v-select
         v-model="selectedPeriodId"
-        :items="plan.periods"
-        item-title="name"
+        :items="plan.periodos"
+        item-title="nome"
         item-value="id"
         variant="underlined"
         density="compact"
@@ -45,14 +45,14 @@
         {{ currentDiscount }}% de desconto
       </v-chip>
       
-      <v-card-subtitle class="description-text px-4" v-html="plan.description"></v-card-subtitle>
+      <v-card-subtitle class="description-text px-4" v-html="plan.descricao"></v-card-subtitle>
     </v-card-item>
 
     <v-card-text class="px-6">
       <v-divider class="mb-6 opacity-20"></v-divider>
       <v-list density="comfortable" class="bg-transparent pa-0">
         <v-list-item 
-          v-for="feature in plan.features" 
+          v-for="feature in plan.recursos" 
           :key="feature.id" 
           class="px-0 py-1"
           min-height="32"
@@ -60,7 +60,7 @@
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.name }}</span>
+          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.nome }}</span>
         </v-list-item>
       </v-list>
     </v-card-text>
@@ -103,39 +103,38 @@ const props = defineProps({
     default: false
   }
 })
-const selectedPeriodId = ref(props.plan.periods?.[1]?.id || props.plan.periods?.[0]?.id)
-
+const selectedPeriodId = ref(props.plan.periodos?.[1]?.id || props.plan.periodos?.[0]?.id)
 const selectedPeriod = computed(() => {
-    return props.plan.periods.find(p => p.id === selectedPeriodId.value)
+    return props.plan.periodos.find(p => p.id === selectedPeriodId.value)
 })
 
 const currentPrice = computed(() => {
-    return selectedPeriod.value?.pivot?.price_cents || 0
+    return selectedPeriod.value?.pivot?.valor_centavos || 0
 })
 
 const selectedPeriodSlug = computed(() => {
     const slug = selectedPeriod.value?.slug || 'monthly'
-    const map = {
-        'weekly': 'sem',
-        'monthly': 'mês',
-        'quarterly': 'tri',
-        'yearly': 'ano'
+    const periodText = {
+        'semanal': 'sem',
+        'mensal': 'mês',
+        'trimestral': 'tri',
+        'anual': 'ano'
     }
-    return map[slug] || 'mês'
+    return periodText[slug] || 'mês'
 })
 
 const currentDiscount = computed(() => {
-    return selectedPeriod.value?.pivot?.discount_percentage || 0
+    return selectedPeriod.value?.pivot?.percentual_desconto || 0
 })
 
 const isCurrentPlan = computed(() => {
-    return authStore.user?.plan_id === props.plan.id
+    return authStore.user?.plano_id === props.plan.id
 })
 
 const buttonText = computed(() => {
     if (isCurrentPlan.value) return 'Renovar / Estender'
-    if (authStore.user?.plan_id) return 'Mudar para ' + props.plan.name
-    return 'Escolher ' + props.plan.name
+    if (authStore.user?.plano_id) return 'Mudar para ' + props.plan.nome
+    return 'Escolher ' + props.plan.nome
 })
 
 const emit = defineEmits(['select'])

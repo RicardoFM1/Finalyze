@@ -34,7 +34,7 @@
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
                   <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`" cover></v-img>
-                  <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.name) }}</span>
+                  <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
                 </v-avatar>
                 <v-btn
                   icon="mdi-camera"
@@ -47,11 +47,11 @@
                 <input type="file" ref="fileInput" class="d-none" accept="image/*" @change="handleFileChange">
               </div>
               <v-chip
-                :color="user.role === 'admin' ? 'deep-purple' : 'primary'"
+                :color="user.admin ? 'deep-purple' : 'primary'"
                 variant="flat"
                 class="font-weight-bold"
               >
-                {{ user.role === 'admin' ? 'ADMINISTRADOR' : 'CLIENTE' }}
+                {{ user.admin ? 'ADMINISTRADOR' : 'CLIENTE' }}
               </v-chip>
             </v-col>
 
@@ -60,7 +60,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="user.name"
+                      v-model="user.nome"
                       label="Nome Completo"
                       variant="outlined"
                       bg-color="grey-lighten-4"
@@ -93,13 +93,14 @@
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-text-field
-                      v-model="user.birth_date"
+                      v-model="user.data_nascimento"
                       label="Data de Nascimento"
                       type="date"
                       variant="outlined"
                       bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-calendar"
+                      :rules="ageRules"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -126,7 +127,7 @@
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
             
-            <div v-else-if="!subscriptionData.subscription" class="text-center py-10 no-plan-empty">
+            <div v-else-if="!hasActiveOrValidSubscription" class="text-center py-10 no-plan-empty">
               <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
               <h3 class="text-h5 mt-4">Nenhum plano ativo</h3>
               <p class="text-medium-emphasis mb-6">Você ainda não assinou nenhum de nossos planos financeiros.</p>
@@ -138,19 +139,24 @@
                 <v-col cols="12" md="5">
                   <v-card class="plan-hero-card rounded-xl pa-6 text-white" elevation="6">
                     <div class="text-overline mb-2 opacity-80">PLANO ATUAL</div>
-                    <div class="text-h4 font-weight-black mb-4">{{ user.plan?.name }}</div>
+                    <div class="text-h4 font-weight-black mb-4">
+                        {{ user.plano?.nome }}
+                        <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData.assinatura.periodo">
+                            ({{ subscriptionData.assinatura.periodo.nome }})
+                        </span>
+                    </div>
                     
                     <div class="d-flex align-center mb-6">
                       <v-badge
-                        :color="subscriptionData.subscription.status === 'active' ? 'success' : 'warning'"
-                        :content="subscriptionData.subscription.status === 'active' ? 'Ativo' : 'Cancelado'"
+                        :color="subscriptionData.assinatura.status === 'active' ? 'success' : 'warning'"
+                        :content="subscriptionData.assinatura.status === 'active' ? 'Ativo' : 'Cancelado'"
                         inline
                       ></v-badge>
                     </div>
 
                     <div class="subscription-timeline mb-6">
                       <div class="d-flex justify-space-between text-caption mb-1">
-                        <span>Vence em: {{ formatDate(subscriptionData.subscription.ends_at) }}</span>
+                        <span>Vence em: {{ formatDate(subscriptionData.assinatura.termina_em) }}</span>
                         <span>{{ daysRemaining }} dias restantes</span>
                       </div>
                       <v-progress-linear
@@ -177,7 +183,7 @@
                         <div class="text-body-2 text-medium-emphasis">Cobraremos o valor do seu plano automaticamente ao final do período.</div>
                       </div>
                       <v-switch
-                        :model-value="!!subscriptionData.subscription.auto_renew"
+                        :model-value="!!subscriptionData.assinatura.renovacao_automatica"
                         color="primary"
                         hide-details
                         inset
@@ -205,7 +211,7 @@
                           variant="text"
                           color="error"
                           class="rounded-lg font-weight-bold"
-                          v-if="subscriptionData.subscription.status === 'active'"
+                          v-if="subscriptionData.assinatura && subscriptionData.assinatura.status === 'active'"
                           @click="confirmCancel = true"
                         >
                           Cancelar Assinatura
@@ -226,7 +232,7 @@
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
 
-            <v-table v-else-if="subscriptionData.history && subscriptionData.history.length > 0 && !loadingSub" class="billing-table">
+            <v-table v-else-if="subscriptionData.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">Data</th>
@@ -236,18 +242,18 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in subscriptionData.history" :key="item.id">
-                  <td class="text-body-2">{{ formatDate(item.paid_at) }}</td>
+                <tr v-for="item in subscriptionData.historico" :key="item.id">
+                  <td class="text-body-2">{{ formatDate(item.pago_em) }}</td>
                   <td class="text-body-2">
-                    <v-icon :icon="item.payment_method === 'pix' ? 'mdi-cellphone-nfc' : 'mdi-credit-card'" size="small" class="mr-2"></v-icon>
-                    {{ item.payment_method?.toUpperCase() }}
+                    <v-icon :icon="item.metodo_pagamento === 'pix' ? 'mdi-cellphone-nfc' : 'mdi-credit-card'" size="small" class="mr-2"></v-icon>
+                    {{ item.metodo_pagamento?.toUpperCase() }}
                   </td>
                   <td>
                     <v-chip size="x-small" :color="item.status === 'paid' ? 'success' : 'error'" class="font-weight-bold">
                       {{ item.status === 'paid' ? 'PAGO' : 'FALHOU' }}
                     </v-chip>
                   </td>
-                  <td class="text-right font-weight-bold">R$ {{ (item.amount_cents / 100).toFixed(2) }}</td>
+                  <td class="text-right font-weight-bold">R$ {{ (item.valor_centavos / 100).toFixed(2) }}</td>
                 </tr>
               </tbody>
             </v-table>
@@ -266,7 +272,7 @@
       <v-card class="rounded-xl pa-4">
         <v-card-title class="text-h6 font-weight-bold">Confirmar Cancelamento?</v-card-title>
         <v-card-text>
-          Você continuará tendo acesso aos benefícios até o final do período ativo em <strong>{{ formatDate(subscriptionData.subscription?.ends_at) }}</strong>. Nenhuma nova cobrança será feita.
+          Você continuará tendo acesso aos benefícios até o final do período ativo em <strong>{{ formatDate(subscriptionData.assinatura?.termina_em) }}</strong>. Nenhuma nova cobrança será feita.
         </v-card-text>
         <v-card-actions class="justify-end gap-2">
           <v-btn variant="text" @click="confirmCancel = false">Manter</v-btn>
@@ -287,18 +293,18 @@ const authStore = useAuthStore()
 const router = useRouter()
 const activeTab = ref('personal')
 const user = ref({
-    name: '',
+    nome: '',
     email: '',
-    role: '',
-    plan: null,
+    admin: false,
+    plano: null,
     avatar: null,
     cpf: '',
-    birth_date: ''
+    data_nascimento: ''
 })
 
 const subscriptionData = ref({
-    subscription: null,
-    history: []
+    assinatura: null,
+    historico: []
 })
 
 const loadingSub = ref(true)
@@ -322,11 +328,11 @@ const fetchUser = async () => {
           formatCPF({ target: { value: user.value.cpf } })
         }
         
-        // Ensure birth_date is YYYY-MM-DD for the date input
-        if (user.value.birth_date && typeof user.value.birth_date === 'string') {
-          user.value.birth_date = user.value.birth_date.substring(0, 10)
+        // Ensure data_nascimento is YYYY-MM-DD for the date input
+        if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
+          user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
         } else {
-          user.value.birth_date = '' // Ensure it's not null/undefined for the input
+          user.value.data_nascimento = '' // Ensure it's not null/undefined for the input
         }
     } catch (e) {
         console.error(e)
@@ -351,7 +357,7 @@ const toggleAutoRenew = async () => {
         const response = await authStore.apiFetch('/subscriptions/toggle-auto-renew', { method: 'POST' })
         if (response.ok) {
             const data = await response.json()
-            subscriptionData.value.subscription.auto_renew = data.auto_renew
+            subscriptionData.value.assinatura.renovacao_automatica = data.active
             toast.success(data.message)
         }
     } catch (e) {
@@ -380,9 +386,9 @@ const payAhead = () => {
 }
 
 const progressPercentage = computed(() => {
-    if (!subscriptionData.value.subscription) return 0
-    const start = new Date(subscriptionData.value.subscription.starts_at).getTime()
-    const end = new Date(subscriptionData.value.subscription.ends_at).getTime()
+    if (!subscriptionData.value.assinatura) return 0
+    const start = new Date(subscriptionData.value.assinatura.inicia_em).getTime()
+    const end = new Date(subscriptionData.value.assinatura.termina_em).getTime()
     const now = new Date().getTime()
     const total = end - start
     const elapsed = now - start
@@ -390,11 +396,23 @@ const progressPercentage = computed(() => {
 })
 
 const daysRemaining = computed(() => {
-    if (!subscriptionData.value.subscription) return 0
-    const end = new Date(subscriptionData.value.subscription.ends_at).getTime()
+    if (!subscriptionData.value.assinatura) return 0
+    const end = new Date(subscriptionData.value.assinatura.termina_em).getTime()
     const now = new Date().getTime()
     const diff = end - now
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+})
+
+const hasActiveOrValidSubscription = computed(() => {
+    if (!subscriptionData.value.assinatura) return false
+    const s = subscriptionData.value.assinatura
+    // If active, it's valid
+    if (s.status === 'active') return true
+    
+    // If cancelled, check if still within period
+    const end = new Date(s.termina_em).getTime()
+    const now = new Date().getTime()
+    return end > now
 })
 
 const fileInput = ref(null)
@@ -417,13 +435,13 @@ const saveProfile = async () => {
     saving.value = true
     try {
         const formData = new FormData()
-        formData.append('name', user.value.name)
+        formData.append('nome', user.value.nome)
         formData.append('email', user.value.email)
         if (user.value.cpf && typeof user.value.cpf === 'string') {
             formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
         }
-        if (user.value.birth_date) {
-            formData.append('birth_date', user.value.birth_date)
+        if (user.value.data_nascimento) {
+            formData.append('data_nascimento', user.value.data_nascimento)
         }
         formData.append('_method', 'PUT') 
         
@@ -444,10 +462,10 @@ const saveProfile = async () => {
             
             // Re-format after update
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
-            if (user.value.birth_date && typeof user.value.birth_date === 'string') {
-              user.value.birth_date = user.value.birth_date.substring(0, 10)
+            if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
+              user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
             } else {
-              user.value.birth_date = ''
+              user.value.data_nascimento = ''
             }
             
             selectedFile.value = null 
@@ -498,8 +516,18 @@ const validateCPF = (cpf) => {
   return rev === parseInt(cpf.charAt(10))
 }
 
-const cpfRules = [
-  v => !v || validateCPF(v) || 'CPF inválido'
+const ageRules = [
+  v => {
+    if (!v) return true
+    const birth = new Date(v)
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+    return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+  }
 ]
 
 const formatCPF = (event) => {

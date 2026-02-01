@@ -15,18 +15,18 @@ class UpdateUserRequest extends FormRequest
     {
         $userId = $this->user()->id ?? null;
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $userId,
+            'nome' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:usuarios,email,' . $userId,
             'avatar' => 'nullable|image|max:2048',
-            'cpf' => 'nullable|string|size:11|unique:users,cpf,' . $userId,
-            'birth_date' => 'nullable|date|before:' . now()->subYears(18)->format('Y-m-d')
+            'cpf' => 'nullable|string|size:11|unique:usuarios,cpf,' . $userId,
+            'data_nascimento' => 'nullable|date|before:18 years ago'
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required' => 'O nome é obrigatório.',
+            'nome.required' => 'O nome é obrigatório.',
             'email.required' => 'O e-mail é obrigatório.',
             'email.email' => 'O e-mail deve ser válido.',
             'email.unique' => 'Este e-mail já está em uso.',
@@ -34,8 +34,8 @@ class UpdateUserRequest extends FormRequest
             'avatar.max' => 'O avatar não pode ter mais de 2MB.',
             'cpf.size' => 'O CPF deve ter 11 dígitos.',
             'cpf.unique' => 'Este CPF já está cadastrado.',
-            'birth_date.date' => 'Data de nascimento inválida.',
-            'birth_date.before' => 'Você deve ter pelo menos 18 anos.'
+            'data_nascimento.date' => 'A data de nascimento deve ser válida.',
+            'data_nascimento.before' => 'Você deve ter pelo menos 18 anos.',
         ];
     }
 }

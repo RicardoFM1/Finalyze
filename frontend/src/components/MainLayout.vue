@@ -64,7 +64,7 @@
         <v-list density="compact" nav>
            <v-list-item prepend-icon="mdi-home" title="Página inicial" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" title="Painel" :to="{ name: 'Dashboard' }"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" :to="{ name: 'Transactions' }"></v-list-item>
+            <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" :to="{ name: 'Lancamentos' }"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" title="Relatórios" :to="{ name: 'Reports' }"></v-list-item>
             <v-list-item prepend-icon="mdi-account" title="Perfil" :to="{ name: 'Profile' }"></v-list-item>
             <v-list-item v-if="authStore.user?.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" :to="{ name: 'Admin' }"></v-list-item>

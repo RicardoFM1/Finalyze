@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->renameColumn('eh_admin', 'admin');
+        });
+
         Schema::table('planos', function (Blueprint $table) {
-            $table->boolean('esta_ativo')->default(true)->after('limite_lancamentos');
+            $table->renameColumn('esta_ativo', 'ativo');
         });
     }
 
@@ -21,8 +25,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->renameColumn('admin', 'eh_admin');
+        });
+
         Schema::table('planos', function (Blueprint $table) {
-            $table->dropColumn('esta_ativo');
+            $table->renameColumn('ativo', 'esta_ativo');
         });
     }
 };

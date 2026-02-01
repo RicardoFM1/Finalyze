@@ -14,30 +14,29 @@ class StorePlanRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'max_transactions' => 'required|integer',
-            'description' => 'nullable|string',
-            'features' => 'required|array|min:1',
-            'features.*' => 'exists:features,id',
-            'periods' => 'required|array|min:1',
-            'periods.*.id' => 'required|exists:periods,id',
-            'periods.*.price_cents' => 'required|integer|min:0',
-            'periods.*.discount_percentage' => 'nullable|integer|min:0|max:100',
-            'is_active' => 'boolean'
+            'nome' => 'required|string|max:255',
+            'limite_lancamentos' => 'required|integer',
+            'descricao' => 'nullable|string',
+            'recursos' => 'required|array|min:1',
+            'recursos.*' => 'exists:recursos,id',
+            'periodos' => 'required|array|min:1',
+            'periodos.*.id' => 'required|exists:periodos,id',
+            'periodos.*.valor_centavos' => 'required|integer|min:0',
+            'periodos.*.percentual_desconto' => 'nullable|integer|min:0|max:100',
+            'ativo' => 'boolean'
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required' => 'O nome é obrigatório.',
-            'price_cents.required' => 'O preço é obrigatório.',
-            'price_cents.integer' => 'O preço deve ser um número inteiro (centavos).',
-            'price_cents.min' => 'O preço deve ser maior que zero.',
-            'interval.required' => 'O intervalo é obrigatório.',
-            'max_transactions.required' => 'O número máximo de transações é obrigatório.',
-            'features.required' => 'Pelo menos uma função deve ser informada.',
-            'features.min' => 'É necessário informar pelo menos uma função.'
+            'nome.required' => 'O nome é obrigatório.',
+            'valor_centavos.required' => 'O preço é obrigatório.',
+            'valor_centavos.integer' => 'O preço deve ser um número inteiro (centavos).',
+            'valor_centavos.min' => 'O preço deve ser maior que zero.',
+            'limite_lancamentos.required' => 'O número máximo de transações é obrigatório.',
+            'recursos.required' => 'Pelo menos uma função deve ser informada.',
+            'recursos.min' => 'É necessário informar pelo menos uma função.'
         ];
     }
 }

@@ -253,8 +253,8 @@ const initMercadoPago = async () => {
                 method: 'POST',
                 body: JSON.stringify({
                     ...formData,
-                    plan_id: planId.value,
-                    period_id: props.periodId
+                    plano_id: planId.value,
+                    periodo_id: props.periodId
                 })
               })
 
@@ -331,15 +331,15 @@ onMounted(async () => {
         const plans = await response.json()
         const plan = plans.find(p => p.id == props.planId)
         if (plan && props.periodId) {
-          const period = plan.periods.find(p => p.id == props.periodId)
+          const period = plan.periodos?.find(p => p.id == props.periodId)
           if (period) {
-            amount.value = period.pivot.price_cents / 100
+            amount.value = period.pivot.valor_centavos / 100
           } else {
              // Fallback: use first period if the specified one isn't found
-             const fallback = plan.periods[0]
+             const fallback = plan.periodos?.[0]
              if (fallback) {
-                amount.value = fallback.pivot.price_cents / 100
-                console.warn('[PaymentBrick] Period not found, using fallback:', fallback.name)
+                amount.value = fallback.pivot.valor_centavos / 100
+                console.warn('[PaymentBrick] Period not found, using fallback:', fallback.id)
              }
           }
         }
@@ -355,9 +355,9 @@ onMounted(async () => {
       if (!response.ok) throw new Error('Preferência não encontrada')
 
       const data = await response.json()
-      amount.value = data.price_cents / 100
-      planId.value = data.plan.id
-      periodId.value = data.period_id || (data.plan.periods[0]?.id)
+      amount.value = data.valor_centavos / 100
+      planId.value = data.plano.id
+      periodId.value = data.periodo_id || (data.plano.periodos?.[0]?.id)
       preferenceId.value = data.id
     } catch (e) {
       console.error('Erro ao carregar checkout:', e)

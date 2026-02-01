@@ -10,17 +10,17 @@ return new class extends Migration
     {
         Schema::table('planos', function (Blueprint $table) {
             // Check if columns exist before dropping to avoid errors during rollback/retry
-            if (Schema::hasColumn('planos', 'price')) {
-                $table->dropColumn('price');
+            if (Schema::hasColumn('planos', 'preco')) {
+                $table->dropColumn('preco');
             }
-            if (Schema::hasColumn('planos', 'price_cents')) {
-                $table->dropColumn('price_cents');
+            if (Schema::hasColumn('planos', 'valor_centavos')) {
+                $table->dropColumn('valor_centavos');
             }
-            if (Schema::hasColumn('planos', 'interval')) {
-                $table->dropColumn('interval');
+            if (Schema::hasColumn('planos', 'intervalo')) {
+                $table->dropColumn('intervalo');
             }
-            if (Schema::hasColumn('planos', 'features')) {
-                $table->dropColumn('features');
+            if (Schema::hasColumn('planos', 'recursos')) {
+                $table->dropColumn('recursos');
             }
         });
     }
@@ -28,9 +28,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('planos', function (Blueprint $table) {
-            $table->integer('price_cents')->nullable();
-            $table->string('interval')->nullable();
-            $table->json('features')->nullable();
+            $table->integer('valor_centavos')->nullable();
+            $table->string('intervalo')->nullable();
+            $table->json('recursos')->nullable();
         });
     }
 };

@@ -12,14 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assinaturas', function (Blueprint $table) {
-            $table->boolean('auto_renew')->default(true)->after('ends_at');
+            $table->boolean('renovacao_automatica')->default(true)->after('status');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('assinaturas', function (Blueprint $table) {
-            $table->dropColumn('auto_renew');
+            $table->dropColumn('renovacao_automatica');
         });
     }
 };

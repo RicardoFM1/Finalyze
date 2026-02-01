@@ -57,11 +57,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function login(email, password) {
+    async function login(email, senha) {
         try {
             const response = await apiFetch('/auth/login', {
                 method: 'POST',
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, senha })
             });
 
             const data = await response.json();
@@ -69,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (!response.ok) throw new Error(data.message || 'Falha no login');
 
             token.value = data.access_token;
-            user.value = data.user;
+            user.value = data.usuario;
             localStorage.setItem('token', token.value);
 
 
@@ -80,11 +80,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function register(name, email, password, password_confirmation, cpf, birth_date) {
+    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento) {
         try {
             const response = await apiFetch('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ name, email, password, password_confirmation, cpf, birth_date })
+                body: JSON.stringify({ nome, email, senha, senha_confirmation: password_confirmation, cpf, data_nascimento })
             });
 
             const data = await response.json();
@@ -125,10 +125,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function hasFeature(featureSlug) {
-        if (user.value?.role === 'admin') return true;
+        if (user.value?.admin) return true;
 
-        const features = user.value?.plan?.features || [];
-        return features.some(f => f.slug === featureSlug || f.name === featureSlug);
+        const features = user.value?.plano?.recursos || [];
+        return features.some(f => f.slug === featureSlug || f.nome === featureSlug);
     }
 
     return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };

@@ -10,25 +10,25 @@ class UserController extends Controller
 {
     public function show(Request $request)
     {
-        return $request->user()->load('plan.features');
+        return $request->user()->load('plano.recursos');
     }
 
     public function update(UpdateUserRequest $request)
     {
-        $user = Auth::user();
+        $usuario = Auth::user();
 
         $validated = $request->validated();
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            if ($usuario->avatar) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($usuario->avatar);
             }
             $path = $request->file('avatar')->store('avatars', 'public');
             $validated['avatar'] = $path;
         }
 
-        $user->update($validated);
+        $usuario->update($validated);
 
-        return $user->load('plan');
+        return $usuario->load('plano');
     }
 }

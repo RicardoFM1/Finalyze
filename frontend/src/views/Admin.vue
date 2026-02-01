@@ -25,18 +25,18 @@
                 </tr>
                 <tr v-else v-for="item in plans" :key="item.id">
                     <td>
-                        <div class="font-weight-bold text-body-1">{{ item.name }}</div>
-                        <div class="text-caption text-medium-emphasis" style="white-space: pre-wrap; word-break: break-word; max-width: 350px; line-height: 1.4;">{{ item.description }}</div>
+                        <div class="font-weight-bold text-body-1">{{ item.nome }}</div>
+                        <div class="text-caption text-medium-emphasis" style="white-space: pre-wrap; word-break: break-word; max-width: 350px; line-height: 1.4;">{{ item.descricao }}</div>
                     </td>
                     <td>
-                        <v-chip :color="item.is_active ? 'success' : 'grey'" size="small" variant="flat">
-                            {{ item.is_active ? 'Ativo' : 'Inativo' }}
+                        <v-chip :color="item.ativo ? 'success' : 'grey'" size="small" variant="flat">
+                            {{ item.ativo ? 'Ativo' : 'Inativo' }}
                         </v-chip>
                     </td>
                     <td>
                         <div class="d-flex flex-wrap gap-1">
-                            <v-chip v-for="p in item.periods" :key="p.id" size="x-small" variant="outlined" color="primary">
-                                {{ p.name }}: {{ formatPrice(p.pivot.price_cents / 100) }}
+                            <v-chip v-for="p in item.periodos" :key="p.id" size="x-small" variant="outlined" color="primary">
+                                {{ p.nome }}: {{ formatPrice(p.pivot.valor_centavos / 100) }}
                             </v-chip>
                         </div>
                     </td>
@@ -61,13 +61,13 @@
                 <v-form ref="planForm">
                     <v-row>
                         <v-col cols="12" md="8">
-                            <v-text-field v-model="form.name" label="Nome do Plano" variant="outlined" density="comfortable"></v-text-field>
+                            <v-text-field v-model="form.nome" label="Nome do Plano" variant="outlined" density="comfortable"></v-text-field>
                         </v-col>
                         <v-col cols="12" md="4">
-                            <v-text-field v-model="form.max_transactions" label="Limite Lançamentos" type="number" variant="outlined" density="comfortable"></v-text-field>
+                            <v-text-field v-model="form.limite_lancamentos" label="Limite Lançamentos" type="number" variant="outlined" density="comfortable"></v-text-field>
                         </v-col>
                         <v-col cols="12">
-                            <v-textarea v-model="form.description" label="Descrição (HTML suportado)" variant="outlined" rows="2" density="comfortable"></v-textarea>
+                            <v-textarea v-model="form.descricao" label="Descrição (HTML suportado)" variant="outlined" rows="2" density="comfortable"></v-textarea>
                         </v-col>
 
                         <v-divider class="my-4 w-100"></v-divider>
@@ -96,9 +96,9 @@
                                 </v-col>
                             </v-row>
 
-                            <v-row v-for="p in form.periods_config" :key="p.id" align="center" dense>
+                            <v-row v-for="p in form.periodos_config" :key="p.id" align="center" dense>
                                 <v-col cols="12" md="3">
-                                    <v-checkbox v-model="p.active" :label="p.name" density="compact" color="primary" hide-details></v-checkbox>
+                                    <v-checkbox v-model="p.active" :label="p.nome" density="compact" color="primary" hide-details></v-checkbox>
                                 </v-col>
                                 <v-col cols="12" md="4">
                                     <v-text-field 
@@ -140,10 +140,10 @@
                             <v-row dense>
                                 <v-col cols="12" sm="6" v-for="feat in dbFeatures" :key="feat.id">
                                     <v-checkbox 
-                                        v-model="form.features_ids" 
-                                        :label="feat.name" 
+                                        v-model="form.recursos" 
+                                        :label="feat.nome" 
                                         :value="feat.id" 
-                                        density="compact" 
+                                        density="comfortable" 
                                         color="success"
                                         hide-details
                                     ></v-checkbox>
@@ -152,7 +152,7 @@
                         </v-col>
 
                         <v-col cols="12">
-                             <v-switch v-model="form.is_active" label="Tornar este plano disponível no site" color="primary"></v-switch>
+                             <v-switch v-model="form.ativo" label="Tornar este plano disponível no site" color="primary"></v-switch>
                         </v-col>
                     </v-row>
                 </v-form>
@@ -169,7 +169,7 @@
     <v-dialog v-model="deleteDialog" max-width="400px">
         <v-card class="rounded-xl pa-4">
             <v-card-title class="text-h5">Confirmar Exclusão</v-card-title>
-            <v-card-text>Tem certeza que deseja excluir o plano <strong>{{ planToDelete?.name }}</strong>?</v-card-text>
+            <v-card-text>Tem certeza que deseja excluir o plano <strong>{{ planToDelete?.nome }}</strong>?</v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn variant="text" @click="deleteDialog = false">Cancelar</v-btn>
@@ -196,12 +196,13 @@ const baseMonthlyPrice = ref(0)
 
 const form = ref({
     id: null,
-    name: '',
-    max_transactions: 100,
-    description: '',
-    is_active: true,
-    features_ids: [],
-    periods_config: []
+    nome: '',
+    limite_lancamentos: 100,
+    descricao: '',
+    ativo: true,
+    recursos: [],
+    recursos: [],
+    periodos_config: []
 })
 
 onMounted(async () => {
@@ -235,17 +236,19 @@ const fetchPlans = async () => {
 
 const calculatePeriodPrices = () => {
     const base = parseFloat(baseMonthlyPrice.value) || 0
-    form.value.periods_config.forEach(p => {
-        if (p.slug === 'weekly') {
+const calculatePeriodPrices = () => {
+    const base = parseFloat(baseMonthlyPrice.value) || 0
+    form.value.periodos_config.forEach(p => {
+        if (p.slug === 'semanal') {
             p.price = (base / 4).toFixed(2)
             p.discount = 0
-        } else if (p.slug === 'monthly') {
+        } else if (p.slug === 'mensal') {
             p.price = base.toFixed(2)
             p.discount = 0
-        } else if (p.slug === 'quarterly') {
+        } else if (p.slug === 'trimestral') {
             p.price = (base * 3 * 0.9).toFixed(2) // 10% discount
             p.discount = 10
-        } else if (p.slug === 'yearly') {
+        } else if (p.slug === 'anual') {
             p.price = (base * 12 * 0.8).toFixed(2) // 20% discount
             p.discount = 20
         }
@@ -256,40 +259,40 @@ const openDialog = (item = null) => {
     if (item) {
         form.value = {
             id: item.id,
-            name: item.name,
-            max_transactions: item.max_transactions,
-            description: item.description,
-            is_active: !!item.is_active,
-            features_ids: item.features.map(f => f.id),
-            periods_config: dbPeriods.value.map(dbp => {
-                const planPeriod = item.periods.find(p => p.id === dbp.id)
+            nome: item.nome,
+            limite_lancamentos: item.limite_lancamentos,
+            descricao: item.descricao,
+            ativo: !!item.ativo,
+            recursos: item.recursos.map(f => f.id),
+            periodos_config: dbPeriods.value.map(dbp => {
+                const planPeriod = item.periodos.find(p => p.id === dbp.id)
                 return {
                     id: dbp.id,
-                    name: dbp.name,
+                    nome: dbp.nome,
                     slug: dbp.slug,
                     active: !!planPeriod,
-                    price: planPeriod ? (planPeriod.pivot.price_cents / 100).toFixed(2) : 0,
-                    discount: planPeriod ? planPeriod.pivot.discount_percentage : 0
+                    price: planPeriod ? (planPeriod.pivot.valor_centavos / 100).toFixed(2) : 0,
+                    discount: planPeriod ? planPeriod.pivot.percentual_desconto : 0
                 }
             })
         }
-        const monthly = form.value.periods_config.find(p => p.slug === 'monthly')
+        const monthly = form.value.periodos_config.find(p => p.slug === 'mensal')
         baseMonthlyPrice.value = monthly?.active ? monthly.price : 0
     } else {
         form.value = {
             id: null,
-            name: '',
-            max_transactions: 100,
-            description: '',
-            is_active: true,
-            features_ids: [],
-            periods_config: dbPeriods.value.map(dbp => ({
+            nome: '',
+            limite_lancamentos: 100,
+            descricao: '',
+            ativo: true,
+            recursos: [],
+            periodos_config: dbPeriods.value.map(dbp => ({
                 id: dbp.id,
-                name: dbp.name,
+                nome: dbp.nome,
                 slug: dbp.slug,
                 active: true,
                 price: 0,
-                discount: 0
+                discount: 100
             }))
         }
         baseMonthlyPrice.value = 0
@@ -302,12 +305,12 @@ const closeDialog = () => {
 }
 
 const savePlan = async () => {
-    if (form.value.features_ids.length === 0) {
+    if (form.value.recursos.length === 0) {
         toast.error('Escolha pelo menos uma funcionalidade.')
         return
     }
 
-    const activePeriods = form.value.periods_config.filter(p => p.active)
+    const activePeriods = form.value.periodos_config.filter(p => p.active)
     if (activePeriods.length === 0) {
         toast.error('O plano deve ter pelo menos um período de cobrança ativo.')
         return
@@ -316,15 +319,15 @@ const savePlan = async () => {
     loadingSalvar.value = true
     try {
         const payload = {
-            name: form.value.name,
-            description: form.value.description,
-            max_transactions: form.value.max_transactions,
-            is_active: form.value.is_active,
-            features: form.value.features_ids,
-            periods: activePeriods.map(p => ({
+            nome: form.value.nome,
+            descricao: form.value.descricao,
+            limite_lancamentos: form.value.limite_lancamentos,
+            ativo: form.value.ativo,
+            recursos: form.value.recursos,
+            periodos: activePeriods.map(p => ({
                 id: p.id,
-                price_cents: Math.round(parseFloat(p.price) * 100),
-                discount_percentage: parseInt(p.discount)
+                valor_centavos: Math.round(parseFloat(p.price) * 100),
+                percentual_desconto: parseInt(p.discount)
             }))
         }
 

@@ -10,43 +10,42 @@ class SubscriptionController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
-            ->where('status', '!=', 'pending')
+        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
+            ->with(['plano', 'periodo'])
             ->latest()
             ->first();
 
-        $history = \App\Models\Billing::where('user_id', $user->id)
+        $history = \App\Models\Faturamento::where('user_id', $user->id)
+            ->with(['assinatura.plano'])
             ->latest()
             ->get();
 
         return response()->json([
-            'subscription' => $subscription,
-            'history' => $history
+            'assinatura' => $subscription,
+            'historico' => $history
         ]);
     }
 
     public function toggleAutoRenew(Request $request)
     {
         $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
+        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
             ->where('status', 'active')
             ->first();
 
         if (!$subscription) {
-            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada'], 404);
+            return response()->json(['message' => 'Nenhuma assinatura ativa encontrada'], 404);
         }
 
-        $subscription->update([
-            'auto_renew' => !(bool)$subscription->auto_renew
-        ]);
+        $subscription->update(['renovacao_automatica' => $request->active]);
 
-        return response()->json(['message' => 'Renovação automática atualizada', 'auto_renew' => $subscription->auto_renew]);
+        return response()->json(['message' => 'Configuração de renovação atualizada']);
     }
 
-    public function cancel(Request $request)
+    public function cancel()
     {
         $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
+        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
             ->where('status', 'active')
             ->first();
 
@@ -56,7 +55,7 @@ class SubscriptionController extends Controller
 
         $subscription->update([
             'status' => 'cancelled',
-            'auto_renew' => false
+            'renovacao_automatica' => false
         ]);
 
         return response()->json(['message' => 'Assinatura cancelada. Você terá acesso até o fim do período atual.']);

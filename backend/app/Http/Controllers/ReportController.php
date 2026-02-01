@@ -12,8 +12,8 @@ class ReportController extends Controller
     public function monthly(Request $request)
     {
         $user = Auth::user();
-        
-        
+
+
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
             $months[] = Carbon::now()->subMonths($i)->format('Y-m');
@@ -23,15 +23,15 @@ class ReportController extends Controller
         $expenseData = [];
 
         foreach ($months as $month) {
-            $income = $user->transactions()
-                ->where('type', 'income')
-                ->where(DB::raw("TO_CHAR(date, 'YYYY-MM')"), $month)
-                ->sum('amount');
-            
-            $expense = $user->transactions()
-                ->where('type', 'expense')
-                ->where(DB::raw("TO_CHAR(date, 'YYYY-MM')"), $month)
-                ->sum('amount');
+            $income = $user->lancamentos()
+                ->where('tipo', 'receita')
+                ->where(DB::raw("TO_CHAR(data, 'YYYY-MM')"), $month)
+                ->sum('valor');
+
+            $expense = $user->lancamentos()
+                ->where('tipo', 'despesa')
+                ->where(DB::raw("TO_CHAR(data, 'YYYY-MM')"), $month)
+                ->sum('valor');
 
             $incomeData[] = $income;
             $expenseData[] = $expense;
