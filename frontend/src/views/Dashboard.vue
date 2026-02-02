@@ -2,8 +2,8 @@
   <v-container>
     <v-row>
       <v-col cols="12" class="mb-4">
-        <h1 class="text-h4 font-weight-bold">Painel</h1>
-        <p class="text-subtitle-1">Visão geral da sua saúde financeira</p>
+        <h1 class=" texto-painel">Painel</h1>
+        <p class=" texto-subtitulo text-subtitle-1">Visão geral da sua saúde financeira</p>
       </v-col>
     </v-row>
 
@@ -18,7 +18,7 @@
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class=" text-body-3 text-weight-bold">Receitas</v-card-title>
-                <div class="text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.income) }}</div>
+                <div class="  text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.income) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -181,3 +181,48 @@ const formatCurrency = (value) => {
 }
 
 </script>
+
+
+
+
+<style scoped>
+.texto-painel {
+  display: inline-block; 
+
+  background: linear-gradient(
+    to right,
+    #2f63ff 30%,
+    #2900a5 100%
+  );
+
+  background-size: 100% 100%;
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  font-size: 48px;
+  font-weight: 700;
+}
+.texto-subtitulo {
+ 
+
+  background: linear-gradient(
+    to right,
+    #2f63ff 30%,
+    #2900a5 100%
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+
+}
+
+
+</style>
