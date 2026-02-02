@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (response.status === 401) {
                 logout();
-                // Avoid infinite redirect if already trying to login/register or in checkout
+                
                 if (router.currentRoute.value.name !== 'Login' &&
                     router.currentRoute.value.name !== 'Register' &&
                     router.currentRoute.value.name !== 'Checkout') {

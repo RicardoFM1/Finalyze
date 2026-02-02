@@ -201,7 +201,6 @@ const form = ref({
     descricao: '',
     ativo: true,
     recursos: [],
-    recursos: [],
     periodos_config: []
 })
 
@@ -236,8 +235,6 @@ const fetchPlans = async () => {
 
 const calculatePeriodPrices = () => {
     const base = parseFloat(baseMonthlyPrice.value) || 0
-const calculatePeriodPrices = () => {
-    const base = parseFloat(baseMonthlyPrice.value) || 0
     form.value.periodos_config.forEach(p => {
         if (p.slug === 'semanal') {
             p.price = (base / 4).toFixed(2)
@@ -246,10 +243,10 @@ const calculatePeriodPrices = () => {
             p.price = base.toFixed(2)
             p.discount = 0
         } else if (p.slug === 'trimestral') {
-            p.price = (base * 3 * 0.9).toFixed(2) // 10% discount
+            p.price = (base * 3 * 0.9).toFixed(2) // 10% desconto
             p.discount = 10
         } else if (p.slug === 'anual') {
-            p.price = (base * 12 * 0.8).toFixed(2) // 20% discount
+            p.price = (base * 12 * 0.8).toFixed(2) // 20% desconto
             p.discount = 20
         }
     })

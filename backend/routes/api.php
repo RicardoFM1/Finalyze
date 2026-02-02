@@ -44,8 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
             return \App\Models\Recurso::all();
         });
         Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);
-        Route::put('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'update']);
-        Route::delete('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'destroy']);
+        Route::put('/plans/{plano}', [App\Http\Controllers\PlanController::class, 'update']);
+        Route::delete('/plans/{plano}', [App\Http\Controllers\PlanController::class, 'destroy']);
     });
 });
 
