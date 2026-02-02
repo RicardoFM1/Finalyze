@@ -17,7 +17,7 @@ class RegisterRequest extends FormRequest
             'nome' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:usuarios',
             'senha' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()],
-            'cpf' => 'required|string|size:11|unique:usuarios',
+            'cpf' => ['required', 'string', 'size:11', 'unique:usuarios', new \App\Rules\Cpf],
             'data_nascimento' => 'required|date|before:18 years ago',
         ];
     }
@@ -25,6 +25,13 @@ class RegisterRequest extends FormRequest
     public function messages()
     {
         return [
+            'nome.required' => 'O nome é obrigatório.',
+            'nome.string' => 'O nome deve ser um texto.',
+            'nome.max' => 'O nome não pode ter mais de 255 caracteres.',
+            'email.required' => 'O e-mail é obrigatório.',
+            'email.string' => 'O e-mail deve ser um texto.',
+            'email.email' => 'Informe um endereço de e-mail válido.',
+            'email.max' => 'O e-mail não pode ter mais de 255 caracteres.',
             'email.unique' => 'O e-mail informado já está cadastrado.',
             'senha.required' => 'A senha é obrigatória.',
             'senha.confirmed' => 'A confirmação de senha não confere.',

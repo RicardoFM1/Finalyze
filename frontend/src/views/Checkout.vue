@@ -6,19 +6,20 @@
           <v-stepper v-model="step" :items="['Identificação', 'Pagamento']" hide-actions>
             <template v-slot:item.1>
               <div v-if="!authStore.isAuthenticated">
-                <v-tabs v-model="authTab" color="primary" grow class="mb-6">
-                  <v-tab value="login">Entrar</v-tab>
-                  <v-tab value="register">Cadastrar</v-tab>
+                <v-tabs v-model="authTab" color="primary" grow class="mb-6 unique-tabs-no-outline">
+                  <v-tab value="login" class="no-outline">Entrar</v-tab>
+                  <v-tab value="register" class="no-outline">Cadastrar</v-tab>
                 </v-tabs>
 
                 <v-window v-model="authTab">
                   <v-window-item value="login">
-                    <v-form @submit.prevent="handleLogin" class="pa-4">
+                    <v-form @submit.prevent="handleLogin" class="pa-4" v-model="isLoginFormValid">
                       <v-text-field 
                         v-model="loginForm.email" 
                         label="E-mail" 
                         variant="outlined" 
                         prepend-inner-icon="mdi-email"
+                        :rules="[v => !!v || 'E-mail é obrigatório']"
                       ></v-text-field>
                       <v-text-field 
                         v-model="loginForm.senha" 
@@ -28,19 +29,34 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="showPassword = !showPassword"
+                        :rules="[v => !!v || 'Senha é obrigatória']"
                       ></v-text-field>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading">Entrar e Continuar</v-btn>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">Entrar e Continuar</v-btn>
                     </v-form>
                   </v-window-item>
 
                   <v-window-item value="register">
-                    <v-form @submit.prevent="handleRegister" class="pa-4">
+                    <v-form @submit.prevent="handleRegister" class="pa-4" v-model="isRegisterFormValid">
                       <v-row>
                         <v-col cols="12" md="6">
-                          <v-text-field v-model="registerForm.nome" label="Nome Completo" variant="outlined"></v-text-field>
+                          <v-text-field 
+                            v-model="registerForm.nome" 
+                            label="Nome Completo" 
+                            variant="outlined"
+                            :rules="[v => !!v || 'Nome é obrigatório']"
+                            :error-messages="errors.nome"
+                            @input="errors.nome = ''"
+                          ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
-                          <v-text-field v-model="registerForm.email" label="E-mail" variant="outlined"></v-text-field>
+                          <v-text-field 
+                            v-model="registerForm.email" 
+                            label="E-mail" 
+                            variant="outlined"
+                            :rules="[v => !!v || 'E-mail é obrigatório']"
+                            :error-messages="errors.email"
+                            @input="errors.email = ''"
+                          ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field 
@@ -50,6 +66,9 @@
                             variant="outlined"
                             :append-inner-icon="showRegisterPassword ? 'mdi-eye' : 'mdi-eye-off'"
                             @click:append-inner="showRegisterPassword = !showRegisterPassword"
+                            :rules="passwordRules"
+                            :error-messages="errors.senha"
+                            @input="errors.senha = ''"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -58,6 +77,9 @@
                             label="Confirmar Senha" 
                             :type="showRegisterPassword ? 'text' : 'password'" 
                             variant="outlined"
+                            :rules="[v => !!v || 'Confirmação é obrigatória', v => v === registerForm.senha || 'As senhas não coincidem']"
+                            :error-messages="errors.senha_confirmation"
+                            @input="errors.senha_confirmation = ''"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -65,15 +87,25 @@
                             v-model="registerForm.cpf" 
                             label="CPF" 
                             variant="outlined"
-                            @input="formatCPF"
+                            @input="handleCpfInput"
                             maxlength="14"
+                            :error-messages="errors.cpf"
+                            :rules="[v => !!v || 'CPF é obrigatório', validateCPF]"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
-                          <v-text-field v-model="registerForm.data_nascimento" label="Data de Nascimento" type="date" variant="outlined" :rules="[v => !!v || 'Campo obrigatório', validateAge]"></v-text-field>
+                          <v-text-field 
+                            v-model="registerForm.data_nascimento" 
+                            label="Data de Nascimento" 
+                            type="date" 
+                            variant="outlined" 
+                            :rules="[v => !!v || 'Campo obrigatório', validateAge]"
+                            :error-messages="errors.data_nascimento"
+                            @input="errors.data_nascimento = ''"
+                          ></v-text-field>
                         </v-col>
                       </v-row>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading">Cadastrar e Continuar</v-btn>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isRegisterFormValid">Cadastrar e Continuar</v-btn>
                     </v-form>
                   </v-window-item>
                 </v-window>
@@ -150,6 +182,18 @@ const registerForm = ref({
     nome: '', email: '', senha: '', senha_confirmation: '', 
     cpf: '', data_nascimento: '' 
 })
+const errors = ref({})
+const isRegisterFormValid = ref(false)
+const isLoginFormValid = ref(false)
+
+const passwordRules = [
+  v => !!v || 'Senha é obrigatória',
+  v => v.length >= 8 || 'Mínimo 8 caracteres',
+  v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
+  v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',
+  v => /[0-9]/.test(v) || 'Deve conter um número',
+  v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
+]
 
 onMounted(async () => {
     // 1. If authenticated, ALWAYS check for a pending preference first
@@ -232,6 +276,44 @@ const validateAge = (v) => {
   return age >= 18 || 'Você deve ter pelo menos 18 anos.'
 }
 
+const validateCPF = (v) => {
+    if (!v) return true
+    
+    // Remove non-digits
+    const cpf = v.replace(/\D/g, '')
+    
+    // Check if empty (optional field handled by required elsewhere) or incorrect length
+    // But here we want to validate format if typing has occurred
+    if (cpf.length !== 11) {
+        // Only show error if we have enough chars to start validating or if it's blur? 
+        // For strict validation let's return error if not empty and not 11
+        return 'CPF inválido'
+    }
+
+    // Check for known invalid patterns (all same digits)
+    if (/^(\d)\1+$/.test(cpf)) return 'CPF inválido'
+
+    let sum = 0
+    let remainder
+
+    for (let i = 1; i <= 9; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
+    remainder = (sum * 10) % 11
+    
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(9, 10)) ) return 'CPF inválido'
+
+    sum = 0
+    for (let i = 1; i <= 10; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
+    remainder = (sum * 10) % 11
+
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(10, 11))) return 'CPF inválido'
+
+    return true
+}
+
 const handleLogin = async () => {
     loading.value = true
     try {
@@ -247,6 +329,7 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
     loading.value = true
+    errors.value = {}
     try {
         const cleanCpf = registerForm.value.cpf.replace(/\D/g, '')
         await authStore.register(
@@ -260,12 +343,17 @@ const handleRegister = async () => {
         toast.success('Cadastro realizado com sucesso!')
         step.value = 2
     } catch (e) {
-        let msg = e.message || 'Erro ao realizar cadastro'
-        // Handle validation errors if they exist in the response
-        if (e.response && e.response.data && e.response.data.errors) {
-            msg = Object.values(e.response.data.errors).flat().join('\n')
+        if (e.response && e.response.status === 422 && e.response.data && e.response.data.errors) {
+            // Map backend errors to local reactive object
+            // e.response.data.errors is like { email: ['error1'], cpf: ['error2'] }
+            errors.value = Object.keys(e.response.data.errors).reduce((acc, key) => {
+                acc[key] = e.response.data.errors[key][0] // Take the first error message
+                return acc
+            }, {})
+            toast.error('Verifique os campos em vermelho.')
+        } else {
+             toast.error(e.message || 'Erro ao realizar cadastro')
         }
-        toast.error(msg)
     } finally {
         loading.value = false
     }
@@ -303,6 +391,11 @@ const formatPrice = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 
+const handleCpfInput = (event) => {
+  errors.value.cpf = '' // Clear error on type
+  formatCPF(event)
+}
+
 const formatCPF = (event) => {
   let value = event.target.value.replace(/\D/g, '')
   if (value.length > 11) value = value.substring(0, 11)
@@ -316,3 +409,36 @@ const formatCPF = (event) => {
   registerForm.value.cpf = value
 }
 </script>
+<style scoped>
+/* Remove focus outline for v-tab items */
+.no-outline :deep(.v-btn__overlay) {
+  opacity: 0 !important;
+}
+.no-outline :deep(.v-ripple__container) {
+  display: none !important;
+}
+/* Specifically targeting the focus ring if any */
+.no-outline:focus-visible {
+    outline: none !important;
+}
+</style>
+<style>
+/* Global override for specific tab outline issue if scoped style is insufficient */
+.unique-tabs-no-outline .v-tab--selected .v-tab__slider {
+    display: block; /* Keep slider */
+}
+/* Completely remove outline from the v-btn inside v-tab */
+.unique-tabs-no-outline .v-btn,
+.unique-tabs-no-outline .v-btn:focus,
+.unique-tabs-no-outline .v-btn:hover,
+.unique-tabs-no-outline .v-btn:active,
+.unique-tabs-no-outline .v-tab {
+    outline: none !important;
+    box-shadow: none !important;
+}
+.unique-tabs-no-outline .v-btn:focus-visible::after,
+.unique-tabs-no-outline .v-tab--selected .v-btn__overlay,
+.unique-tabs-no-outline .v-tab__overlay {
+    opacity: 0 !important;
+}
+</style>

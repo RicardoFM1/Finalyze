@@ -18,13 +18,15 @@
               </div>
               
               <v-form @submit.prevent="handleRegister" v-model="isValid">
-                 <v-text-field
+                <v-text-field
                   v-model="form.nome"
                   label="Nome Completo"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
                   color="primary"
                   :rules="[v => !!v || 'Nome é obrigatório']"
+                  :error-messages="errors.nome"
+                  @input="errors.nome = ''"
                 ></v-text-field>
 
                 <v-text-field
@@ -35,6 +37,8 @@
                   color="primary"
                   type="email"
                   :rules="[v => !!v || 'E-mail é obrigatório']"
+                  :error-messages="errors.email"
+                  @input="errors.email = ''"
                 ></v-text-field>
 
                 <v-text-field
@@ -47,6 +51,8 @@
                   :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPass = !showPass"
                   :rules="passwordRules"
+                  :error-messages="errors.senha"
+                  @input="errors.senha = ''"
                 ></v-text-field>
 
                   <v-text-field
@@ -57,6 +63,8 @@
                     color="primary"
                     :type="showPass ? 'text' : 'password'"
                     :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.senha || 'As senhas não coincidem']"
+                    :error-messages="errors.senha_confirmation"
+                    @input="errors.senha_confirmation = ''"
                   ></v-text-field>
 
                 <v-text-field
@@ -65,9 +73,10 @@
                   prepend-inner-icon="mdi-card-account-details"
                   variant="outlined"
                   color="primary"
-                  @input="formatCPF"
+                  @input="handleCpfInput"
                   maxlength="14"
-                  :rules="[v => !!v || 'CPF é obrigatório']"
+                  :rules="[v => !!v || 'CPF é obrigatório', validateCPF]"
+                  :error-messages="errors.cpf"
                 ></v-text-field>
 
                 <v-text-field
@@ -78,6 +87,8 @@
                   color="primary"
                   type="date"
                   :rules="[v => !!v || 'Data de nascimento é obrigatória', validateAge]"
+                  :error-messages="errors.data_nascimento"
+                  @input="errors.data_nascimento = ''"
                 ></v-text-field>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
@@ -140,6 +151,7 @@ const showPass = ref(false)
 const loading = ref(false)
 const isValid = ref(false)
 const error = ref('')
+const errors = ref({})
 
 const passwordRules = [
   v => !!v || 'Senha é obrigatória',
@@ -162,6 +174,39 @@ const validateAge = (v) => {
   return age >= 18 || 'Você deve ter pelo menos 18 anos.'
 }
 
+const validateCPF = (v) => {
+    if (!v) return true
+    
+    // Remove non-digits
+    const cpf = v.replace(/\D/g, '')
+    
+    if (cpf.length !== 11) {
+        return 'CPF inválido'
+    }
+
+    if (/^(\d)\1+$/.test(cpf)) return 'CPF inválido'
+
+    let sum = 0
+    let remainder
+
+    for (let i = 1; i <= 9; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
+    remainder = (sum * 10) % 11
+    
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(9, 10)) ) return 'CPF inválido'
+
+    sum = 0
+    for (let i = 1; i <= 10; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
+    remainder = (sum * 10) % 11
+
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(10, 11))) return 'CPF inválido'
+
+    return true
+}
+
 const handleRegister = async () => {
   if (!isValid.value) return 
   
@@ -181,10 +226,15 @@ const handleRegister = async () => {
     toast.success("Cadastro realizado com sucesso!")
     router.push({ name: 'Dashboard' })
   } catch (err) {
-    error.value = err.message || 'Erro ao cadastrar'
-  
-    if (err.response && err.response.data && err.response.data.errors) {
-         error.value = Object.values(err.response.data.errors).flat().join('\n');
+    if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
+        // Map backend errors to local reactive object
+        errors.value = Object.keys(err.response.data.errors).reduce((acc, key) => {
+            acc[key] = err.response.data.errors[key][0]
+            return acc
+        }, {})
+        error.value = 'Verifique os campos em vermelho.'
+    } else {
+        error.value = err.message || 'Erro ao cadastrar'
     }
     toast.error(error.value)
   } finally {
@@ -202,6 +252,11 @@ form.value.nome === ''
 || form.value.senha !== form.value.senha_confirmation
 || !isValid.value
 )
+
+const handleCpfInput = (event) => {
+  errors.value.cpf = ''
+  formatCPF(event)
+}
 
 const formatCPF = (event) => {
   let value = event.target.value.replace(/\D/g, '')
