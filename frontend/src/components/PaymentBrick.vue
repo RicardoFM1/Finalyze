@@ -5,19 +5,6 @@
       <span class="mt-4 text-subtitle-1">Iniciando checkout seguro...</span>
     </div>
 
-    <div class="mb-4" style="max-width: 400px; margin: 0 auto;">
-      <v-text-field
-        v-model="cpf"
-        label="CPF / CNPJ do Pagador"
-        placeholder="000.000.000-00"
-        variant="outlined"
-        density="comfortable"
-        :rules="documentRules"
-        maxlength="18"
-        required
-      ></v-text-field>
-    </div>
-
     <div id="paymentBrick_container" :style="{ visibility: loading ? 'hidden' : 'visible', minHeight: '300px' }"></div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
@@ -27,7 +14,16 @@
 
     <v-dialog v-model="showQrDialog" persistent max-width="480">
       <v-card class="rounded-xl overflow-hidden" elevation="10">
-        <div class="bg-primary px-6 py-4 text-center">
+        <div class="bg-primary px-6 py-4 text-center position-relative">
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              color="white"
+              size="small"
+              class="position-absolute"
+              style="top: 8px; right: 8px;"
+              @click="showQrDialog = false"
+            ></v-btn>
             <span class="text-h6 text-white font-weight-bold">Pagamento via Pix</span>
             <div class="text-caption text-white opacity-80 mt-1">Escaneie ou copie o código abaixo</div>
         </div>
@@ -37,6 +33,19 @@
              <div class="rounded-lg border pa-2 bg-white elevation-2" v-if="qrCodeBase64">
                 <img :src="'data:image/png;base64,' + qrCodeBase64" style="width: 200px; height: 200px; display: block;" />
              </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="d-flex justify-space-between text-caption font-weight-bold mb-1">
+              <span>O código expira em:</span>
+              <span>{{ formatTime(countdownPercentage) }}</span>
+            </div>
+            <v-progress-linear
+              :model-value="(countdownPercentage / 600) * 100"
+              color="primary"
+              height="8"
+              rounded
+            ></v-progress-linear>
           </div>
 
           
@@ -98,7 +107,6 @@ const planId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const brickMounted = ref(false)
-const cpf = ref('')
 let brickController = null
 
 const showQrDialog = ref(false)
@@ -108,26 +116,33 @@ const qrCodeCopy = ref(null)
 const paymentId = ref(null)
 let pollInterval = null
 
+const countdownPercentage = ref(600) // 10 minutes
+let countdownInterval = null
+
+const startCountdown = () => {
+    countdownPercentage.value = 600
+    if (countdownInterval) clearInterval(countdownInterval)
+    countdownInterval = setInterval(() => {
+        if (countdownPercentage.value > 0) {
+            countdownPercentage.value--
+        } else {
+            clearInterval(countdownInterval)
+            showQrDialog.value = false
+            error.value = "O código Pix expirou. Tente novamente."
+        }
+    }, 1000)
+}
+
+const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
 const reload = () => window.location.reload()
 
 const API_URL = import.meta.env.VITE_API_URL
 if (!API_URL) console.error('[PaymentBrick] VITE_API_URL não configurada!')
-
-const validateCPF = (cpf) => {
-  cpf = cpf.replace(/[^\d]+/g, '')
-  if (cpf === '') return false
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false
-  let add = 0
-  for (let i = 0; i < 9; i++) add += parseInt(cpf.charAt(i)) * (10 - i)
-  let rev = 11 - (add % 11)
-  if (rev === 10 || rev === 11) rev = 0
-  if (rev !== parseInt(cpf.charAt(9))) return false
-  add = 0
-  for (let i = 0; i < 10; i++) add += parseInt(cpf.charAt(i)) * (11 - i)
-  rev = 11 - (add % 11)
-  if (rev === 10 || rev === 11) rev = 0
-  return rev === parseInt(cpf.charAt(10))
-}
 
 const copyToClipboard = () => {
     if (qrCodeCopy.value) {
@@ -136,45 +151,6 @@ const copyToClipboard = () => {
     }
 }
 
-const validateCNPJ = (cnpj) => {
-  cnpj = cnpj.replace(/[^\d]+/g, '')
-  if (cnpj === '') return false
-  if (cnpj.length !== 14) return false
-  if (/^(\d)\1{13}$/.test(cnpj)) return false
-  let tamanho = cnpj.length - 2
-  let numeros = cnpj.substring(0, tamanho)
-  let digitos = cnpj.substring(tamanho)
-  let soma = 0
-  let pos = tamanho - 7
-  for (let i = tamanho; i >= 1; i--) {
-    soma += numeros.charAt(tamanho - i) * pos--
-    if (pos < 2) pos = 9
-  }
-  let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11
-  if (resultado != digitos.charAt(0)) return false
-  tamanho = tamanho + 1
-  numeros = cnpj.substring(0, tamanho)
-  soma = 0
-  pos = tamanho - 7
-  for (let i = tamanho; i >= 1; i--) {
-    soma += numeros.charAt(tamanho - i) * pos--
-    if (pos < 2) pos = 9
-  }
-  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11
-  return resultado == digitos.charAt(1)
-}
-
-const documentRules = [
-  v => !!v || 'CPF/CNPJ é obrigatório',
-  v => {
-    const clean = v ? v.replace(/\D/g, '') : ''
-    if (clean.length > 14) return 'Máximo 14 dígitos para CNPJ'
-    if (clean.length < 11) return 'Mínimo 11 dígitos'
-    
-    if (clean.length <= 11) return validateCPF(clean) || 'CPF inválido'
-    return validateCNPJ(clean) || 'CNPJ inválido'
-  }
-]
 
 
 const pollPaymentStatus = async () => {
@@ -206,7 +182,7 @@ const pollPaymentStatus = async () => {
 }
 
 const initMercadoPago = async () => {
-  if (!preferenceId.value || brickMounted.value) return
+  if (!preferenceId.value || !amount.value || brickMounted.value) return
 
   loading.value = true
   error.value = null
@@ -263,40 +239,22 @@ const initMercadoPago = async () => {
               reject()
               return
             }
-
-            if (!formData.payer) formData.payer = {}
-            if (!formData.payer.identification) formData.payer.identification = {}
             
-            if (!formData.payer.identification.number && cpf.value) {
-               const cleanDoc = cpf.value.replace(/\D/g, '')
-               formData.payer.identification.number = cleanDoc
-               formData.payer.identification.type = cleanDoc.length > 11 ? 'CNPJ' : 'CPF'
-            }
-
- 
-            const docClean = cpf.value.replace(/\D/g, '')
-            if (docClean.length <= 11 && !validateCPF(docClean)) { error.value = 'CPF inválido.'; reject(); return }
-            if (docClean.length > 11 && !validateCNPJ(docClean)) { error.value = 'CNPJ inválido.'; reject(); return }
-
             if (!formData.transaction_amount || !formData.payment_method_id) {
               error.value = 'Campos obrigatórios faltando'
               reject()
               return
             }
             
-            if ((formData.payment_method_id === 'pix' || formData.payment_method_id === 'bolbradesco') && !formData.payer.identification.number) {
-                 error.value = 'Por favor, informe o CPF/CNPJ acima.'
-                 window.scrollTo(0,0)
-                 reject()
-                 return
-            }
+
 
             try {
               const response = await authStore.apiFetch('/checkout/process_payment', {
                 method: 'POST',
                 body: JSON.stringify({
                     ...formData,
-                    plan_id: planId.value
+                    plano_id: planId.value,
+                    periodo_id: props.periodId
                 })
               })
 
@@ -315,6 +273,7 @@ const initMercadoPago = async () => {
                    qrCodeCopy.value = result.qr_code
                    paymentId.value = result.id
                    showQrDialog.value = true
+                   startCountdown()
                    if (pollInterval) clearInterval(pollInterval)
                    pollInterval = setInterval(pollPaymentStatus, 3000)
 
@@ -353,26 +312,85 @@ const initMercadoPago = async () => {
   }
 }
 
-onMounted(async () => {
-  try {
-    const response = await authStore.apiFetch('/checkout/preference')
-    if (!response.ok) throw new Error('Preferência não encontrada')
+const props = defineProps({
+  preferenceId: String,
+  planId: [String, Number],
+  periodId: [String, Number]
+})
 
-    const data = await response.json()
-    amount.value = data.plan.price_cents / 100
-    planId.value = data.plan.id
-    preferenceId.value = data.id
-  } catch (e) {
-    console.error('Erro ao carregar checkout:', e)
-    router.push('/planos')
+onMounted(async () => {
+  // If props are provided, use them directly
+  if (props.preferenceId && props.planId) {
+    preferenceId.value = props.preferenceId
+    planId.value = props.planId
+    
+    // Fetch plan details to get the price
+    try {
+      const response = await authStore.apiFetch(`/plans`)
+      if (response.ok) {
+        const plans = await response.json()
+        const plan = plans.find(p => p.id == props.planId)
+        if (plan && props.periodId) {
+          const period = plan.periodos?.find(p => p.id == props.periodId)
+          if (period) {
+            amount.value = period.pivot.valor_centavos / 100
+          } else {
+             // Fallback: use first period if the specified one isn't found
+             const fallback = plan.periodos?.[0]
+             if (fallback) {
+                amount.value = fallback.pivot.valor_centavos / 100
+                console.warn('[PaymentBrick] Period not found, using fallback:', fallback.id)
+             }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao buscar detalhes do plano:', e)
+      error.value = 'Erro ao carregar informações do plano'
+    }
+  } else {
+    // Fallback: fetch preference if no props provided
+    try {
+      const response = await authStore.apiFetch('/checkout/preference')
+      if (!response.ok) throw new Error('Preferência não encontrada')
+
+      const data = await response.json()
+      amount.value = data.valor_centavos / 100
+      planId.value = data.plano.id
+      periodId.value = data.periodo_id || (data.plano.periodos?.[0]?.id)
+      preferenceId.value = data.id
+    } catch (e) {
+      console.error('Erro ao carregar checkout:', e)
+      error.value = 'Houve um problema ao carregar as informações de pagamento. Por favor, tente novamente.'
+      loading.value = false
+    }
+  }
+
+  // Final check: if we have required info but amount is still null, try fallback
+  if (preferenceId.value && !amount.value) {
+      // Last resort: if we have planId but amount is still null, try to reload/retry
+       console.warn('[PaymentBrick] preferenceId exists but amount is null. Retrying fetch...')
+       // Potentially reload plan details here if needed, but for now just stop loading if it's stuck
+       setTimeout(() => {
+           if (!amount.value && loading.value) {
+               loading.value = false
+               error.value = 'Não foi possível determinar o valor do plano. Tente selecionar o plano novamente.'
+           }
+       }, 5000)
   }
 })
 
 onUnmounted(() => { 
     if (brickController) brickController.unmount()
     if (pollInterval) clearInterval(pollInterval)
+    if (countdownInterval) clearInterval(countdownInterval)
 })
-watch(() => preferenceId.value, (newId) => { if (newId) initMercadoPago() })
+
+watch([() => preferenceId.value, () => amount.value], ([newPrefId, newAmount]) => {
+    if (newPrefId && newAmount && !brickMounted.value) {
+        initMercadoPago()
+    }
+})
 
 </script>
 

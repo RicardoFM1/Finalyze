@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreatePreferenceRequest;
 use App\Http\Requests\ProcessPaymentRequest;
 use App\Http\Requests\HandleWebhookRequest;
-use App\Models\Subscription;
+use App\Models\Assinatura;
+use App\Models\Plano;
+use App\Models\Periodo;
+use App\Models\Usuario;
+use App\Models\Faturamento;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 
@@ -30,21 +34,21 @@ class CheckoutController extends Controller
 
     public function createPreference(CreatePreferenceRequest $request)
     {
-
-
         try {
             $this->setupMercadoPago();
             $client = new PreferenceClient();
 
+            $planoId = $request->input('plano_id');
+            $periodoId = $request->input('periodo_id');
 
-            $planId = $request->input('plan_id');
-            $plan = \App\Models\Plan::findOrFail($planId);
+            $plano = Plano::findOrFail($planoId);
+            $periodo = $plano->periodos()->where('periodos.id', $periodoId)->firstOrFail();
+
             $items = [[
-                "title" => $plan->name,
+                "title" => $plano->nome . " (" . $periodo->nome . ")",
                 "quantity" => 1,
-                "unit_price" => $plan->price_cents / 100
+                "unit_price" => $periodo->pivot->valor_centavos / 100
             ]];
-
 
             $baseUrl = 'https://roentgenographic-unsensuous-shizue.ngrok-free.dev';
 
@@ -58,18 +62,18 @@ class CheckoutController extends Controller
                 "items" => $items,
                 "back_urls" => [
                     "success" => $baseUrl . "/?status=success",
-                    "failure" => $baseUrl . "/pagamento?status=failure",
-                    "pending" => $baseUrl . "/pagamento?status=pending"
+                    "failure" => $baseUrl . "/?status=failure",
+                    "pending" => $baseUrl . "/?status=pending"
                 ],
                 "auto_return" => "approved",
                 "notification_url" => $baseUrl . "/api/webhook/mercadopago"
             ]);
 
-
-            \App\Models\Subscription::updateOrCreate(
+            Assinatura::updateOrCreate(
                 ['user_id' => auth()->id(), 'status' => 'pending'],
                 [
-                    'plan_id' => $plan->id,
+                    'plano_id' => $plano->id,
+                    'periodo_id' => $periodo->id,
                     'mercado_pago_id' => $preference->id,
                 ]
             );
@@ -94,16 +98,19 @@ class CheckoutController extends Controller
     public function getLatestPreference()
     {
         try {
-            $subscription = \App\Models\Subscription::where('user_id', auth()->id())
+            $assinatura = Assinatura::where('user_id', auth()->id())
                 ->where('status', 'pending')
                 ->latest()
                 ->firstOrFail();
 
-            $plan = \App\Models\Plan::findOrFail($subscription->plan_id);
+            $plano = Plano::with(['recursos', 'periodos'])->findOrFail($assinatura->plano_id);
+            $periodo = $plano->periodos()->where('periodos.id', $assinatura->periodo_id)->first();
 
             return response()->json([
-                'id' => $subscription->mercado_pago_id,
-                'plan' => $plan
+                'id' => $assinatura->mercado_pago_id,
+                'plano' => $plano,
+                'periodo_id' => $assinatura->periodo_id,
+                'valor_centavos' => $periodo ? $periodo->pivot->valor_centavos : 0
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Nenhuma preferência pendente encontrada'], 404);
@@ -112,14 +119,14 @@ class CheckoutController extends Controller
 
     public function processPayment(ProcessPaymentRequest $request)
     {
-        /** @var \App\Models\User $user */
-        $user = auth()->user();
-        if (!$user) {
+        /** @var \App\Models\Usuario $usuario */
+        $usuario = auth()->user();
+        if (!$usuario) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
 
         \Illuminate\Support\Facades\Log::info('ProcessPayment Request', [
-            'user_id' => $user->id,
+            'user_id' => $usuario->id,
             'request' => $request->all()
         ]);
 
@@ -137,29 +144,33 @@ class CheckoutController extends Controller
                 return response()->json(['error' => 'payment_method_id é obrigatório'], 422);
             }
 
-            $plan_id = $request->input('plan_id');
+            $plano_id = $request->input('plano_id');
+            $periodo_id = $request->input('periodo_id');
 
+            $plano = Plano::findOrFail($plano_id);
+            $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
+            $transactionAmount = $periodo->pivot->valor_centavos / 100;
 
-            $existingPending = Subscription::where('user_id', $user->id)
+            $existingPending = Assinatura::where('user_id', $usuario->id)
                 ->where('status', 'pending')
-                ->where('plan_id', (int)$plan_id)
+                ->where('plano_id', (int)$plano_id)
                 ->first();
 
             if ($existingPending) {
-                $subscription = $existingPending;
+                $assinatura = $existingPending;
             } else {
-                $subscription = Subscription::create([
-                    'user_id' => $user->id,
-                    'plan_id' => (int)$plan_id,
+                $assinatura = Assinatura::create([
+                    'user_id' => $usuario->id,
+                    'plano_id' => (int)$plano_id,
+                    'periodo_id' => (int)$periodo_id,
                     'status' => 'pending',
-                    'starts_at' => now(),
+                    'inicia_em' => now(),
                 ]);
             }
 
             $payer = $request->payer ?? [];
-            $payerIdNumber = $payer['identification']['number'] ?? null;
+            $payerIdNumber = $payer['identification']['number'] ?? $usuario->cpf;
             if (!$payerIdNumber) {
-
                 if (config('app.env') !== 'production') {
                     $payerIdNumber = '19119119100';
                     $payer['identification']['type'] = 'CPF';
@@ -171,21 +182,23 @@ class CheckoutController extends Controller
             $data = [
                 "transaction_amount" => $transactionAmount,
                 "payment_method_id" => $paymentMethodId,
-                "description" => $request->description ?? "Assinatura",
+                "description" => ($request->description ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
                 "payer" => [
-                    "email" => $user->email,
-                    "first_name" => explode(' ', $user->name)[0] ?? 'User',
-                    "last_name" => implode(' ', array_slice(explode(' ', $user->name), 1)) ?? 'User',
+                    "email" => $usuario->email,
+                    "first_name" => explode(' ', $usuario->nome)[0] ?? 'Usuario',
+                    "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?? 'Usuario',
                     "identification" => [
                         "type" => $payer['identification']['type'] ?? 'CPF',
                         "number" => $payerIdNumber
                     ]
                 ],
-                "external_reference" => (string)$subscription->id,
+                "external_reference" => (string)$assinatura->id,
                 "metadata" => [
-                    "user_id" => (string)$user->id,
-                    "plan_id" => (string)$plan_id,
-                    "subscription_id" => (string)$subscription->id
+                    "user_id" => (string)$usuario->id,
+                    "plano_id" => (string)$plano_id,
+                    "periodo_id" => (string)$periodo_id,
+                    "assinatura_id" => (string)$assinatura->id,
+                    "quantidade_dias" => (string)$periodo->quantidade_dias
                 ]
             ];
 
@@ -209,7 +222,9 @@ class CheckoutController extends Controller
                 'id' => $payment->id,
                 'qr_code' => $payment->point_of_interaction?->transaction_data?->qr_code,
                 'qr_code_base64' => $payment->point_of_interaction?->transaction_data?->qr_code_base64,
-                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url
+                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url,
+                'plan_name' => $plano->nome,
+                'period_name' => $periodo->nome
             ]);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             \Illuminate\Support\Facades\Log::error('MPApiException', [
@@ -244,25 +259,23 @@ class CheckoutController extends Controller
     }
     public function cancelSubscription(Request $request)
     {
-        $user = auth()->user();
-        if (!$user) {
+        $usuario = auth()->user();
+        if (!$usuario) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
 
-        $subscription = Subscription::where('user_id', $user->id)
+        $assinatura = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->latest()
             ->first();
 
-        if ($subscription) {
-            $subscription->update(['status' => 'cancelled']);
+        if ($assinatura) {
+            $assinatura->update(['status' => 'cancelled']);
             return response()->json(['message' => 'Assinatura cancelada com sucesso']);
         }
 
         return response()->json(['error' => 'Nenhuma assinatura pendente encontrada'], 404);
     }
-
-
 
     public function handleWebhook(HandleWebhookRequest $request)
     {
@@ -298,57 +311,54 @@ class CheckoutController extends Controller
             'external_reference' => $payment->external_reference
         ]);
 
-        $userId = $metadata->user_id ?? null;
-        $planId = $metadata->plan_id ?? null;
-        $subscriptionId = $metadata->subscription_id ?? $payment->external_reference;
+        $usuarioId = $metadata->user_id ?? null;
+        $planoId = $metadata->plano_id ?? null;
+        $assinaturaId = $metadata->assinatura_id ?? $payment->external_reference;
 
-        if ($subscriptionId) {
-            $subscription = \App\Models\Subscription::find($subscriptionId);
-            if ($subscription) {
+        if ($assinaturaId) {
+            $assinatura = Assinatura::find($assinaturaId);
+            if ($assinatura) {
+                $quantidadeDias = $metadata->quantidade_dias ?? 30;
+                $newEndsAt = now()->addDays((int)$quantidadeDias);
 
-                $newEndsAt = now()->addMonth();
-
-
-                $activeSub = \App\Models\Subscription::where('user_id', $subscription->user_id)
+                $activeSub = Assinatura::where('user_id', $assinatura->user_id)
                     ->where('status', 'active')
-                    ->where('id', '!=', $subscription->id)
+                    ->where('id', '!=', $assinatura->id)
                     ->first();
 
-                if ($activeSub && $activeSub->ends_at && $activeSub->ends_at->isFuture()) {
-                    $newEndsAt = $activeSub->ends_at->addMonth();
+                if ($activeSub && $activeSub->termina_em && $activeSub->termina_em->isFuture()) {
+                    $newEndsAt = $activeSub->termina_em->addDays((int)$quantidadeDias);
                     $activeSub->update(['status' => 'cancelled']);
                 }
 
-                $subscription->update([
+                $assinatura->update([
                     'mercado_pago_id' => $payment->id,
                     'status' => 'active',
-                    'starts_at' => now(),
-                    'ends_at' => $newEndsAt
+                    'inicia_em' => now(),
+                    'termina_em' => $newEndsAt
                 ]);
 
-                \App\Models\Billing::create([
-                    'user_id' => $subscription->user_id,
-                    'subscription_id' => $subscription->id,
-                    'amount_cents' => (int)($payment->transaction_amount * 100),
+                Faturamento::create([
+                    'user_id' => $assinatura->user_id,
+                    'assinatura_id' => $assinatura->id,
+                    'valor_centavos' => (int)($payment->transaction_amount * 100),
                     'status' => 'paid',
-                    'payment_method' => $payment->payment_method_id,
+                    'metodo_pagamento' => $payment->payment_method_id,
                     'mercado_pago_id' => (string)$payment->id,
-                    'paid_at' => now()
+                    'pago_em' => now()
                 ]);
 
-                \Illuminate\Support\Facades\Log::info("Subscription {$subscriptionId} activated. Ends at: " . $newEndsAt);
+                \Illuminate\Support\Facades\Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
 
-                $userId = $subscription->user_id;
-                $planId = $subscription->plan_id;
+                $usuarioId = $assinatura->user_id;
+                $planoId = $assinatura->plano_id;
             }
         }
 
-        if ($userId && $planId) {
-            \Illuminate\Support\Facades\DB::table('users')
-                ->where('id', (int)$userId)
+        if ($usuarioId && $planoId) {
+            Usuario::where('id', (int)$usuarioId)
                 ->update([
-                    'plan_id' => (int)$planId,
-                    'subscription_status' => 'active',
+                    'plano_id' => (int)$planoId,
                     'updated_at' => now()
                 ]);
         }

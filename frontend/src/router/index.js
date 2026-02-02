@@ -9,11 +9,11 @@ const routes = [
   { path: '/cadastro', name: 'Register', component: () => import('../views/Register.vue') },
   { path: '/painel', name: 'Dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Painel Financeiro' } },
   { path: '/planos', name: 'Plans', component: () => import('../views/Plans.vue') },
-  { path: '/lancamentos', name: 'Transactions', component: () => import('../views/Transactions.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Lançamentos' } },
+  { path: '/lancamentos', name: 'Lancamentos', component: () => import('../views/Lancamentos.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Lançamentos' } },
   { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Relatórios Gráficos' } },
   { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
-  { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue'), meta: { requiresAuth: true } },
+  { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue') },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') },
 ]
 
@@ -49,13 +49,13 @@ router.beforeEach(async (to) => {
   }
 
 
-  if (to.meta.requiresAdmin && auth.user?.role !== 'admin') {
+  if (to.meta.requiresAdmin && !auth.user?.admin) {
     return { name: 'NotFound' }
   }
 
 
-  if (to.meta.requiresPlan && !auth.user?.plan_id && auth.user?.role !== 'admin') {
-    return { name: 'Plans', query: { msg: 'no_plan' } }
+  if (to.meta.requiresPlan && !auth.user?.plano_id && !auth.user?.admin) {
+    return { name: 'Plans' }
   }
 
 

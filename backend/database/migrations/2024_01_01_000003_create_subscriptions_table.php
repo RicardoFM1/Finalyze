@@ -10,18 +10,18 @@ return new class extends Migration
     {
         Schema::create('assinaturas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('plan_id')->constrained('planos');
+            $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
+            $table->foreignId('plano_id')->constrained('planos');
             $table->string('mercado_pago_id')->nullable();
             $table->string('status')->default('pending'); // pending, active, cancelled
-            $table->timestamp('starts_at')->nullable();
-            $table->timestamp('ends_at')->nullable();
+            $table->timestamp('inicia_em')->nullable();
+            $table->timestamp('termina_em')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('subscriptions');
+        Schema::dropIfExists('assinaturas');
     }
 };

@@ -10,18 +10,15 @@ return new class extends Migration
     {
         Schema::create('planos', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->decimal('price', 8, 2);
-            $table->string('interval'); // 'month', 'year'
-            $table->text('description')->nullable();
-            $table->json('features')->nullable(); // Store list of features
-            $table->integer('max_transactions')->default(0); // Quota
+            $table->string('nome');
+            $table->text('descricao')->nullable();
+            $table->integer('limite_lancamentos')->default(0);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('planos');
     }
 };

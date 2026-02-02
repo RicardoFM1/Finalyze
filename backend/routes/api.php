@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dashboard/summary', [App\Http\Controllers\DashboardController::class, 'summary']);
 
 
-        Route::apiResource('transactions', App\Http\Controllers\TransactionController::class);
+        Route::apiResource('lancamentos', App\Http\Controllers\LancamentoController::class);
 
 
         Route::get('/reports/monthly', [App\Http\Controllers\ReportController::class, 'monthly']);
@@ -37,6 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::get('/admin/plans', [App\Http\Controllers\PlanController::class, 'adminIndex']);
+        Route::get('/admin/periods', function () {
+            return \App\Models\Periodo::all();
+        });
+        Route::get('/admin/features', function () {
+            return \App\Models\Recurso::all();
+        });
         Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);
         Route::put('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'update']);
         Route::delete('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'destroy']);

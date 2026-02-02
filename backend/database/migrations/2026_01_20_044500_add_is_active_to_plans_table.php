@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('planos', function (Blueprint $table) {
-            $table->boolean('is_active')->default(true)->after('features');
+            $table->boolean('esta_ativo')->default(true)->after('limite_lancamentos');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('planos', function (Blueprint $table) {
-            $table->dropColumn('is_active');
+            $table->dropColumn('esta_ativo');
         });
     }
 };
