@@ -15,29 +15,33 @@
     <v-card-item class="pt-8 pb-4 text-center">
       <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.nome }}</v-card-title>
       
-      <!-- <v-select
-        v-model="selectedPeriodId"
-        :items="plan.periodos"
-        item-title="nome"
-        item-value="id"
-        variant="underlined"
-        density="compact"
-        class="period-select mx-auto mb-2"
-        style="max-width: 150px"
-        hide-details
-      ></v-select> -->
-      <div v-if="plan.periodos.length">
-        <legend>Escolha o período: </legend>
-
-        <label v-for="periodo in plan.periodos" :key="periodo.id" class="period-label">
-          <input 
-            type="radio" 
-            :value="periodo.id" 
-            v-model="selectedPeriodId"
-            class="period-radio"
+   
+      <div v-if="plan.periodos.length" class="text-center my-3">
+        <div class="text-caption text-medium-emphasis mb-2 font-weight-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem !important;">
+          Período
+        </div>
+        
+        <v-chip-group
+          v-model="selectedPeriodId"
+          mandatory
+          selected-class="bg-primary text-white"
+          class="justify-center"
+          column
+        >
+          <v-chip
+            v-for="periodo in plan.periodos"
+            :key="periodo.id"
+            :value="periodo.id"
+            variant="outlined"
+            filter
+            class="ma-1 font-weight-bold"
+          
+            size="small"
+            style="border-color: rgba(var(--v-theme-primary), 0.2);"
           >
-          <span class="period-text">{{ periodo.nome }}</span>
-        </label>
+            {{ periodo.nome }}
+          </v-chip>
+        </v-chip-group>
       </div>
 
       <div class="price-container my-4">
