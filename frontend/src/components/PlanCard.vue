@@ -15,7 +15,7 @@
     <v-card-item class="pt-8 pb-4 text-center">
       <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.nome }}</v-card-title>
       
-      <v-select
+      <!-- <v-select
         v-model="selectedPeriodId"
         :items="plan.periodos"
         item-title="nome"
@@ -25,7 +25,20 @@
         class="period-select mx-auto mb-2"
         style="max-width: 150px"
         hide-details
-      ></v-select>
+      ></v-select> -->
+      <div v-if="plan.periodos.length">
+        <legend>Escolha o período: </legend>
+
+        <label v-for="periodo in plan.periodos" :key="periodo.id" class="period-label">
+          <input 
+            type="radio" 
+            :value="periodo.id" 
+            v-model="selectedPeriodId"
+            class="period-radio"
+          >
+          <span class="period-text">{{ periodo.nome }}</span>
+        </label>
+      </div>
 
       <div class="price-container my-4">
         <span class="currency">R$</span>
