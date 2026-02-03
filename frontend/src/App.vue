@@ -1,7 +1,15 @@
 <script setup>
 import MainLayout from './components/MainLayout.vue'
 import { useUiStore } from './stores/ui'
+import { useCurrencyStore } from './stores/currency'
+import { onMounted } from 'vue'
 const ui = useUiStore()
+const currencyStore = useCurrencyStore()
+
+onMounted(() => {
+  currencyStore.loadCurrency()
+
+})
 
 </script>
 

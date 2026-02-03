@@ -73,7 +73,7 @@
               <v-text-field
                 v-model="form.price"
                 :label="$t('admin.form.price')"
-                :prefix="'R$ '"
+                :prefix="currencyPrefix"
                 type="number"
                 step="0.01"
                 />
@@ -180,11 +180,13 @@
   </v-container>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import { useCurrencyStore } from '../stores/currency'
 
 const authStore = useAuthStore()
+const currencyStore = useCurrencyStore()
 
 const plans = ref([])
 const dialog = ref(false)
@@ -229,11 +231,22 @@ async function fetchPlans () {
 }
 
 function formatPrice (value) {
-  return new Intl.NumberFormat('pt-BR', {
+  const currency =  currencyStore.currency
+
+  const localMap = {
+    BRL: 'pt-BR',
+    USD: 'en-US'
+  }
+
+  return new Intl.NumberFormat(localMap[currency], {
     style: 'currency',
-    currency: 'BRL'
+    currency,
   }).format(value)
-}
+  }
+
+  const currencyPrefix = computed(()=>{
+    return currencyStore.currency === 'BRL' ? 'R$ ' : '$ '
+  })
 
 function openDialog (item = null) {
   form.value = item

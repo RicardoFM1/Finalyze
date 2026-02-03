@@ -12,7 +12,7 @@ const routes = [
   { path: '/lancamentos', name: 'Transactions', component: () => import('../views/Transactions.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Transactions' } },
   { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
   { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Reports' } },
-  { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
+  { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue') },
   { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue'), meta: { requiresAuth: true } },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') },
 ]

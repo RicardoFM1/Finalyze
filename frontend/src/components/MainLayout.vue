@@ -8,6 +8,7 @@
       <v-spacer></v-spacer>
       <div class="d-flex align-center">
         <template v-if="!authStore.isAuthenticated">
+          <Coinselector />
           <LanguageSelector />
             <v-btn to="/planos" variant="text" color="white" class="mx-1 text-none font-weight-medium">{{ $t('landing.btn_plans') }}</v-btn>
             <v-btn to="/login" variant="elevated" color="white" class="ml-2 mr-2 text-none font-weight-bold text-primary">
@@ -27,10 +28,7 @@
   :temporary="!isDesktop"
   class="animated-drawer"
   elevation="6"
->
-
-
-        <v-list>
+>           <v-list>
             <v-list-item 
                 v-if="authStore.user"
                 :prepend-avatar="authStore.user.avatar ? 'http://localhost:8000/storage/' + authStore.user.avatar : undefined"
@@ -99,6 +97,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, watch} from 'vue'
 import { useDisplay} from 'vuetify'
 import LanguageSelector from './Language/LanguageSelector.vue'
+import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
