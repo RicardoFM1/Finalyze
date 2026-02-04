@@ -130,7 +130,7 @@ const currentPrice = computed(() => {
 })
 
 const selectedPeriodSlug = computed(() => {
-    const slug = selectedPeriod.value?.slug || 'monthly'
+    const slug = selectedPeriod.value?.slug || 'mensal' || 'weekly'
     const periodText = {
         'semanal': 'sem',
         'mensal': 'mês',

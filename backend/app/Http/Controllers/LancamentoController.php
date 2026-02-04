@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class LancamentoController extends Controller
 {
-    public function index()
+    public function mostrar()
     {
         return Auth::user()->lancamentos()->latest()->get();
     }
 
-    public function store(StoreLancamentoRequest $request)
+    public function criar(StoreLancamentoRequest $request)
     {
         $usuario = Auth::user();
 

@@ -32,7 +32,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function createPreference(CreatePreferenceRequest $request)
+    public function criarPreferencia(CreatePreferenceRequest $request)
     {
         try {
             $this->setupMercadoPago();
@@ -95,7 +95,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function getLatestPreference()
+    public function pegarUltimaPreferencia()
     {
         try {
             $assinatura = Assinatura::where('user_id', auth()->id())
@@ -117,7 +117,7 @@ class CheckoutController extends Controller
         }
     }
 
-    public function processPayment(ProcessPaymentRequest $request)
+    public function processarPagamento(ProcessPaymentRequest $request)
     {
         /** @var \App\Models\Usuario $usuario */
         $usuario = auth()->user();
@@ -125,7 +125,7 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Usuário não autenticado'], 401);
         }
 
-        \Illuminate\Support\Facades\Log::info('ProcessPayment Request', [
+        \Illuminate\Support\Facades\Log::info('ProcessarPagamento Request', [
             'user_id' => $usuario->id,
             'request' => $request->all()
         ]);
@@ -233,12 +233,12 @@ class CheckoutController extends Controller
             ]);
             return response()->json(['error' => 'Erro na API Mercado Pago', 'details' => $e->getApiResponse()?->getContent()], 422);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('ProcessPayment Exception', ['message' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('ProcessarPagamento Exception', ['message' => $e->getMessage()]);
             return response()->json(['error' => 'Falha ao processar pagamento: ' . $e->getMessage()], 500);
         }
     }
 
-    public function checkPaymentStatus($id)
+    public function checarStatusPagamento($id)
     {
         try {
             $this->setupMercadoPago();
@@ -257,7 +257,7 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Payment not found'], 404);
         }
     }
-    public function cancelSubscription(Request $request)
+    public function cancelarAssinatura(Request $request)
     {
         $usuario = auth()->user();
         if (!$usuario) {

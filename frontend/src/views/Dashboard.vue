@@ -17,7 +17,7 @@
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Receitas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.receita }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ resumo.receita }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -25,7 +25,7 @@
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Despesas</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.despesa }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ resumo.despesa }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -33,7 +33,7 @@
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-h6">Saldo</v-card-title>
-                <div class="text-h4 font-weight-bold mt-2">R$ {{ summary.saldo }}</div>
+                <div class="text-h4 font-weight-bold mt-2">R$ {{ resumo.saldo }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -44,7 +44,7 @@
       <v-col cols="12" md="8">
         <v-card title="Atividade Recente">
            <v-list lines="two">
-              <v-list-item v-for="item in summary.atividades_recentes" :key="item.id" 
+              <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
                 :title="item.descricao || item.categoria" 
                 :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} - ${item.categoria}`" 
                 :prepend-icon="item.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-minus'"
@@ -55,7 +55,7 @@
                     </span>
                 </template>
               </v-list-item>
-              <div v-if="!summary.atividades_recentes?.length" class="text-center pa-4 text-medium-emphasis">
+              <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-4 text-medium-emphasis">
                   Nenhuma atividade recente.
               </div>
            </v-list>
@@ -98,7 +98,7 @@ import { toast } from 'vue3-toastify'
 const authStore = useAuthStore()
 const dialog = ref(false)
 const saving = ref(false)
-const summary = ref({
+const resumo = ref({
     receita: 0,
     despesa: 0,
     saldo: 0,
@@ -122,9 +122,9 @@ onMounted(async () => {
 const fetchSummary = async () => {
     loading.value = true
     try {
-        const response = await authStore.apiFetch('/dashboard/summary')
+        const response = await authStore.apiFetch('/painel/resumo')
         if (response.ok) {
-            summary.value = await response.json()
+            resumo.value = await response.json()
         }
     } catch (e) {
         console.error(e)

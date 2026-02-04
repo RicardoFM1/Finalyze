@@ -13,14 +13,14 @@ return new class extends Migration
     public function up(): void
     {
         // Atualizar slugs de períodos
-        DB::table('periodos')->where('slug', 'weekly')->update(['slug' => 'semanal']);
-        DB::table('periodos')->where('slug', 'monthly')->update(['slug' => 'mensal']);
-        DB::table('periodos')->where('slug', 'quarterly')->update(['slug' => 'trimestral']);
-        DB::table('periodos')->where('slug', 'yearly')->update(['slug' => 'anual']);
+        DB::table('periodos')->where('slug', 'semanal')->update(['slug' => 'semanal']);
+        DB::table('periodos')->where('slug', 'mensal')->update(['slug' => 'mensal']);
+        DB::table('periodos')->where('slug', 'trimestral')->update(['slug' => 'trimestral']);
+        DB::table('periodos')->where('slug', 'anual')->update(['slug' => 'anual']);
 
         // Atualizar slugs de recursos
-        DB::table('recursos')->where('slug', 'dashboard')->update(['slug' => 'painel']);
-        DB::table('recursos')->where('slug', 'reports')->update(['slug' => 'relatorios']);
+        DB::table('recursos')->where('slug', 'painel')->update(['slug' => 'painel']);
+        DB::table('recursos')->where('slug', 'relatorios')->update(['slug' => 'relatorios']);
     }
 
     /**

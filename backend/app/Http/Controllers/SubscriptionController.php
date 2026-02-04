@@ -26,7 +26,7 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    public function toggleAutoRenew(Request $request)
+    public function ativarAutoRenovacao(Request $request)
     {
         $user = auth()->user();
         $subscription = \App\Models\Assinatura::where('user_id', $user->id)
@@ -42,7 +42,7 @@ class SubscriptionController extends Controller
         return response()->json(['message' => 'Configuração de renovação atualizada']);
     }
 
-    public function cancel()
+    public function cancelar()
     {
         $user = auth()->user();
         $subscription = \App\Models\Assinatura::where('user_id', $user->id)

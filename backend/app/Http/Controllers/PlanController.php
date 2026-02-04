@@ -27,7 +27,7 @@ class PlanController extends Controller
             ->get();
     }
 
-    public function store(StorePlanRequest $request) // Usando FormRequest
+    public function criar(StorePlanRequest $request) // Usando FormRequest
     {
         $plano = DB::transaction(function () use ($request) {
             // Cria o plano com dados validados
@@ -59,12 +59,12 @@ class PlanController extends Controller
         ], 201);
     }
 
-    public function show(Plano $plano)
+    public function mostrar(Plano $plano)
     {
         return $plano->load(['periodos', 'recursos']);
     }
 
-    public function update(UpdatePlanRequest $request, $plan)
+    public function atualizar(UpdatePlanRequest $request, $plan)
 {
 
     $planModel = $plan instanceof Plano ? $plan : Plano::findOrFail($plan);
@@ -95,7 +95,7 @@ class PlanController extends Controller
     return response()->json(['message' => 'Plano atualizado com sucesso!']);
 }
 
-    public function destroy(Plano $plano)
+    public function destruir(Plano $plano)
     {
         // Importante: use $plano->id (PK padrão do Laravel)
         $activeCount = Plano::where('ativo', true)->count();

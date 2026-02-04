@@ -249,7 +249,7 @@ const initMercadoPago = async () => {
 
 
             try {
-              const response = await authStore.apiFetch('/checkout/process_payment', {
+              const response = await authStore.apiFetch('/checkout/processar_pagamento', {
                 method: 'POST',
                 body: JSON.stringify({
                     ...formData,
@@ -326,7 +326,7 @@ onMounted(async () => {
     
     // Fetch plan details to get the price
     try {
-      const response = await authStore.apiFetch(`/plans`)
+      const response = await authStore.apiFetch(`/planos`)
       if (response.ok) {
         const plans = await response.json()
         const plan = plans.find(p => p.id == props.planId)
@@ -351,7 +351,7 @@ onMounted(async () => {
   } else {
     // Fallback: fetch preference if no props provided
     try {
-      const response = await authStore.apiFetch('/checkout/preference')
+      const response = await authStore.apiFetch('/checkout/preferencia')
       if (!response.ok) throw new Error('Preferência não encontrada')
 
       const data = await response.json()

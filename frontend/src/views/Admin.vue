@@ -211,10 +211,10 @@ onMounted(async () => {
 
 const fetchBaseData = async () => {
     try {
-        const periodsRes = await authStore.apiFetch('/admin/periods')
+        const periodsRes = await authStore.apiFetch('/admin/periodos')
         dbPeriods.value = await periodsRes.json()
         
-        const featuresRes = await authStore.apiFetch('/admin/features')
+        const featuresRes = await authStore.apiFetch('/admin/recursos')
         dbFeatures.value = await featuresRes.json()
     } catch (e) {
         console.error(e)
@@ -224,7 +224,7 @@ const fetchBaseData = async () => {
 const fetchPlans = async () => {
     try {
         loadingPlans.value = true
-        const response = await authStore.apiFetch('/admin/plans')
+        const response = await authStore.apiFetch('/admin/planos')
         plans.value = await response.json()
     } catch (e) {
         console.error(e)
@@ -273,8 +273,8 @@ const openDialog = (item = null) => {
                 }
             })
         }
-        const monthly = form.value.periodos_config.find(p => p.slug === 'mensal')
-        baseMonthlyPrice.value = monthly?.active ? monthly.price : 0
+        const mensal = form.value.periodos_config.find(p => p.slug === 'mensal')
+        baseMonthlyPrice.value = mensal?.active ? mensal.price : 0
     } else {
         form.value = {
             id: null,
@@ -329,7 +329,7 @@ const savePlan = async () => {
         }
 
         const isEdit = !!form.value.id
-        const response = await authStore.apiFetch(isEdit ? `/plans/${form.value.id}` : '/plans', {
+        const response = await authStore.apiFetch(isEdit ? `/planos/${form.value.id}` : '/planos', {
             method: isEdit ? 'PUT' : 'POST',
             body: JSON.stringify(payload)
         })
@@ -360,7 +360,7 @@ const confirmDelete = (item) => {
 const deletePlan = async () => {
     loadingSalvar.value = true
     try {
-        const response = await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
+        const response = await authStore.apiFetch(`/planos/${planToDelete.value.id}`, {
             method: 'DELETE'
         })
         if (response.ok) {

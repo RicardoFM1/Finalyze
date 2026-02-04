@@ -199,7 +199,7 @@ onMounted(async () => {
     // 1. If authenticated, ALWAYS check for a pending preference first
     if (authStore.isAuthenticated) {
         try {
-            const response = await authStore.apiFetch('/checkout/preference')
+            const response = await authStore.apiFetch('/checkout/preferencia')
             if (response.ok) {
                 const data = await response.json()
                 preferenceId.value = data.id
@@ -230,7 +230,7 @@ onMounted(async () => {
     // 2. If no preference found but we have query params, prepare the planInfo
     if (!preferenceId.value && planId.value) {
         try {
-            const response = await authStore.apiFetch(`/plans`)
+            const response = await authStore.apiFetch(`/planos`)
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
             
@@ -367,7 +367,7 @@ const initPayment = async () => {
     
     checkoutError.value = null
     try {
-        const response = await authStore.apiFetch('/checkout/preference', {
+        const response = await authStore.apiFetch('/checkout/preferencia', {
             method: 'POST',
             body: JSON.stringify({
                 plano_id: planId.value,

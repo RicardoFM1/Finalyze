@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('periodos', function (Blueprint $table) {
             $table->id();
-            $table->string('nome'); // Semanal, Mensal, Trimestral, Anual
-            $table->string('slug')->unique(); // weekly, monthly, quarterly, yearly
+            $table->string('nome'); 
+            $table->string('slug')->unique(); 
             $table->integer('quantidade_dias')->default(0);
             $table->timestamps();
         });
