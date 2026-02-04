@@ -73,7 +73,6 @@
                   />
                 </v-col>
               </v-row>
-
               <v-btn type="submit" color="primary" :loading="saving">
                 {{ $t('profile.btn_update') }}
               </v-btn>
@@ -115,7 +114,11 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import EmailSender from '../components/EmailSender/EmailSender.vue'
+import { tr } from 'vuetify/locale'
+
 
 const { t } = useI18n()
 
@@ -282,6 +285,22 @@ const formatDate = (dateString) => {
         year: 'numeric'
     })
 }
+
+const resendBillingEmail = async () => {
+  try {
+    const response = await authStore.apiFetch(
+      '/emails/resend-billing',
+      { method: 'POST' }
+    )
+
+    if (response.ok) {
+      toast.success('Email enviado com sucesso.')
+    }
+  } catch (e) {
+    toast.error('Erro ao reenviar cobrança.')
+  }
+}
+
 </script>
 
 <style scoped>
