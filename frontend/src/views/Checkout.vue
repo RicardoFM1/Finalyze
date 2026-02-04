@@ -341,13 +341,12 @@ const handleRegister = async () => {
             registerForm.value.data_nascimento
         )
         toast.success('Cadastro realizado com sucesso!')
-        step.value = 2
+        authTab.value = 'login'
     } catch (e) {
         if (e.response && e.response.status === 422 && e.response.data && e.response.data.errors) {
-            // Map backend errors to local reactive object
-            // e.response.data.errors is like { email: ['error1'], cpf: ['error2'] }
+          
             errors.value = Object.keys(e.response.data.errors).reduce((acc, key) => {
-                acc[key] = e.response.data.errors[key][0] // Take the first error message
+                acc[key] = e.response.data.errors[key][0] 
                 return acc
             }, {})
             toast.error('Verifique os campos em vermelho.')
@@ -392,7 +391,7 @@ const formatPrice = (value) => {
 }
 
 const handleCpfInput = (event) => {
-  errors.value.cpf = '' // Clear error on type
+  errors.value.cpf = '' 
   formatCPF(event)
 }
 
@@ -410,24 +409,24 @@ const formatCPF = (event) => {
 }
 </script>
 <style scoped>
-/* Remove focus outline for v-tab items */
+
 .no-outline :deep(.v-btn__overlay) {
   opacity: 0 !important;
 }
 .no-outline :deep(.v-ripple__container) {
   display: none !important;
 }
-/* Specifically targeting the focus ring if any */
+
 .no-outline:focus-visible {
     outline: none !important;
 }
 </style>
 <style>
-/* Global override for specific tab outline issue if scoped style is insufficient */
+
 .unique-tabs-no-outline .v-tab--selected .v-tab__slider {
-    display: block; /* Keep slider */
+    display: block; 
 }
-/* Completely remove outline from the v-btn inside v-tab */
+
 .unique-tabs-no-outline .v-btn,
 .unique-tabs-no-outline .v-btn:focus,
 .unique-tabs-no-outline .v-btn:hover,

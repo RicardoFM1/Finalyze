@@ -91,9 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (!response.ok) throw new Error(data.message || 'Falha no cadastro (verifique senhas ou email)');
 
-            token.value = data.access_token;
-            localStorage.setItem('token', token.value);
-
             await fetchUser();
 
             return true;
