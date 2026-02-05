@@ -29,7 +29,7 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="showPassword = !showPassword"
-                        :rules="[v => !!v || 'Senha é obrigatória']"
+                        :rules="passwordRules"
                       ></v-text-field>
                       <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">Entrar e Continuar</v-btn>
                     </v-form>
