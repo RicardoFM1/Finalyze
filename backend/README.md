@@ -19,6 +19,6 @@ php artisan migrate
 ## API Endpoints (Planned)
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `GET /api/plans`
-- `POST /api/checkout/preference`
+- `GET /api/planos`
+- `POST /api/checkout/preferencia`
 - `POST /api/financial/transactions`

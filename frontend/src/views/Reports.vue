@@ -31,7 +31,7 @@ const chartOptions = ref({
 
 onMounted(async () => {
     try {
-        const response = await authStore.apiFetch('/reports/monthly')
+        const response = await authStore.apiFetch('/relatorios/mensal')
         const data = await response.json()
         
         chartData.value = data

@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (response.status === 401) {
                 logout();
-                // Avoid infinite redirect if already trying to login/register or in checkout
+                
                 if (router.currentRoute.value.name !== 'Login' &&
                     router.currentRoute.value.name !== 'Register' &&
                     router.currentRoute.value.name !== 'Checkout') {
@@ -91,9 +91,6 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (!response.ok) throw new Error(data.message || 'Falha no cadastro (verifique senhas ou email)');
 
-            token.value = data.access_token;
-            localStorage.setItem('token', token.value);
-
             await fetchUser();
 
             return true;
@@ -106,7 +103,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function fetchUser() {
         if (!token.value) return;
         try {
-            const response = await apiFetch('/user');
+            const response = await apiFetch('/usuario');
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;

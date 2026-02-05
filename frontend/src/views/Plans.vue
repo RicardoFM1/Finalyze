@@ -43,7 +43,7 @@
             color="error"
             class="rounded-lg px-6"
             :loading="cancelling"
-            @click="cancelSubscription"
+            @click="cancelarPagamento"
           >
             Cancelar Anterior
           </v-btn>
@@ -80,7 +80,7 @@ const currentSubscription = ref(null)
 
 onMounted(async () => {
   try {
-    const plansResponse = await authStore.apiFetch('/plans')
+    const plansResponse = await authStore.apiFetch('/planos')
     if (plansResponse.ok) {
         plans.value = await plansResponse.json()
     }
@@ -93,7 +93,7 @@ onMounted(async () => {
   if (authStore.isAuthenticated) {
     checkingPreference.value = true
     try {
-        const prefResponse = await authStore.apiFetch('/checkout/preference')
+        const prefResponse = await authStore.apiFetch('/checkout/preferencia')
         if (prefResponse.ok) {
             const data = await prefResponse.json()
             if (data.id && data.plano) {
@@ -122,10 +122,10 @@ const continuePayment = () => {
     router.push({ name: 'Checkout' })
 }
 
-const cancelSubscription = async () => {
+const cancelarPagamento = async () => {
     try {
         cancelling.value = true
-        const response = await authStore.apiFetch('/checkout/cancel-subscription', {
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
             method: 'POST'
         })
         if (response.ok) {

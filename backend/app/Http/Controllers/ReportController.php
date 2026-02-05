@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    public function monthly(Request $request)
+    public function mensal(Request $request)
     {
         $user = Auth::user();
 

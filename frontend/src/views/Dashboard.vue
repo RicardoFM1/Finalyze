@@ -60,7 +60,7 @@
                     </span>
                 </template>
               </v-list-item>
-              <div v-if="!summary.atividades_recentes?.length" class="text-center pa-4 text-medium-emphasis">
+              <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-4 text-medium-emphasis">
                   Nenhuma atividade recente.
               </div>
            </v-list>
@@ -159,7 +159,7 @@ const corIconeCategoria = (tipo) => {
 const authStore = useAuthStore()
 const dialog = ref(false)
 const saving = ref(false)
-const summary = ref({
+const resumo = ref({
     receita: 0,
     despesa: 0,
     saldo: 0,
@@ -183,9 +183,9 @@ onMounted(async () => {
 const fetchSummary = async () => {
     loading.value = true
     try {
-        const response = await authStore.apiFetch('/dashboard/summary')
+        const response = await authStore.apiFetch('/painel/resumo')
         if (response.ok) {
-            summary.value = await response.json()
+            resumo.value = await response.json()
         }
     } catch (e) {
         console.error(e)
@@ -225,7 +225,8 @@ const salvarLancamento = async () => {
                 descricao: ''
             }
         } else {
-            toast.error('Erro ao salvar lançamento')
+            const data = await response.json().catch(() => ({}))
+            toast.error(data.message || 'Erro ao salvar lançamento')
         }
     } catch (e) {
         toast.error('Erro de conexão')

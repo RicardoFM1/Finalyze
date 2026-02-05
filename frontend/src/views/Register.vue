@@ -177,7 +177,7 @@ const validateAge = (v) => {
 const validateCPF = (v) => {
     if (!v) return true
     
-    // Remove non-digits
+    
     const cpf = v.replace(/\D/g, '')
     
     if (cpf.length !== 11) {
@@ -214,6 +214,7 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
+    console.log('Dados do formulário:', form.value)
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
     await authStore.register(
       form.value.nome, 
@@ -224,10 +225,10 @@ const handleRegister = async () => {
       form.value.data_nascimento
     )
     toast.success("Cadastro realizado com sucesso!")
-    router.push({ name: 'Dashboard' })
+    router.push({ name: 'Login' })
   } catch (err) {
     if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
-        // Map backend errors to local reactive object
+        
         errors.value = Object.keys(err.response.data.errors).reduce((acc, key) => {
             acc[key] = err.response.data.errors[key][0]
             return acc

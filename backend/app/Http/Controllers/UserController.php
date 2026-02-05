@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function show(Request $request)
+    public function mostrar(Request $request)
     {
         return $request->user()->load('plano.recursos');
     }
 
-    public function update(UpdateUserRequest $request)
+    public function atualizar(UpdateUserRequest $request)
     {
         $usuario = Auth::user();
 

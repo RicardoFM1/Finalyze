@@ -18,13 +18,10 @@ class AuthController extends Controller
             'email' => $request->email,
             'senha' => Hash::make($request->senha),
             'cpf' => $request->cpf,
+            'data_nascimento' => $request->data_nascimento
         ]);
 
-        $token = $usuario->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
             'usuario' => $usuario->load('plano')
         ]);
     }

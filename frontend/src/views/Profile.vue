@@ -17,18 +17,22 @@
           <v-icon start icon="mdi-account-circle" class="mr-2"></v-icon>
           Dados Pessoais
         </v-tab>
-        <v-tab value="subscription" class="text-none">
+        <v-tab value="assinatura" class="text-none">
           <v-icon start icon="mdi-star-circle" class="mr-2"></v-icon>
           Minha Assinatura
         </v-tab>
-        <v-tab value="billing" class="text-none">
+        <v-tab value="historico" class="text-none">
           <v-icon start icon="mdi-receipt" class="mr-2"></v-icon>
           Histórico Financeiro
         </v-tab>
       </v-tabs>
 
       <v-window v-model="activeTab">
-        <v-window-item value="personal">
+        <div v-if="loadingUser && activeTab === 'personal'" class="text-center py-10 d-flex flex-column align-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          Carregando seu lindo perfil...
+        </div>
+          <v-window-item v-if="!loadingUser" value="personal">
           <v-row class="pa-6 pa-md-10">
             <v-col cols="12" md="4" class="text-center">
               <div class="avatar-wrapper mb-6">
@@ -121,9 +125,9 @@
           </v-row>
         </v-window-item>
 
-        <v-window-item value="subscription" class="bg-grey-lighten-5">
+        <v-window-item value="assinatura" class="bg-grey-lighten-5">
           <v-container class="pa-6 pa-md-10">
-            <div v-if="loadingSub" class="text-center py-10">
+            <div v-if="loadingSub && activeTab === 'assinatura'" class="text-center py-10">
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
             
@@ -187,7 +191,7 @@
                         color="primary"
                         hide-details
                         inset
-                        @change="toggleAutoRenew"
+                        @change="ativarAutoRenovacao"
                       ></v-switch>
                     </div>
 
@@ -225,10 +229,10 @@
           </v-container>
         </v-window-item>
 
-        <v-window-item value="billing">
+        <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
             <h3 class="text-h6 font-weight-bold mb-6">Últimos Pagamentos</h3>
-            <div v-if="loadingSub" class="text-center py-10">
+            <div v-if="loadingSub && activeTab === 'historico'" class="text-center py-10">
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
 
@@ -276,7 +280,7 @@
         </v-card-text>
         <v-card-actions class="justify-end gap-2">
           <v-btn variant="text" @click="confirmCancel = false">Manter</v-btn>
-          <v-btn color="error" variant="flat" class="rounded-lg" :loading="cancelling" @click="cancelSubscription">Confirmar</v-btn>
+          <v-btn color="error" variant="flat" class="rounded-lg" :loading="cancelling" @click="cancelarAssinatura">Confirmar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -317,31 +321,35 @@ onMounted(async () => {
    await fetchSubscription()
 })
 
+const loadingUser = ref(false)
 const fetchUser = async () => {
     try {
-        const response = await authStore.apiFetch('/user')
+        loadingUser.value = true
+        const response = await authStore.apiFetch('/usuario')
         const data = await response.json()
         user.value = data
         
-        // Format CPF for display if exists
+        
         if (user.value.cpf) {
           formatCPF({ target: { value: user.value.cpf } })
         }
         
-        // Ensure data_nascimento is YYYY-MM-DD for the date input
+        
         if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
           user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
         } else {
-          user.value.data_nascimento = '' // Ensure it's not null/undefined for the input
+          user.value.data_nascimento = '' 
         }
     } catch (e) {
         console.error(e)
+    }finally{
+      loadingUser.value = false
     }
 }
 const fetchSubscription = async () => {
     try {
         loadingSub.value = true
-        const response = await authStore.apiFetch('/subscriptions')
+        const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
         }
@@ -352,9 +360,9 @@ const fetchSubscription = async () => {
     }
 }
 
-const toggleAutoRenew = async () => {
+const ativarAutoRenovacao = async () => {
     try {
-        const response = await authStore.apiFetch('/subscriptions/toggle-auto-renew', { method: 'POST' })
+        const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { method: 'POST' })
         if (response.ok) {
             const data = await response.json()
             subscriptionData.value.assinatura.renovacao_automatica = data.active
@@ -365,10 +373,10 @@ const toggleAutoRenew = async () => {
     }
 }
 
-const cancelSubscription = async () => {
+const cancelarAssinatura = async () => {
     try {
         cancelling.value = true
-        const response = await authStore.apiFetch('/subscriptions/cancel', { method: 'POST' })
+        const response = await authStore.apiFetch('/assinaturas/cancelar', { method: 'POST' })
         if (response.ok) {
             toast.success('Assinatura cancelada com sucesso.')
             await fetchSubscription()
@@ -406,10 +414,10 @@ const daysRemaining = computed(() => {
 const hasActiveOrValidSubscription = computed(() => {
     if (!subscriptionData.value.assinatura) return false
     const s = subscriptionData.value.assinatura
-    // If active, it's valid
+    
     if (s.status === 'active') return true
     
-    // If cancelled, check if still within period
+ 
     const end = new Date(s.termina_em).getTime()
     const now = new Date().getTime()
     return end > now
@@ -449,7 +457,7 @@ const saveProfile = async () => {
             formData.append('avatar', selectedFile.value)
         }
 
-        const response = await authStore.apiFetch('/user', {
+        const response = await authStore.apiFetch('/usuario', {
             method: 'POST', 
             body: formData
         })
@@ -460,7 +468,7 @@ const saveProfile = async () => {
             authStore.user = updated
             user.value = { ...updated }
             
-            // Re-format after update
+           
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
             if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
               user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
@@ -472,7 +480,7 @@ const saveProfile = async () => {
         } else {
              const errorData = await response.json().catch(() => ({}))
              if (errorData.errors) {
-                 // Show the first validation error message
+               
                  const firstErrorKey = Object.keys(errorData.errors)[0]
                  toast.warning(errorData.errors[firstErrorKey][0])
              } else {

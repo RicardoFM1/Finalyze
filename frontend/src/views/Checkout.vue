@@ -29,7 +29,7 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="showPassword = !showPassword"
-                        :rules="[v => !!v || 'Senha é obrigatória']"
+                        :rules="passwordRules"
                       ></v-text-field>
                       <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">Entrar e Continuar</v-btn>
                     </v-form>
@@ -196,16 +196,16 @@ const passwordRules = [
 ]
 
 onMounted(async () => {
-    // 1. If authenticated, ALWAYS check for a pending preference first
+   
     if (authStore.isAuthenticated) {
         try {
-            const response = await authStore.apiFetch('/checkout/preference')
+            const response = await authStore.apiFetch('/checkout/preferencia')
             if (response.ok) {
                 const data = await response.json()
                 preferenceId.value = data.id
                 planInfo.value = data.plan
                 planId.value = data.plan.id
-                // If the user came with a specific query that matches the pending, use it to set periodInfo
+               
                 if (route.query.period && data.plan.periodos) {
                      const found = data.plan.periodos.find(p => p.id == route.query.period)
                      if (found) {
@@ -214,7 +214,7 @@ onMounted(async () => {
                      }
                 }
                 
-                // If we still don't have periodInfo, try to use what the backend sent
+               
                 if (!periodInfo.value && data.period_id) {
                     periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
                     periodId.value = data.period_id
@@ -227,10 +227,10 @@ onMounted(async () => {
         }
     }
 
-    // 2. If no preference found but we have query params, prepare the planInfo
+    
     if (!preferenceId.value && planId.value) {
         try {
-            const response = await authStore.apiFetch(`/plans`)
+            const response = await authStore.apiFetch(`/planos`)
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
             
@@ -341,13 +341,12 @@ const handleRegister = async () => {
             registerForm.value.data_nascimento
         )
         toast.success('Cadastro realizado com sucesso!')
-        step.value = 2
+        authTab.value = 'login'
     } catch (e) {
         if (e.response && e.response.status === 422 && e.response.data && e.response.data.errors) {
-            // Map backend errors to local reactive object
-            // e.response.data.errors is like { email: ['error1'], cpf: ['error2'] }
+          
             errors.value = Object.keys(e.response.data.errors).reduce((acc, key) => {
-                acc[key] = e.response.data.errors[key][0] // Take the first error message
+                acc[key] = e.response.data.errors[key][0] 
                 return acc
             }, {})
             toast.error('Verifique os campos em vermelho.')
@@ -367,7 +366,7 @@ const initPayment = async () => {
     
     checkoutError.value = null
     try {
-        const response = await authStore.apiFetch('/checkout/preference', {
+        const response = await authStore.apiFetch('/checkout/preferencia', {
             method: 'POST',
             body: JSON.stringify({
                 plano_id: planId.value,
@@ -392,7 +391,7 @@ const formatPrice = (value) => {
 }
 
 const handleCpfInput = (event) => {
-  errors.value.cpf = '' // Clear error on type
+  errors.value.cpf = '' 
   formatCPF(event)
 }
 
@@ -410,24 +409,24 @@ const formatCPF = (event) => {
 }
 </script>
 <style scoped>
-/* Remove focus outline for v-tab items */
+
 .no-outline :deep(.v-btn__overlay) {
   opacity: 0 !important;
 }
 .no-outline :deep(.v-ripple__container) {
   display: none !important;
 }
-/* Specifically targeting the focus ring if any */
+
 .no-outline:focus-visible {
     outline: none !important;
 }
 </style>
 <style>
-/* Global override for specific tab outline issue if scoped style is insufficient */
+
 .unique-tabs-no-outline .v-tab--selected .v-tab__slider {
-    display: block; /* Keep slider */
+    display: block; 
 }
-/* Completely remove outline from the v-btn inside v-tab */
+
 .unique-tabs-no-outline .v-btn,
 .unique-tabs-no-outline .v-btn:focus,
 .unique-tabs-no-outline .v-btn:hover,
