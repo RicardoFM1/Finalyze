@@ -25,6 +25,16 @@ class Lancamento extends Model
         'valor' => 'decimal:2'
     ];
 
+    public function LimiteLancamentos($userId){
+        $lancamentoUserCount = Lancamento::where('user_id', $userId)->count();
+        $userPlanoId = Usuario::where('id', $userId)->value('plano_id');
+        $userPlanoLimiteLancamentos = Plano::where('id', $userPlanoId)->first()->value('limite_lancamentos');
+        if($lancamentoUserCount >= $userPlanoLimiteLancamentos){
+            return true;
+        }
+        return false;
+    }
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');
