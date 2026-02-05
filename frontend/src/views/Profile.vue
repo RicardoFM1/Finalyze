@@ -102,6 +102,10 @@
               <v-btn variant="outlined" color="primary" to="/planos">
                 {{ $t('profile.btn_upgrade') }}
               </v-btn>
+              <Calendar @select-date="openFromCalendar" />
+
+              <ReminderModal/>
+              
             </div>
           </v-card-text>
         </v-card>
@@ -116,8 +120,12 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import EmailSender from '../components/EmailSender/EmailSender.vue'
-import { tr } from 'vuetify/locale'
+import Calendar from '../components/Calendar/Calendar.vue'
+import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
+
+
+const showReminderModal = ref(false)
+const selectedDate = ref(null)
 
 
 const { t } = useI18n()
@@ -300,6 +308,12 @@ const resendBillingEmail = async () => {
     toast.error('Erro ao reenviar cobrança.')
   }
 }
+
+function openFromCalendar(date) {
+  selectedDate.value = date
+  showReminderModal.value = true
+}
+
 
 </script>
 
