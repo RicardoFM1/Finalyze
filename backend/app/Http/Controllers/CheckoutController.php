@@ -119,7 +119,7 @@ class CheckoutController extends Controller
 
     public function processarPagamento(ProcessPaymentRequest $request)
     {
-        /** @var \App\Models\Usuario $usuario */
+       
         $usuario = auth()->user();
         if (!$usuario) {
             return response()->json(['error' => 'Usuário não autenticado'], 401);

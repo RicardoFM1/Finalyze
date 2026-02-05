@@ -28,7 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/painel/resumo', [App\Http\Controllers\DashboardController::class, 'resumo']);
 
 
-        Route::apiResource('lancamentos', App\Http\Controllers\LancamentoController::class);
+        Route::get('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'mostrar']);
+        Route::post('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'criar']);
 
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);

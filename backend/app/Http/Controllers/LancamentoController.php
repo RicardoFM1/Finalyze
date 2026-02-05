@@ -17,7 +17,7 @@ class LancamentoController extends Controller
     public function criar(StoreLancamentoRequest $request)
     {
         $usuario = Auth::user();
-        $maximoLancamentos = Lancamento::LimiteLancamentos($usuario->id);
+        Lancamento::validarLimiteLancamentos($usuario->id);
         
         $validated = $request->validated();
 

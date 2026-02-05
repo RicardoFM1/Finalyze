@@ -4,9 +4,7 @@
       <v-col>
         <h1 class="text-h4 font-weight-bold">Lançamentos</h1>
       </v-col>
-      <v-col class="text-right">
-        <v-btn color="primary" prepend-icon="mdi-plus" size="large">Novo Lançamento</v-btn>
-      </v-col>
+     
     </v-row>
 
     <v-card elevation="2">
@@ -24,7 +22,29 @@
                     {{ item.tipo === 'receita' ? '+' : '-' }} 
                     {{ new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor) }}
                 </span>
-            </template>
+            </template >
+
+          <template v-slot:item.acoes="{ item }">
+  <v-menu>
+    <template #activator="{ props }">
+      <v-btn icon v-bind="props">
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>
+    </template>
+
+    <v-list>
+      <v-list-item @click="editar(item.raw)">
+        <v-list-item-title>Editar</v-list-item-title>
+      </v-list-item>
+
+      <v-list-item @click="excluir(item.raw)">
+        <v-list-item-title>Excluir</v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
+
         </v-data-table>
     </v-card>
   </v-container>
@@ -42,6 +62,7 @@ const headers = [
   { title: 'Categoria', key: 'categoria', align: 'start' },
   { title: 'Tipo', key: 'tipo', align: 'start' },
   { title: 'Valor', key: 'valor', align: 'end' },
+  { title: 'Ações', key: 'acoes', sortable: false, align: 'center'}
 ]
 
 const lancamentos = ref([])

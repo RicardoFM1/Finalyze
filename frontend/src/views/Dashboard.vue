@@ -74,8 +74,11 @@
 
     <v-dialog v-model="dialog" max-width="500px">
         <v-card>
-            <v-card-title>Novo Lançamento</v-card-title>
-            <v-card-text>
+            <div class="d-flex align-center justify-space-between">
+              <v-card-title>Novo Lançamento</v-card-title>
+              <v-card-button @click="dialog = !dialog" class="pr-6" style="color: red; cursor: pointer"><v-icon>mdi-close</v-icon></v-card-button>
+            </div>
+              <v-card-text>
                 <v-form @submit.prevent="salvarLancamento">
                     <v-select v-model="form.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
                     <v-text-field v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
@@ -164,7 +167,8 @@ const salvarLancamento = async () => {
                 descricao: ''
             }
         } else {
-            toast.error('Erro ao salvar lançamento')
+            const data = await response.json().catch(() => ({}))
+            toast.error(data.message || 'Erro ao salvar lançamento')
         }
     } catch (e) {
         toast.error('Erro de conexão')
