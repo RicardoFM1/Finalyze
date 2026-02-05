@@ -33,12 +33,12 @@
     </template>
 
     <v-list>
-      <v-list-item @click="editar(item)">
+      <v-list-item @click="abrirEditar(item)">
         <v-list-item-title>Editar</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="excluir(item)">
-        <v-list-item-title>excluir</v-list-item-title>
+      <v-list-item @click="abrirExcluir(item)">
+        <v-list-item-title>Excluir</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>
@@ -48,11 +48,74 @@
         </v-data-table>
     </v-card>
   </v-container>
+   <v-dialog v-model="dialogEditar" max-width="500px">
+        <v-card>
+            <div class="d-flex align-center justify-space-between">
+              <v-card-title>Editar Lançamento</v-card-title>
+              <v-card-button @click="dialogEditar = !dialogEditar" class="pr-6" style="color: red; cursor: pointer"><v-icon>mdi-close</v-icon></v-card-button>
+            </div>
+              <v-card-text>
+                <v-form @submit.prevent="editar">
+                    <v-select v-model="formEdit.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
+                    <v-text-field v-model="formEdit.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
+                    <v-text-field v-model="formEdit.categoria" label="Categoria" required></v-text-field>
+                    <v-text-field v-model="formEdit.data" label="Data" type="date" required></v-text-field>
+                    <v-text-field v-model="formEdit.descricao" label="Descrição"></v-text-field>
+                    <v-btn type="submit" color="primary" block class="mt-4" :loading="loadingEditar">Salvar</v-btn>
+                </v-form>
+            </v-card-text>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dialogExcluir" max-width="420">
+  <v-card rounded="xl">
+    <v-card-text class="text-center pa-6">
+      <v-icon color="error" size="56" class="mb-4">
+        mdi-alert-circle-outline
+      </v-icon>
+
+      <h3 class="text-h6 font-weight-bold mb-2">
+        Confirmar exclusão
+      </h3>
+
+      <p class="text-body-2 text-grey-darken-1">
+        Tem certeza que deseja excluir este lançamento?
+        <br />
+        <strong>Essa ação não poderá ser desfeita.</strong>
+      </p>
+    </v-card-text>
+
+    <v-divider />
+
+   <v-card-actions class="pa-4">
+  <v-btn
+    variant="outlined"
+    class="flex-grow-1"
+    @click="dialogExcluir = false"
+    :disabled="loadingExcluir"
+  >
+    Cancelar
+  </v-btn>
+
+  <v-btn
+    color="error"
+    class="flex-grow-1 ml-2"
+    :loading="loadingExcluir"
+    @click="excluir()"
+  >
+    Excluir
+  </v-btn>
+</v-card-actions>
+
+  </v-card>
+</v-dialog>
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
 
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -65,8 +128,35 @@ const headers = [
   { title: 'Ações', key: 'acoes', sortable: false, align: 'center'}
 ]
 
+function formatarDataISO(data) {
+  return new Date(data).toISOString().slice(0, 10)
+}
+const formEdit = ref({
+  tipo: 'despesa',
+  valor: '',
+  categoria: '',
+  data: '',
+  descricao: ''
+})
 const lancamentos = ref([])
+function abrirEditar(item) {
+  lancamentoIdEdit.value = item.id
 
+  formEdit.value = {
+    tipo: item.tipo,
+    valor: item.valor,
+    categoria: item.categoria,
+    data: formatarDataISO(item.data), 
+    descricao: item.descricao
+  }
+
+  dialogEditar.value = true
+}
+
+function abrirExcluir(item) {
+  lancamentoIdExcluir.value = item.id
+  dialogExcluir.value = true
+}
 const buscarLancamentos = async () => {
     loading.value = true
     try {
@@ -81,20 +171,27 @@ const buscarLancamentos = async () => {
     }
 }
 const loadingEditar = ref(false)
-const modalEditar = ref(false)
-const editar = (item) => {
+const lancamentoIdEdit = ref(null)
+const lancamentoIdExcluir = ref(null)
+const dialogEditar = ref(false)
+const editar = async () => {
   try{
     loadingEditar.value = true
     const payload = {
-
+      tipo: formEdit.value.tipo,
+      valor: formEdit.value.valor,
+      categoria: formEdit.value.categoria,
+      data: formEdit.value.data,
+      descricao: formEdit.value.descricao
     }
-    const response = await authStore.apiFetch(`/lancamentos/${item.id}`, {
-      method: PUT,
+    const response = await authStore.apiFetch(`/lancamentos/${lancamentoIdEdit.value}`, {
+      method: 'PUT',
       body: JSON.stringify(payload)
     }) 
     if(response.ok){
-      toast.sucess("Sucesso! Lançamento editado com sucesso.")
-      modalEditar.value = false
+      toast.success("Sucesso! Lançamento editado com sucesso.")
+      dialogEditar.value = false
+      buscarLancamentos();
     }else{
       const data = await response.json().catch(() => ({}))
       toast.error(data.message || "Erro ao tentar editar o lançamento.")
@@ -103,26 +200,30 @@ const editar = (item) => {
        toast.error("Erro ao tentar editar o lançamento.")
   }finally{
     loadingEditar.value = false
-    modalEditar.value = false
+    dialogEditar.value = false
   }
 }
-const modalExcluir = ref(false)
+const dialogExcluir = ref(false)
 const loadingExcluir = ref(false)
-const excluir = (item) => {
+const excluir = async () => {
    try{
     loadingExcluir.value = true
   
-    const response = await authStore.apiFetch(`/lancamentos/${item.id}`, {
-      method: DELETE
+    const response = await authStore.apiFetch(`/lancamentos/${lancamentoIdExcluir.value}`, {
+      method: 'DELETE'
     }) 
     if(response.ok){
-      toast.sucess("Sucesso! Lançamento deletado com sucesso.")
+      toast.success("Sucesso! Lançamento deletado com sucesso.")
+      buscarLancamentos()
     }else{
       const data = await response.json().catch(() => ({}))
       toast.error(data.message || "Erro ao tentar deletar o lançamento.")
     }
   }catch(e){
        toast.error("Erro ao tentar deletar o lançamento.")
+  }finally{
+    loadingExcluir.value = false
+    dialogExcluir.value = false
   }
 }
 onMounted(buscarLancamentos)

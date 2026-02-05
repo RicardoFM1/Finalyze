@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLancamentoRequest;
 use App\Models\Lancamento;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LancamentoController extends Controller
@@ -39,11 +40,9 @@ class LancamentoController extends Controller
         $lancamento->update($validated);
         return $lancamento;
     }
-    public function deletar(StoreLancamentoRequest $request, $lancamentoId)
+    public function deletar(Request $request, $lancamentoId)
     {
         $usuario = Auth::user();
-
-        $validated = $request->validated();
 
         $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
         if (!$lancamento) {
