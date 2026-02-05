@@ -18,7 +18,7 @@
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class=" text-body-3 text-weight-bold">Receitas</v-card-title>
-                <div class="  text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.income) }}</div>
+                <div class="  text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.receita) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -26,7 +26,7 @@
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-body-3 text-weight-bold">Despesas</v-card-title>
-                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.expense) }}</div>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.despesa) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -34,7 +34,7 @@
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-body-3 text-weight-bold">Saldo</v-card-title>
-                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.balance) }}</div>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.saldo) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -45,14 +45,17 @@
       <v-col cols="12" md="8">
         <v-card title="Atividade Recente">
            <v-list lines="two">
-              <v-list-item v-for="item in summary.atividades_recentes" :key="item.id" 
-                :title="item.descricao || item.categoria" 
-                :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} - ${item.categoria}`" 
-                :prepend-icon="item.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-minus'"
-              >
+              <v-list-item
+  v-for="item in summary.atividades_recentes"
+  :key="item.id"
+  :title="item.descricao || item.categoria?.title"
+  :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} • ${item.categoria?.title}`"
+  :prepend-icon="item.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-minus'"
+>
+
                 <template v-slot:append>
-                    <span :class="item.type === 'income' ? 'text-success' : 'text-error'" class="font-weight-bold">
-                       {{ item.type === 'income' ? '+' : '-' }} R$ {{ formatCurrency(item.amount) }}
+                    <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
+                       {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatCurrency(item.valor) }}
 
                     </span>
                 </template>
@@ -76,16 +79,42 @@
 
     
     <v-dialog v-model="dialog" max-width="500px">
-        <v-card>
-            <v-card-title>Novo Lançamento</v-card-title>
-            <v-card-text>
+        <v-card class="modal-card">
+            <v-card-title class="modal-header">
+              <v-icon color="blue" class=" mr-2">mdi-plus-circle</v-icon>
+          Novo Lançamento
+      </v-card-title>
+
+
+            <v-card-text class="modal-body">
                 <v-form @submit.prevent="salvarLancamento">
-                    <v-select v-model="form.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
-                    <v-text-field v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
-                    <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
+                    <v-select class="mb-3" v-model="form.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
+                    <v-text-field class="mb-3" v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field> 
+                    <v-autocomplete class="mb-3" v-model="form.categoria" :items="categorias" item-title="title" label="Categoria" clearable required :menu-props="{ maxHeight: 260 }">
+
+                        <template #item="{ props, item }">
+  <v-list-item
+    v-bind="props"
+    class="categoria-item"
+  >
+    <template #prepend>
+      <v-icon :color="corIconeCategoria(form.tipo)">
+        {{ item.raw.icon }}
+      </v-icon>
+    </template>
+
+    <v-list-item-title class="font-weight-medium">
+      {{ item.raw.title }}
+    </v-list-item-title>
+  </v-list-item>
+</template>
+
+
+                </v-autocomplete>
+
                     <v-text-field v-model="form.data" label="Data" type="date" required></v-text-field>
                     <v-text-field v-model="form.descricao" label="Descrição"></v-text-field>
-                    <v-btn type="submit" color="primary" block class="mt-4" :loading="saving">Salvar</v-btn>
+                    <v-btn type="submit" color="primary" block size="large" class="mt-6 font-weight-bold"> Salvar </v-btn>
                 </v-form>
             </v-card-text>
         </v-card>
@@ -97,6 +126,35 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+
+const categorias = [
+  { title: 'Alimentação', icon: 'mdi-silverware-fork-knife' },
+  { title: 'Mercado', icon: 'mdi-cart' },
+  { title: 'Restaurante', icon: 'mdi-food' },
+  { title: 'Transporte', icon: 'mdi-bus' },
+  { title: 'Combustível', icon: 'mdi-gas-station' },
+  { title: 'Educação', icon: 'mdi-school' },
+  { title: 'Lazer', icon: 'mdi-gamepad-variant' },
+  { title: 'Saúde', icon: 'mdi-heart-pulse' },
+  { title: 'Roupa', icon: 'mdi-tshirt-crew' },
+  { title: 'Ferramenta', icon: 'mdi-hammer' },
+  { title: 'Moradia', icon: 'mdi-home' },
+  { title: 'Aluguel', icon: 'mdi-home-city' },
+  { title: 'Internet', icon: 'mdi-wifi' },
+  { title: 'Energia', icon: 'mdi-flash' },
+  { title: 'Água', icon: 'mdi-water' },
+  { title: 'Telefone', icon: 'mdi-phone' },
+  { title: 'Assinaturas', icon: 'mdi-credit-card' },
+  { title: 'Impostos', icon: 'mdi-file-document' },
+  { title: 'Manutenção', icon: 'mdi-tools' },
+  { title: 'Outros', icon: 'mdi-dots-horizontal' }
+]
+
+const corIconeCategoria = (tipo) => {
+  return tipo === 'receita' ? 'success' : 'error'
+}
+
+
 
 const authStore = useAuthStore()
 const dialog = ref(false)
@@ -111,7 +169,7 @@ const summary = ref({
 const form = ref({
     tipo: 'despesa',
     valor: '',
-    categoria: '',
+    categoria: null,
     data: new Date().toISOString().substr(0, 10),
     descricao: ''
 })
@@ -230,6 +288,109 @@ const formatCurrency = (value) => {
 
 
 }
+.titulo{
+  color: #2900a5;
+}
+.categoria-item {
+  border-radius: 12px;
+  margin: 4px 8px;
+  background-color: white;
+  transition: color 0.2s ease;
+}
+
+.categoria-item:hover {
+  background-color: var(--blue-soft);
+}
+
+
+.v-list-item__prepend .v-icon {
+  color: #2f63ff;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  padding-bottom: 8px;
+}
+
+.modal-body {
+  background-color: var(--blue-soft);
+  padding: 20px;
+}
+
+
+.modal-card {
+  border-radius: 18px;
+  background: white;
+}
+
+.modal-header {
+  background: linear-gradient(
+    135deg,
+    var(--blue-main)
+  );
+  color: rgb(4, 76, 210);
+  font-size: 20px;
+  font-weight: 900;
+  padding: 16px 20px;
+}
+
+.categoria-item .v-icon {
+  transition: color 0.2s ease;
+}
+
+
+
+.v-field {
+  border-radius: 12px;
+  background-color: white;
+}
+
+.v-field--active .v-field__outline {
+  color: var(--blue-main);
+}
+
+.v-btn--variant-contained {
+  border-radius: 14px;
+  font-weight: 600;
+  background-color: var(--blue-main);
+}
+
+body {
+  color: var(--text-dark);
+}
+
+.text-medium-emphasis {
+  color: var(--text-muted) !important;
+}
+
+@media (max-width: 600px) {
+  .categoria-item {
+    margin: 2px 6px;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .categoria-item .v-list-item-title {
+    font-size: 14px;
+  }
+
+  .categoria-item .v-icon {
+    font-size: 18px;
+  }
+  .modal-title {
+    font-size: 18px;
+  }
+
+   .modal-header {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 14px;
+  }
+}
+
 
 
 </style>
