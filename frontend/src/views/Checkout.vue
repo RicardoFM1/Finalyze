@@ -196,7 +196,7 @@ const passwordRules = [
 ]
 
 onMounted(async () => {
-    // 1. If authenticated, ALWAYS check for a pending preference first
+   
     if (authStore.isAuthenticated) {
         try {
             const response = await authStore.apiFetch('/checkout/preferencia')
@@ -205,7 +205,7 @@ onMounted(async () => {
                 preferenceId.value = data.id
                 planInfo.value = data.plan
                 planId.value = data.plan.id
-                // If the user came with a specific query that matches the pending, use it to set periodInfo
+               
                 if (route.query.period && data.plan.periodos) {
                      const found = data.plan.periodos.find(p => p.id == route.query.period)
                      if (found) {
@@ -214,7 +214,7 @@ onMounted(async () => {
                      }
                 }
                 
-                // If we still don't have periodInfo, try to use what the backend sent
+               
                 if (!periodInfo.value && data.period_id) {
                     periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
                     periodId.value = data.period_id
@@ -227,7 +227,7 @@ onMounted(async () => {
         }
     }
 
-    // 2. If no preference found but we have query params, prepare the planInfo
+    
     if (!preferenceId.value && planId.value) {
         try {
             const response = await authStore.apiFetch(`/planos`)

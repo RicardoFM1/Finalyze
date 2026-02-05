@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'mostrar']);
         Route::post('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'criar']);
+        Route::put('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'editar']);
+        Route::delete('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'deletar']);
 
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);

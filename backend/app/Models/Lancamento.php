@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class Lancamento extends Model
@@ -37,7 +38,7 @@ class Lancamento extends Model
         }
         
     }
-
+  
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');

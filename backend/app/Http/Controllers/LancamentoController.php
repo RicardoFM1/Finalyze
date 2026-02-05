@@ -18,9 +18,40 @@ class LancamentoController extends Controller
     {
         $usuario = Auth::user();
         Lancamento::validarLimiteLancamentos($usuario->id);
-        
+
         $validated = $request->validated();
 
         return $usuario->lancamentos()->create($validated);
+    }
+
+    public function editar(StoreLancamentoRequest $request, $lancamentoId)
+    {
+        $usuario = Auth::user();
+
+        $validated = $request->validated();
+        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
+        if (!$lancamento) {
+            abort(404, 'Lançamento não encontrado ou não pertence ao usuário.');
+        }
+        if ($lancamento->user_id !== Auth::id()) {
+            abort(403, 'Você não tem permissão para editar este lançamento.');
+        }
+        $lancamento->update($validated);
+        return $lancamento;
+    }
+    public function deletar(StoreLancamentoRequest $request, $lancamentoId)
+    {
+        $usuario = Auth::user();
+
+        $validated = $request->validated();
+
+        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
+        if (!$lancamento) {
+            abort(404, 'Lançamento não encontrado ou não pertence ao usuário.');
+        }
+        if ($lancamento->user_id !== Auth::id()) {
+            abort(403, 'Você não tem permissão para editar este lançamento.');
+        }
+        $lancamento->delete();
     }
 }

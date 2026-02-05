@@ -33,12 +33,12 @@
     </template>
 
     <v-list>
-      <v-list-item @click="editar(item.raw)">
+      <v-list-item @click="editar(item)">
         <v-list-item-title>Editar</v-list-item-title>
       </v-list-item>
 
-      <v-list-item @click="excluir(item.raw)">
-        <v-list-item-title>Excluir</v-list-item-title>
+      <v-list-item @click="excluir(item)">
+        <v-list-item-title>excluir</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>
@@ -80,6 +80,50 @@ const buscarLancamentos = async () => {
         loading.value = false
     }
 }
+const loadingEditar = ref(false)
+const modalEditar = ref(false)
+const editar = (item) => {
+  try{
+    loadingEditar.value = true
+    const payload = {
 
+    }
+    const response = await authStore.apiFetch(`/lancamentos/${item.id}`, {
+      method: PUT,
+      body: JSON.stringify(payload)
+    }) 
+    if(response.ok){
+      toast.sucess("Sucesso! Lançamento editado com sucesso.")
+      modalEditar.value = false
+    }else{
+      const data = await response.json().catch(() => ({}))
+      toast.error(data.message || "Erro ao tentar editar o lançamento.")
+    }
+  }catch(e){
+       toast.error("Erro ao tentar editar o lançamento.")
+  }finally{
+    loadingEditar.value = false
+    modalEditar.value = false
+  }
+}
+const modalExcluir = ref(false)
+const loadingExcluir = ref(false)
+const excluir = (item) => {
+   try{
+    loadingExcluir.value = true
+  
+    const response = await authStore.apiFetch(`/lancamentos/${item.id}`, {
+      method: DELETE
+    }) 
+    if(response.ok){
+      toast.sucess("Sucesso! Lançamento deletado com sucesso.")
+    }else{
+      const data = await response.json().catch(() => ({}))
+      toast.error(data.message || "Erro ao tentar deletar o lançamento.")
+    }
+  }catch(e){
+       toast.error("Erro ao tentar deletar o lançamento.")
+  }
+}
 onMounted(buscarLancamentos)
 </script>

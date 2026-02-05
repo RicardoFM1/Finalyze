@@ -468,7 +468,7 @@ const saveProfile = async () => {
             authStore.user = updated
             user.value = { ...updated }
             
-            // Re-format after update
+           
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
             if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
               user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
@@ -480,7 +480,7 @@ const saveProfile = async () => {
         } else {
              const errorData = await response.json().catch(() => ({}))
              if (errorData.errors) {
-                 // Show the first validation error message
+               
                  const firstErrorKey = Object.keys(errorData.errors)[0]
                  toast.warning(errorData.errors[firstErrorKey][0])
              } else {
