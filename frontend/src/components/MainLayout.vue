@@ -41,7 +41,7 @@
 
 
     <v-navigation-drawer
-  v-if="authStore.isAuthenticated"
+  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
   v-model="drawer"
   :rail="isDesktop && rail"
   :permanent="isDesktop"
@@ -123,6 +123,7 @@ import { watch } from 'vue'
 
 
 const authStore = useAuthStore()
+const uiAuthStore = useUiStore()
 const router = useRouter()
 const route = useRoute()
 const confirmLogout = ref(false)
@@ -148,6 +149,7 @@ const isAuthPage = computed(() => {
 
 
 import { onMounted } from 'vue'
+import { useUiStore } from '../stores/ui'
 onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUser()
