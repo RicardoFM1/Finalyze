@@ -4,7 +4,9 @@
       <v-col>
         <h1 class="text-h4 font-weight-bold">Lançamentos</h1>
       </v-col>
-     
+      <v-col class="d-flex justify-end">
+        <v-btn @click="abrirNovo" color="primary" ><v-icon>mdi-plus</v-icon>Novo lançamento</v-btn>
+      </v-col>
     </v-row>
 
     <v-card elevation="2">
@@ -67,6 +69,25 @@
         </v-card>
     </v-dialog>
 
+    <v-dialog v-model="dialogNovo" max-width="500px">
+        <v-card>
+            <div class="d-flex align-center justify-space-between">
+              <v-card-title>Novo Lançamento</v-card-title>
+              <v-card-button @click="dialogNovo = !dialogNovo" class="pr-6" style="color: red; cursor: pointer"><v-icon>mdi-close</v-icon></v-card-button>
+            </div>
+              <v-card-text>
+                <v-form @submit.prevent="salvarLancamento">
+                    <v-select v-model="form.tipo" :items="[{title: 'Receita', value: 'receita'}, {title: 'Despesa', value: 'despesa'}]" label="Tipo" required></v-select>
+                    <v-text-field v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" required></v-text-field>
+                    <v-text-field v-model="form.categoria" label="Categoria" required></v-text-field>
+                    <v-text-field v-model="form.data" label="Data" type="date" required></v-text-field>
+                    <v-text-field v-model="form.descricao" label="Descrição"></v-text-field>
+                    <v-btn type="submit" color="primary" block class="mt-4" :loading="loadingNovo">Salvar</v-btn>
+                </v-form>
+            </v-card-text>
+        </v-card>
+    </v-dialog>
+
     <v-dialog v-model="dialogExcluir" max-width="420">
   <v-card rounded="xl">
     <v-card-text class="text-center pa-6">
@@ -81,7 +102,7 @@
       <p class="text-body-2 text-grey-darken-1">
         Tem certeza que deseja excluir este lançamento?
         <br />
-        <strong>Essa ação não poderá ser desfeita.</strong>
+        <strong>Essa ação poderá ser desfeita apenas contatando o suporte.</strong>
       </p>
     </v-card-text>
 
@@ -128,6 +149,14 @@ const headers = [
   { title: 'Ações', key: 'acoes', sortable: false, align: 'center'}
 ]
 
+const form = ref({
+    tipo: 'despesa',
+    valor: '',
+    categoria: '',
+    data: new Date().toISOString().substr(0, 10),
+    descricao: ''
+})
+
 function formatarDataISO(data) {
   return new Date(data).toISOString().slice(0, 10)
 }
@@ -151,6 +180,52 @@ function abrirEditar(item) {
   }
 
   dialogEditar.value = true
+}
+const dialogNovo = ref(false)
+const abrirNovo = () => {
+  dialogNovo.value = true
+}
+const loadingNovo = ref(false)
+const salvarLancamento = async () => {
+    loadingNovo.value = true
+    try {
+        const valor = Number(form.value.valor)
+        if (isNaN(valor) || valor <= 0) {
+            toast.warning('Por favor, informe um valor válido.')
+            loadingNovo.value = false
+            return
+        }
+
+        const response = await authStore.apiFetch('/lancamentos', {
+            method: 'POST',
+            body: JSON.stringify({
+                ...form.value,
+                valor: valor 
+            })
+        })
+
+        if (response.ok) {
+            toast.success('Lançamento adicionado!')
+            dialogNovo.value = false
+            buscarLancamentos()
+           
+            form.value = {
+                tipo: 'despesa',
+                valor: '',
+                categoria: '',
+                data: new Date().toISOString().substr(0, 10),
+                descricao: ''
+            }
+        } else {
+            const data = await response.json().catch(() => ({}))
+            toast.error(data.message || 'Erro ao salvar lançamento')
+        }
+    } catch (e) {
+        toast.error('Erro de conexão')
+    } finally {
+        loadingNovo.value = false
+        dialogNovo.value = false
+    }
 }
 
 function abrirExcluir(item) {
