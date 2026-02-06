@@ -36,6 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);
+
+        Route::middleware('check_resource:metas')->group(function () {
+            Route::get('/metas', [App\Http\Controllers\MetaController::class, 'index']);
+            Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
+            Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
+            Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+        });
     });
 
 
