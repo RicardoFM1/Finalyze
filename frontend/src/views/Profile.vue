@@ -103,16 +103,20 @@
                 {{ $t('profile.btn_upgrade') }}
               </v-btn>
               <Calendar @select-date="openFromCalendar" />
+             <ReminderModal
+             v-model="showReminderModal"
+             :date="selectedDate"
+             />
 
-              <ReminderModal/>
-              
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
-</template>
+                
+                
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
@@ -122,6 +126,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Calendar from '../components/Calendar/Calendar.vue'
 import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
+import { startOfDay, isAfter } from 'date-fns'
+
 
 
 const showReminderModal = ref(false)
@@ -309,9 +315,19 @@ const resendBillingEmail = async () => {
   }
 }
 
+
+
 function openFromCalendar(date) {
-  selectedDate.value = date
-  showReminderModal.value = true
+  const clickedDate = startOfDay(new Date(date))
+  const today = startOfDay(new Date())
+
+  if (isAfter(clickedDate, today)) {
+    selectedDate.value = clickedDate
+    showReminderModal.value = true
+    console.log(showReminderModal.value)
+  } else {
+    toast.warning('Só é possível criar lembretes para datas futuras')
+  }
 }
 
 
