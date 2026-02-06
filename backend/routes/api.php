@@ -12,6 +12,7 @@ Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
     Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
+    Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
     Route::get('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'pegarUltimaPreferencia']);
     Route::post('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'criarPreferencia']);
     Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);

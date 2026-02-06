@@ -52,13 +52,22 @@
 
 
         <v-list>
-            <v-list-item 
-                v-if="authStore.user"
-                :prepend-avatar="authStore.user.avatar ? 'http://localhost:8000/storage/' + authStore.user.avatar : undefined"
-                :prepend-icon="!authStore.user.avatar ? 'mdi-account-circle' : undefined"
-                :title="authStore.user.name"
-                :subtitle="authStore.user.email"
-            ></v-list-item>
+            <v-list-item v-if="authStore.user">
+                <template v-slot:prepend>
+                    <v-avatar color="primary-lighten-4" size="40">
+                        <v-img
+                            v-if="authStore.user.avatar"
+                            :src="'http://localhost:8000/storage/' + authStore.user.avatar"
+                            cover
+                        ></v-img>
+                        <span v-else class="text-caption font-weight-bold text-primary">
+                            {{ getInitials(authStore.user.nome) }}
+                        </span>
+                    </v-avatar>
+                </template>
+                <v-list-item-title class="font-weight-bold">{{ authStore.user.nome }}</v-list-item-title>
+                <v-list-item-subtitle>{{ authStore.user.email }}</v-list-item-subtitle>
+            </v-list-item>
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
@@ -161,6 +170,12 @@ const handleLogout = () => {
     authStore.logout()
     router.push({ name: 'Home' })
 }
+
+const getInitials = (name) => {
+    if (!name) return ''
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+}
+
 onMounted(() => {
   if (isDesktop.value) {
     drawer.value = true

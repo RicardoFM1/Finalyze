@@ -48,6 +48,15 @@
                   elevation="4"
                   @click="triggerFileInput"
                 ></v-btn>
+                <v-btn
+                  v-if="user.avatar"
+                  icon="mdi-delete"
+                  color="error"
+                  size="x-small"
+                  class="avatar-delete-btn"
+                  elevation="4"
+                  @click="removeAvatar"
+                ></v-btn>
                 <input type="file" ref="fileInput" class="d-none" accept="image/*" @change="handleFileChange">
               </div>
               <v-chip
@@ -284,6 +293,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="confirmRemoveAvatarDialog" max-width="400">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="text-h6 font-weight-bold">Remover foto?</v-card-title>
+        <v-card-text>
+          Tem certeza que deseja remover sua foto de perfil? Ela será excluída permanentemente.
+        </v-card-text>
+        <v-card-actions class="justify-end gap-2">
+          <v-btn variant="text" @click="confirmRemoveAvatarDialog = false">Cancelar</v-btn>
+          <v-btn color="error" variant="flat" class="rounded-lg" :loading="removingAvatar" @click="confirmRemoveAvatar">Remover</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -315,6 +337,8 @@ const loadingSub = ref(true)
 const saving = ref(false)
 const confirmCancel = ref(false)
 const cancelling = ref(false)
+const confirmRemoveAvatarDialog = ref(false)
+const removingAvatar = ref(false)
 
 onMounted(async () => {
    await fetchUser()
@@ -434,8 +458,42 @@ const triggerFileInput = () => {
 const handleFileChange = (event) => {
     const file = event.target.files[0]
     if (file) {
+        if (file.size > 10 * 1024 * 1024) {
+            toast.warning('A imagem deve ter no máximo 10MB.')
+            event.target.value = ''
+            return
+        }
         selectedFile.value = file
         previewAvatar.value = URL.createObjectURL(file)
+    }
+}
+
+const removeAvatar = () => {
+    confirmRemoveAvatarDialog.value = true
+}
+
+const confirmRemoveAvatar = async () => {
+    try {
+        removingAvatar.value = true
+        const response = await authStore.apiFetch('/usuario/avatar', {
+            method: 'DELETE'
+        })
+        
+        if (response.ok) {
+            toast.success('Avatar removido!')
+            const data = await response.json()
+            user.value = data.usuario
+            authStore.user = data.usuario
+            previewAvatar.value = null
+            selectedFile.value = null
+            confirmRemoveAvatarDialog.value = false
+        } else {
+            toast.error('Erro ao remover avatar')
+        }
+    } catch (e) {
+        toast.error('Erro de conexão')
+    } finally {
+        removingAvatar.value = false
     }
 }
 
@@ -563,6 +621,15 @@ const formatCPF = (event) => {
   bottom: 5px;
   right: 5px;
   border: 4px solid white !important;
+  z-index: 2;
+}
+
+.avatar-delete-btn {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  border: 2px solid white !important;
+  z-index: 2;
 }
 
 .profile-tabs :deep(.v-tab--selected) {

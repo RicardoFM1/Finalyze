@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'nome' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:usuarios,email,' . $userId,
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => 'nullable|image|max:10240',
             'cpf' => 'nullable|string|size:11|unique:usuarios,cpf,' . $userId,
             'data_nascimento' => 'nullable|date|before:18 years ago'
         ];
