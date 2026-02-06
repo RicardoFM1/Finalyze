@@ -107,10 +107,7 @@
              v-model="showReminderModal"
              :date="selectedDate"
              />
-
-                
-                
-              </div>
+            </div>
             </v-card-text>
           </v-card>
         </v-col>

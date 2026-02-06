@@ -6,7 +6,6 @@
       Novo lembrete — {{ formattedDate }}
     </v-card-title>
 
-    <!-- CONTEÚDO COM SCROLL -->
     <v-card-text style="overflow-y: auto;">
       
       <v-text-field
@@ -27,6 +26,13 @@
         </template>
       </v-textarea>
 
+
+      <v-text-field
+      label="cor (Hex)"
+      type="color"
+      variant="underlined"
+      rounded="lg"
+      />
       <v-select
         label="Categorias"
         v-model="category"
