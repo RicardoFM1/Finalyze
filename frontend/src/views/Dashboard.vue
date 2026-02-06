@@ -100,7 +100,7 @@
       </v-col>
 
       <v-col cols="12" md="4">
-        <!-- Ações Rápidas Modernas -->
+     
         <v-card class="rounded-xl mb-6 quick-actions" elevation="4" color="grey-lighten-4">
             <v-card-title class="font-weight-bold pa-4 pb-0">Ações Rápidas</v-card-title>
             <v-card-text class="pa-4">
@@ -116,7 +116,7 @@
             </v-card-text>
         </v-card>
 
-        <!-- Resumo das Metas (Novo) -->
+       
         <v-card v-if="metasSummary.length" class="rounded-xl metas-preview" elevation="4">
             <v-card-title class="font-weight-bold pa-4 pb-0 d-flex align-center">
                 Metas em Foco

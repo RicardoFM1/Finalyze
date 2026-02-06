@@ -17,7 +17,7 @@
       </v-btn>
     </div>
 
-    <!-- Metas Financeiras -->
+
     <v-row class="mb-12">
       <v-col v-for="meta in financialMetas" :key="meta.id" cols="12" md="4">
         <v-card class="rounded-xl goal-card finance-card" elevation="4">
@@ -79,7 +79,7 @@
       </v-col>
     </v-row>
 
-    <!-- Metas Pessoais -->
+    
     <div class="d-flex align-center mb-8 pt-4">
       <h1 class="text-h4 font-weight-bold d-flex align-center">
         Metas Pessoais
@@ -146,14 +146,17 @@
         </v-card-title>
         <v-card-text>
           <v-form ref="metaForm" @submit.prevent="saveMeta">
-            <v-select
-              v-model="form.tipo"
-              :items="[{title: 'Financeira', value: 'financeira'}, {title: 'Pessoal', value: 'pessoal'}]"
-              label="Tipo de Meta"
-              variant="outlined"
-              class="mb-2"
-              rounded="lg"
-            ></v-select>
+             <v-btn-toggle v-model="form.tipo"
+                                label="Tipo de Meta"
+                                class="w-100 mb-4 rounded-lg"
+                                rounded="lg" 
+                                variant="flat"
+                                mandatory color="primary" border>
+                                <v-btn value="financeira" class="flex-grow-1" prepend-icon="mdi-cash-plus">Financeira</v-btn>
+                                <v-btn value="pessoal" class="flex-grow-1" prepend-icon="mdi-account-outline">Pessoal</v-btn>
+                                
+                              </v-btn-toggle>
+            
 
             <v-text-field
               v-model="form.titulo"
@@ -273,7 +276,7 @@
       </v-card>
     </v-dialog>
 
-    <!-- Diálogo de Exclusão -->
+  
     <v-dialog v-model="deleteDialog" max-width="400px">
       <v-card class="rounded-xl pa-4">
         <v-card-title class="text-h5 font-weight-bold">Excluir Meta?</v-card-title>
