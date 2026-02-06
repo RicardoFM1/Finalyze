@@ -12,11 +12,12 @@ Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
     Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
+    Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
     Route::get('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'pegarUltimaPreferencia']);
     Route::post('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'criarPreferencia']);
     Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);
     Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checarStatusPagamento']);
-    Route::post('/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
+    Route::put('/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
 
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
@@ -35,6 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);
+
+        Route::middleware('check_resource:metas')->group(function () {
+            Route::get('/metas', [App\Http\Controllers\MetaController::class, 'index']);
+            Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
+            Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
+            Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+        });
     });
 
 

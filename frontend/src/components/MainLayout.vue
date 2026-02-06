@@ -41,7 +41,7 @@
 
 
     <v-navigation-drawer
-  v-if="authStore.isAuthenticated"
+  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
   v-model="drawer"
   :rail="isDesktop && rail"
   :permanent="isDesktop"
@@ -52,20 +52,30 @@
 
 
         <v-list>
-            <v-list-item 
-                v-if="authStore.user"
-                :prepend-avatar="authStore.user.avatar ? 'http://localhost:8000/storage/' + authStore.user.avatar : undefined"
-                :prepend-icon="!authStore.user.avatar ? 'mdi-account-circle' : undefined"
-                :title="authStore.user.name"
-                :subtitle="authStore.user.email"
-            ></v-list-item>
+            <v-list-item v-if="authStore.user">
+                <template v-slot:prepend>
+                    <v-avatar color="primary-lighten-4" size="40">
+                        <v-img
+                            v-if="authStore.user.avatar"
+                            :src="'http://localhost:8000/storage/' + authStore.user.avatar"
+                            cover
+                        ></v-img>
+                        <span v-else class="text-caption font-weight-bold text-primary">
+                            {{ getInitials(authStore.user.nome) }}
+                        </span>
+                    </v-avatar>
+                </template>
+                <v-list-item-title class="font-weight-bold">{{ authStore.user.nome }}</v-list-item-title>
+                <v-list-item-subtitle>{{ authStore.user.email }}</v-list-item-subtitle>
+            </v-list-item>
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
            <v-list-item prepend-icon="mdi-home" title="Página inicial" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.user?.admin === true || authStore.user?.isAuthenticated ||  authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" title="Painel" :to="{ name: 'Dashboard' }"></v-list-item>
-            <v-list-item v-if="authStore.user?.admin === true || authStore.user?.isAuthenticated  ||  authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" :to="{ name: 'Lancamentos' }"></v-list-item>
-            <v-list-item v-if="authStore.user?.admin === true || authStore.user?.isAuthenticated  ||  authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" title="Relatórios" :to="{ name: 'Reports' }"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" title="Painel" :to="{ name: 'Dashboard' }"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" :to="{ name: 'Lancamentos' }"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" title="Metas" :to="{ name: 'Metas' }"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" title="Relatórios" :to="{ name: 'Reports' }"></v-list-item>
             <v-list-item prepend-icon="mdi-account" title="Perfil" :to="{ name: 'Profile' }"></v-list-item>
             <v-list-item v-if="authStore.user?.admin === true" prepend-icon="mdi-shield-crown" title="Admin" :to="{ name: 'Admin' }"></v-list-item>
             <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" :to="{ name: 'Plans' }"></v-list-item>
@@ -123,6 +133,7 @@ import { watch } from 'vue'
 
 
 const authStore = useAuthStore()
+const uiAuthStore = useUiStore()
 const router = useRouter()
 const route = useRoute()
 const confirmLogout = ref(false)
@@ -148,6 +159,7 @@ const isAuthPage = computed(() => {
 
 
 import { onMounted } from 'vue'
+import { useUiStore } from '../stores/ui'
 onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUser()
@@ -159,6 +171,12 @@ const handleLogout = () => {
     authStore.logout()
     router.push({ name: 'Home' })
 }
+
+const getInitials = (name) => {
+    if (!name) return ''
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+}
+
 onMounted(() => {
   if (isDesktop.value) {
     drawer.value = true

@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (response.status === 401) {
                 logout();
-                
+
                 if (router.currentRoute.value.name !== 'Login' &&
                     router.currentRoute.value.name !== 'Register' &&
                     router.currentRoute.value.name !== 'Checkout') {
@@ -124,7 +124,9 @@ export const useAuthStore = defineStore('auth', () => {
     function hasFeature(featureSlug) {
         if (user.value?.admin) return true;
 
-        const features = user.value?.plano?.recursos || [];
+        if (!user.value?.plano?.recursos) return false;
+
+        const features = user.value.plano.recursos;
         return features.some(f => f.slug === featureSlug || f.nome === featureSlug);
     }
 

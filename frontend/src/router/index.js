@@ -11,6 +11,7 @@ const routes = [
   { path: '/planos', name: 'Plans', component: () => import('../views/Plans.vue') },
   { path: '/lancamentos', name: 'Lancamentos', component: () => import('../views/Lancamentos.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Lançamentos' } },
   { path: '/perfil', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
+  { path: '/metas', name: 'Metas', component: () => import('../views/Metas.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Metas' } },
   { path: '/relatorios', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Relatórios Gráficos' } },
   { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/pagamento', name: 'Checkout', component: () => import('../views/Checkout.vue') },
@@ -24,18 +25,12 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-
   const ui = useUiStore()
-  ui.setLoading(true)
-  await nextTick()
 
-  if ((to.name === 'Login' || to.name === 'Register') && auth.isAuthenticated) {
-    return { name: 'Home' }
-  }
-
-
+  // 1. Initial State: If we have a token but no user, fetch user first
   if (auth.isAuthenticated && !auth.user) {
     try {
+      ui.setLoading(true)
       await auth.fetchUser()
     } catch {
       ui.setLoading(false)
@@ -43,23 +38,22 @@ router.beforeEach(async (to) => {
     }
   }
 
-
+  // 2. Auth Check
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'Login' }
   }
 
-
+  // 3. Admin Check
   if (to.meta.requiresAdmin && !auth.user?.admin) {
     return { name: 'NotFound' }
   }
 
-
+  // 4. Plan Check (Public routes that need a plan, or features)
   if (to.meta.requiresPlan && !auth.user?.plano_id && !auth.user?.admin) {
     return { name: 'Plans' }
   }
 
-
-
+  // 5. Feature Check (Instant block)
   if (to.meta.requiresFeature && !auth.hasFeature(to.meta.requiresFeature)) {
     return { name: 'NotFound' }
   }

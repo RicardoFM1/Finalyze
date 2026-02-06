@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class Lancamento extends Model
 {
     use HasFactory;
-
+    use SoftDeletes;
     protected $table = 'lancamentos';
 
     protected $fillable = [

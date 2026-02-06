@@ -31,4 +31,19 @@ class UserController extends Controller
 
         return $usuario->load('plano');
     }
+
+    public function removerAvatar()
+    {
+        $usuario = Auth::user();
+
+        if ($usuario->avatar) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($usuario->avatar);
+            $usuario->update(['avatar' => null]);
+        }
+
+        return response()->json([
+            'message' => 'Avatar removido com sucesso.',
+            'usuario' => $usuario->load('plano')
+        ]);
+    }
 }

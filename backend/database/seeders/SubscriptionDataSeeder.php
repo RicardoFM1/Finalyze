@@ -32,6 +32,7 @@ class SubscriptionDataSeeder extends Seeder
             ['nome' => 'Painel Financeiro', 'slug' => 'painel', 'descricao' => 'Acesso ao painel completo'],
             ['nome' => 'Lançamentos', 'slug' => 'lancamentos', 'descricao' => 'Registrar entradas e saídas'],
             ['nome' => 'Relatórios Gráficos', 'slug' => 'relatorios', 'descricao' => 'Visualização de gráficos'],
+            ['nome' => 'Metas', 'slug' => 'metas', 'descricao' => 'Definir e acompanhar metas financeiras e pessoais'],
 
         ];
 
@@ -93,7 +94,7 @@ class SubscriptionDataSeeder extends Seeder
             if ($plano->nome === 'Essencial') {
                 $plano->recursos()->sync(Recurso::whereIn('slug', ['painel', 'lancamentos'])->pluck('id'));
             } elseif ($plano->nome === 'Pro') {
-                $plano->recursos()->sync(Recurso::whereIn('slug', ['painel', 'lancamentos', 'relatorios'])->pluck('id'));
+                $plano->recursos()->sync(Recurso::whereIn('slug', ['painel', 'lancamentos', 'relatorios', 'metas'])->pluck('id'));
             } else {
                 $plano->recursos()->sync(Recurso::all()->pluck('id'));
             }
