@@ -257,7 +257,7 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Payment not found'], 404);
         }
     }
-    public function cancelarAssinatura(Request $request)
+    public function cancelarPagamento(Request $request)
     {
         $usuario = auth()->user();
         if (!$usuario) {

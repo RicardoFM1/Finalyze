@@ -82,7 +82,7 @@ const buscarLancamentos = async () => {
 }
 const loadingEditar = ref(false)
 const modalEditar = ref(false)
-const editar = (item) => {
+const editar = async (item) => {
   try{
     loadingEditar.value = true
     const payload = {
@@ -108,7 +108,7 @@ const editar = (item) => {
 }
 const modalExcluir = ref(false)
 const loadingExcluir = ref(false)
-const excluir = (item) => {
+const excluir = async (item) => {
    try{
     loadingExcluir.value = true
   

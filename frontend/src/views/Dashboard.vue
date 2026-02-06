@@ -18,7 +18,7 @@
             <v-card color="success" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class=" text-body-3 text-weight-bold">Receitas</v-card-title>
-                <div class="  text-h5 font-weight-bold mt-2">R${{ formatCurrency(summary.receita) }}</div>
+                <div class="  text-h5 font-weight-bold mt-2">R${{ formatCurrency(resumo.receita) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -26,7 +26,7 @@
             <v-card color="error" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-body-3 text-weight-bold">Despesas</v-card-title>
-                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.despesa) }}</div>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(resumo.despesa) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -34,7 +34,7 @@
             <v-card color="info" class="text-white" elevation="4">
               <v-card-item>
                 <v-card-title class="text-body-3 text-weight-bold">Saldo</v-card-title>
-                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(summary.saldo) }}</div>
+                <div class="text-h5 font-weight-bold mt-2">R$ {{ formatCurrency(resumo.saldo) }}</div>
               </v-card-item>
             </v-card>
           </v-col>
@@ -46,7 +46,7 @@
         <v-card title="Atividade Recente">
            <v-list lines="two">
               <v-list-item
-  v-for="item in summary.atividades_recentes"
+  v-for="item in resumo.atividades_recentes"
   :key="item.id"
   :title="item.descricao || item.categoria?.title"
   :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} • ${item.categoria?.title}`"

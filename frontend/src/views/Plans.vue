@@ -19,12 +19,12 @@
         :key="plan.id"
         cols="12"
         sm="10"
-        md="4"
-        lg="3"
-        class="d-flex justify-center mb-8 px-md-4"
+        md="6"
+        lg="4"
+        class="d-flex justify-center px-md-4 "
         :style="{ animationDelay: (index * 0.1) + 's' }"
       >
-        <PlanCard :plan="plan" :is-featured="index === 1" :disabled="checkingPreference" @select="handleSelectPlan" />
+        <PlanCard :plan="plan" :is-featured="index === 1" class="plan-card" :disabled="checkingPreference" @select="handleSelectPlan" />
       </v-col>
     </v-row>
 
@@ -175,6 +175,16 @@ const cancelarPagamento = async () => {
   opacity: 0;
   transform: translateY(40px);
   animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.plan-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+
+.plan-card.featured {
+  transform: scale(1.05);
 }
 
 @media (max-width: 600px) {

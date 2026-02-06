@@ -16,7 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'criarPreferencia']);
     Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);
     Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checarStatusPagamento']);
-    Route::post('/checkout/cancelar_assinatura', [App\Http\Controllers\CheckoutController::class, 'cancelarAssinatura']);
+    Route::post('/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
 
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
