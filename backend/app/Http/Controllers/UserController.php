@@ -3,47 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateUserRequest;
+use App\Servicos\Usuarios\MostrarUsuario;
+use App\Servicos\Usuarios\AtualizarUsuario;
+use App\Servicos\Usuarios\RemoverAvatarUsuario;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function mostrar(Request $request)
+    public function mostrar(Request $request, MostrarUsuario $servico)
     {
-        return $request->user()->load('plano.recursos');
+        return $servico->executar($request);
     }
 
-    public function atualizar(UpdateUserRequest $request)
+    public function atualizar(UpdateUserRequest $request, AtualizarUsuario $servico)
     {
-        $usuario = Auth::user();
-
-        $validated = $request->validated();
-
-        if ($request->hasFile('avatar')) {
-            if ($usuario->avatar) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($usuario->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $path;
-        }
-
-        $usuario->update($validated);
-
-        return $usuario->load('plano');
+        return $servico->executar($request->validated(), $request->file('avatar'));
     }
 
-    public function removerAvatar()
+    public function removerAvatar(RemoverAvatarUsuario $servico)
     {
-        $usuario = Auth::user();
-
-        if ($usuario->avatar) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($usuario->avatar);
-            $usuario->update(['avatar' => null]);
-        }
+        $usuario = $servico->executar();
 
         return response()->json([
             'message' => 'Avatar removido com sucesso.',
-            'usuario' => $usuario->load('plano')
+            'usuario' => $usuario
         ]);
     }
 }

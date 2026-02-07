@@ -3,56 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
-use Illuminate\Http\Request;
 use App\Http\Requests\RegisterRequest;
-use App\Models\Usuario;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use App\Servicos\Autenticacao\RegistrarUsuario;
+use App\Servicos\Autenticacao\LoginUsuario;
+use App\Servicos\Autenticacao\LogoutUsuario;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request, RegistrarUsuario $servico)
     {
-        $usuario = Usuario::create([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'senha' => Hash::make($request->senha),
-            'cpf' => $request->cpf,
-            'data_nascimento' => $request->data_nascimento
-        ]);
+        $usuario = $servico->executar($request->validated());
 
         return response()->json([
-            'usuario' => $usuario->load('plano')
+            'usuario' => $usuario
         ]);
     }
 
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request, LoginUsuario $servico)
     {
-        $credenciais = [
-            'email' => $request->email,
-            'password' => $request->senha
-        ];
-
-        if (!Auth::attempt($credenciais)) {
+        try {
+            $dados = $servico->executar($request->validated());
+            return response()->json($dados);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Credenciais inválidas. Verifique seu e-mail e senha.'
-            ], 401);
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 401);
         }
-
-        $usuario = Usuario::where('email', $request['email'])->firstOrFail();
-
-        $token = $usuario->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'usuario' => $usuario->load('plano')
-        ]);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request, LogoutUsuario $servico)
     {
-        $request->user()->currentAccessToken()->delete();
+        $servico->executar($request);
         return response()->json(['message' => 'Logout realizado com sucesso.']);
     }
 }

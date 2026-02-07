@@ -2,62 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Servicos\Assinaturas\ObterDadosAssinatura;
+use App\Servicos\Assinaturas\AlternarRenovacaoAutomatica;
+use App\Servicos\Assinaturas\CancelarAssinatura;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function index()
+    public function index(ObterDadosAssinatura $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
-            ->with(['plano', 'periodo'])
-            ->latest()
-            ->first();
-
-        $history = \App\Models\Faturamento::where('user_id', $user->id)
-            ->with(['assinatura.plano'])
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'assinatura' => $subscription,
-            'historico' => $history
-        ]);
+        return response()->json($servico->executar());
     }
 
-    public function ativarAutoRenovacao(Request $request)
+    public function ativarAutoRenovacao(Request $request, AlternarRenovacaoAutomatica $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$subscription) {
-            return response()->json(['message' => 'Nenhuma assinatura ativa encontrada'], 404);
+        try {
+            $servico->executar((bool)$request->active);
+            return response()->json(['message' => 'Configuração de renovação atualizada']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 404);
         }
-
-        $subscription->update(['renovacao_automatica' => $request->active]);
-
-        return response()->json(['message' => 'Configuração de renovação atualizada']);
     }
 
-    public function cancelar()
+    public function cancelar(CancelarAssinatura $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Assinatura::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$subscription) {
-            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada'], 404);
+        try {
+            $servico->executar();
+            return response()->json(['message' => 'Assinatura cancelada. Você terá acesso até o fim do período atual.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode() ?: 404);
         }
-
-        $subscription->update([
-            'status' => 'cancelled',
-            'renovacao_automatica' => false
-        ]);
-
-        return response()->json(['message' => 'Assinatura cancelada. Você terá acesso até o fim do período atual.']);
     }
 }

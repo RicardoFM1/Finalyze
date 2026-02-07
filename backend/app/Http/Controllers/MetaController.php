@@ -4,33 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMetaRequest;
 use App\Models\Meta;
+use App\Servicos\Metas\ListarMetas;
+use App\Servicos\Metas\CriarMeta;
+use App\Servicos\Metas\EditarMeta;
+use App\Servicos\Metas\DeletarMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MetaController extends Controller
 {
-    public function index()
+    public function index(ListarMetas $servico)
     {
-        return Auth::user()->metas()->latest()->get();
+        return $servico->executar();
     }
 
-    public function store(StoreMetaRequest $request)
+    public function store(StoreMetaRequest $request, CriarMeta $servico)
     {
-        $validated = $request->validated();
-        return Auth::user()->metas()->create($validated);
+        return $servico->executar($request->validated());
     }
 
-    public function update(StoreMetaRequest $request, $id)
+    public function update(StoreMetaRequest $request, $id, EditarMeta $servico)
     {
-        $meta = Auth::user()->metas()->findOrFail($id);
-        $meta->update($request->validated());
-        return $meta;
+        return $servico->executar((int)$id, $request->validated());
     }
 
-    public function destroy($id)
+    public function destroy($id, DeletarMeta $servico)
     {
-        $meta = Auth::user()->metas()->findOrFail($id);
-        $meta->delete();
+        $servico->executar((int)$id);
         return response()->json(['message' => 'Meta excluída com sucesso.']);
     }
 }

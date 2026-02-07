@@ -7,21 +7,8 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function resumo(Request $request)
+    public function resumo(Request $request, \App\Servicos\Painel\GerarResumoPainel $servico)
     {
-        $usuario = Auth::user();
-
-        $receita = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
-        $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
-        $saldo = $receita - $despesa;
-
-        $recentes = $usuario->lancamentos()->latest()->take(5)->get();
-
-        return response()->json([
-            'receita' => $receita,
-            'despesa' => $despesa,
-            'saldo' => $saldo,
-            'atividades_recentes' => $recentes
-        ]);
+        return response()->json($servico->executar());
     }
 }

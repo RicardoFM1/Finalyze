@@ -4,53 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLancamentoRequest;
 use App\Models\Lancamento;
-use Illuminate\Database\Eloquent\Model;
+use App\Servicos\Lancamentos\ListarLancamentos;
+use App\Servicos\Lancamentos\CriarLancamento;
+use App\Servicos\Lancamentos\EditarLancamento;
+use App\Servicos\Lancamentos\DeletarLancamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LancamentoController extends Controller
 {
-    public function mostrar()
+    public function mostrar(ListarLancamentos $servico)
     {
-        return Auth::user()->lancamentos()->latest()->get();
+        return $servico->executar();
     }
 
-    public function criar(StoreLancamentoRequest $request)
+    public function criar(StoreLancamentoRequest $request, CriarLancamento $servico)
     {
-        $usuario = Auth::user();
-        Lancamento::validarLimiteLancamentos($usuario->id);
-
-        $validated = $request->validated();
-
-        return $usuario->lancamentos()->create($validated);
+        return $servico->executar($request->validated());
     }
 
-    public function editar(StoreLancamentoRequest $request, $lancamentoId)
+    public function editar(StoreLancamentoRequest $request, $lancamentoId, EditarLancamento $servico)
     {
-        $usuario = Auth::user();
-
-        $validated = $request->validated();
-        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
-        if (!$lancamento) {
-            abort(404, 'Lançamento não encontrado ou não pertence ao usuário.');
-        }
-        if ($lancamento->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para editar este lançamento.');
-        }
-        $lancamento->update($validated);
-        return $lancamento;
+        return $servico->executar((int)$lancamentoId, $request->validated());
     }
-    public function deletar(Request $request, $lancamentoId)
-    {
-        $usuario = Auth::user();
 
-        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
-        if (!$lancamento) {
-            abort(404, 'Lançamento não encontrado ou não pertence ao usuário.');
-        }
-        if ($lancamento->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para editar este lançamento.');
-        }
-        $lancamento->delete();
+    public function deletar(Request $request, $lancamentoId, DeletarLancamento $servico)
+    {
+        $servico->executar((int)$lancamentoId);
+        return response()->noContent();
     }
 }
