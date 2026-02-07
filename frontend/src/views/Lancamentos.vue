@@ -8,9 +8,108 @@
         <v-btn @click="abrirNovo" color="primary" ><v-icon>mdi-plus</v-icon>Novo lançamento</v-btn>
       </v-col>
     </v-row>
+<v-card
+  class="filter-bar mb-6"
+  elevation="1"
+  rounded="lg"
+>
+  <v-row dense align="center" class="px-2 py-1">
+
+    <!-- DATA -->
+    <v-col cols="12" md="2">
+      <v-text-field
+        v-model="filters.data"
+        label="Data"
+        type="date"
+        variant="underlined"
+        density="compact"
+        prepend-inner-icon="mdi-calendar"
+        hide-details
+      />
+    </v-col>
+
+    <!-- DESCRIÇÃO -->
+    <v-col cols="12" md="3">
+      <v-text-field
+        v-model="filters.descricao"
+        label="Descrição"
+        placeholder="Buscar..."
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- CATEGORIA -->
+    <v-col cols="12" md="2">
+      <v-select
+        v-model="filters.categoria"
+        :items="categorias"
+        label="Categoria"
+        variant="underlined"
+        density="compact"
+        hide-details
+        clearable
+      />
+    </v-col>
+
+    <!-- TIPO -->
+    <v-col cols="12" md="2">
+      <v-select
+        v-model="filters.tipo"
+        :items="[
+          { title: 'Todos', value: 'todos' },
+          { title: 'Receita', value: 'receita' },
+          { title: 'Despesa', value: 'despesa' }
+        ]"
+        label="Tipo"
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- VALOR -->
+    <v-col cols="12" md="2">
+      <v-text-field
+        v-model="filters.valor"
+        label="Valor"
+        prefix="R$"
+        type="number"
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- AÇÕES -->
+    <v-col cols="12" md="1" class="d-flex justify-end">
+      <v-btn
+        icon
+        color="primary"
+        size="small"
+        class="mr-1"
+        @click="aplicarFiltros"
+      >
+        <v-icon size="18">mdi-magnify</v-icon>
+      </v-btn>
+
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        @click="limparFiltros"
+      >
+        <v-icon size="18">mdi-close</v-icon>
+      </v-btn>
+    </v-col>
+
+  </v-row>
+</v-card>
+
 
     <v-card elevation="2">
-        <v-data-table :headers="headers" :items="lancamentos" :loading="loading">
+        <v-data-table :headers="headers" :items="lancamentosFiltrados" :loading="loading">
             <template v-slot:item.data="{ item }">
                 {{ new Date(item.data).toLocaleDateString('pt-BR') }}
             </template>
@@ -148,6 +247,63 @@ const headers = [
   { title: 'Valor', key: 'valor', align: 'end' },
   { title: 'Ações', key: 'acoes', sortable: false, align: 'center'}
 ]
+
+const lancamentosFiltrados = computed(() => {
+  return lancamentos.value.filter(item => {
+    if (filters.value.tipo !== 'todos' && item.tipo !== filters.value.tipo) {
+      return false
+    }
+
+    if (filters.value.categoria && item.categoria !== filters.value.categoria) {
+      return false
+    }
+
+    if (filters.value.descricao) {
+      const busca = filters.value.descricao.toLowerCase()
+      if (
+        !item.descricao?.toLowerCase().includes(busca) &&
+        !item.categoria?.toLowerCase().includes(busca)
+      ) {
+        return false
+      }
+    }
+
+    if (filters.value.data && formatarDataISO(item.data) !== filters.value.data) {
+      return false
+    }
+
+    if (filters.value.valor && Number(item.valor) !== Number(filters.value.valor)) {
+      return false
+    }
+
+    return true
+  })
+})
+
+const filters = ref({
+  data: '',
+  descricao: '',
+  categoria: '',
+  tipo: 'todos',
+  valor: ''
+})
+
+const categorias = computed(() => {
+  const set = new Set()
+  lancamentos.value.forEach(l => l.categoria && set.add(l.categoria))
+  return Array.from(set)
+})
+
+
+const limparFiltros = () => {
+  filters.value = {
+    data: '',
+    descricao: '',
+    categoria: '',
+    tipo: 'todos',
+    valor: ''
+  }
+}
 
 const form = ref({
     tipo: 'despesa',
@@ -303,3 +459,25 @@ const excluir = async () => {
 }
 onMounted(buscarLancamentos)
 </script>
+
+
+<style scoped>
+.filter-bar {
+  background: #ffffff;
+  border: 1px solid #eef1f5;
+}
+
+.filter-bar .v-field {
+  font-size: 14px;
+}
+
+.filter-bar .v-icon {
+  opacity: 0.75;
+}
+
+.filter-bar .v-btn {
+  border-radius: 50%;
+}
+
+
+</style>
