@@ -1,43 +1,26 @@
 <template>
-    <transition name="fade">
-        <v-dialog v-model="dialog" max-width="500px">
-        <v-card class="rounded-xl pa-4">
-            <div class="d-flex align-center justify-space-between mb-4">
-              <v-card-title class="pa-0 font-weight-bold">{{ title }}</v-card-title>
-              <v-btn icon="mdi-close" variant="text" size="small" @click="close"></v-btn>
-            </div>
-              <v-card-text class="pa-0">
-                <v-form @submit.prevent="submitForm">
-                    <v-row dense>
-                        <v-col cols="12">
-                            <v-btn-toggle v-model="form.tipo" mandatory color="primary" class="w-100 mb-4 rounded-lg" border>
-                                <v-btn value="receita" class="flex-grow-1" prepend-icon="mdi-cash-plus">Receita</v-btn>
-                                <v-btn value="despesa" class="flex-grow-1" prepend-icon="mdi-cash-minus">Despesa</v-btn>
-                            </v-btn-toggle>
-                        </v-col>
-                        <v-col cols="12" md="6">
-                            <v-text-field v-model="form.valor" label="Valor" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
-                        </v-col>
-                        <v-col cols="12" md="6">
-                            <v-text-field v-model="form.data" label="Data" type="date" variant="outlined" rounded="lg" required></v-text-field>
-                        </v-col>
-                        <v-col cols="12">
-                            <v-text-field v-model="form.categoria" label="Categoria" variant="outlined" rounded="lg" required placeholder="Ex: Alimentação, Salário"></v-text-field>
-                        </v-col>
-                        <v-col cols="12">
-                            <v-textarea v-model="form.descricao" label="Descrição" variant="outlined" rounded="lg" rows="2" placeholder="Opcional"></v-textarea>
-                        </v-col>
-                    </v-row>
-                    <v-btn type="submit" color="primary" block size="large" rounded="lg" class="mt-4" :loading="loading" elevation="3">Salvar Lançamento</v-btn>
-                </v-form>
-            </v-card-text>
-        </v-card>
-    </v-dialog>
-</transition>
+  <v-dialog v-model="dialog" :max-width="maxWidth" :persistent="persistent" class="modal-base-dialog">
+    <v-card class="rounded-xl overflow-hidden elevation-24">
+      <v-toolbar color="primary" density="comfortable">
+        <v-toolbar-title class="font-weight-bold">{{ title }}</v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon="mdi-close" variant="text" @click="close"></v-btn>
+      </v-toolbar>
+      
+      <v-card-text class="pa-6 pb-2" style="max-height: 75vh; overflow-y: auto;">
+        <slot></slot>
+      </v-card-text>
 
+      <v-card-actions v-if="$slots.actions" class="pa-6 pt-2">
+        <slot name="actions"></slot>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -49,31 +32,50 @@ const props = defineProps({
     default: 'Título do Modal',
     required: true
   },
-  loading: {
+  maxWidth: {
+    type: String,
+    default: '500px'
+  },
+  persistent: {
     type: Boolean,
     default: false
-  },
-  form: {
-    type: Object,
-    default: () => ({})
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'submit'])
-
+const emit = defineEmits(['update:modelValue'])
 
 const dialog = computed({
   get: () => props.modelValue,
   set: value => emit('update:modelValue', value)
 })
 
-
 const close = () => {
   emit('update:modelValue', false)
 }
-
-const submitForm = () => {
-  emit('submit', props.form)
-}
-
 </script>
+
+<style>
+/* Efeito de Blur no fundo do modal - Estilo Global para o Scrim */
+.modal-base-dialog .v-overlay__scrim {
+  backdrop-filter: blur(6px) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  opacity: 1 !important;
+}
+</style>
+
+<style scoped>
+/* Estilização suave para o scroll interno */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #bdbdbd;
+}
+</style>

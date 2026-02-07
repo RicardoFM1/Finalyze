@@ -28,16 +28,12 @@
       </v-col>
     </v-row>
 
-    <v-dialog v-model="showPendingDialog" persistent max-width="500">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="text-h5 font-weight-bold text-center">
-            Pagamento Pendente Encontrado
-        </v-card-title>
-        <v-card-text class="text-body-1 text-center py-4">
+    <ModalBase v-model="showPendingDialog" title="Pagamento Pendente Encontrado" maxWidth="500px" persistent>
+        <p class="text-body-1 text-center mb-4">
           Você já iniciou o pagamento para o plano <strong>{{ pendingPlanName }}</strong>. 
           Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?
-        </v-card-text>
-        <v-card-actions class="justify-center gap-4">
+        </p>
+        <template #actions>
           <v-btn
             variant="outlined"
             color="error"
@@ -50,14 +46,13 @@
           <v-btn
             variant="flat"
             color="primary"
-            class="rounded-lg px-6"
+            class="rounded-lg px-6 ml-4"
             @click="continuePayment"
           >
             Continuar Pagamento
           </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </template>
+    </ModalBase>
   </v-container>
 </template>
 
@@ -67,6 +62,7 @@ import { useRouter } from 'vue-router'
 import PlanCard from '../components/PlanCard.vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import ModalBase from '../components/Modals/modalBase.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

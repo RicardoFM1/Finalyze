@@ -281,31 +281,16 @@
     </v-card>
 
  
-    <v-dialog v-model="confirmCancel" max-width="400">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="text-h6 font-weight-bold">Confirmar Cancelamento?</v-card-title>
-        <v-card-text>
-          Você continuará tendo acesso aos benefícios até o final do período ativo em <strong>{{ formatDate(subscriptionData.assinatura?.termina_em) }}</strong>. Nenhuma nova cobrança será feita.
-        </v-card-text>
-        <v-card-actions class="justify-end gap-2">
-          <v-btn variant="text" @click="confirmCancel = false">Manter</v-btn>
-          <v-btn color="error" variant="flat" class="rounded-lg" :loading="cancelling" @click="cancelarAssinatura">Confirmar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ModalCancelarAssinatura 
+      v-model="confirmCancel" 
+      :dataExpiracao="subscriptionData.assinatura?.termina_em" 
+      @cancelled="fetchSubscription" 
+    />
 
-    <v-dialog v-model="confirmRemoveAvatarDialog" max-width="400">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="text-h6 font-weight-bold">Remover foto?</v-card-title>
-        <v-card-text>
-          Tem certeza que deseja remover sua foto de perfil? Ela será excluída permanentemente.
-        </v-card-text>
-        <v-card-actions class="justify-end gap-2">
-          <v-btn variant="text" @click="confirmRemoveAvatarDialog = false">Cancelar</v-btn>
-          <v-btn color="error" variant="flat" class="rounded-lg" :loading="removingAvatar" @click="confirmRemoveAvatar">Remover</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ModalRemoverAvatar 
+      v-model="confirmRemoveAvatarDialog" 
+      @removed="(updatedUser) => { user = updatedUser; previewAvatar = null; selectedFile = null; }" 
+    />
   </v-container>
 </template>
 
@@ -314,6 +299,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
+import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
+import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -336,9 +323,7 @@ const subscriptionData = ref({
 const loadingSub = ref(true)
 const saving = ref(false)
 const confirmCancel = ref(false)
-const cancelling = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
-const removingAvatar = ref(false)
 
 onMounted(async () => {
    await fetchUser()
@@ -397,21 +382,6 @@ const ativarAutoRenovacao = async () => {
     }
 }
 
-const cancelarAssinatura = async () => {
-    try {
-        cancelling.value = true
-        const response = await authStore.apiFetch('/assinaturas/cancelar', { method: 'POST' })
-        if (response.ok) {
-            toast.success('Assinatura cancelada com sucesso.')
-            await fetchSubscription()
-            confirmCancel.value = false
-        }
-    } catch (e) {
-        toast.error('Erro ao cancelar')
-    } finally {
-        cancelling.value = false
-    }
-}
 
 const payAhead = () => {
     router.push({ name: 'Plans' })
@@ -472,30 +442,6 @@ const removeAvatar = () => {
     confirmRemoveAvatarDialog.value = true
 }
 
-const confirmRemoveAvatar = async () => {
-    try {
-        removingAvatar.value = true
-        const response = await authStore.apiFetch('/usuario/avatar', {
-            method: 'DELETE'
-        })
-        
-        if (response.ok) {
-            toast.success('Avatar removido!')
-            const data = await response.json()
-            user.value = data.usuario
-            authStore.user = data.usuario
-            previewAvatar.value = null
-            selectedFile.value = null
-            confirmRemoveAvatarDialog.value = false
-        } else {
-            toast.error('Erro ao remover avatar')
-        }
-    } catch (e) {
-        toast.error('Erro de conexão')
-    } finally {
-        removingAvatar.value = false
-    }
-}
 
 const saveProfile = async () => {
     saving.value = true

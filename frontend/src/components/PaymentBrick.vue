@@ -12,23 +12,8 @@
       <v-btn block color="error" class="mt-4" @click="reload">Recarregar Página</v-btn>
     </v-alert>
 
-    <v-dialog v-model="showQrDialog" persistent max-width="480">
-      <v-card class="rounded-xl overflow-hidden" elevation="10">
-        <div class="bg-primary px-6 py-4 text-center position-relative">
-            <v-btn
-              icon="mdi-close"
-              variant="text"
-              color="white"
-              size="small"
-              class="position-absolute"
-              style="top: 8px; right: 8px;"
-              @click="showQrDialog = false"
-            ></v-btn>
-            <span class="text-h6 text-white font-weight-bold">Pagamento via Pix</span>
-            <div class="text-caption text-white opacity-80 mt-1">Escaneie ou copie o código abaixo</div>
-        </div>
-
-        <v-card-text class="pa-6 text-center">
+    <ModalBase v-model="showQrDialog" title="Pagamento via Pix" maxWidth="480px" persistent>
+        <div class="text-center">
           <div class="d-flex justify-center mb-6">
              <div class="rounded-lg border pa-2 bg-white elevation-2" v-if="qrCodeBase64">
                 <img :src="'data:image/png;base64,' + qrCodeBase64" style="width: 200px; height: 200px; display: block;" />
@@ -48,7 +33,6 @@
             ></v-progress-linear>
           </div>
 
-          
           <div class="bg-grey-lighten-4 rounded-lg pa-4 mb-4 text-left">
              <div class="text-caption font-weight-bold text-grey-darken-1 mb-2">Pix Copia e Cola</div>
              
@@ -75,9 +59,8 @@
              <v-progress-circular indeterminate color="primary" size="20" width="2" class="mr-3"></v-progress-circular>
              Aguardando confirmação do pagamento...
           </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+        </div>
+    </ModalBase>
     
     <v-snackbar v-model="showCopiedStart" color="success" timeout="2000" location="top">
         <div class="d-flex align-center">
@@ -97,6 +80,7 @@ import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import ModalBase from '../components/Modals/modalBase.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()

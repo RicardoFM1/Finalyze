@@ -85,38 +85,35 @@
         
     </v-navigation-drawer>
 
-    <v-dialog v-model="confirmLogout" max-width="400" persistent transition="dialog-bottom-transition">
-        <v-card class="rounded-xl pa-4" elevation="10" style="backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9);">
-            <div class="text-center mb-4">
-                <v-avatar color="error-lighten-4" size="70" class="mb-2">
-                    <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
-                </v-avatar>
-                <h3 class="text-h5 font-weight-bold">Deseja sair?</h3>
-                <p class="text-body-1 text-medium-emphasis">Você precisará fazer login novamente para acessar seus dados.</p>
-            </div>
-            
-            <v-card-actions class="justify-center gap-2">
-                <v-btn 
-                    variant="text" 
-                    class="px-6 text-none font-weight-bold" 
-                    rounded="lg"
-                    @click="confirmLogout = false"
-                >
-                    Cancelar
-                </v-btn>
-                <v-btn 
-                    color="error" 
-                    variant="elevated" 
-                    class="px-8 text-none font-weight-bold" 
-                    elevation="2"
-                    rounded="lg"
-                    @click="handleLogout"
-                >
-                    Sair Agora
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+    <ModalBase v-model="confirmLogout" title="Deseja sair?" maxWidth="400px" persistent>
+        <div class="text-center mb-4">
+            <v-avatar color="error-lighten-4" size="70" class="mb-2">
+                <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
+            </v-avatar>
+            <p class="text-body-1 text-medium-emphasis">Você precisará fazer login novamente para acessar seus dados.</p>
+        </div>
+        
+        <template #actions>
+            <v-btn 
+                variant="text" 
+                class="px-6 text-none font-weight-bold" 
+                rounded="lg"
+                @click="confirmLogout = false"
+            >
+                Cancelar
+            </v-btn>
+            <v-btn 
+                color="error" 
+                variant="elevated" 
+                class="px-8 text-none font-weight-bold ml-2" 
+                elevation="2"
+                rounded="lg"
+                @click="handleLogout"
+            >
+                Sair Agora
+            </v-btn>
+        </template>
+    </ModalBase>
 
     <v-main>
       <router-view></router-view>
@@ -130,6 +127,7 @@ import { useRouter,useRoute } from 'vue-router'
 import { ref, computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { watch } from 'vue'
+import ModalBase from '../components/Modals/modalBase.vue'
 
 
 const authStore = useAuthStore()

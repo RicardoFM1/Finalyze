@@ -134,160 +134,8 @@
     </v-row>
 
     
-    <v-dialog v-model="dialog" max-width="500px">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="font-weight-bold d-flex align-center justify-space-between">
-          <div class="d-flex align-center">
-            <v-icon :icon="form.id ? 'mdi-pencil' : 'mdi-plus'" class="mr-2" color="primary"></v-icon>
-            {{ form.id ? 'Editar Meta' : 'Nova Meta' }}
-          </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="dialog = false"></v-btn>
-           
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="metaForm" @submit.prevent="saveMeta">
-             <v-btn-toggle v-model="form.tipo"
-                                label="Tipo de Meta"
-                                class="w-100 mb-4 rounded-lg"
-                                rounded="lg" 
-                                variant="flat"
-                                mandatory color="primary" border>
-                                <v-btn value="financeira" class="flex-grow-1" prepend-icon="mdi-cash-plus">Financeira</v-btn>
-                                <v-btn value="pessoal" class="flex-grow-1" prepend-icon="mdi-account-outline">Pessoal</v-btn>
-                                
-                              </v-btn-toggle>
-            
-
-            <v-text-field
-              v-model="form.titulo"
-              label="Título"
-              variant="outlined"
-              placeholder="Ex: Reserva de Emergência"
-              class="mb-2"
-              rounded="lg"
-              required
-            ></v-text-field>
-
-            <v-text-field
-              v-model="form.descricao"
-              label="Descrição / Subtítulo"
-              variant="outlined"
-              placeholder="Pequeno detalhe ou frase de impacto"
-              class="mb-2"
-              rounded="lg"
-            ></v-text-field>
-
-            <template v-if="form.tipo === 'financeira'">
-              <v-row dense>
-                <v-col cols="6">
-                   <v-text-field
-                    v-model="form.valor_atual"
-                    label="Valor Atual"
-                    prefix="R$"
-                    type="number"
-                    variant="outlined"
-                    rounded="lg"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="6">
-                   <v-text-field
-                    v-model="form.valor_objetivo"
-                    label="Objetivo"
-                    prefix="R$"
-                    type="number"
-                    variant="outlined"
-                    rounded="lg"
-                    required
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-            </template>
-
-            <template v-else>
-               <v-row dense>
-                <v-col cols="6">
-                   <v-text-field
-                    v-model="form.atual_quantidade"
-                    label="Progresso Atual"
-                    type="number"
-                    variant="outlined"
-                    rounded="lg"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="6">
-                   <v-text-field
-                    v-model="form.meta_quantidade"
-                    label="Meta Total"
-                    type="number"
-                    variant="outlined"
-                    rounded="lg"
-                    required
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-              <v-row dense>
-                 <v-col cols="6">
-                    <v-text-field
-                      v-model="form.unidade"
-                      label="Unidade"
-                      placeholder="livros, km, etc"
-                      variant="outlined"
-                      rounded="lg"
-                    ></v-text-field>
-                 </v-col>
-                 <v-col cols="6">
-                    <v-text-field
-                      v-model="form.icone"
-                      label="Ícone/Emoji"
-                      placeholder="📚, 🎯, 🏃"
-                      variant="outlined"
-                      rounded="lg"
-                    ></v-text-field>
-                 </v-col>
-              </v-row>
-            </template>
-
-            <v-row dense>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="form.prazo"
-                  label="Prazo"
-                  type="date"
-                  variant="outlined"
-                  rounded="lg"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="form.cor"
-                  label="Cor (Hex)"
-                  type="color"
-                  variant="outlined"
-                  rounded="lg"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-btn type="submit" color="primary" block size="large" rounded="lg" class="mt-4" :loading="saving" elevation="2">
-              Salvar Meta
-            </v-btn>
-          </v-form>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-  
-    <v-dialog v-model="deleteDialog" max-width="400px">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="text-h5 font-weight-bold">Excluir Meta?</v-card-title>
-        <v-card-text>Esta ação não pode ser desfeita. Deseja realmente excluir "{{ metaToDelete?.titulo }}"?</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn variant="text" @click="deleteDialog = false">Cancelar</v-btn>
-          <v-btn color="error" variant="elevated" rounded="lg" @click="confirmDeleteAction" :loading="deleting">Excluir</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="fetchMetas" />
+    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="fetchMetas" />
   </v-container>
 </template>
 
@@ -295,30 +143,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
+import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 
 const authStore = useAuthStore()
 const metas = ref([])
 const loading = ref(false)
-const saving = ref(false)
-const deleting = ref(false)
 const dialog = ref(false)
 const deleteDialog = ref(false)
 const metaToDelete = ref(null)
-
-const form = ref({
-  id: null,
-  tipo: 'financeira',
-  titulo: '',
-  descricao: '',
-  valor_objetivo: null,
-  valor_atual: 0,
-  meta_quantidade: null,
-  atual_quantidade: 0,
-  unidade: '',
-  prazo: null,
-  cor: '#1867C0',
-  icone: ''
-})
+const itemAEditar = ref(null)
+const initialTipo = ref('financeira')
 
 onMounted(() => {
   fetchMetas()
@@ -342,76 +177,20 @@ const financialMetas = computed(() => metas.value.filter(m => m.tipo === 'financ
 const personalMetas = computed(() => metas.value.filter(m => m.tipo === 'pessoal'))
 
 const openDialog = (tipo = 'financeira') => {
-  form.value = {
-    id: null,
-    tipo,
-    titulo: '',
-    descricao: '',
-    valor_objetivo: null,
-    valor_atual: 0,
-    meta_quantidade: null,
-    atual_quantidade: 0,
-    unidade: tipo === 'financeira' ? 'BRL' : '',
-    prazo: null,
-    cor: tipo === 'financeira' ? '#4CAF50' : '#7E57C2',
-    icone: tipo === 'pessoal' ? '🎯' : ''
-  }
+  initialTipo.value = tipo
+  itemAEditar.value = null
   dialog.value = true
 }
 
 const editMeta = (meta) => {
-  form.value = { 
-    ...meta,
-    prazo: meta.prazo ? new Date(meta.prazo).toISOString().substr(0, 10) : null
-  }
+  itemAEditar.value = meta
   dialog.value = true
 }
 
-const saveMeta = async () => {
-  saving.value = true
-  try {
-    const isEdit = !!form.value.id
-    const response = await authStore.apiFetch(isEdit ? `/metas/${form.value.id}` : '/metas', {
-      method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(form.value)
-    })
-
-    if (response.ok) {
-      toast.success(isEdit ? 'Meta atualizada!' : 'Meta criada com sucesso!')
-      dialog.value = false
-      fetchMetas()
-    } else {
-      const data = await response.json()
-      toast.error(data.message || 'Erro ao salvar meta')
-    }
-  } catch (e) {
-    toast.error('Erro de conexão')
-  } finally {
-    saving.value = false
-  }
-}
 
 const confirmDelete = (meta) => {
   metaToDelete.value = meta
   deleteDialog.value = true
-}
-
-const confirmDeleteAction = async () => {
-  deleting.value = true
-  try {
-    const response = await authStore.apiFetch(`/metas/${metaToDelete.value.id}`, {
-      method: 'DELETE'
-    })
-    if (response.ok) {
-      toast.success('Meta removida')
-      deleteDialog.value = false
-      fetchMetas()
-    }
-  } catch (e) {
-    toast.error('Erro ao deletar')
-  } finally {
-    deleting.value = false
-  }
 }
 
 const toggleStatus = async (meta) => {
