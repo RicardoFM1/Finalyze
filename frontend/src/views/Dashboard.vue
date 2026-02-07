@@ -142,7 +142,7 @@
       </v-col>
     </v-row>
 
-
+    <!-- Colocar no componente de modal -->
     <v-dialog v-model="dialog" max-width="500px">
         <v-card class="rounded-xl pa-4">
             <div class="d-flex align-center justify-space-between mb-4">
