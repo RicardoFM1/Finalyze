@@ -1,10 +1,10 @@
 <template>
     <transition name="fade">
-        <v-dialog v-model="modelValue" max-width="500px">
+        <v-dialog v-model="dialog" max-width="500px">
         <v-card class="rounded-xl pa-4">
             <div class="d-flex align-center justify-space-between mb-4">
               <v-card-title class="pa-0 font-weight-bold">{{ title }}</v-card-title>
-              <v-btn icon="mdi-close" variant="text" size="small" @click="modelValue = false"></v-btn>
+              <v-btn icon="mdi-close" variant="text" size="small" @click="close"></v-btn>
             </div>
               <v-card-text class="pa-0">
                 <v-form @submit.prevent="submitForm">
@@ -28,7 +28,7 @@
                             <v-textarea v-model="form.descricao" label="Descrição" variant="outlined" rounded="lg" rows="2" placeholder="Opcional"></v-textarea>
                         </v-col>
                     </v-row>
-                    <v-btn type="submit" color="primary" block size="large" rounded="lg" class="mt-4" :loading="saving" elevation="3">Salvar Lançamento</v-btn>
+                    <v-btn type="submit" color="primary" block size="large" rounded="lg" class="mt-4" :loading="loading" elevation="3">Salvar Lançamento</v-btn>
                 </v-form>
             </v-card-text>
         </v-card>
@@ -48,14 +48,32 @@ const props = defineProps({
     type: String,
     default: 'Título do Modal',
     required: true
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  form: {
+    type: Object,
+    default: () => ({})
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
 
+
+const dialog = computed({
+  get: () => props.modelValue,
+  set: value => emit('update:modelValue', value)
+})
+
+
+const close = () => {
+  emit('update:modelValue', false)
+}
+
 const submitForm = () => {
-  emit('submit', form)
-  
+  emit('submit', props.form)
 }
 
 </script>
