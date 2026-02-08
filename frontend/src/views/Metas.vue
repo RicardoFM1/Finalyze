@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="d-flex align-center mb-8">
+    <div v-if="!loading" class="d-flex align-center mb-8">
       <div>
         <h1 class="text-h4 font-weight-bold d-flex align-center">
           Metas Financeiras
@@ -17,8 +17,12 @@
       </v-btn>
     </div>
 
+    <div v-if="loading" class="d-flex justify-center align-center py-12">
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+    </div>
 
-    <v-row class="mb-12">
+
+    <v-row v-if="!loading && financialMetas.length" class="mb-12">
       <v-col v-for="meta in financialMetas" :key="meta.id" cols="12" md="4">
         <v-card class="rounded-xl goal-card finance-card" elevation="4">
           <v-card-text class="pa-6">
@@ -56,80 +60,65 @@
 
           <v-divider></v-divider>
 
-          <v-card-actions class="pa-3 justify-space-between">
-            <div class="d-flex gap-1">
-              <v-menu>
-                <template v-slot:activator="{ props }">
-                   <v-btn variant="outlined" size="small" rounded="lg" v-bind="props" prepend-icon="mdi-chevron-down">Detalhes</v-btn>
-                </template>
-                <v-list>
-                   <v-list-item @click="viewHistory(meta)">Histórico</v-list-item>
-                   <v-list-item @click="viewPlanning(meta)">Planejamento</v-list-item>
-                </v-list>
-              </v-menu>
-              
-              <v-btn variant="outlined" size="small" rounded="lg" @click="editMeta(meta)">Editar</v-btn>
-              <v-btn variant="outlined" size="small" rounded="lg" @click="toggleStatus(meta)">
-                {{ meta.status === 'pausado' ? 'Retomar' : 'Pausar' }}
-              </v-btn>
-            </div>
-            <v-btn icon="mdi-dots-horizontal" size="x-small" variant="text" color="medium-emphasis"></v-btn>
+          <v-card-actions class="pa-4 justify-end gap-2">
+            <v-btn variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" prepend-icon="mdi-pencil-outline">Editar</v-btn>
+            <v-btn variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" prepend-icon="mdi-delete-outline">Excluir</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
+    <div v-else-if="!loading && !financialMetas.length" class="text-center py-8 text-medium-emphasis mb-12">
+      Nenhuma meta financeira encontrada.
+    </div>
 
     
-    <div class="d-flex align-center mb-8 pt-4">
+    <div v-if="!loading" class="d-flex align-center mb-8 pt-4">
       <h1 class="text-h4 font-weight-bold d-flex align-center">
-        Metas Pessoais
-        <v-tooltip text="Metas relacionadas a hábitos e produtividade.">
+        Bloco de Notas
+        <v-tooltip text="Suas anotações pessoais e lembretes.">
           <template v-slot:activator="{ props }">
             <v-icon v-bind="props" icon="mdi-information-outline" size="xs" color="medium-emphasis" class="ml-2"></v-icon>
           </template>
         </v-tooltip>
       </h1>
       <v-spacer></v-spacer>
-      
+      <v-btn color="secondary" prepend-icon="mdi-note-plus-outline" rounded="lg" @click="openDialog('pessoal')" elevation="2">
+        Nova Anotação
+      </v-btn>
     </div>
 
-    <v-row>
-      <v-col v-for="meta in personalMetas" :key="meta.id" cols="12" sm="6" md="3">
-        <v-card class="rounded-xl goal-card personal-card overflow-hidden" elevation="4">
-          <div :style="`height: 8px; background: ${meta.cor || '#7E57C2'}`"></div>
-          <v-card-text class="pa-5">
-            <div class="d-flex align-center mb-3">
-              <span class="mr-2" style="font-size: 1.5rem">{{ meta.icone || '🎯' }}</span>
-              <span class="text-h6 font-weight-bold text-truncate">{{ meta.titulo }}</span>
+    <v-row v-if="!loading">
+      <v-col v-for="meta in personalMetas" :key="meta.id" cols="12" sm="6" md="4" lg="3">
+        <v-card class="rounded-xl goal-card notepad-card overflow-hidden" elevation="3">
+          <div class="notepad-header" :style="`background: ${meta.cor || '#FFEB3B'}`"></div>
+          <v-card-text class="pa-5 notepad-content">
+            <div class="d-flex align-start mb-2">
+              <span v-if="meta.icone" class="mr-2 notepad-emoji">{{ meta.icone }}</span>
+              <span class="text-h6 font-weight-bold notepad-title text-truncate">{{ meta.titulo }}</span>
             </div>
 
-            <p class="text-medium-emphasis text-body-2 mb-4">{{ meta.descricao || 'Sem descrição' }}</p>
-
-            <div class="d-flex align-center mb-2">
-              <v-progress-linear
-                :model-value="calculatePercentage(meta.atual_quantidade, meta.meta_quantidade)"
-                height="10"
-                rounded
-                :color="meta.cor || 'primary'"
-                class="mr-3"
-              ></v-progress-linear>
-              <span class="font-weight-bold">{{ calculatePercentage(meta.atual_quantidade, meta.meta_quantidade) }}%</span>
+            <div class="notepad-text mb-4">
+               {{ meta.descricao || 'Sem anotações...' }}
             </div>
 
-            <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-4">
-               <span v-if="meta.prazo">Até {{ formatDate(meta.prazo) }}</span>
-               <v-chip v-if="meta.status === 'pausado'" size="x-small" variant="tonal" class="rounded-lg">Pausada</v-chip>
+            <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-auto">
+               <span v-if="meta.prazo" class="d-flex align-center">
+                  <v-icon icon="mdi-calendar-clock" size="14" class="mr-1"></v-icon>
+                  {{ formatDate(meta.prazo) }}
+               </span>
+               <v-chip v-if="meta.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">Concluído</v-chip>
             </div>
           </v-card-text>
 
           <v-divider></v-divider>
-          <v-card-actions class="pa-2 bg-grey-lighten-4 justify-center">
-            <v-btn icon="mdi-pencil" size="x-small" variant="text" color="medium-emphasis" @click="editMeta(meta)"></v-btn>
-            <v-btn icon="mdi-information-outline" size="x-small" variant="text" color="medium-emphasis"></v-btn>
-            <v-btn icon="mdi-check-circle-outline" size="x-small" variant="text" color="medium-emphasis" @click="incrementProgress(meta)"></v-btn>
-            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click="confirmDelete(meta)"></v-btn>
+          <v-card-actions class="pa-2 px-4 justify-end gap-1">
+            <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(meta)"></v-btn>
+            <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(meta)"></v-btn>
           </v-card-actions>
         </v-card>
+      </v-col>
+      <v-col v-if="!personalMetas.length" cols="12" class="text-center py-8 text-medium-emphasis">
+        Nenhuma anotação disponível.
       </v-col>
     </v-row>
 
@@ -148,6 +137,7 @@ import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 
 const authStore = useAuthStore()
 const metas = ref([])
+const anotacoes = ref([])
 const loading = ref(false)
 const dialog = ref(false)
 const deleteDialog = ref(false)
@@ -162,10 +152,13 @@ onMounted(() => {
 const fetchMetas = async () => {
   loading.value = true
   try {
-    const response = await authStore.apiFetch('/metas')
-    if (response.ok) {
-      metas.value = await response.json()
-    }
+    const [resMetas, resAnotacoes] = await Promise.all([
+      authStore.apiFetch('/metas'),
+      authStore.apiFetch('/anotacoes')
+    ])
+    
+    if (resMetas.ok) metas.value = await resMetas.json()
+    if (resAnotacoes.ok) anotacoes.value = await resAnotacoes.json()
   } catch (e) {
     console.error(e)
   } finally {
@@ -173,8 +166,8 @@ const fetchMetas = async () => {
   }
 }
 
-const financialMetas = computed(() => metas.value.filter(m => m.tipo === 'financeira'))
-const personalMetas = computed(() => metas.value.filter(m => m.tipo === 'pessoal'))
+const financialMetas = computed(() => metas.value)
+const personalMetas = computed(() => anotacoes.value)
 
 const openDialog = (tipo = 'financeira') => {
   initialTipo.value = tipo
@@ -193,30 +186,18 @@ const confirmDelete = (meta) => {
   deleteDialog.value = true
 }
 
-const toggleStatus = async (meta) => {
-  const newStatus = meta.status === 'pausado' ? 'andamento' : 'pausado'
+const toggleStatusConcluido = async (item) => {
+  const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
+  const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
+  
   try {
-    const response = await authStore.apiFetch(`/metas/${meta.id}`, {
+    const response = await authStore.apiFetch(endpoint, {
       method: 'PUT',
-      body: JSON.stringify({ ...meta, status: newStatus })
+      body: JSON.stringify({ ...item, status: newStatus })
     })
     if (response.ok) fetchMetas()
   } catch (e) { console.error(e) }
-}
-
-const incrementProgress = async (meta) => {
-  if (meta.tipo === 'pessoal') {
-    const newVal = (meta.atual_quantidade || 0) + 1
-    if (newVal > meta.meta_quantidade) return
-    
-    try {
-      const response = await authStore.apiFetch(`/metas/${meta.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ ...meta, atual_quantidade: newVal, status: newVal === meta.meta_quantidade ? 'concluido' : meta.status })
-      })
-      if (response.ok) fetchMetas()
-    } catch (e) { console.error(e) }
-  }
 }
 
 // Helpers
@@ -272,8 +253,40 @@ const viewPlanning = (meta) => toast.info('Planejamento em desenvolvimento')
   background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
 }
 
-.personal-card {
-  background: white;
+.notepad-card {
+  background: #FFF9C4; /* Light Yellow */
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.notepad-header {
+  height: 12px;
+  width: 100%;
+}
+
+.notepad-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.notepad-emoji {
+  font-size: 1.5rem;
+}
+
+.notepad-title {
+  color: #5D4037;
+  font-family: 'Inter', sans-serif;
+}
+
+.notepad-text {
+  color: #795548;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  font-family: 'Inter', sans-serif;
 }
 
 .gap-1 {

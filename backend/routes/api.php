@@ -42,6 +42,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
             Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+
+            Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
+            Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
+            Route::put('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
+            Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
         });
     });
 

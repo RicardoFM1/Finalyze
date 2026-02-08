@@ -1,16 +1,6 @@
 <template>
-  <ModalBase :title="form.id ? 'Editar Meta' : 'Nova Meta'" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? 'Editar Meta' : 'Editar Anotação') : (form.tipo === 'financeira' ? 'Nova Meta' : 'Nova Anotação')" v-model="internalValue" maxWidth="550px">
     <v-form ref="metaForm" @submit.prevent="saveMeta">
-      <v-btn-toggle 
-        v-model="form.tipo"
-        class="w-100 mb-4 rounded-lg"
-        mandatory 
-        color="primary" 
-        border
-      >
-        <v-btn value="financeira" class="flex-grow-1" prepend-icon="mdi-cash-plus">Financeira</v-btn>
-        <v-btn value="pessoal" class="flex-grow-1" prepend-icon="mdi-account-outline">Pessoal</v-btn>
-      </v-btn-toggle>
 
       <v-text-field
         v-model="form.titulo"
@@ -22,14 +12,16 @@
         required
       ></v-text-field>
 
-      <v-text-field
+      <v-textarea
         v-model="form.descricao"
-        label="Descrição / Subtítulo"
+        :label="form.tipo === 'financeira' ? 'Descrição / Subtítulo' : 'Conteúdo da Anotação'"
         variant="outlined"
-        placeholder="Pequeno detalhe ou frase de impacto"
+        :placeholder="form.tipo === 'financeira' ? 'Pequeno detalhe ou frase de impacto' : 'Escreva aqui tudo o que precisar...'"
         class="mb-2"
         rounded="lg"
-      ></v-text-field>
+        :rows="form.tipo === 'pessoal' ? 6 : 2"
+        auto-grow
+      ></v-textarea>
 
       <template v-if="form.tipo === 'financeira'">
         <v-row dense>
@@ -60,40 +52,66 @@
       <template v-else>
         <v-row dense>
           <v-col cols="6">
-            <v-text-field
-              v-model="form.atual_quantidade"
-              label="Progresso Atual"
-              type="number"
-              variant="outlined"
-              rounded="lg"
-            ></v-text-field>
+            <v-menu v-model="emojiMenu" :close-on-content-click="false" location="bottom">
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="form.icone"
+                  label="Ícone/Emoji"
+                  placeholder="Selecione um emoji"
+                  variant="outlined"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-emoticon-outline"
+                  v-bind="props"
+                  readonly
+                  class="cursor-pointer"
+                  :rules="[v => !v || isEmoji(v) || 'Apenas um emoji é permitido']"
+                ></v-text-field>
+              </template>
+              <v-card class="pa-0 rounded-xl emoji-picker-card" width="320" height="400" elevation="12">
+                <v-card-title class="pa-4 pb-2">
+                  <v-text-field
+                    v-model="emojiSearch"
+                    placeholder="Pesquisar emoji..."
+                    variant="solo-filled"
+                    density="compact"
+                    hide-details
+                    prepend-inner-icon="mdi-magnify"
+                    flat
+                    class="rounded-lg"
+                  ></v-text-field>
+                </v-card-title>
+                
+                <v-tabs v-model="activeCategory" density="compact" color="primary" grow>
+                  <v-tab v-for="cat in emojiCategories" :key="cat.name" :value="cat.name">
+                    <v-icon :icon="cat.icon" size="18"></v-icon>
+                  </v-tab>
+                </v-tabs>
+
+                <v-window v-model="activeCategory" class="emoji-scroll-area">
+                  <v-window-item v-for="cat in emojiCategories" :key="cat.name" :value="cat.name" class="pa-4">
+                    <div class="d-flex flex-wrap gap-2">
+                      <v-btn
+                        v-for="emoji in filterEmojis(cat.emojis)"
+                        :key="emoji"
+                        icon
+                        variant="text"
+                        size="small"
+                        class="text-h6"
+                        @click="selectEmoji(emoji)"
+                      >
+                        {{ emoji }}
+                      </v-btn>
+                    </div>
+                  </v-window-item>
+                </v-window>
+              </v-card>
+            </v-menu>
           </v-col>
           <v-col cols="6">
             <v-text-field
-              v-model="form.meta_quantidade"
-              label="Meta Total"
-              type="number"
-              variant="outlined"
-              rounded="lg"
-              required
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="6">
-            <v-text-field
-              v-model="form.unidade"
-              label="Unidade"
-              placeholder="livros, km, etc"
-              variant="outlined"
-              rounded="lg"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="6">
-            <v-text-field
-              v-model="form.icone"
-              label="Ícone/Emoji"
-              placeholder="📚, 🎯, 🏃"
+              v-model="form.cor"
+              label="Cor do Cabeçalho"
+              type="color"
               variant="outlined"
               rounded="lg"
             ></v-text-field>
@@ -102,16 +120,16 @@
       </template>
 
       <v-row dense>
-        <v-col cols="6">
+        <v-col :cols="form.tipo === 'financeira' ? 6 : 12">
           <v-text-field
             v-model="form.prazo"
-            label="Prazo"
+            :label="form.tipo === 'financeira' ? 'Prazo' : 'Data Limite (Opcional)'"
             type="date"
             variant="outlined"
             rounded="lg"
           ></v-text-field>
         </v-col>
-        <v-col cols="6">
+        <v-col v-if="form.tipo === 'financeira'" cols="6">
           <v-text-field
             v-model="form.cor"
             label="Cor (Hex)"
@@ -158,6 +176,32 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 
 const authStore = useAuthStore()
 const loading = ref(false)
+const emojiMenu = ref(false)
+const emojiSearch = ref('')
+const activeCategory = ref('Smileys')
+
+const emojiCategories = [
+  { name: 'Smileys', icon: 'mdi-emoticon-happy-outline', emojis: ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳'] },
+  { name: 'Gestures', icon: 'mdi-hand-okay', emojis: ['👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '👈', '👉', '👆', '👇', '✋', '🤚', '🖐️', '🖖', '👋', '🤙', '💪', '🙏'] },
+  { name: 'Activity', icon: 'mdi-bike', emojis: ['🎯', '📚', '🏃', '💰', '🏋️', '💻', '🎸', '⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒', '🏑', '🏏'] },
+  { name: 'Travel', icon: 'mdi-airplane', emojis: ['🏠', '🚗', '✈️', '🚀', '🛸', '🚁', '🛶', '⛵', '🛥️', '🛳️', '⛴️', '🚢', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅'] },
+  { name: 'Objects', icon: 'mdi-lightbulb-outline', emojis: ['💡', '📅', '📝', '🛒', '🎁', '🎈', '🎏', '🎀', '🎊', '🎉', '🎎', '🏮', '🎐', '🧧', '✉️', '📩', '📨', '📧', '💌', '📥'] }
+]
+
+const filterEmojis = (emojis) => {
+  if (!emojiSearch.value) return emojis
+  return emojis.filter(e => e.includes(emojiSearch.value)) // Basic filter, would be better with names but emojis are just chars
+}
+
+const selectEmoji = (emoji) => {
+  form.value.icone = emoji
+  emojiMenu.value = false
+}
+
+const isEmoji = (str) => {
+  const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/
+  return emojiRegex.test(str)
+}
 
 const internalValue = computed({
   get: () => props.modelValue,
@@ -198,7 +242,7 @@ watch(() => props.modelValue, (newVal) => {
         atual_quantidade: 0,
         unidade: props.initialTipo === 'financeira' ? 'BRL' : '',
         prazo: null,
-        cor: props.initialTipo === 'financeira' ? '#4CAF50' : '#7E57C2',
+        cor: props.initialTipo === 'financeira' ? '#4CAF50' : '#FFF9BF',
         icone: props.initialTipo === 'pessoal' ? '🎯' : ''
       }
     }
@@ -209,18 +253,22 @@ const saveMeta = async () => {
   loading.value = true
   try {
     const isEdit = !!form.value.id
-    const response = await authStore.apiFetch(isEdit ? `/metas/${form.value.id}` : '/metas', {
+    const isAnotacao = form.value.tipo === 'pessoal' || (!form.value.tipo && props.initialTipo === 'pessoal')
+    const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
+    const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
+    
+    const response = await authStore.apiFetch(endpoint, {
       method: isEdit ? 'PUT' : 'POST',
       body: JSON.stringify(form.value)
     })
 
     if (response.ok) {
-      toast.success(isEdit ? 'Meta atualizada!' : 'Meta criada com sucesso!')
+      toast.success(isEdit ? (isAnotacao ? 'Anotação atualizada!' : 'Meta atualizada!') : (isAnotacao ? 'Anotação salva!' : 'Meta criada com sucesso!'))
       internalValue.value = false
       emit('saved')
     } else {
       const data = await response.json()
-      toast.error(data.message || 'Erro ao salvar meta')
+      toast.error(data.message || 'Erro ao salvar')
     }
   } catch (e) {
     toast.error('Erro de conexão')

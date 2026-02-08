@@ -102,6 +102,9 @@ const salvarLancamento = async () => {
       toast.success('Lançamento adicionado!')
       internalValue.value = false
       emit('saved')
+    } else {
+      const data = await response.json()
+      toast.error(data.message || 'Erro ao salvar lançamento.')
     }
   } catch (e) {
     console.error(e)

@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Auth;
 
 class LancamentoController extends Controller
 {
-    public function mostrar(ListarLancamentos $servico)
+    public function mostrar(Request $request, ListarLancamentos $servico)
     {
-        return $servico->executar();
+        return $servico->executar($request->all());
     }
 
     public function criar(StoreLancamentoRequest $request, CriarLancamento $servico)

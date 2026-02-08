@@ -1,22 +1,22 @@
 <template>
   <v-container class="dashboard-wrapper">
     <!-- Header Modernizado -->
-    <v-row class="mb-8">
+    <v-row class="mb-8 pt-4">
       <v-col cols="12">
         <div class="d-flex align-center">
-            <v-avatar color="primary" size="48" class="mr-4 elevation-3">
-                <v-icon icon="mdi-view-dashboard-outline" color="white"></v-icon>
+            <v-avatar color="#2962FF" size="64" class="mr-4 elevation-4 glass-icon">
+                <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
             </v-avatar>
             <div>
-                <h1 class="text-h4 font-weight-bold mb-0">Olá, bem-vindo!</h1>
-                <p class="text-subtitle-1 text-medium-emphasis">Visão geral da sua saúde financeira hoje.</p>
+                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ getGreeting }}, {{ authStore.user?.nome || 'bem-vindo' }}!</h1>
+                <p class="text-h6 text-medium-emphasis font-weight-medium">Sua jornada financeira está em dia.</p>
             </div>
         </div>
       </v-col>
     </v-row>
 
     <!-- Cards de Resumo com Gradientes -->
-    <v-row class="mb-8">
+    <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
                 <v-col v-for="i in 3" :key="i" cols="12" md="4">
@@ -27,117 +27,183 @@
         
         <template v-else>
           <v-col cols="12" md="4">
-            <v-card class="summary-card glass-card receita-gradient rounded-xl" elevation="6">
-              <v-card-item>
-                <div class="d-flex justify-space-between align-center mb-4">
-                    <span class="text-overline font-weight-bold">Receitas</span>
-                    <v-icon icon="mdi-arrow-up-circle" color="white"></v-icon>
+            <v-card class="summary-card glass-card receita-gradient rounded-xl overflow-hidden" elevation="0">
+              <v-card-item class="pa-6">
+                <div class="d-flex justify-space-between align-center mb-6">
+                    <div class="icon-circle success-circle">
+                      <v-icon icon="mdi-trending-up" color="success" size="24"></v-icon>
+                    </div>
+                    <span class="text-overline font-weight-bold opacity-70">RECEITAS</span>
                 </div>
-                <div class="text-h4 font-weight-bold">R$ {{ resumo.receita }}</div>
-                <div class="text-caption mt-2 opacity-80">Sua receita total</div>
+                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.receita) }}</div>
+                <div class="text-subtitle-2 opacity-80">Entradas totais do mês</div>
               </v-card-item>
+              <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
-            <v-card class="summary-card glass-card despesa-gradient rounded-xl" elevation="6">
-              <v-card-item>
-                <div class="d-flex justify-space-between align-center mb-4">
-                    <span class="text-overline font-weight-bold">Despesas</span>
-                    <v-icon icon="mdi-arrow-down-circle" color="white"></v-icon>
+            <v-card class="summary-card glass-card despesa-gradient rounded-xl overflow-hidden" elevation="0">
+              <v-card-item class="pa-6">
+                <div class="d-flex justify-space-between align-center mb-6">
+                    <div class="icon-circle error-circle">
+                      <v-icon icon="mdi-trending-down" color="error" size="24"></v-icon>
+                    </div>
+                    <span class="text-overline font-weight-bold opacity-70">DESPESAS</span>
                 </div>
-                <div class="text-h4 font-weight-bold">R$ {{ resumo.despesa }}</div>
-                <div class="text-caption mt-2 opacity-80">Sua despesa total</div>
+                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.despesa) }}</div>
+                <div class="text-subtitle-2 opacity-80">Saindo do seu bolso</div>
               </v-card-item>
+              <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
-            <v-card class="summary-card glass-card saldo-gradient rounded-xl" elevation="6">
-              <v-card-item>
-                <div class="d-flex justify-space-between align-center mb-4">
-                    <span class="text-overline font-weight-bold">Saldo Atual</span>
-                    <v-icon icon="mdi-account-balance-wallet" color="white"></v-icon>
+            <v-card class="summary-card glass-card saldo-gradient rounded-xl overflow-hidden" elevation="0">
+              <v-card-item class="pa-6">
+                <div class="d-flex justify-space-between align-center mb-6">
+                    <div class="icon-circle info-circle">
+                      <v-icon icon="mdi-wallet-outline" color="primary" size="24"></v-icon>
+                    </div>
+                    <span class="text-overline font-weight-bold opacity-70">SALDO LÍQUIDO</span>
                 </div>
-                <div class="text-h4 font-weight-bold">R$ {{ resumo.saldo }}</div>
-                <div class="text-caption mt-2 opacity-80">Saldo disponível para investimentos</div>
+                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.saldo) }}</div>
+                <div class="text-subtitle-2 opacity-80">Patrimônio livre hoje</div>
               </v-card-item>
+              <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
       </template>
     </v-row>
 
     <v-row>
-      <!-- Atividade Recente -->
+      <!-- Saúde Financeira e Atividade -->
       <v-col cols="12" md="8">
-        <v-card class="rounded-xl recent-activity overflow-hidden" elevation="4">
-           <v-toolbar color="transparent" density="comfortable" class="px-2">
-               <v-toolbar-title class="font-weight-bold">Atividade Recente</v-toolbar-title>
+        <v-card class="rounded-xl mb-8 glass-card border-card overflow-hidden" elevation="4">
+          <v-card-title class="font-weight-bold pa-6 d-flex align-center">
+            <v-icon icon="mdi-chart-donut" color="primary" class="mr-2"></v-icon>
+            Saúde Financeira
+            <v-spacer></v-spacer>
+            <div class="text-caption text-medium-emphasis font-weight-medium">Distribuição de Recursos</div>
+          </v-card-title>
+          <v-card-text class="pa-6">
+            <v-row class="align-center">
+              <v-col cols="12" md="5" class="d-flex justify-center">
+                <div style="max-width: 250px; position: relative;">
+                  <Doughnut v-if="!loading" :data="chartData" :options="chartOptions" :key="JSON.stringify(chartData.datasets[0].data)" />
+                  <div class="chart-center-text" v-if="!loading">
+                    <div class="text-h5 font-weight-bold">{{ getMarginPercentage }}%</div>
+                    <div class="text-caption">Margem</div>
+                  </div>
+                </div>
+              </v-col>
+              <v-col cols="12" md="7">
+                <div class="mb-4 d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <div class="dot receita-dot mr-2"></div>
+                    <span class="text-body-2">Receitas</span>
+                  </div>
+                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.receita) }}</span>
+                </div>
+                <v-divider class="mb-4"></v-divider>
+                <div class="mb-4 d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <div class="dot despesa-dot mr-2"></div>
+                    <span class="text-body-2">Despesas</span>
+                  </div>
+                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.despesa) }}</span>
+                </div>
+                <v-divider class="mb-4"></v-divider>
+                <div class="d-flex align-center justify-space-between">
+                  <div class="d-flex align-center">
+                    <div class="dot saldo-dot mr-2"></div>
+                    <span class="text-body-2">Líquido</span>
+                  </div>
+                  <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
+                    R$ {{ formatNumber(resumo.saldo) }}
+                  </span>
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
+           <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
+               <v-toolbar-title class="font-weight-bold">Últimas Movimentações</v-toolbar-title>
                <v-spacer></v-spacer>
-               <v-btn variant="text" size="small" color="primary" font-weight-bold :to="{ name: 'Lancamentos' }">Ver todos</v-btn>
+               <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">Ver Histórico</v-btn>
            </v-toolbar>
-           <v-list lines="two" class="pa-2">
+           <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
-                class="rounded-lg mb-1"
+                class="rounded-xl mb-3 hover-item border-item"
                 :title="item.descricao || item.categoria" 
                 :subtitle="`${item.tipo === 'receita' ? 'Receita' : 'Despesa'} • ${item.categoria}`" 
               >
                 <template v-slot:prepend>
-                    <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-4' : 'error-lighten-4'" rounded="lg">
-                        <v-icon :icon="item.tipo === 'receita' ? 'mdi-cash-plus' : 'mdi-cash-minus'" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
+                    <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">
+                        <v-icon :icon="item.tipo === 'receita' ? 'mdi-plus' : 'mdi-minus'" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
                     </v-avatar>
                 </template>
                 <template v-slot:append>
                     <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
-                        {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ Number(item.valor).toFixed(2).replace('.', ',') }}
+                        {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
                     </span>
                 </template>
               </v-list-item>
               <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-10 text-medium-emphasis">
-                  <v-icon icon="mdi-history" size="48" class="mb-4 opacity-20"></v-icon>
-                  <p>Nenhuma atividade recente registrada.</p>
+                  <v-icon icon="mdi-history" size="64" class="mb-4 opacity-10"></v-icon>
+                  <p class="text-h6 font-weight-medium">Sem lançamentos recentes.</p>
               </div>
            </v-list>
         </v-card>
       </v-col>
 
+      <!-- Dashboard Lado Direito -->
       <v-col cols="12" md="4">
-     
-        <v-card class="rounded-xl mb-6 quick-actions" elevation="4" color="grey-lighten-4">
-            <v-card-title class="font-weight-bold pa-4 pb-0">Ações Rápidas</v-card-title>
-            <v-card-text class="pa-4">
-                <v-btn block color="primary" size="large" class="mb-4 rounded-lg" prepend-icon="mdi-plus" @click="dialog = true" elevation="2">Novo Lançamento</v-btn>
+        <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
+            <v-card-title class="font-weight-bold pa-6 pb-2 text-white">Acesso Rápido</v-card-title>
+            <v-card-text class="pa-6 pt-2">
+                <v-btn block color="white" height="56" class="mb-4 rounded-xl text-primary font-weight-bold" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
+                  Lançar Agora
+                </v-btn>
                 <v-row dense>
                     <v-col cols="6">
-                        <v-btn block variant="outlined" color="primary" class="rounded-lg" prepend-icon="mdi-chart-bar" :to="{ name: 'Reports' }">Relatórios</v-btn>
+                        <v-btn block height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">Relatórios</v-btn>
                     </v-col>
                     <v-col cols="6">
-                        <v-btn block variant="outlined" color="primary" class="rounded-lg" prepend-icon="mdi-flag" :to="{ name: 'Metas' }">Metas</v-btn>
+                        <v-btn block height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold" prepend-icon="mdi-target" :to="{ name: 'Metas' }">Minhas Metas</v-btn>
                     </v-col>
                 </v-row>
             </v-card-text>
         </v-card>
 
-       
-        <v-card v-if="metasSummary.length" class="rounded-xl metas-preview" elevation="4">
-            <v-card-title class="font-weight-bold pa-4 pb-0 d-flex align-center">
-                Metas em Foco
-                <v-spacer></v-spacer>
-                <v-icon icon="mdi-flag-checkered" color="primary"></v-icon>
+        <v-card v-if="metasSummary.length" class="rounded-xl glass-card border-card metas-preview" elevation="4">
+            <v-card-title class="font-weight-bold pa-6 pb-2 d-flex align-center">
+                <v-icon icon="mdi-target" color="primary" class="mr-2"></v-icon>
+                Progresso das Metas
             </v-card-title>
-            <v-card-text class="pa-4">
-                <div v-for="meta in metasSummary" :key="meta.id" class="mb-4">
-                    <div class="d-flex justify-space-between text-body-2 mb-1">
-                        <span class="font-weight-bold">{{ meta.titulo }}</span>
-                        <span>{{ calculatePercentage(meta) }}%</span>
+            <v-card-text class="pa-6 pt-2">
+                <div v-for="meta in metasSummary" :key="meta.id" class="mb-6">
+                    <div class="d-flex justify-space-between text-body-2 mb-2 font-weight-medium">
+                        <span>{{ meta.titulo }}</span>
+                        <span class="text-primary">{{ calculatePercentage(meta) }}%</span>
                     </div>
                     <v-progress-linear
                         :model-value="calculatePercentage(meta)"
                         :color="meta.cor || 'primary'"
-                        height="6"
+                        height="10"
                         rounded
+                        striped
                     ></v-progress-linear>
                 </div>
-                <v-btn block variant="text" size="small" color="primary" :to="{ name: 'Metas' }">Ver todas as metas</v-btn>
+                <v-btn block variant="tonal" color="primary" class="rounded-xl mt-2 font-weight-bold" :to="{ name: 'Metas' }">Explorar todas as metas</v-btn>
             </v-card-text>
+        </v-card>
+
+        <v-card v-else class="rounded-xl glass-card border-card pa-6 text-center" elevation="4">
+          <v-icon icon="mdi-flag-plus-outline" size="48" color="primary" class="mb-4 opacity-30"></v-icon>
+          <div class="text-h6 font-weight-bold mb-2">Defina seus objetivos</div>
+          <p class="text-body-2 text-medium-emphasis mb-4">Crie metas financeiras e acompanhe seu progresso de perto.</p>
+          <v-btn color="primary" variant="flat" class="rounded-xl" :to="{ name: 'Metas' }">Começar Metas</v-btn>
         </v-card>
       </v-col>
     </v-row>
@@ -152,10 +218,53 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
+import { Doughnut } from 'vue-chartjs'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(ArcElement, Tooltip, Legend)
+
 const authStore = useAuthStore()
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
+
+const getGreeting = computed(() => {
+    const hour = new Date().getHours()
+    if (hour >= 5 && hour < 12) return 'Bom dia'
+    if (hour >= 12 && hour < 18) return 'Boa tarde'
+    return 'Boa noite'
+})
+
+const getMarginPercentage = computed(() => {
+    if (resumo.value.receita === 0) return 0
+    return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
+})
+
+const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const chartData = computed(() => ({
+    labels: ['Receitas', 'Despesas', 'Líquido'],
+    datasets: [{
+        data: [resumo.value.receita, resumo.value.despesa, resumo.value.saldo > 0 ? resumo.value.saldo : 0],
+        backgroundColor: ['#38ef7d', '#ff4b2b', '#0083b0'],
+        borderWidth: 0,
+        hoverOffset: 10
+    }]
+}))
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            callbacks: {
+                label: (context) => ` R$ ${formatNumber(context.raw)}`
+            }
+        }
+    },
+    cutout: '80%'
+}
 
 const resumo = ref({
     receita: 0,
@@ -248,58 +357,116 @@ const salvarLancamento = async () => {
 
 <style scoped>
 .dashboard-wrapper {
-    background-color: #f8f9fc;
+    background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%);
+    min-height: 100vh;
 }
 
-.summary-card {
-    border: none;
-    color: white;
-    position: relative;
-    overflow: hidden;
+.gradient-text {
+    background: linear-gradient(90deg, #1A237E, #1867C0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.summary-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 200px;
-    height: 200px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-}
-
-.receita-gradient {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.despesa-gradient {
-    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-}
-
-.saldo-gradient {
-    background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+.glass-icon {
+    background: rgba(24, 103, 192, 0.1) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(24, 103, 192, 0.2);
 }
 
 .glass-card {
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
 }
 
-.summary-card .opacity-80 {
-    opacity: 0.85;
+.summary-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    cursor: default;
+    border: none !important;
 }
 
-.recent-activity :deep(.v-list) {
-    background: transparent;
+.summary-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
 }
 
-.gap-2 {
-    gap: 8px;
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
 }
 
-.v-btn-toggle .v-btn {
-    text-transform: none;
-    letter-spacing: normal;
+.receita-gradient {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+    color: white;
 }
+
+.despesa-gradient {
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%) !important;
+    color: white;
+}
+
+.saldo-gradient {
+    background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%) !important;
+    color: white;
+}
+
+.card-blur-bg {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    filter: blur(20px);
+}
+
+.hover-item {
+    transition: all 0.2s ease;
+    border: 1px solid transparent !important;
+}
+
+.hover-item:hover {
+    background: rgba(24, 103, 192, 0.03) !important;
+    border-color: rgba(24, 103, 192, 0.1) !important;
+    transform: translateX(5px);
+}
+
+.border-card {
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.quick-actions-gradient {
+    background: linear-gradient(135deg, #1867C0 0%, #1A237E 100%) !important;
+}
+
+.chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.receita-dot { background: #38ef7d; }
+.despesa-dot { background: #ff4b2b; }
+.saldo-dot { background: #0083b0; }
+
+.opacity-70 { opacity: 0.7; }
+.opacity-80 { opacity: 0.8; }
+.opacity-10 { opacity: 0.1; }
+.opacity-30 { opacity: 0.3; }
 </style>

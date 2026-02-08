@@ -34,11 +34,14 @@ const confirmDelete = async () => {
 
   loading.value = true
   try {
-    const response = await authStore.apiFetch(`/metas/${props.meta.id}`, {
+    const isAnotacao = !props.meta.tipo || props.meta.tipo === 'pessoal'
+    const endpoint = isAnotacao ? `/anotacoes/${props.meta.id}` : `/metas/${props.meta.id}`
+    
+    const response = await authStore.apiFetch(endpoint, {
       method: 'DELETE'
     })
     if (response.ok) {
-      toast.success('Meta removida')
+      toast.success(isAnotacao ? 'Anotação removida' : 'Meta removida')
       internalValue.value = false
       emit('deleted')
     }

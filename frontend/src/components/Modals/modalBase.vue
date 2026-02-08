@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="dialog" :max-width="maxWidth" :persistent="persistent" class="modal-base-dialog">
-    <v-card class="rounded-xl overflow-hidden elevation-24">
+    <v-card class="rounded-xl overflow-hidden elevation-12">
       <v-toolbar color="primary" density="comfortable">
         <v-toolbar-title class="font-weight-bold">{{ title }}</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -55,11 +55,14 @@ const close = () => {
 </script>
 
 <style>
-/* Efeito de Blur no fundo do modal - Estilo Global para o Scrim */
+/* Sem efeito de Blur no fundo do modal para performance máxima */
 .modal-base-dialog .v-overlay__scrim {
-  backdrop-filter: blur(6px) !important;
-  background: rgba(0, 0, 0, 0.3) !important;
+  background: rgba(0, 0, 0, 0.4) !important;
   opacity: 1 !important;
+}
+
+.modal-base-dialog .v-card {
+  will-change: transform, opacity;
 }
 </style>
 
