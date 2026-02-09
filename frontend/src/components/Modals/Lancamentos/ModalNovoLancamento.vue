@@ -14,9 +14,36 @@
         <v-col cols="12" md="6">
           <v-text-field v-model="form.data" label="Data" type="date" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
-        <v-col cols="12">
-          <v-text-field v-model="form.categoria" label="Categoria" variant="outlined" rounded="lg" required></v-text-field>
-        </v-col>
+       <v-col cols="12">
+                            <v-autocomplete
+                                v-model="form.categoria"
+                                :items="categorias"
+                                item-title="title"
+                                item-value="title"
+                                label="Categoria"
+                                variant="outlined"
+                                rounded="lg"
+                                required
+                                placeholder="Selecione ou digite para filtrar"
+                                no-data-text="Nenhuma categoria encontrada"
+                            >
+                                <template v-slot:item="{ props, item }">
+                                    <v-list-item 
+                                        v-bind="props" 
+                                        :prepend-icon="item.raw.icon"
+                                        :title="item.raw.title"
+                                    ></v-list-item>
+                                </template>
+
+                                <template v-slot:prepend-inner>
+                                    <v-icon 
+                                        v-if="form.categoria" 
+                                        :icon="categorias.find(c => c.title === form.categoria)?.icon || 'mdi-tag'" 
+                                        class="mr-2 text-medium-emphasis"
+                                    ></v-icon>
+                                </template>
+                            </v-autocomplete>
+                        </v-col>
         <v-col cols="12">
           <v-textarea v-model="form.descricao" label="Descrição" variant="outlined" rounded="lg" rows="2"></v-textarea>
         </v-col>
@@ -59,6 +86,8 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+import { categorias } from '../../../constants/categorias'
+
 const form = ref({
   tipo: 'despesa',
   valor: '',
@@ -67,7 +96,7 @@ const form = ref({
   descricao: ''
 })
 
-// Reset form when modal opens
+
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     form.value = {

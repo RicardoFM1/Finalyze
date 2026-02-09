@@ -15,8 +15,35 @@
           <v-text-field v-model="localForm.data" label="Data" type="date" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12">
-          <v-text-field v-model="localForm.categoria" label="Categoria" variant="outlined" rounded="lg" required></v-text-field>
-        </v-col>
+                            <v-autocomplete
+                                v-model="localForm.categoria"
+                                :items="categorias"
+                                item-title="title"
+                                item-value="title"
+                                label="Categoria"
+                                variant="outlined"
+                                rounded="lg"
+                                required
+                                placeholder="Selecione ou digite para filtrar"
+                                no-data-text="Nenhuma categoria encontrada"
+                            >
+                                <template v-slot:item="{ props, item }">
+                                    <v-list-item 
+                                        v-bind="props" 
+                                        :prepend-icon="item.raw.icon"
+                                        :title="item.raw.title"
+                                    ></v-list-item>
+                                </template>
+
+                                <template v-slot:prepend-inner>
+                                    <v-icon 
+                                        v-if="localForm.categoria" 
+                                        :icon="categorias.find(c => c.title === localForm.categoria)?.icon || 'mdi-tag'" 
+                                        class="mr-2 text-medium-emphasis"
+                                    ></v-icon>
+                                </template>
+                            </v-autocomplete>
+                        </v-col>
         <v-col cols="12">
           <v-textarea v-model="localForm.descricao" label="Descrição" variant="outlined" rounded="lg" rows="2"></v-textarea>
         </v-col>
@@ -44,6 +71,7 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { categorias } from '../../../constants/categorias'
 
 const props = defineProps({
   modelValue: Boolean,
