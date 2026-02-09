@@ -7,39 +7,61 @@ Route::post('/auth/register', [App\Http\Controllers\AuthController::class, 'regi
 Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login');
 
 
-Route::get('/plans', [App\Http\Controllers\PlanController::class, 'index']);
+Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [App\Http\Controllers\UserController::class, 'show']);
-    Route::put('/user', [App\Http\Controllers\UserController::class, 'update']);
-    Route::get('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'getLatestPreference']);
-    Route::post('/checkout/preference', [App\Http\Controllers\CheckoutController::class, 'createPreference']);
-    Route::post('/checkout/process_payment', [App\Http\Controllers\CheckoutController::class, 'processPayment']);
-    Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checkPaymentStatus']);
-    Route::post('/checkout/cancel-subscription', [App\Http\Controllers\CheckoutController::class, 'cancelSubscription']);
+    Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
+    Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
+    Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
+    Route::get('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'pegarUltimaPreferencia']);
+    Route::post('/checkout/preferencia', [App\Http\Controllers\CheckoutController::class, 'criarPreferencia']);
+    Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);
+    Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checarStatusPagamento']);
+    Route::put('/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
 
-    Route::get('/subscriptions', [App\Http\Controllers\SubscriptionController::class, 'index']);
-    Route::post('/subscriptions/toggle-auto-renew', [App\Http\Controllers\SubscriptionController::class, 'toggleAutoRenew']);
-    Route::post('/subscriptions/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel']);
+    Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
+    Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
+    Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
 
 
 
     Route::middleware('has_plan')->group(function () {
-        Route::get('/dashboard/summary', [App\Http\Controllers\DashboardController::class, 'summary']);
+        Route::get('/painel/resumo', [App\Http\Controllers\DashboardController::class, 'resumo']);
 
 
-        Route::apiResource('transactions', App\Http\Controllers\TransactionController::class);
+        Route::get('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'mostrar']);
+        Route::post('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'criar']);
+        Route::put('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'editar']);
+        Route::delete('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'deletar']);
 
 
-        Route::get('/reports/monthly', [App\Http\Controllers\ReportController::class, 'monthly']);
+        Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);
+
+        Route::middleware('check_resource:metas')->group(function () {
+            Route::get('/metas', [App\Http\Controllers\MetaController::class, 'index']);
+            Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
+            Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
+            Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+
+            Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
+            Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
+            Route::put('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
+            Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
+        });
     });
 
 
     Route::middleware('admin')->group(function () {
-        Route::get('/admin/plans', [App\Http\Controllers\PlanController::class, 'adminIndex']);
-        Route::post('/plans', [App\Http\Controllers\PlanController::class, 'store']);
-        Route::put('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'update']);
-        Route::delete('/plans/{plan}', [App\Http\Controllers\PlanController::class, 'destroy']);
+        Route::get('/admin/planos', [App\Http\Controllers\PlanController::class, 'adminIndex']);
+        Route::get('/admin/periodos', function () {
+            return \App\Models\Periodo::all();
+        });
+        Route::get('/admin/recursos', function () {
+            return \App\Models\Recurso::all();
+        });
+        Route::post('/planos', [App\Http\Controllers\PlanController::class, 'criar']);
+        Route::put('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'atualizar']);
+        Route::delete('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'destruir']);
     });
 });
 

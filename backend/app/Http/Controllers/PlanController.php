@@ -2,72 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Plano;
 use App\Http\Requests\StorePlanRequest;
 use App\Http\Requests\UpdatePlanRequest;
-use App\Models\Plan;
-use App\Models\User;
-use App\Models\Subscription;
+use App\Servicos\Planos\ListarPlanos;
+use App\Servicos\Planos\ListarPlanosAdmin;
+use App\Servicos\Planos\CriarPlano;
+use App\Servicos\Planos\MostrarPlano;
+use App\Servicos\Planos\AtualizarPlano;
+use App\Servicos\Planos\DeletarPlano;
+use Illuminate\Http\Request;
 
 class PlanController extends Controller
 {
-    public function index(Request $request)
+    public function index(ListarPlanos $servico)
     {
-
-        return Plan::where('is_active', true)->orderBy('created_at', 'desc')->get();
+        return $servico->executar();
     }
 
-    public function adminIndex()
+    public function adminIndex(ListarPlanosAdmin $servico)
     {
-        return Plan::orderBy('created_at', 'desc')->get();
+        return $servico->executar();
     }
 
-    public function store(StorePlanRequest $request)
+    public function criar(StorePlanRequest $request, CriarPlano $servico)
     {
-        $validated = $request->validated();
+        $plano = $servico->executar($request->validated());
 
-
-        return Plan::create($validated);
+        return response()->json([
+            'message' => 'Plano criado com sucesso!',
+            'id' => $plano->id
+        ], 201);
     }
 
-    public function show(Plan $plan)
+    public function mostrar(Plano $plano, MostrarPlano $servico)
     {
-        return $plan;
+        return $servico->executar($plano);
     }
 
-    public function update(UpdatePlanRequest $request, Plan $plan)
+    public function atualizar(UpdatePlanRequest $request, $plan, AtualizarPlano $servico)
     {
-        $validated = $request->validated();
-
-        if (isset($validated['is_active']) && !$validated['is_active']) {
-
-            $activeCount = Plan::where('is_active', true)->where('id', '!=', $plan->id)->count();
-            if ($activeCount < 2) {
-                return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
-            }
-        }
-
-        $plan->update($validated);
-        return $plan;
+        $servico->executar($plan, $request->validated());
+        return response()->json(['message' => 'Plano atualizado com sucesso!']);
     }
 
-    public function destroy(Plan $plan)
+    public function destruir(Plano $plano, DeletarPlano $servico)
     {
-        $activeCount = Plan::where('is_active', true)->where('id', '!=', $plan->id)->count();
-        if ($activeCount < 2) {
-            return response()->json(['message' => 'É necessário manter pelo menos 2 planos ativos.'], 422);
-        }
-
-        $hasUsers = User::where('plan_id', $plan->id)->exists();
-        $hasSubscriptions = Subscription::where('plan_id', $plan->id)->exists();
-
-        if ($hasUsers || $hasSubscriptions) {
+        try {
+            $servico->executar($plano);
+            return response()->json(['message' => 'Plano excluído com sucesso.'], 200);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Este plano não pode ser excluído pois possui usuários ou assinaturas vinculadas.'
-            ], 422);
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 422);
         }
-
-        $plan->delete();
-        return response()->noContent();
     }
 }

@@ -14,15 +14,18 @@ class CreatePreferenceRequest extends FormRequest
     public function rules()
     {
         return [
-            'plan_id' => 'required|exists:planos,id',
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id',
         ];
     }
 
     public function messages()
     {
         return [
-            'plan_id.required' => 'O ID do plano é obrigatório.',
-            'plan_id.exists' => 'O plano selecionado é inválido.',
+            'plano_id.required' => 'O ID do plano é obrigatório.',
+            'plano_id.exists' => 'O plano selecionado é inválido.',
+            'periodo_id.required' => 'O ID do período é obrigatório.',
+            'periodo_id.exists' => 'O período selecionado é inválido.',
         ];
     }
 }

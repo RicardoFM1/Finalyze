@@ -18,13 +18,15 @@
               </div>
               
               <v-form @submit.prevent="handleRegister" v-model="isValid">
-                 <v-text-field
-                  v-model="form.name"
+                <v-text-field
+                  v-model="form.nome"
                   :label="$t('register.name_label')"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
                   color="primary"
-                  :rules="[v => !!v || $t('register.rules.name_required')]"
+                  :rules="[v => !!v || $t('validation.required')]"
+                  :error-messages="errors.nome"
+                  @input="errors.nome = ''"
                 ></v-text-field>
 
                 <v-text-field
@@ -34,11 +36,13 @@
                   variant="outlined"
                   color="primary"
                   type="email"
-                  :rules="[v => !!v || $t('register.rules.email_required')]"
+                  :rules="[v => !!v || $t('validation.required')]"
+                  :error-messages="errors.email"
+                  @input="errors.email = ''"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="form.password"
+                  v-model="form.senha"
                   :label="$t('register.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
@@ -47,16 +51,44 @@
                   :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPass = !showPass"
                   :rules="passwordRules"
+                  :error-messages="errors.senha"
+                  @input="errors.senha = ''"
+                ></v-text-field>
+
+                  <v-text-field
+                    v-model="form.senha_confirmation"
+                    :label="$t('register.password_confirm_label')"
+                    prepend-inner-icon="mdi-lock-check"
+                    variant="outlined"
+                    color="primary"
+                    :type="showPass ? 'text' : 'password'"
+                    :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
+                    :error-messages="errors.senha_confirmation"
+                    @input="errors.senha_confirmation = ''"
+                  ></v-text-field>
+
+                <v-text-field
+                  v-model="form.cpf"
+                  :label="$t('profile.labels.cpf')"
+                  prepend-inner-icon="mdi-card-account-details"
+                  variant="outlined"
+                  color="primary"
+                  @input="handleCpfInput"
+                  maxlength="14"
+                  :rules="[v => !!v || $t('validation.required'), validateCPF]"
+                  :error-messages="errors.cpf"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="form.password_confirmation"
-                  :label="$t('register.password_confirm_label')"
-                  prepend-inner-icon="mdi-lock-check"
+                  v-model="form.data_nascimento"
+                  :label="$t('profile.labels.birthdate')"
+                  prepend-inner-icon="mdi-calendar"
                   variant="outlined"
                   color="primary"
-                  type="password"
-                  :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.password || $t('register.rules.passwords_match')]"
+                  type="date"
+                  :rules="[v => !!v || $t('validation.required'), validateAge]"
+                  :error-messages="errors.data_nascimento"
+                  @input="errors.data_nascimento = ''"
                 ></v-text-field>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
@@ -74,18 +106,17 @@
                   {{ $t('register.btn_submit') }}
                 </v-btn>
               </v-form>
-              <v-btn
-              block
-              color="green"
-              size="x-large"
-              type="button"
-              class="mb-4 font-weight-bold"
-              elevation="4"
-              @click="router.push('/')"
-              >
-                {{ $t('register.btn_home') }}
-              </v-btn>
-
+               <v-btn
+                  block
+                  color="green"
+                  size="x-large"
+                  type="button"
+                  class="mb-4 font-weight-bold"
+                  elevation="4"
+                  @click="router.push({ name: 'Home' })"
+                >
+                  {{ $t('register.btn_home') }}
+                </v-btn>
               <div class="text-center">
                 <span class="text-body-2 text-medium-emphasis"> {{ $t('register.has_account_text') }} </span>
                 <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">{{ $t('register.login_link') }}</router-link>
@@ -102,31 +133,81 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
 const form = ref({
-  name: '',
+  nome: '',
   email: '',
-  password: '',
-  password_confirmation: ''
+  senha: '',
+  senha_confirmation: '',
+  cpf: '',
+  data_nascimento: ''
 })
 
 const showPass = ref(false)
 const loading = ref(false)
 const isValid = ref(false)
 const error = ref('')
+const errors = ref({})
 
 const passwordRules = [
-  v => !!v || $t('register.rules.pass_required'),
-  v => v.length >= 8 || 'Mínimo 8 caracteres',
-  v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
-  v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',
-  v => /[0-9]/.test(v) || 'Deve conter um número',
-  v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
+  v => !!v || t('register.rules.pass_required'),
+  v => v.length >= 8 || t('register.rules.min_chars', { count: 8 }),
+  v => /[A-Z]/.test(v) || t('register.rules.uppercase'),
+  v => /[a-z]/.test(v) || t('register.rules.lowercase'),
+  v => /[0-9]/.test(v) || t('register.rules.number'),
+  v => /[^A-Za-z0-9]/.test(v) || t('register.rules.special_char')
 ]
+
+const validateAge = (v) => {
+  if (!v) return true
+  const birth = new Date(v)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age >= 18 || t('validation.age_restriction')
+}
+
+const validateCPF = (v) => {
+    if (!v) return true
+    
+    
+    const cpf = v.replace(/\D/g, '')
+    
+    if (cpf.length !== 11) {
+        return t('validation.cpf_invalid')
+    }
+
+    if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
+
+    let sum = 0
+    let remainder
+
+    for (let i = 1; i <= 9; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
+    remainder = (sum * 10) % 11
+    
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
+
+    sum = 0
+    for (let i = 1; i <= 10; i++) 
+        sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
+    remainder = (sum * 10) % 11
+
+    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
+
+    return true
+}
 
 const handleRegister = async () => {
   if (!isValid.value) return 
@@ -135,14 +216,28 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
-    await authStore.register(form.value.name, form.value.email, form.value.password, form.value.password_confirmation)
-    toast.success("Cadastro realizado com sucesso! Faça login para continuar.")
-    router.push('/login')
+    console.log('Dados do formulário:', form.value)
+    const cleanCpf = form.value.cpf.replace(/\D/g, '')
+    await authStore.register(
+      form.value.nome, 
+      form.value.email, 
+      form.value.senha, 
+      form.value.senha_confirmation,
+      cleanCpf,
+      form.value.data_nascimento
+    )
+    toast.success(t('toasts.register_success'))
+    router.push({ name: 'Login' })
   } catch (err) {
-    error.value = err.message || 'Erro ao cadastrar'
-  
-    if (err.response && err.response.data && err.response.data.errors) {
-         error.value = Object.values(err.response.data.errors).flat().join('\n');
+    if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
+        
+        errors.value = Object.keys(err.response.data.errors).reduce((acc, key) => {
+            acc[key] = err.response.data.errors[key][0]
+            return acc
+        }, {})
+        error.value = t('toasts.check_errors')
+    } else {
+        error.value = err.message || t('toasts.register_error')
     }
     toast.error(error.value)
   } finally {
@@ -151,12 +246,31 @@ const handleRegister = async () => {
 }
 
 const buttonDesativado = computed(() => 
-form.value.name === '' 
+form.value.nome === '' 
 || form.value.email === '' 
-|| form.value.password === '' 
-|| form.value.password_confirmation === '' 
-|| form.value.password !== form.value.password_confirmation
+|| form.value.senha === '' 
+|| form.value.senha_confirmation === '' 
+|| form.value.cpf === ''
+|| form.value.data_nascimento === ''
+|| form.value.senha !== form.value.senha_confirmation
 || !isValid.value
 )
 
+const handleCpfInput = (event) => {
+  errors.value.cpf = ''
+  formatCPF(event)
+}
+
+const formatCPF = (event) => {
+  let value = event.target.value.replace(/\D/g, '')
+  if (value.length > 11) value = value.substring(0, 11)
+  if (value.length > 9) {
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  } else if (value.length > 6) {
+    value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3')
+  } else if (value.length > 3) {
+    value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2')
+  }
+  form.value.cpf = value
+}
 </script>

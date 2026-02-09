@@ -15,45 +15,39 @@
         :key="plan.id"
         cols="12"
         sm="10"
-        md="4"
-        lg="3"
-        class="d-flex justify-center mb-8 px-md-4"
+        md="6"
+        lg="4"
+        class="d-flex justify-center px-md-4 "
         :style="{ animationDelay: (index * 0.1) + 's' }"
       >
-        <PlanCard :plan="plan" :is-featured="index === 1" @select="handleSelectPlan" />
+        <PlanCard :plan="plan" :is-featured="index === 1" class="plan-card" :disabled="checkingPreference" @select="handleSelectPlan" />
       </v-col>
     </v-row>
 
-    <v-dialog v-model="showPendingDialog" persistent max-width="500">
-      <v-card class="rounded-xl pa-4">
-        <v-card-title class="text-h5 font-weight-bold text-center">
-            Pagamento Pendente Encontrado
-        </v-card-title>
-        <v-card-text class="text-body-1 text-center py-4">
-          Você já iniciou o pagamento para o plano <strong>{{ pendingPlanName }}</strong>. 
-          Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?
-        </v-card-text>
-        <v-card-actions class="justify-center gap-4">
+    <ModalBase v-model="showPendingDialog" :title="$t('plans.pending_title')" maxWidth="500px" persistent>
+        <p class="text-body-1 text-center mb-4">
+          {{ $t('plans.pending_desc', { plan: pendingPlanName }) }}
+        </p>
+        <template #actions>
           <v-btn
             variant="outlined"
             color="error"
             class="rounded-lg px-6"
             :loading="cancelling"
-            @click="cancelSubscription"
+            @click="cancelarPagamento"
           >
-            Cancelar Anterior
+            {{ $t('plans.cancel_prev') }}
           </v-btn>
           <v-btn
             variant="flat"
             color="primary"
-            class="rounded-lg px-6"
+            class="rounded-lg px-6 ml-4"
             @click="continuePayment"
           >
-            Continuar Pagamento
+            {{ $t('plans.continue') }}
           </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </template>
+    </ModalBase>
   </v-container>
 </template>
 
@@ -63,71 +57,77 @@ import { useRouter } from 'vue-router'
 import PlanCard from '../components/PlanCard.vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
+import ModalBase from '../components/Modals/modalBase.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
 const loading = ref(true)
+const checkingPreference = ref(false)
 const showPendingDialog = ref(false)
 const pendingPlanName = ref('')
 const cancelling = ref(false)
 const currentSubscription = ref(null)
 
 onMounted(async () => {
-  
-
-  if (router.currentRoute.value.query.msg === 'no_plan') {
-    toast.warning('Você precisa de um plano ativo para acessar essa área. Escolha um plano abaixo!')
-  }
-  
   try {
-    const plansResponse = await authStore.apiFetch('/plans')
-    plans.value = await plansResponse.json()
-
-    if (authStore.isAuthenticated) {
-        const prefResponse = await authStore.apiFetch('/checkout/preference')
-        if (prefResponse.ok) {
-            const data = await prefResponse.json()
-            if (data.id && data.plan) {
-                currentSubscription.value = data
-                pendingPlanName.value = data.plan.name
-                showPendingDialog.value = true
-            }
-        }
+    const plansResponse = await authStore.apiFetch('/planos')
+    if (plansResponse.ok) {
+        plans.value = await plansResponse.json()
     }
   } catch (error) {
-    console.error('Erro ao buscar dados:', error)
+    console.error('Erro ao buscar planos:', error)
   } finally {
     loading.value = false
   }
 
+  if (authStore.isAuthenticated) {
+    checkingPreference.value = true
+    try {
+        const prefResponse = await authStore.apiFetch('/checkout/preferencia')
+        if (prefResponse.ok) {
+            const data = await prefResponse.json()
+            if (data.id && data.plano) {
+                currentSubscription.value = data
+                pendingPlanName.value = data.plano.nome
+                showPendingDialog.value = true
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao buscar preferência:', e)
+    } finally {
+        checkingPreference.value = false
+    }
+  }
+
 })
 
-const handleSelectPlan = (plan) => {
-  if (authStore.isAuthenticated) {
-      router.push({ path: '/pagamento' })
-  } else {
-      router.push({ path: '/login', query: { redirect: 'pagamento', plan: plan.id } })
-  }
+const handleSelectPlan = ({ plan, period }) => {
+    router.push({ 
+        name: 'Checkout', 
+        query: { plan: plan.id, period: period.id } 
+    })
 }
 
 const continuePayment = () => {
-    router.push('/pagamento')
+    router.push({ name: 'Checkout' })
 }
 
-const cancelSubscription = async () => {
+const cancelarPagamento = async () => {
     try {
         cancelling.value = true
-        const response = await authStore.apiFetch('/checkout/cancel-subscription', {
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
             method: 'POST'
         })
         if (response.ok) {
-            toast.success('Assinatura anterior cancelada.')
+            toast.success(t('plans.toast_cancel_success'))
             showPendingDialog.value = false
             currentSubscription.value = null
         }
     } catch (e) {
-        toast.error('Erro ao cancelar assinatura.')
+        toast.error(t('plans.toast_cancel_error'))
     } finally {
         cancelling.value = false
     }
@@ -168,6 +168,16 @@ const cancelSubscription = async () => {
   opacity: 0;
   transform: translateY(40px);
   animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.plan-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+
+.plan-card.featured {
+  transform: scale(1.05);
 }
 
 @media (max-width: 600px) {

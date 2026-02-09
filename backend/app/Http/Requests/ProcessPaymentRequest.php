@@ -17,6 +17,8 @@ class ProcessPaymentRequest extends FormRequest
             'transaction_amount' => 'required|numeric',
             'payment_method_id' => 'required|string',
             'token' => 'nullable|string',
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id',
             'description' => 'nullable|string',
             'installments' => 'nullable|integer',
             'issuer_id' => 'nullable|integer',

@@ -26,7 +26,7 @@
                 <v-text-field
                 class="mb-1 mb-md-2"
                   density="compact"
-                  v-model="form.password"
+                  v-model="form.senha"
                   :label="$t('login.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
@@ -61,7 +61,7 @@
                   type="button"
                   class="mt-3 py-2 py-md-4 text-body-2 text-md-body-1"
                   elevation="4"
-                  @click="router.push('/')"
+                  @click="router.push({ name: 'Home' })"
                 >
                   {{ $t('login.btn_back_home') }}
                 </v-btn>
@@ -89,15 +89,17 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
   email: '',
-  password: ''
+  senha: ''
 })
 
 const loading = ref(false)
@@ -111,30 +113,45 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
-    await authStore.login(form.value.email, form.value.password)
+    await authStore.login(form.value.email, form.value.senha)
     
-      toast.success("Login realizado com sucesso!")
+      toast.success(t('toasts.login_success'))
     
     
-    const redirectPath = route.query.redirect || '/painel'
+    const redirectName = route.query.redirect || 'Dashboard'
     const planId = route.query.plan
     
-  
+    // If redirectName starts with /, remove it (legacy support if query comes from old code)
+    const finalName = typeof redirectName === 'string' && redirectName.startsWith('/') 
+        ? redirectName.substring(1).charAt(0).toUpperCase() + redirectName.substring(2)
+        : redirectName;
+
+    // Mapping common paths to names if they somehow end up in the query
+    const nameMap = {
+        'painel': 'Dashboard',
+        'planos': 'Plans',
+        'perfil': 'Profile',
+        'lancamentos': 'Lancamentos',
+        'relatorios': 'Reports'
+    };
+    
+    const targetName = nameMap[finalName.toLowerCase()] || finalName;
+    
     if (planId) {
-        router.push({ path: '/' + redirectPath, query: { plan: planId } })
+        router.push({ name: targetName, query: { plan: planId } })
     } else {
-        router.push(redirectPath)
+        router.push({ name: targetName })
     }
     
   } catch (err) {
-    toast.error(err.message || 'Erro ao fazer login')
+    toast.error(err.message || t('toasts.login_error'))
   } finally {
     loading.value = false
   }
 }
 const buttonDesativado = computed(() => 
   form.value.email === '' || 
-  form.value.password === '' || 
+  form.value.senha === '' || 
   !isValid.value
 )
 </script>

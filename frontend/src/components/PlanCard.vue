@@ -13,35 +13,78 @@
     </div>
 
     <v-card-item class="pt-8 pb-4 text-center">
-      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.name }}</v-card-title>
+      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.nome }}</v-card-title>
+      
+   
+      <div v-if="plan.periodos.length" class="text-center my-3">
+        <div class="text-caption text-medium-emphasis mb-2 font-weight-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem !important;">
+          Período
+        </div>
+        
+        <v-chip-group
+          v-model="selectedPeriodId"
+          mandatory
+          selected-class="bg-primary text-white"
+          class="justify-center"
+          column
+        >
+          <v-chip
+            v-for="periodo in plan.periodos"
+            :key="periodo.id"
+            :value="periodo.id"
+            variant="outlined"
+            filter
+            class="ma-1 font-weight-bold"
+          
+            size="small"
+            style="border-color: rgba(var(--v-theme-primary), 0.2);"
+          >
+            {{ periodo.nome }}
+          </v-chip>
+        </v-chip-group>
+      </div>
+
       <div class="price-container my-4">
         <span class="currency">R$</span>
-        <span class="price-integer">{{ Math.floor(plan.price_cents / 100) }}</span>
-        <span class="price-decimal">,{{ (plan.price_cents % 100).toString().padStart(2, '0') }}</span>
-        <span class="interval text-medium-emphasis">/mês</span>
+        <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
+        <span class="price-decimal">,{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+        <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
-      <v-card-subtitle class="description-text px-4" v-html="plan.description"></v-card-subtitle>
+      
+      <v-chip 
+        v-if="currentDiscount > 0" 
+        color="success" 
+        variant="flat" 
+        size="small" 
+        class="mb-3 font-weight-bold"
+      >
+        <v-icon start size="small">mdi-tag</v-icon>
+        {{ currentDiscount }}% de desconto
+      </v-chip>
+      
+      <v-card-subtitle class="description-text px-4" v-html="plan.descricao"></v-card-subtitle>
     </v-card-item>
 
     <v-card-text class="px-6">
       <v-divider class="mb-6 opacity-20"></v-divider>
       <v-list density="comfortable" class="bg-transparent pa-0">
         <v-list-item 
-          v-for="(feature, i) in plan.features" 
-          :key="i" 
+          v-for="feature in plan.recursos" 
+          :key="feature.id" 
           class="px-0 py-1"
           min-height="32"
         >
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature }}</span>
+          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.nome }}</span>
         </v-list-item>
       </v-list>
     </v-card-text>
 
     <v-card-actions class="pa-6 pt-2">
       <v-btn
+        :disabled="disabled"
         :loading="loadingEscolher"
         :color="isCurrentPlan ? 'success' : (isFeatured ? 'primary' : 'primary')"
         variant="flat"
@@ -62,6 +105,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 const router = useRouter()
+const authStore = useAuthStore()
 const props = defineProps({
   plan: {
     type: Object,
@@ -70,42 +114,53 @@ const props = defineProps({
   isFeatured: {
     type: Boolean,
     default: false
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
-defineEmits(['select'])
+const selectedPeriodId = ref(props.plan.periodos?.[1]?.id || props.plan.periodos?.[0]?.id)
+const selectedPeriod = computed(() => {
+    return props.plan.periodos.find(p => p.id === selectedPeriodId.value)
+})
 
-const loadingEscolher = ref(false)
-const authStore = useAuthStore()
-const preferenceId = ref(null)
+const currentPrice = computed(() => {
+    return selectedPeriod.value?.pivot?.valor_centavos || 0
+})
+
+const selectedPeriodSlug = computed(() => {
+    const slug = selectedPeriod.value?.slug || 'mensal' || 'weekly'
+    const periodText = {
+        'semanal': 'sem',
+        'mensal': 'mês',
+        'trimestral': 'tri',
+        'anual': 'ano'
+    }
+    return periodText[slug] || 'mês'
+})
+
+const currentDiscount = computed(() => {
+    return selectedPeriod.value?.pivot?.percentual_desconto || 0
+})
 
 const isCurrentPlan = computed(() => {
-    return authStore.user?.plan_id === props.plan.id
+    return authStore.user?.plano_id === props.plan.id
 })
 
 const buttonText = computed(() => {
     if (isCurrentPlan.value) return 'Renovar / Estender'
-    if (authStore.user?.plan_id) return 'Mudar para ' + props.plan.name
-    return 'Escolher ' + props.plan.name
+    if (authStore.user?.plano_id) return 'Mudar para ' + props.plan.nome
+    return 'Escolher ' + props.plan.nome
 })
-const clickEscolha = async () => {
-try {
-  loadingEscolher.value = true
-        const response = await authStore.apiFetch('/checkout/preference', {
-            method: 'POST',
-            body: JSON.stringify({
-                plan_id: props.plan.id
-            })
-        })
-        const data = await response.json()
-        preferenceId.value = data.id
-        if (response.ok){
-          router.push({ path: '/pagamento' })
-        }
-    } catch (e) {
-        console.error('Erro ao criar preferência:', e)
-    }finally{
-      loadingEscolher.value = false 
-    }
+
+const emit = defineEmits(['select'])
+
+const clickEscolha = () => {
+    emit('select', { 
+        plan: props.plan, 
+        period: selectedPeriod.value 
+    })
 }
 
 const formatPrice = (value) => {
@@ -189,11 +244,11 @@ const formatPrice = (value) => {
 
 .description-text {
   font-size: 0.9rem;
-  line-height: 1.4;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 1.5;
+  min-height: 48px;
+  display: block;
+  text-align: center;
+  white-space: normal;
 }
 
 .action-btn {

@@ -1,89 +1,113 @@
 <template>
   <v-layout>
     <v-app-bar color="primary" elevation="2">
-      <v-toolbar-title class="font-weight-bold" style="cursor: pointer" @click="$router.push('/')">
-        <v-icon icon="mdi-chart-pie" class="mr-2"></v-icon>
-        Finalyze
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <div class="d-flex align-center">
-        <template v-if="!authStore.isAuthenticated">
-          <Coinselector />
-          <LanguageSelector />
-            <v-btn to="/planos" variant="text" color="white" class="mx-1 text-none font-weight-medium">{{ $t('landing.btn_plans') }}</v-btn>
-            <v-btn to="/login" variant="elevated" color="white" class="ml-2 mr-2 text-none font-weight-bold text-primary">
-            {{ $t('landing.btn_login') }}
-            </v-btn>
-        </template>
-        
-      </div>
-    </v-app-bar>
+       <v-app-bar-nav-icon
+  v-if="authStore.isAuthenticated"
+  @click="toggleDrawer"
+  class="mr-2"
+  variant="text"
+/>
+  <v-toolbar-title
+    class="font-weight-bold app-title"
+    style="cursor: pointer"
+    @click="$router.push({ name: 'Home' })"
+  >
+    <v-icon icon="mdi-chart-pie" class="mr-2" />
+    Finalyze
+  </v-toolbar-title>
+
+  <v-spacer />
+
+    <Coinselector />
+    <LanguageSelector />
+    
+    <template v-if="!authStore.isAuthenticated">
+        <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
+          {{ $t('landing.btn_plans') }}
+        </v-btn>
+
+        <v-btn
+          :to="{ name: 'Login' }"
+          variant="elevated"
+          color="white"
+          class="ml-2 mr-2 font-weight-bold text-primary text-none"
+        >
+          {{ $t('landing.btn_login') }}
+        </v-btn>
+    </template>
+</v-app-bar>
 
 
     <v-navigation-drawer
-  v-if="authStore.isAuthenticated"
+  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
   v-model="drawer"
   :rail="isDesktop && rail"
   :permanent="isDesktop"
   :temporary="!isDesktop"
   class="animated-drawer"
   elevation="6"
->           <v-list>
-            <v-list-item 
-                v-if="authStore.user"
-                :prepend-avatar="authStore.user.avatar ? 'http://localhost:8000/storage/' + authStore.user.avatar : undefined"
-                :prepend-icon="!authStore.user.avatar ? 'mdi-account-circle' : undefined"
-                :title="authStore.user.name"
-                :subtitle="authStore.user.email"
-            ></v-list-item>
+>
+        <v-list>
+            <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
+                <template v-slot:prepend>
+                    <v-avatar color="primary-lighten-4" size="40">
+                        <v-img
+                            v-if="authStore.user.avatar"
+                            :src="'http://localhost:8000/storage/' + authStore.user.avatar"
+                            cover
+                        ></v-img>
+                        <span v-else class="text-caption font-weight-bold text-primary">
+                            {{ getInitials(authStore.user.nome) }}
+                        </span>
+                    </v-avatar>
+                </template>
+            </v-list-item>
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
-           <v-list-item prepend-icon="mdi-home" title="Página inicial"to="/" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" title="Painel" to="/painel"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" to="/lancamentos"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin' ||  authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" title="Relatórios" to="/relatorios"></v-list-item>
-            <v-list-item prepend-icon="mdi-account" title="Perfil" to="/perfil"></v-list-item>
-            <v-list-item v-if="authStore.user?.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" to="/admin"></v-list-item>
-            <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" to="/planos"></v-list-item>
-            <v-list-item  color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" title="Sair"></v-list-item>
+           <v-list-item prepend-icon="mdi-home" :title="$t('sidebar.home')" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" :title="$t('sidebar.dashboard')" :to="{ name: 'Dashboard' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" :title="$t('sidebar.transactions')" :to="{ name: 'Lancamentos' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" :title="$t('sidebar.goals')" :to="{ name: 'Metas' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" :title="$t('sidebar.reports')" :to="{ name: 'Reports' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item prepend-icon="mdi-account" :title="$t('sidebar.profile')" :to="{ name: 'Profile' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.user?.admin" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item prepend-icon="mdi-tag-text-outline" :title="$t('sidebar.plans')" :to="{ name: 'Plans' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" :title="$t('sidebar.logout')"></v-list-item>
         </v-list>
 
         
     </v-navigation-drawer>
 
-    <v-dialog v-model="confirmLogout" max-width="400" persistent transition="dialog-bottom-transition">
-        <v-card class="rounded-xl pa-4" elevation="10" style="backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9);">
-            <div class="text-center mb-4">
-                <v-avatar color="error-lighten-4" size="70" class="mb-2">
-                    <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
-                </v-avatar>
-                <h3 class="text-h5 font-weight-bold">{{ $t('features.DS') }}</h3>
-                <p class="text-body-1 text-medium-emphasis">{{ $t('features.VDS') }}</p>
-            </div>
-            
-            <v-card-actions class="justify-center gap-2">
-                <v-btn 
-                    variant="text" 
-                    class="px-6 text-none font-weight-bold" 
-                    rounded="lg"
-                    @click="confirmLogout = false"
-                >
-                    {{ $t('features.stay_new') }}
-                </v-btn>
-                <v-btn 
-                    color="error" 
-                    variant="elevated" 
-                    class="px-8 text-none font-weight-bold" 
-                    elevation="2"
-                    rounded="lg"
-                    @click="handleLogout"
-                >
-                    {{ $t('features.leave_new') }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+    <ModalBase v-model="confirmLogout" :title="$t('features.DS')" maxWidth="400px" persistent>
+        <div class="text-center mb-4">
+            <v-avatar color="error-lighten-4" size="70" class="mb-2">
+                <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
+            </v-avatar>
+            <p class="text-body-1 text-medium-emphasis">{{ $t('features.VDS') }}</p>
+        </div>
+        
+        <template #actions>
+            <v-btn 
+                variant="text" 
+                class="px-6 text-none font-weight-bold" 
+                rounded="lg"
+                @click="confirmLogout = false"
+            >
+                {{ $t('features.stay_new') }}
+            </v-btn>
+            <v-btn 
+                color="error" 
+                variant="elevated" 
+                class="px-8 text-none font-weight-bold ml-2" 
+                elevation="2"
+                rounded="lg"
+                @click="handleLogout"
+            >
+                {{ $t('features.leave_new') }}
+            </v-btn>
+        </template>
+    </ModalBase>
 
     <v-main>
       <router-view></router-view>
@@ -93,13 +117,15 @@
 
 <script setup>
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
-import { ref, computed, watch} from 'vue'
-import { useDisplay} from 'vuetify'
+import { useRouter,useRoute } from 'vue-router'
+import { ref, computed, watch } from 'vue'
+import { useDisplay } from 'vuetify'
+import ModalBase from '../components/Modals/modalBase.vue'
 import LanguageSelector from './Language/LanguageSelector.vue'
 import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
+const uiAuthStore = useUiStore()
 const router = useRouter()
 const confirmLogout = ref(false)
 
@@ -119,11 +145,12 @@ const toggleDrawer = () => {
 }
 
 const isAuthPage = computed(() => {
-  return route.path === '/login' || route.path === '/cadastro'
+  return route.name === 'Login' || route.name === 'Register'
 })
 
 
 import { onMounted } from 'vue'
+import { useUiStore } from '../stores/ui'
 onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUser()
@@ -133,8 +160,14 @@ onMounted(async () => {
 const handleLogout = () => {
     confirmLogout.value = false
     authStore.logout()
-    router.push('/login')
+    router.push({ name: 'Home' })
 }
+
+const getInitials = (name) => {
+    if (!name) return ''
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+}
+
 onMounted(() => {
   if (isDesktop.value) {
     drawer.value = true

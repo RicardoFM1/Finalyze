@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Usuario;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,17 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $this->call([
-            PlanSeeder::class,
+            SubscriptionDataSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Admin User',
+        Usuario::factory()->create([
+            'nome' => 'Admin User',
             'email' => 'admin@admin.com',
-            'password' => bcrypt('password'),
-            'role' => 'admin'
+            'senha' => bcrypt('password'),
+            'eh_admin' => true
         ]);
     }
 }

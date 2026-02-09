@@ -1,295 +1,151 @@
 <template>
   <v-container>
-    <h1 class="text-h4 font-weight-bold mb-4">
-      {{ $t('admin.title') }}
-    </h1>
+    <div class="d-flex align-center mb-6">
+        <v-icon icon="mdi-shield-crown" color="primary" size="32" class="mr-3"></v-icon>
+        <h1 class="text-h4 font-weight-bold">{{ $t('admin.header') }}</h1>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog()" elevation="2">{{ $t('admin.new_plan_btn') }}</v-btn>
+    </div>
 
-    <v-card>
-      <v-toolbar color="primary" density="compact">
-        <v-toolbar-title>{{ $t('admin.subtitle') }}</v-toolbar-title>
-        <v-spacer />
-        <v-btn icon="mdi-plus" @click="openDialog()" />
-      </v-toolbar>
-
-      <v-table>
-        <thead>
-          <tr>
-            <th class="text-left">{{ $t('admin.name') }}</th>
-            <th class="text-left">{{ $t('admin.price') }}</th>
-            <th class="text-left">{{ $t('admin.duration') }}</th>
-            <th class="text-left">{{ $t('admin.actions') }}</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr v-if="loadingPlans">
-            <td colspan="4" class="text-center">
-              <v-progress-linear indeterminate color="primary" />
-            </td>
-          </tr>
-
-          <tr v-for="item in plans" :key="item.id">
-            <td>{{ item.name }}</td>
-            <td>{{ formatPrice(item.price) }}</td>
-            <td>{{ $t(`admin.intervals.${item.interval}`) }}</td>
-            <td>
-              <v-btn
-                icon="mdi-pencil"
-                size="small"
-                variant="text"
-                color="info"
-                @click="openDialog(item)"
-              />
-              <v-btn
-                icon="mdi-delete"
-                size="small"
-                variant="text"
-                color="error"
-                @click="confirmDelete(item)"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
+    <v-card class="rounded-xl overflow-hidden" elevation="4">
+        <v-table hover>
+            <thead>
+                <tr class="bg-grey-lighten-4">
+                    <th class="text-left font-weight-bold">{{ $t('admin.name') }}</th>
+                    <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
+                    <th class="text-left font-weight-bold">{{ $t('admin.features') }}</th>
+                    <th class="text-left font-weight-bold">{{ $t('admin.active_prices') }}</th>
+                    <th class="text-left font-weight-bold">{{ $t('admin.actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-if="loadingPlans">
+                    <td colspan="5" class="text-center py-10">
+                        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    </td>
+                </tr>
+                <tr v-else v-for="item in plans" :key="item.id">
+                    <td>
+                        <div class="font-weight-bold text-body-1">{{ item.nome }}</div>
+                        <div class="text-caption text-medium-emphasis" style="white-space: pre-wrap; word-break: break-word; max-width: 350px; line-height: 1.4;">{{ item.descricao }}</div>
+                    </td>
+                    <td>
+                        <v-chip :color="item.ativo ? 'success' : 'grey'" size="small" variant="flat">
+                            {{ item.ativo ? $t('profile.active') : $t('profile.inactive') }}
+                        </v-chip>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1 align-center">
+                            <v-chip v-for="rec in item.recursos.slice(0, 2)" :key="rec.id" size="x-small" color="secondary" variant="outlined">
+                                {{ rec.nome }}
+                            </v-chip>
+                            
+                            <v-tooltip v-if="item.recursos.length > 2" location="top" open-on-click>
+                                <template v-slot:activator="{ props }">
+                                    <v-chip v-bind="props" size="x-small" color="secondary" variant="flat" class="cursor-pointer">
+                                        +{{ item.recursos.length - 2 }}
+                                    </v-chip>
+                                </template>
+                                <div class="d-flex flex-column pa-2">
+                                    <span class="text-caption font-weight-bold mb-1">{{ $t('admin.all_features') }}</span>
+                                    <span v-for="rec in item.recursos" :key="rec.id" class="text-caption">• {{ rec.nome }}</span>
+                                </div>
+                            </v-tooltip>
+                            <span v-if="!item.recursos || item.recursos.length === 0" class="text-caption text-disabled">-</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            <v-chip v-for="p in item.periodos" :key="p.id" size="x-small" variant="outlined" color="primary">
+                                {{ p.nome }}: {{ formatPrice(p.pivot.valor_centavos / 100) }}
+                            </v-chip>
+                        </div>
+                    </td>
+                    <td>
+                        <v-btn icon="mdi-pencil" size="small" variant="text" color="info" @click="openDialog(item)"></v-btn>
+                        <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="confirmDelete(item)"></v-btn>
+                    </td>
+                </tr>
+            </tbody>
+        </v-table>
     </v-card>
 
-    <!-- MODAL CREATE / EDIT -->
-    <v-dialog v-model="dialog" max-width="500px">
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ form.id ? $t('admin.editPlan') : $t('admin.newPlan') }}
-        </v-card-title>
+    <ModalPlano 
+      v-model="dialog" 
+      :plano="itemAEditar" 
+      :dbPeriods="dbPeriods" 
+      :dbFeatures="dbFeatures" 
+      @saved="fetchPlans" 
+    />
 
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.name"
-                :label="$t('admin.form.name')"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="form.price"
-                :label="$t('admin.form.price')"
-                :prefix="currencyPrefix"
-                type="number"
-                step="0.01"
-                />
-
-            </v-col>
-
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="form.interval"
-                :items="intervalOptions"
-                :label="$t('admin.form.interval')"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.max_transactions"
-                type="number"
-                :label="$t('admin.form.maxTransactions')"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-textarea
-                v-model="form.description"
-                rows="2"
-                :label="$t('admin.form.description')"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-label>{{ $t('admin.form.features') }}</v-label>
-              <v-row dense>
-                <v-col
-                  cols="6"
-                  v-for="feat in availableFeatures"
-                  :key="feat"
-                >
-                  <v-checkbox
-                    v-model="form.features"
-                    :label="$t(`features.${feat}`)"
-                    :value="feat"
-                    density="compact"
-                    hide-details
-                  />
-                </v-col>
-              </v-row>
-            </v-col>
-
-            <v-col cols="12">
-              <v-switch
-                v-model="form.is_active"
-                color="success"
-                hide-details
-                :label="$t('admin.form.active')"
-              />
-            </v-col>
-          </v-row>
-
-          <v-overlay :model-value="saving" class="align-center justify-center">
-            <v-progress-circular indeterminate color="white" />
-          </v-overlay>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeDialog">
-            {{ $t('common.cancel') }}
-          </v-btn>
-          <v-btn
-            variant="text"
-            :loading="loadingSalvar"
-            @click="savePlan"
-          >
-            {{ $t('common.save') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- DELETE -->
-    <v-dialog v-model="deleteDialog" max-width="400px">
-      <v-card>
-        <v-card-title class="text-h5">
-          {{ $t('admin.deleteTitle') }}
-        </v-card-title>
-
-        <v-card-text>
-          {{ $t('admin.deleteConfirm') }}
-          <strong>{{ planToDelete?.name }}</strong>?
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">
-            {{ $t('common.cancel') }}
-          </v-btn>
-          <v-btn color="error" variant="text" @click="deletePlan">
-            {{ $t('common.delete') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ModalExcluirPlano 
+      v-model="deleteDialog" 
+      :plano="planToDelete" 
+      @deleted="fetchPlans" 
+    />
   </v-container>
 </template>
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue3-toastify'
-import { useCurrencyStore } from '../stores/currency'
+import ModalPlano from '../components/Modals/Admin/ModalPlano.vue'
+import ModalExcluirPlano from '../components/Modals/Admin/ModalExcluirPlano.vue'
 
 const authStore = useAuthStore()
-const currencyStore = useCurrencyStore()
+
 
 const plans = ref([])
+const dbPeriods = ref([])
+const dbFeatures = ref([])
 const dialog = ref(false)
 const deleteDialog = ref(false)
+const loadingPlans = ref(false)
+const itemAEditar = ref(null)
 const planToDelete = ref(null)
 
-const loadingPlans = ref(false)
-const loadingSalvar = ref(false)
-const saving = ref(false)
 
-const intervalOptions = ['month', 'year']
-
-const availableFeatures = [
-  'dashboard',
-  'transactions',
-  'reports',
-  'csv_export',
-  'ai_support'
-]
-
-const form = ref({
-  id: null,
-  name: '',
-  price: 0,
-  interval: 'month',
-  max_transactions: 100,
-  description: '',
-  features: [],
-  is_active: true
+onMounted(async () => {
+    fetchBaseData()
+    fetchPlans()
 })
 
-onMounted(fetchPlans)
-
-async function fetchPlans () {
-  loadingPlans.value = true
-  try {
-    const res = await authStore.apiFetch('/plans')
-    plans.value = await res.json()
-  } finally {
-    loadingPlans.value = false
-  }
-}
-
-function formatPrice (value) {
-  const currency =  currencyStore.currency
-
-  const localMap = {
-    BRL: 'pt-BR',
-    USD: 'en-US'
-  }
-
-  return new Intl.NumberFormat(localMap[currency], {
-    style: 'currency',
-    currency,
-  }).format(value)
-  }
-
-  const currencyPrefix = computed(()=>{
-    return currencyStore.currency === 'BRL' ? 'R$ ' : '$ '
-  })
-
-function openDialog (item = null) {
-  form.value = item
-    ? { ...item, features: item.features || [], is_active: !!item.is_active }
-    : { ...form.value, id: null }
-  dialog.value = true
-}
-
-function closeDialog () {
-  dialog.value = false
-}
-
-async function savePlan () {
-  const isEdit = !!form.value.id
-  loadingSalvar.value = true
-
-  const res = await authStore.apiFetch(
-    isEdit ? `/plans/${form.value.id}` : '/plans',
-    {
-      method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(form.value)
+const fetchBaseData = async () => {
+    try {
+        const periodsRes = await authStore.apiFetch('/admin/periodos')
+        dbPeriods.value = await periodsRes.json()
+        
+        const featuresRes = await authStore.apiFetch('/admin/recursos')
+        dbFeatures.value = await featuresRes.json()
+    } catch (e) {
+        console.error(e)
     }
-  )
-
-  if (res.ok) {
-    toast.success(isEdit ? 'Updated successfully' : 'Created successfully')
-    fetchPlans()
-    closeDialog()
-  }
-
-  loadingSalvar.value = false
 }
 
-function confirmDelete (item) {
-  planToDelete.value = item
-  deleteDialog.value = true
+const fetchPlans = async () => {
+    try {
+        loadingPlans.value = true
+        const response = await authStore.apiFetch('/admin/planos')
+        plans.value = await response.json()
+    } catch (e) {
+        console.error(e)
+    } finally {
+        loadingPlans.value = false
+    }   
 }
 
-async function deletePlan () {
-  await authStore.apiFetch(`/plans/${planToDelete.value.id}`, {
-    method: 'DELETE'
-  })
-  fetchPlans()
-  deleteDialog.value = false
+
+const openDialog = (item = null) => {
+    itemAEditar.value = item
+    dialog.value = true
 }
+
+const confirmDelete = (item) => {
+    planToDelete.value = item
+    deleteDialog.value = true
+}
+
+const formatPrice = (value) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
 </script>

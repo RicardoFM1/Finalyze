@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Servicos\Metas;
+
+use Illuminate\Support\Facades\Auth;
+
+class ListarMetas
+{
+    public function executar()
+    {
+        $usuario = Auth::user();
+
+        $receita = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
+        $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
+        $saldo = (float)($receita - $despesa);
+
+        $metas = $usuario->metas()->latest()->get();
+
+        $metas->map(function ($meta) use ($saldo) {
+            if ($meta->tipo === 'financeira') {
+                $meta->valor_atual = $saldo;
+            }
+            return $meta;
+        });
+
+        return $metas;
+    }
+}

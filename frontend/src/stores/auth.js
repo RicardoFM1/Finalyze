@@ -34,13 +34,20 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (response.status === 401) {
                 logout();
-                router.push('/login');
+
+                if (router.currentRoute.value.name !== 'Login' &&
+                    router.currentRoute.value.name !== 'Register' &&
+                    router.currentRoute.value.name !== 'Checkout') {
+                    router.push({ name: 'Login' });
+                }
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Sessão expirada. Faça login novamente.');
             }
 
             if (response.status === 403) {
-                router.push('/planos');
+                if (router.currentRoute.value.name !== 'Plans') {
+                    router.push({ name: 'Plans' });
+                }
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Acesso negado. Verifique seu plano.');
             }
@@ -52,11 +59,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function login(email, password) {
+    async function login(email, senha) {
         try {
             const response = await apiFetch('/auth/login', {
                 method: 'POST',
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, senha })
             });
 
             const data = await response.json();
@@ -64,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (!response.ok) throw new Error(data.message || 'Falha no login');
 
             token.value = data.access_token;
-            user.value = data.user;
+            user.value = data.usuario;
             localStorage.setItem('token', token.value);
 
 
@@ -75,19 +82,16 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function register(name, email, password, password_confirmation) {
+    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento) {
         try {
             const response = await apiFetch('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ name, email, password, password_confirmation })
+                body: JSON.stringify({ nome, email, senha, senha_confirmation: password_confirmation, cpf, data_nascimento })
             });
 
             const data = await response.json();
 
             if (!response.ok) throw new Error(data.message || 'Falha no cadastro (verifique senhas ou email)');
-
-            token.value = data.access_token;
-            localStorage.setItem('token', token.value);
 
             await fetchUser();
 
@@ -101,7 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function fetchUser() {
         if (!token.value) return;
         try {
-            const response = await apiFetch('/user');
+            const response = await apiFetch('/usuario');
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
@@ -119,12 +123,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     }
 
-    function hasFeature(featureName) {
-        if (user.value?.role === 'admin') return true;
+    function hasFeature(featureSlug) {
+        if (user.value?.admin) return true;
 
+        if (!user.value?.plano?.recursos) return false;
 
-        const features = user.value?.plan?.features || [];
-        return features.includes(featureName);
+        const features = user.value.plano.recursos;
+        return features.some(f => f.slug === featureSlug || f.nome === featureSlug);
     }
 
     return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };

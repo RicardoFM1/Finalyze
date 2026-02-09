@@ -15,8 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'has_plan' => \App\Http\Middleware\EnsureUserHasPlan::class,
             'admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'check_resource' => \App\Http\Middleware\CheckResource::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions): void {})->create();

@@ -2,63 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Servicos\Assinaturas\ObterDadosAssinatura;
+use App\Servicos\Assinaturas\AlternarRenovacaoAutomatica;
+use App\Servicos\Assinaturas\CancelarAssinatura;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function index()
+    public function index(ObterDadosAssinatura $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
-            ->where('status', '!=', 'pending')
-            ->latest()
-            ->first();
-
-        $history = \App\Models\Billing::where('user_id', $user->id)
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'subscription' => $subscription,
-            'history' => $history
-        ]);
+        return response()->json($servico->executar());
     }
 
-    public function toggleAutoRenew(Request $request)
+    public function ativarAutoRenovacao(Request $request, AlternarRenovacaoAutomatica $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$subscription) {
-            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada'], 404);
+        try {
+            $servico->executar((bool)$request->active);
+            return response()->json(['message' => 'Configuração de renovação atualizada']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode() ?: 404);
         }
-
-        $subscription->update([
-            'auto_renew' => !(bool)$subscription->auto_renew
-        ]);
-
-        return response()->json(['message' => 'Renovação automática atualizada', 'auto_renew' => $subscription->auto_renew]);
     }
 
-    public function cancel(Request $request)
+    public function cancelar(CancelarAssinatura $servico)
     {
-        $user = auth()->user();
-        $subscription = \App\Models\Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$subscription) {
-            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada'], 404);
+        try {
+            $servico->executar();
+            return response()->json(['message' => 'Assinatura cancelada. Você terá acesso até o fim do período atual.']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode() ?: 404);
         }
-
-        $subscription->update([
-            'status' => 'cancelled',
-            'auto_renew' => false
-        ]);
-
-        return response()->json(['message' => 'Assinatura cancelada. Você terá acesso até o fim do período atual.']);
     }
 }
