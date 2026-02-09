@@ -2,11 +2,16 @@
   <v-layout>
     <v-app-bar color="primary" elevation="2">
        <v-app-bar-nav-icon
-  v-if="authStore.isAuthenticated"
+  v-if="
+    authStore.isAuthenticated &&
+    uiAuthStore.loading === false &&
+    !isAuthPage
+  "
   @click="toggleDrawer"
   class="mr-2"
   variant="text"
 />
+
   <v-toolbar-title
     class="font-weight-bold app-title"
     style="cursor: pointer"
@@ -39,7 +44,11 @@
 
 
     <v-navigation-drawer
-  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
+  v-if="
+    authStore.isAuthenticated &&
+    uiAuthStore.loading === false &&
+    !isAuthPage
+  "
   v-model="drawer"
   :rail="isDesktop && rail"
   :permanent="isDesktop"
@@ -47,6 +56,7 @@
   class="animated-drawer"
   elevation="6"
 >
+
         <v-list>
             <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
                 <template v-slot:prepend>
@@ -116,10 +126,12 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '../stores/auth'
-import { useRouter,useRoute } from 'vue-router'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
+import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
+
 import ModalBase from '../components/Modals/modalBase.vue'
 import LanguageSelector from './Language/LanguageSelector.vue'
 import Coinselector from './Currency/Coinselector.vue'
@@ -127,12 +139,18 @@ import Coinselector from './Currency/Coinselector.vue'
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
 const router = useRouter()
-const confirmLogout = ref(false)
+const route = useRoute()
 
+const confirmLogout = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
+
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
+
+const isAuthPage = computed(() =>
+  ['Login', 'Register'].includes(route.name)
+)
 
 const toggleDrawer = () => {
   if (isDesktop.value) {
@@ -144,47 +162,38 @@ const toggleDrawer = () => {
   }
 }
 
-const isAuthPage = computed(() => {
-  return route.name === 'Login' || route.name === 'Register'
-})
-
-
-import { onMounted } from 'vue'
-import { useUiStore } from '../stores/ui'
-onMounted(async () => {
-    if (authStore.isAuthenticated) {
-        await authStore.fetchUser()
-    }
-})
-
 const handleLogout = () => {
-    confirmLogout.value = false
-    authStore.logout()
-    router.push({ name: 'Home' })
+  confirmLogout.value = false
+  authStore.logout()
+  router.push({ name: 'Home' })
 }
 
 const getInitials = (name) => {
-    if (!name) return ''
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase()
 }
 
-onMounted(() => {
-  if (isDesktop.value) {
-    drawer.value = true
-    rail.value = false
+
+onMounted(async () => {
+  if (authStore.isAuthenticated && !authStore.user) {
+    await authStore.fetchUser();
+  }
+  if (isDesktop.value && authStore.isAuthenticated) {
+    drawer.value = true;
   }
 })
 
 watch(isDesktop, (desktop) => {
-  if (desktop) {
-    drawer.value = true
-    rail.value = false
-  } else {
-    drawer.value = false
-    rail.value = false
-  }
+  drawer.value = desktop && authStore.isAuthenticated
+  rail.value = false
 })
 </script>
+
 
 <style scoped>
 

@@ -114,35 +114,8 @@ const handleLogin = async () => {
   
   try {
     await authStore.login(form.value.email, form.value.senha)
-    
-      toast.success(t('toasts.login_success'))
-    
-    
-    const redirectName = route.query.redirect || 'Dashboard'
-    const planId = route.query.plan
-    
-  
-    const finalName = typeof redirectName === 'string' && redirectName.startsWith('/') 
-        ? redirectName.substring(1).charAt(0).toUpperCase() + redirectName.substring(2)
-        : redirectName;
-
-   
-    const nameMap = {
-        'painel': 'Dashboard',
-        'planos': 'Plans',
-        'perfil': 'Profile',
-        'lancamentos': 'Lancamentos',
-        'relatorios': 'Reports'
-    };
-    
-    const targetName = nameMap[finalName.toLowerCase()] || finalName;
-    
-    if (planId) {
-        router.push({ name: targetName, query: { plan: planId } })
-    } else {
-        router.push({ name: targetName })
-    }
-    
+    toast.success(t('toasts.login_success'))
+    router.push({ name: 'Home' })
   } catch (err) {
     toast.error(err.message || t('toasts.login_error'))
   } finally {

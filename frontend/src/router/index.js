@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { toast } from 'vue3-toastify'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -36,25 +37,25 @@ const router = createRouter({
       path: '/painel',
       name: 'Dashboard',
       component: () => import('@/views/Dashboard.vue'),
-      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Dashboard' }
+      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'painel-financeiro' }
     },
     {
       path: '/lancamentos',
       name: 'Lancamentos',
       component: () => import('@/views/Lancamentos.vue'),
-      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Lançamentos' }
+      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'lancamentos' }
     },
     {
       path: '/metas',
       name: 'Metas',
       component: () => import('@/views/Metas.vue'),
-      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Metas' }
+      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'metas' }
     },
     {
       path: '/relatorios',
       name: 'Reports',
       component: () => import('@/views/Reports.vue'),
-      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'Relatórios Gráficos' }
+      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'relatorios-graficos' }
     },
     {
       path: '/perfil',
@@ -86,18 +87,23 @@ router.beforeEach((to) => {
     return { name: 'Login' }
   }
 
+  // Always allow admin users
+  if (auth.user?.admin) {
+    return true;
+  }
+
   if (to.meta.requiresAdmin && !auth.user?.admin) {
-    ui.notify('Acesso restrito para administradores')
+    toast.error('Acesso restrito para administradores')
     return { name: 'Dashboard' }
   }
 
   if (to.meta.requiresPlan && !auth.hasActivePlan) {
-    ui.notify('Seu plano não permite acessar essa funcionalidade')
+    toast.error('Seu plano não permite acessar essa funcionalidade')
     return { name: 'Plans' }
   }
 
   if (to.meta.requiresFeature && !auth.hasFeature(to.meta.requiresFeature)) {
-    ui.notify('Funcionalidade não disponível no seu plano')
+    toast.error('Funcionalidade não disponível no seu plano')
     return { name: 'Dashboard' }
   }
 })
