@@ -4,43 +4,37 @@
       <v-col cols="12" md="8" lg="6" xl="4">
         <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
           <v-row no-gutters>
-             <v-col cols="12" md="7" class="pa-4 pa-md-8">
-              <div class="text-center mb-4 mb-md-8">
-               <h2 class="text-h6 text-md-h4 font-weight-bold text-primary">
-                Bem-vindo(a)
-              </h2>
-
-               <p class="text-body-2 text-md-body-1 text-medium-emphasis">
-                Entre para acessar suas finanças
-              </p>
-
+             <v-col cols="12" md="7" class="pa-8">
+              <div class="text-center mb-8">
+                <h2 class="text-h4 font-weight-bold text-primary">{{ $t('auth.join_us_title') }}</h2>
+                <p class="text-medium-emphasis">{{ $t('auth.join_us_subtitle') }}</p>
               </div>
               
               <v-form @submit.prevent="handleLogin" v-model="isValid">
                 <v-text-field
                   density="compact"
                   v-model="form.email"
-                  label="E-mail"
-                  :prepend-inner-icon="showIcon ? 'mdi-email' : ''"
+                  :label="$t('login.email_label')"
+                  prepend-inner-icon="mdi-email"
                   variant="outlined"
                   color="primary"
                   type="email"
-                  class="mb-1 mb-md-2"
-                  :rules="[v => !!v || 'E-mail é obrigatório']"
+                  class="mb-2"
+                  :rules="[v => !!v || $t('login.rules.email_required')]"
                 ></v-text-field>
 
                 <v-text-field
                 class="mb-1 mb-md-2"
                   density="compact"
                   v-model="form.senha"
-                  label="Senha"
+                  :label="$t('login.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
                   color="primary"
                   :type="showPass ? 'text' : 'password'"
                   :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPass = !showPass"
-                  :rules="[v => !!v || 'Senha é obrigatória']"
+                  :rules="[v => !!v || $t('login.rules.password_required')]"
                 ></v-text-field>
 
                
@@ -58,7 +52,7 @@
                   elevation="4"
                   :disabled="buttonDesativado"
                 >
-                  Entrar
+                  {{ $t('login.btn_login') }}
                 </v-btn>
               </v-form>
                <v-btn
@@ -69,19 +63,19 @@
                   elevation="4"
                   @click="router.push({ name: 'Home' })"
                 >
-                  Página inicial
+                  {{ $t('login.btn_back_home') }}
                 </v-btn>
 
-              <div class="text-center mt-3 mt-md-6">
-                <span class="text-caption text-md-body-2 text-medium-emphasis">Novo por aqui? </span>
-                <router-link to="/cadastro" class="text-caption text-md-body-2 text-primary font-weight-bold text-decoration-none">Criar Conta</router-link>
+              <div class="text-center">
+                <span class="text-body-2 text-medium-emphasis">{{ $t('login.has_account_text') }} </span>
+                <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none">{{ $t('login.login_link') }}</router-link>
               </div>
             </v-col>
             <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
               <div class="text-center">
                 <v-icon size="80" color="white" class="mb-6">mdi-chart-pie</v-icon>
-                <h2 class="text-h4 font-weight-bold text-white mb-2">Finalyze</h2>
-                <p class="text-white text-opacity-75">Sua vida financeira na palma da mão.</p>
+                <h2 class="text-h4 font-weight-bold text-white mb-2">{{ $t('landing.hero_title') }}</h2>
+                <p class="text-white text-opacity-75">{{ $t('landing.hero_subtitle') }}</p>
               </div>
             </v-col>
           </v-row>

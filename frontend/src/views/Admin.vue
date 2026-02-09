@@ -64,14 +64,15 @@
     />
   </v-container>
 </template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import ModalPlano from '../components/Modals/Admin/ModalPlano.vue'
 import ModalExcluirPlano from '../components/Modals/Admin/ModalExcluirPlano.vue'
 
 const authStore = useAuthStore()
+const currencyStore = useCurrencyStore()
+
 const plans = ref([])
 const dbPeriods = ref([])
 const dbFeatures = ref([])
@@ -125,4 +126,5 @@ const confirmDelete = (item) => {
 const formatPrice = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
+
 </script>

@@ -1,0 +1,192 @@
+{
+  "landing": {
+    "hero_title": "Master Your Finances with Finalyze",
+    "hero_subtitle": "Track expenses, monitor income, and achieve your financial goals with our intuitive platform.",
+    "btn_plans": "View Plans",
+    "btn_login": "Login",
+    "btn_dashboard": "Go To Dashboard",
+    "btn_admin": "Admin Panel",
+    "select_language": "Select Language",
+    "select_currency": "Select Currency",
+    "why_title": "Why Finalyze?",
+    "features": {
+      "analysis_title": "Intelligent Analysis",
+      "analysis_text": "Visualize your spending habits with detailed charts and reports.",
+      "security_title": "Total Security",
+      "security_text": "Your financial data is encrypted and protected with bank-level security.",
+      "goals_title": "Financial Goals",
+      "goals_text": "Define financial goals and track your progress automatically.",
+      "DS": "Do you want to log out?",
+      "VDS":"You will need to log in again to access your data."
+    }
+  },
+
+  "auth": {
+    "join_us_title": "Join Us",
+    "join_us_subtitle": "Start your journey to financial freedom today."
+  },
+
+  "login": {
+    "email_label": "E-mail",
+    "password_label": "Password",
+    "btn_login": "Login",
+    "btn_back_home": "Back to Home",
+    "has_account_text": "Already have an account?",
+    "login_link": "Login",
+
+    "rules": {
+      "email_required": "E-mail is required",
+      "password_required": "Password is required"
+    }
+  },
+
+  "plans": {
+    "title": "Simple and Transparent Prices",
+    "subtitle": "Choose the plan that adapts to your financial goals"
+},
+
+"transactions": {
+  "title": "Transactions",
+  "new": "New Transaction",
+
+  "table": {
+    "date": "Date",
+    "description": "Description",
+    "category": "Category",
+    "type": "Type",
+    "amount": "Amount"
+  },
+
+  "type": {
+    "income": "Income",
+    "expense": "Expense"
+  }
+},
+
+  "profile": {
+  "title": "Profile Details",
+  "name_label": "Full Name",
+  "email_label": "E-mail",
+  "btn_update": "Save Changes",
+  "signature": "Signature",
+  "current_plan": "Current Plan: {plan}",
+  "status": "Status: {status}",
+  "btn_upgrade": "UPGRADE / CHANGE PLAN",
+
+  "free": "Free",
+  "active": "Active",
+  "inactive": "Inactive",
+
+  "toast_success": "Profile updated!",
+  "toast_error": "Error updating profile",
+  "toast_connection_error": "Connection error"
+},
+
+"reports": {
+  "title": "Financial Reports",
+  "subtitle": "Income vs Expenses (Last 6 months)"
+},
+
+"admin": {
+  "title": "Plans",
+  "subtitle": "Manage subscription plans",
+  "name": "Name",
+  "price": "Price",
+  "duration": "Duration",
+  "actions": "Actions",
+
+  "newPlan": "New Plan",
+  "editPlan": "Edit Plan",
+
+  "deleteTitle": "Confirm Deletion",
+  "deleteConfirm": "Are you sure you want to delete this plan?",
+
+  "intervals": {
+    "month": "Monthly",
+    "year": "Annual"
+  },
+
+"form": {
+  "name": "plan name",
+  "price": "Price",
+  "interval": "Billing Interval",
+  "maxTransactions": "Maximum Transactions",
+  "description": "Description",
+  "features": "Features",
+  "active": "Plan Active"
+}
+},
+
+"features": {
+  "dashboard": "Dashboard",
+  "pe": "Overview of your financial health",
+  "RE": "Recent Expenses", 
+  "DS": "Dashboard Summary",
+  "transactions": "Transactions",
+  "reports": "View Reports",
+  "csv_export": "CSV Export",
+  "ai_support": "AI Support Chat",
+  "balance": "Balance",
+  "Ne": "No recent activity",
+  "PPE": "Pending Payment Found",
+  "VEIP": "You have already started the payment for the {pendingPlanName} plan",
+  "continue_or_cancel": "Do you want to continue from where you left off or cancel this payment to choose a new plan?",
+  "cancel_previous": "Cancel Previous",
+  "continue_payment": "Continue Payment",
+  "leave_new":"Leave Now"
+
+},
+
+"common": {
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete"
+},
+
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Fill in your details below",
+    "name_label": "Full Name",
+    "email_label": "E-mail",
+    "password_label": "Password",
+    "password_confirm_label": "Confirm Password",
+    "btn_submit": "Register",
+    "btn_home": "Home Page",
+    "has_account_text": "Already have an account?",
+    "login_link": "Login",
+    "error_register_generic": "Error during registration. Please try again.",
+
+    "rules": {
+      "required": "{field} is required",
+      "min_chars": "Minimum {count} characters",
+      "uppercase": "Must contain an uppercase letter",
+      "lowercase": "Must contain a lowercase letter",
+      "number": "Must contain a number",
+      "special_char": "Must contain a special character (!@#$%...)",
+      "passwords_match": "Passwords do not match",
+      "name_required": "Name is required",
+      "email_required": "E-mail is required",
+      "pass_required": "Password is required",
+      "confirm_required": "Confirmation is required"
+    },
+
+    "toast_success": "Registration completed successfully! Please log in to continue."
+  },
+
+  "checkout": {
+    "title": "Complete Your Subscription",
+    "subtitle": "You are subscribing to the {planName} plan",
+    "Gen_pagament": "Generating payment...",
+    "title_assinatura": "Subscription Plan ${planName}",
+    "quantity": "Quantity",
+    "unit_price": "Unit Price",
+    "total": "Total"
+  },
+
+  
+  "NotFound": {
+    "title": "404",
+    "p": "Page not found",
+    "btn_home": "Voltar para Home"
+  }
+}

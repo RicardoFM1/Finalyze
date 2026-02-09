@@ -33,7 +33,7 @@
                     <div class="icon-circle success-circle">
                       <v-icon icon="mdi-trending-up" color="success" size="24"></v-icon>
                     </div>
-                    <span class="text-overline font-weight-bold opacity-70">RECEITAS</span>
+                    <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
                 <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.receita) }}</div>
                 <div class="text-subtitle-2 opacity-80">Entradas totais do mês</div>
@@ -48,7 +48,7 @@
                     <div class="icon-circle error-circle">
                       <v-icon icon="mdi-trending-down" color="error" size="24"></v-icon>
                     </div>
-                    <span class="text-overline font-weight-bold opacity-70">DESPESAS</span>
+                    <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
                 <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.despesa) }}</div>
                 <div class="text-subtitle-2 opacity-80">Saindo do seu bolso</div>
@@ -63,7 +63,7 @@
                     <div class="icon-circle info-circle">
                       <v-icon icon="mdi-wallet-outline" color="primary" size="24"></v-icon>
                     </div>
-                    <span class="text-overline font-weight-bold opacity-70">SALDO LÍQUIDO</span>
+                    <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} (Líquido)</span>
                 </div>
                 <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.saldo) }}</div>
                 <div class="text-subtitle-2 opacity-80">Patrimônio livre hoje</div>
@@ -151,7 +151,7 @@
               </v-list-item>
               <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-10 text-medium-emphasis">
                   <v-icon icon="mdi-history" size="64" class="mb-4 opacity-10"></v-icon>
-                  <p class="text-h6 font-weight-medium">Sem lançamentos recentes.</p>
+                  <p class="text-h6 font-weight-medium">{{ $t('features.Ne') }}</p>
               </div>
            </v-list>
         </v-card>
@@ -209,7 +209,6 @@
     </v-row>
 
     <ModalNovoLancamento v-model="dialog" @saved="fetchSummary" />
-    
   </v-container>
 </template>
 

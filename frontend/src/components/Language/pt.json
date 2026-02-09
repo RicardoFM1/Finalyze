@@ -1,0 +1,193 @@
+{
+  "landing": {
+    "hero_title": "Domine suas Finanças com Finalyze",
+    "hero_subtitle": "Acompanhe despesas, monitore receitas e alcance seus objetivos financeiros com nossa plataforma intuitiva.",
+    "btn_plans": "Ver Planos",
+    "btn_login": "Entrar",
+    "btn_dashboard": "Ir para Painel",
+    "btn_admin": "Painel Admin",
+    "select_language": "Selecionar Idioma",
+    "select_currency": "Selecionar Moeda",
+
+    "why_title": "Por que Finalyze?",
+    "features": {
+      "analysis_title": "Análise Inteligente",
+      "analysis_text": "Visualize seus hábitos de consumo com gráficos e relatórios detalhados.",
+      "security_title": "Segurança Total",
+      "security_text": "Seus dados financeiros são criptografados e protegidos com segurança de nível bancário.",
+      "goals_title": "Metas Financeiras",
+      "goals_text": "Defina metas financeiras e acompanhe seu progresso automaticamente.",
+      "DS": "Deseja sair?",
+      "VDS":"Você precisará fazer login novamente para acessar seus dados."
+    }
+  },
+
+  "auth": {
+    "join_us_title": "Junte-se a nós",
+    "join_us_subtitle": "Comece sua jornada para a liberdade financeira hoje mesmo."
+  },
+
+  "login": {
+    "email_label": "E-mail",
+    "password_label": "Senha",
+    "btn_login": "Entrar",
+    "btn_back_home": "Página inicial",
+    "has_account_text": "Já tem uma conta?",
+    "login_link": "Entrar",
+
+    "rules": {
+      "email_required": "E-mail é obrigatório",
+      "password_required": "Senha é obrigatória"
+    }
+  },
+
+  "plans": {
+    "title": "Preços Simples e Transparentes",
+    "subtitle": "Escolha o plano que se adapta aos seus objetivos financeiros"
+},
+
+"transactions": {
+  "title": "Lançamentos",
+  "new": "Novo Lançamento",
+
+  "table": {
+    "date": "Data",
+    "description": "Descrição",
+    "category": "Categoria",
+    "type": "Tipo",
+    "amount": "Valor"
+  },
+
+  "type": {
+    "income": "Receita",
+    "expense": "Despesa"
+  }
+},
+
+  "profile": {
+  "title": "Detalhes do Perfil",
+  "name_label": "Nome Completo",
+  "email_label": "E-mail",
+  "btn_update": "Salvar Alterações",
+  "signature": "Assinatura",
+  "current_plan": "Plano Atual: {plan}",
+  "status": "Status: {status}",
+  "btn_upgrade": "UPGRADE / MUDAR PLANO",
+
+  "free": "Gratuito",
+  "active": "Ativo",
+  "inactive": "Inativo",
+
+  "toast_success": "Perfil atualizado!",
+  "toast_error": "Erro ao atualizar",
+  "toast_connection_error": "Erro de conexão"
+},
+
+"reports": {
+  "title": "Relatórios Financeiros",
+  "subtitle": "Receitas vs Despesas (Últimos 6 meses)"
+},
+
+"admin": {
+  "title": "Planos",
+  "subtitle": "Gerenciar planos de assinatura",
+  "name": "Nome",
+  "price": "Preço",
+  "duration": "Duração",
+  "actions": "Ações",
+
+  "newPlan": "Novo Plano",
+  "editPlan": "Editar Plano",
+
+  "deleteTitle": "Confirmar exclusão",
+  "deleteConfirm": "Tem certeza que deseja excluir o plano",
+
+  "intervals": {
+    "month": "Mensal",
+    "year": "Anual"
+  },
+
+"form": {
+  "name": "Nome do plano",
+  "price": "Preço",
+  "interval": "Intervalo de cobrança",
+  "maxTransactions": "Transações máximas",
+  "description": "Descrição",
+  "features": "Recursos",
+  "active": "Plano ativo"
+}
+},
+
+"features": {
+  "dashboard": "Painel",
+  "pe": "Visão geral da sua saúde financeira",
+  "RE": "Receitas", 
+  "DS": "Despesas",
+  "transactions": "Transações",
+  "reports": "Ver Relatórios",
+  "csv_export": "Exportação CSV",
+  "ai_support": "Chat de suporte IA",
+  "balance": "Saldo",
+  "Ne": "Nenhuma atividade recente",
+  "PPE": "Pagamento Pendente Encontrado",
+  "VEIP": "Você já iniciou o pagamento para o plano {pendingPlanName}",
+  "continue_or_cancel": "Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?",
+  "cancel_previous": "Cancelar Anterior",
+  "continue_payment": "Continuar Pagamento",
+  "leave_new":"Sair agora"
+
+},
+
+"common": {
+  "save": "Salvar",
+  "cancel": "Cancelar",
+  "delete": "Deletar"
+},
+
+  "register": {
+    "title": "Criar Conta",
+    "subtitle": "Preencha seus dados abaixo",
+    "name_label": "Nome Completo",
+    "email_label": "E-mail",
+    "password_label": "Senha",
+    "password_confirm_label": "Confirmar Senha",
+    "btn_submit": "Cadastrar",
+    "btn_home": "Página inicial",
+    "has_account_text": "Já tem uma conta?",
+    "login_link": "Entrar",
+    "error_register_generic": "Erro ao cadastrar",
+
+    "rules": {
+      "required": "{field} é obrigatório",
+      "min_chars": "Mínimo {count} caracteres",
+      "uppercase": "Deve conter uma letra maiúscula",
+      "lowercase": "Deve conter uma letra minúscula",
+      "number": "Deve conter um número",
+      "special_char": "Deve conter um caractere especial (!@#$%...)",
+      "passwords_match": "As senhas não coincidem",
+      "name_required": "Nome é obrigatório",
+      "email_required": "E-mail é obrigatório",
+      "pass_required": "Senha é obrigatória",
+      "confirm_required": "Confirmação é obrigatória"
+    },
+
+    "toast_success": "Cadastro realizado com sucesso! Faça login para continuar."
+  },
+
+  "checkout": {
+    "title": "Complete sua Assinatura",
+    "subtitle": "Você está assinando o plano {planName}",
+    "Gen_pagament": "Gerando pagamento...",
+    "title_assinatura": "Assinatura Plano ${planName}",
+    "quantity": "Quantidade",
+    "unit_price": "Preço Unitário",
+    "total": "Total"
+  },
+
+  
+  "NotFound": {
+    "title": "404",
+    "p": "Página não encontrada",
+    "btn_home": "Voltar para Home'"
+  }
+}

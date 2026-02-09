@@ -1,8 +1,10 @@
 <template>
-  <v-container class="py-8">
-    <div class="mb-8 pl-4 border-left-lg">
-      <h1 class="text-h4 font-weight-black mb-1">Meu Perfil</h1>
-      <p class="text-subtitle-1 text-medium-emphasis">Gerencie suas informações, plano e histórico de pagamentos.</p>
+  <v-container>
+
+
+    <div class="d-flex align-center mb-6">
+        <v-icon icon="mdi-account-circle" color="primary" size="32" class="mr-3"></v-icon>
+        <h1 class="text-h4 font-weight-bold">{{ $t('profile.title') }}</h1>
     </div>
 
     <v-card class="rounded-xl overflow-hidden" elevation="3">
@@ -15,22 +17,22 @@
       >
         <v-tab value="personal" class="text-none">
           <v-icon start icon="mdi-account-circle" class="mr-2"></v-icon>
-          Dados Pessoais
+          {{ $t('profile.tabs.personal') }}
         </v-tab>
         <v-tab value="assinatura" class="text-none">
           <v-icon start icon="mdi-star-circle" class="mr-2"></v-icon>
-          Minha Assinatura
+          {{ $t('profile.tabs.subscription') }}
         </v-tab>
         <v-tab value="historico" class="text-none">
           <v-icon start icon="mdi-receipt" class="mr-2"></v-icon>
-          Histórico Financeiro
+          {{ $t('profile.tabs.history') }}
         </v-tab>
       </v-tabs>
 
       <v-window v-model="activeTab">
         <div v-if="loadingUser && activeTab === 'personal'" class="text-center py-10 d-flex flex-column align-center">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          Carregando seu lindo perfil...
+          {{ $t('profile.loading') }}
         </div>
           <v-window-item v-if="!loadingUser" value="personal">
           <v-row class="pa-6 pa-md-10">
@@ -64,7 +66,7 @@
                 variant="flat"
                 class="font-weight-bold"
               >
-                {{ user.admin ? 'ADMINISTRADOR' : 'CLIENTE' }}
+                {{ user.admin ? $t('profile.roles.admin') : $t('profile.roles.client') }}
               </v-chip>
             </v-col>
 
@@ -74,7 +76,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="user.nome"
-                      label="Nome Completo"
+                      :label="$t('profile.name_label')"
                       variant="outlined"
                       bg-color="grey-lighten-4"
                       rounded="lg"
@@ -84,7 +86,7 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="user.email"
-                      label="Endereço de E-mail"
+                      :label="$t('profile.email_label')"
                       variant="outlined"
                       bg-color="grey-lighten-4"
                       rounded="lg"
@@ -94,7 +96,7 @@
                   <v-col cols="12" md="6">
                     <v-text-field
                       v-model="user.cpf"
-                      label="CPF"
+                      :label="$t('profile.labels.cpf')"
                       variant="outlined"
                       bg-color="grey-lighten-4"
                       rounded="lg"
@@ -107,7 +109,7 @@
                   <v-col cols="12" md="6">
                     <v-text-field
                       v-model="user.data_nascimento"
-                      label="Data de Nascimento"
+                      :label="$t('profile.labels.birthdate')"
                       type="date"
                       variant="outlined"
                       bg-color="grey-lighten-4"
@@ -126,7 +128,7 @@
                     class="px-8 font-weight-bold"
                     :loading="saving"
                   >
-                    Salvar Alterações
+                    {{ $t('profile.btn_update') }}
                   </v-btn>
                 </div>
               </v-form>
@@ -142,16 +144,15 @@
             
             <div v-else-if="!hasActiveOrValidSubscription" class="text-center py-10 no-plan-empty">
               <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
-              <h3 class="text-h5 mt-4">Nenhum plano ativo</h3>
-              <p class="text-medium-emphasis mb-6">Você ainda não assinou nenhum de nossos planos financeiros.</p>
-              <v-btn color="primary" :to="{ name: 'Plans' }" size="large" rounded="xl">Ver Planos Agora</v-btn>
+              <h3 class="text-h5 mt-4">{{ $t('profile.subscription.no_active') }}</h3>
+              <p class="text-medium-emphasis mb-6">{{ $t('profile.subscription.no_active_desc') }}</p>
+              <v-btn color="primary" :to="{ name: 'Plans' }" size="large" rounded="xl">{{ $t('profile.subscription.view_plans') }}</v-btn>
             </div>
 
-            <div v-else>
-              <v-row>
+            <v-row v-else>
                 <v-col cols="12" md="5">
                   <v-card class="plan-hero-card rounded-xl pa-6 text-white" elevation="6">
-                    <div class="text-overline mb-2 opacity-80">PLANO ATUAL</div>
+                    <div class="text-overline mb-2 opacity-80">{{ $t('profile.subscription.current') }}</div>
                     <div class="text-h4 font-weight-black mb-4">
                         {{ user.plano?.nome }}
                         <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData.assinatura.periodo">
@@ -162,7 +163,7 @@
                     <div class="d-flex align-center mb-6">
                       <v-badge
                         :color="subscriptionData.assinatura.status === 'active' ? 'success' : 'warning'"
-                        :content="subscriptionData.assinatura.status === 'active' ? 'Ativo' : 'Cancelado'"
+                        :content="subscriptionData.assinatura.status === 'active' ? $t('profile.active') : $t('profile.inactive')"
                         inline
                       ></v-badge>
                     </div>
@@ -181,19 +182,19 @@
                     </div>
 
                     <v-btn block color="white" variant="flat" class="text-primary font-weight-bold" :to="{ name: 'Plans' }" rounded="lg">
-                      Mudar de Plano
+                      {{ $t('profile.subscription.change') }}
                     </v-btn>
                   </v-card>
                 </v-col>
 
                 <v-col cols="12" md="7">
                   <v-card class="rounded-xl pa-6 border" elevation="0">
-                    <h3 class="text-h6 font-weight-bold mb-6">Gerenciar Assinatura</h3>
+                    <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.manage') }}</h3>
                     
                     <div class="management-item d-flex align-center justify-space-between mb-8">
                       <div>
-                        <div class="font-weight-bold">Renovação Automática</div>
-                        <div class="text-body-2 text-medium-emphasis">Cobraremos o valor do seu plano automaticamente ao final do período.</div>
+                        <div class="font-weight-bold">{{ $t('profile.subscription.auto_renewal') }}</div>
+                        <div class="text-body-2 text-medium-emphasis">{{ $t('profile.subscription.auto_renewal_desc') }}</div>
                       </div>
                       <v-switch
                         :model-value="!!subscriptionData.assinatura.renovacao_automatica"
@@ -215,7 +216,7 @@
                           class="rounded-lg font-weight-bold"
                           @click="payAhead"
                         >
-                          Pagar Antecipado
+                          {{ $t('profile.subscription.pay_ahead') }}
                         </v-btn>
                       </v-col>
                       <v-col cols="12" sm="6">
@@ -227,20 +228,19 @@
                           v-if="subscriptionData.assinatura && subscriptionData.assinatura.status === 'active'"
                           @click="confirmCancel = true"
                         >
-                          Cancelar Assinatura
+                          {{ $t('profile.subscription.cancel') }}
                         </v-btn>
                       </v-col>
                     </v-row>
                   </v-card>
                 </v-col>
-              </v-row>
-            </div>
+            </v-row>
           </v-container>
         </v-window-item>
 
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
-            <h3 class="text-h6 font-weight-bold mb-6">Últimos Pagamentos</h3>
+            <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
             <div v-if="loadingSub && activeTab === 'historico'" class="text-center py-10">
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
@@ -250,8 +250,8 @@
                 <tr>
                   <th class="text-left font-weight-bold">Data</th>
                   <th class="text-left font-weight-bold">Método</th>
-                  <th class="text-left font-weight-bold">Status</th>
-                  <th class="text-right font-weight-bold">Valor</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
+                  <th class="text-right font-weight-bold">{{ $t('admin.price') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,26 +272,15 @@
             </v-table>
             
             <div v-else class="text-center py-10 text-medium-emphasis">
-              Nenhum histórico de faturamento encontrado.
+              {{ $t('profile.subscription.no_history') }}
             </div>
             
           </v-container>
         </v-window-item>
       </v-window>
     </v-card>
-
- 
-    <ModalCancelarAssinatura 
-      v-model="confirmCancel" 
-      :dataExpiracao="subscriptionData.assinatura?.termina_em" 
-      @cancelled="fetchSubscription" 
-    />
-
-    <ModalRemoverAvatar 
-      v-model="confirmRemoveAvatarDialog" 
-      @removed="(updatedUser) => { user = updatedUser; previewAvatar = null; selectedFile = null; }" 
-    />
   </v-container>
+
 </template>
 
 <script setup>
@@ -299,8 +288,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
+
+const { t } = useI18n()
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -378,7 +370,7 @@ const ativarAutoRenovacao = async () => {
             toast.success(data.message)
         }
     } catch (e) {
-        toast.error('Erro ao atualizar renovação')
+        toast.error(t('profile.warnings.renewal_error'))
     }
 }
 
@@ -429,7 +421,7 @@ const handleFileChange = (event) => {
     const file = event.target.files[0]
     if (file) {
         if (file.size > 10 * 1024 * 1024) {
-            toast.warning('A imagem deve ter no máximo 10MB.')
+            toast.warning(t('profile.warnings.image_size'))
             event.target.value = ''
             return
         }
@@ -467,7 +459,8 @@ const saveProfile = async () => {
         })
         
         if (response.ok) {
-            toast.success('Perfil atualizado!')
+            toast.success(t('profile.toast_success'))
+        
             const updated = await response.json()
             authStore.user = updated
             user.value = { ...updated }
@@ -488,11 +481,11 @@ const saveProfile = async () => {
                  const firstErrorKey = Object.keys(errorData.errors)[0]
                  toast.warning(errorData.errors[firstErrorKey][0])
              } else {
-                 toast.error(errorData.message || 'Erro ao atualizar perfil')
+                 toast.error(errorData.message || t('profile.warnings.update_error'))
              }
         }
     } catch (e) {
-        toast.error('Erro de conexão')
+        toast.error(t('profile.toast_connection_error'))
     } finally {
         saving.value = false
     }

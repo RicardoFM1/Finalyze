@@ -18,25 +18,24 @@
 
   <v-spacer />
 
-  
-  <div
-    v-if="!authStore.isAuthenticated && !isAuthPage"
-    class="d-flex align-center d-none d-md-flex"
-  >
-    <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1">
-      Planos
-    </v-btn>
+  <div class="d-flex align-center">
+    <template v-if="!authStore.isAuthenticated">
+        <Coinselector />
+        <LanguageSelector />
+        <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
+          {{ $t('landing.btn_plans') }}
+        </v-btn>
 
-    <v-btn
-      :to="{ name: 'Login' }"
-      variant="elevated"
-      color="white"
-      class="ml-2 font-weight-bold text-primary"
-    >
-      Entrar
-    </v-btn>
+        <v-btn
+          :to="{ name: 'Login' }"
+          variant="elevated"
+          color="white"
+          class="ml-2 mr-2 font-weight-bold text-primary text-none"
+        >
+          {{ $t('landing.btn_login') }}
+        </v-btn>
+    </template>
   </div>
-
 </v-app-bar>
 
 
@@ -49,8 +48,6 @@
   class="animated-drawer"
   elevation="6"
 >
-
-
         <v-list>
             <v-list-item v-if="authStore.user">
                 <template v-slot:prepend>
@@ -85,12 +82,12 @@
         
     </v-navigation-drawer>
 
-    <ModalBase v-model="confirmLogout" title="Deseja sair?" maxWidth="400px" persistent>
+    <ModalBase v-model="confirmLogout" :title="$t('features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
                 <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
             </v-avatar>
-            <p class="text-body-1 text-medium-emphasis">Você precisará fazer login novamente para acessar seus dados.</p>
+            <p class="text-body-1 text-medium-emphasis">{{ $t('features.VDS') }}</p>
         </div>
         
         <template #actions>
@@ -100,7 +97,7 @@
                 rounded="lg"
                 @click="confirmLogout = false"
             >
-                Cancelar
+                {{ $t('features.stay_new') }}
             </v-btn>
             <v-btn 
                 color="error" 
@@ -110,7 +107,7 @@
                 rounded="lg"
                 @click="handleLogout"
             >
-                Sair Agora
+                {{ $t('features.leave_new') }}
             </v-btn>
         </template>
     </ModalBase>
@@ -124,16 +121,15 @@
 <script setup>
 import { useAuthStore } from '../stores/auth'
 import { useRouter,useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useDisplay } from 'vuetify'
-import { watch } from 'vue'
 import ModalBase from '../components/Modals/modalBase.vue'
-
+import LanguageSelector from './Language/LanguageSelector.vue'
+import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
 const router = useRouter()
-const route = useRoute()
 const confirmLogout = ref(false)
 
 const drawer = ref(false)
