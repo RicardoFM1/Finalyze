@@ -41,7 +41,6 @@
         item-value="value"
       />
 
-      <!-- relógio agora aparece inteiro -->
       <v-time-picker
         v-model="form.time"
         format="24hr"
@@ -49,7 +48,6 @@
 
     </v-card-text>
 
-    <!-- AÇÕES FIXAS -->
     <v-card-actions>
       <v-spacer />
       <v-btn text @click="close">Cancelar</v-btn>

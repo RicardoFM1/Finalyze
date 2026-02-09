@@ -107,6 +107,15 @@
              v-model="showReminderModal"
              :date="selectedDate"
              />
+
+            <v-btn color="primary" @click="open = true">
+              Compartilhar
+            </v-btn>
+
+            <CompartilharModal
+            v-model="open"
+            @invite="sendInvite"
+            />
             </div>
             </v-card-text>
           </v-card>
@@ -124,6 +133,7 @@ import { useI18n } from 'vue-i18n'
 import Calendar from '../components/Calendar/Calendar.vue'
 import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
 import { startOfDay, isAfter } from 'date-fns'
+import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
 
 
 
@@ -154,6 +164,7 @@ const loadingSub = ref(true)
 const saving = ref(false)
 const confirmCancel = ref(false)
 const cancelling = ref(false)
+const open =ref(false)
 
 onMounted(async () => {
    await fetchUser()
@@ -270,7 +281,6 @@ const saveProfile = async () => {
         
         if (response.ok) {
             toast.success(t('profile.toast_success'))
-            // Update store
             const updated = await response.json()
             authStore.user = updated
             selectedFile.value = null 
@@ -327,6 +337,11 @@ function openFromCalendar(date) {
     toast.warning('Só é possível criar lembretes para datas futuras')
   }
 }
+
+function sendInvite(payload) {
+  console.log('Teste Email enviado', payload.email)
+}
+
 
 
 </script>
