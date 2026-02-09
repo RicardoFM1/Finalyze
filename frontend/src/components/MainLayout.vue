@@ -18,10 +18,10 @@
 
   <v-spacer />
 
-  <div class="d-flex align-center">
+    <Coinselector />
+    <LanguageSelector />
+    
     <template v-if="!authStore.isAuthenticated">
-        <Coinselector />
-        <LanguageSelector />
         <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
           {{ $t('landing.btn_plans') }}
         </v-btn>
@@ -35,7 +35,6 @@
           {{ $t('landing.btn_login') }}
         </v-btn>
     </template>
-  </div>
 </v-app-bar>
 
 
@@ -49,7 +48,7 @@
   elevation="6"
 >
         <v-list>
-            <v-list-item v-if="authStore.user">
+            <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
@@ -62,21 +61,19 @@
                         </span>
                     </v-avatar>
                 </template>
-                <v-list-item-title class="font-weight-bold">{{ authStore.user.nome }}</v-list-item-title>
-                <v-list-item-subtitle>{{ authStore.user.email }}</v-list-item-subtitle>
             </v-list-item>
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
-           <v-list-item prepend-icon="mdi-home" title="Página inicial" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" title="Painel" :to="{ name: 'Dashboard' }"></v-list-item>
-            <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" title="Lançamentos" :to="{ name: 'Lancamentos' }"></v-list-item>
-            <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" title="Metas" :to="{ name: 'Metas' }"></v-list-item>
-            <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" title="Relatórios" :to="{ name: 'Reports' }"></v-list-item>
-            <v-list-item prepend-icon="mdi-account" title="Perfil" :to="{ name: 'Profile' }"></v-list-item>
-            <v-list-item v-if="authStore.user?.admin === true" prepend-icon="mdi-shield-crown" title="Admin" :to="{ name: 'Admin' }"></v-list-item>
-            <v-list-item prepend-icon="mdi-tag-text-outline" title="Planos" :to="{ name: 'Plans' }"></v-list-item>
-            <v-list-item  color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" title="Sair"></v-list-item>
+           <v-list-item prepend-icon="mdi-home" :title="$t('sidebar.home')" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" :title="$t('sidebar.dashboard')" :to="{ name: 'Dashboard' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" :title="$t('sidebar.transactions')" :to="{ name: 'Lancamentos' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" :title="$t('sidebar.goals')" :to="{ name: 'Metas' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" :title="$t('sidebar.reports')" :to="{ name: 'Reports' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item prepend-icon="mdi-account" :title="$t('sidebar.profile')" :to="{ name: 'Profile' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.user?.admin" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item prepend-icon="mdi-tag-text-outline" :title="$t('sidebar.plans')" :to="{ name: 'Plans' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" :title="$t('sidebar.logout')"></v-list-item>
         </v-list>
 
         

@@ -1,11 +1,11 @@
 <template>
-  <ModalBase v-model="internalValue" title="Confirmar Cancelamento?" maxWidth="450px">
+  <ModalBase v-model="internalValue" :title="$t('modals.cancel_subscription.title')" maxWidth="450px">
     <p class="text-body-1">
-      Você continuará tendo acesso aos benefícios até o final do período ativo em <strong>{{ dataExpiracaoFormatada }}</strong>. Nenhuma nova cobrança será feita.
+      {{ $t('modals.cancel_subscription.description') }} <strong>{{ dataExpiracaoFormatada }}</strong>.
     </p>
     <template #actions>
-      <v-btn variant="text" @click="internalValue = false">Manter</v-btn>
-      <v-btn color="error" variant="flat" class="rounded-lg ml-2" :loading="loading" @click="confirmCancel">Confirmar</v-btn>
+      <v-btn variant="text" @click="internalValue = false">{{ $t('modals.cancel_subscription.keep') }}</v-btn>
+      <v-btn color="error" variant="flat" class="rounded-lg ml-2" :loading="loading" @click="confirmCancel">{{ $t('modals.cancel_subscription.confirm') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -15,6 +15,9 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -41,12 +44,12 @@ const confirmCancel = async () => {
   try {
     const response = await authStore.apiFetch('/assinaturas/cancelar', { method: 'POST' })
     if (response.ok) {
-      toast.success('Assinatura cancelada com sucesso.')
+      toast.success(t('toasts.success_update'))
       internalValue.value = false
       emit('cancelled')
     }
   } catch (e) {
-    toast.error('Erro ao cancelar')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

@@ -3,8 +3,8 @@
     <div v-if="!loading" class="d-flex align-center mb-8">
       <div>
         <h1 class="text-h4 font-weight-bold d-flex align-center">
-          Metas Financeiras
-          <v-tooltip text="Acompanhe seus objetivos de economia e gastos.">
+          {{ $t('metas.financial_title') }}
+          <v-tooltip :text="$t('metas.financial_tooltip')">
             <template v-slot:activator="{ props }">
               <v-icon v-bind="props" icon="mdi-information-outline" size="xs" color="medium-emphasis" class="ml-2"></v-icon>
             </template>
@@ -13,7 +13,7 @@
       </div>
       <v-spacer></v-spacer>
       <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="openDialog('financeira')" elevation="2">
-        Nova Meta
+        {{ $t('metas.new_goal') }}
       </v-btn>
     </div>
 
@@ -61,21 +61,21 @@
           <v-divider></v-divider>
 
           <v-card-actions class="pa-4 justify-end gap-2">
-            <v-btn variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" prepend-icon="mdi-pencil-outline">Editar</v-btn>
-            <v-btn variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" prepend-icon="mdi-delete-outline">Excluir</v-btn>
+            <v-btn variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" prepend-icon="mdi-pencil-outline">{{ $t('metas.edit') }}</v-btn>
+            <v-btn variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" prepend-icon="mdi-delete-outline">{{ $t('metas.delete') }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
     <div v-else-if="!loading && !financialMetas.length" class="text-center py-8 text-medium-emphasis mb-12">
-      Nenhuma meta financeira encontrada.
+      {{ $t('metas.no_financial_goals') }}
     </div>
 
     
     <div v-if="!loading" class="d-flex align-center mb-8 pt-4">
       <h1 class="text-h4 font-weight-bold d-flex align-center">
-        Bloco de Notas
-        <v-tooltip text="Suas anotações pessoais e lembretes.">
+        {{ $t('metas.notepad_title') }}
+        <v-tooltip :text="$t('metas.notepad_tooltip')">
           <template v-slot:activator="{ props }">
             <v-icon v-bind="props" icon="mdi-information-outline" size="xs" color="medium-emphasis" class="ml-2"></v-icon>
           </template>
@@ -83,7 +83,7 @@
       </h1>
       <v-spacer></v-spacer>
       <v-btn color="secondary" prepend-icon="mdi-note-plus-outline" rounded="lg" @click="openDialog('pessoal')" elevation="2">
-        Nova Anotação
+        {{ $t('metas.new_note') }}
       </v-btn>
     </div>
 
@@ -98,7 +98,7 @@
             </div>
 
             <div class="notepad-text mb-4">
-               {{ meta.descricao || 'Sem anotações...' }}
+               {{ meta.descricao || $t('metas.no_notes_content') }}
             </div>
 
             <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-auto">
@@ -106,7 +106,7 @@
                   <v-icon icon="mdi-calendar-clock" size="14" class="mr-1"></v-icon>
                   {{ formatDate(meta.prazo) }}
                </span>
-               <v-chip v-if="meta.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">Concluído</v-chip>
+               <v-chip v-if="meta.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">{{ $t('metas.completed') }}</v-chip>
             </div>
           </v-card-text>
 
@@ -118,7 +118,7 @@
         </v-card>
       </v-col>
       <v-col v-if="!personalMetas.length" cols="12" class="text-center py-8 text-medium-emphasis">
-        Nenhuma anotação disponível.
+        {{ $t('metas.no_notes_available') }}
       </v-col>
     </v-row>
 
@@ -134,6 +134,9 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
 import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const authStore = useAuthStore()
 const metas = ref([])
@@ -225,16 +228,16 @@ const getProgressColor = (meta) => {
 
 const getMetaSubtitle = (meta) => {
   if (meta.tipo === 'financeira') {
-    if (meta.status === 'atrasado') return 'Meta Atrasada!'
+    if (meta.status === 'atrasado') return t('metas.goal_late')
     const diff = meta.valor_objetivo - meta.valor_atual
-    return diff > 0 ? `Faltam ${formatPrice(diff)} para sua meta` : 'Meta batida! Parabéns!'
+    return diff > 0 ? t('metas.goal_remaining', { amount: formatPrice(diff) }) : t('metas.goal_reached')
   }
   return ''
 }
 
 // Mock functions for menu
-const viewHistory = (meta) => toast.info('Histórico em desenvolvimento')
-const viewPlanning = (meta) => toast.info('Planejamento em desenvolvimento')
+const viewHistory = (meta) => toast.info(t('metas.history_dev'))
+const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 
 </script>
 

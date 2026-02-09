@@ -20,30 +20,30 @@
               <v-form @submit.prevent="handleRegister" v-model="isValid">
                 <v-text-field
                   v-model="form.nome"
-                  label="Nome Completo"
+                  :label="$t('register.name_label')"
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
                   color="primary"
-                  :rules="[v => !!v || 'Nome é obrigatório']"
+                  :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.nome"
                   @input="errors.nome = ''"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="form.email"
-                  label="Endereço de E-mail"
+                  :label="$t('register.email_label')"
                   prepend-inner-icon="mdi-email"
                   variant="outlined"
                   color="primary"
                   type="email"
-                  :rules="[v => !!v || 'E-mail é obrigatório']"
+                  :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.email"
                   @input="errors.email = ''"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="form.senha"
-                  label="Senha"
+                  :label="$t('register.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
                   color="primary"
@@ -57,36 +57,36 @@
 
                   <v-text-field
                     v-model="form.senha_confirmation"
-                    label="Confirmar Senha"
+                    :label="$t('register.password_confirm_label')"
                     prepend-inner-icon="mdi-lock-check"
                     variant="outlined"
                     color="primary"
                     :type="showPass ? 'text' : 'password'"
-                    :rules="[v => !!v || 'Confirmação é obrigatória', v => v === form.senha || 'As senhas não coincidem']"
+                    :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
                     :error-messages="errors.senha_confirmation"
                     @input="errors.senha_confirmation = ''"
                   ></v-text-field>
 
                 <v-text-field
                   v-model="form.cpf"
-                  label="CPF"
+                  :label="$t('profile.labels.cpf')"
                   prepend-inner-icon="mdi-card-account-details"
                   variant="outlined"
                   color="primary"
                   @input="handleCpfInput"
                   maxlength="14"
-                  :rules="[v => !!v || 'CPF é obrigatório', validateCPF]"
+                  :rules="[v => !!v || $t('validation.required'), validateCPF]"
                   :error-messages="errors.cpf"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="form.data_nascimento"
-                  label="Data de Nascimento"
+                  :label="$t('profile.labels.birthdate')"
                   prepend-inner-icon="mdi-calendar"
                   variant="outlined"
                   color="primary"
                   type="date"
-                  :rules="[v => !!v || 'Data de nascimento é obrigatória', validateAge]"
+                  :rules="[v => !!v || $t('validation.required'), validateAge]"
                   :error-messages="errors.data_nascimento"
                   @input="errors.data_nascimento = ''"
                 ></v-text-field>
@@ -115,7 +115,7 @@
                   elevation="4"
                   @click="router.push({ name: 'Home' })"
                 >
-                  Página inicial
+                  {{ $t('register.btn_home') }}
                 </v-btn>
               <div class="text-center">
                 <span class="text-body-2 text-medium-emphasis"> {{ $t('register.has_account_text') }} </span>
@@ -133,8 +133,10 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -154,12 +156,12 @@ const error = ref('')
 const errors = ref({})
 
 const passwordRules = [
-  v => !!v || $t('register.rules.pass_required'),
-  v => v.length >= 8 || 'Mínimo 8 caracteres',
-  v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
-  v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',
-  v => /[0-9]/.test(v) || 'Deve conter um número',
-  v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
+  v => !!v || t('register.rules.pass_required'),
+  v => v.length >= 8 || t('register.rules.min_chars', { count: 8 }),
+  v => /[A-Z]/.test(v) || t('register.rules.uppercase'),
+  v => /[a-z]/.test(v) || t('register.rules.lowercase'),
+  v => /[0-9]/.test(v) || t('register.rules.number'),
+  v => /[^A-Za-z0-9]/.test(v) || t('register.rules.special_char')
 ]
 
 const validateAge = (v) => {
@@ -171,7 +173,7 @@ const validateAge = (v) => {
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
     age--
   }
-  return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+  return age >= 18 || t('validation.age_restriction')
 }
 
 const validateCPF = (v) => {
@@ -181,10 +183,10 @@ const validateCPF = (v) => {
     const cpf = v.replace(/\D/g, '')
     
     if (cpf.length !== 11) {
-        return 'CPF inválido'
+        return t('validation.cpf_invalid')
     }
 
-    if (/^(\d)\1+$/.test(cpf)) return 'CPF inválido'
+    if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
 
     let sum = 0
     let remainder
@@ -194,7 +196,7 @@ const validateCPF = (v) => {
     remainder = (sum * 10) % 11
     
     if ((remainder === 10) || (remainder === 11))  remainder = 0
-    if (remainder !== parseInt(cpf.substring(9, 10)) ) return 'CPF inválido'
+    if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
 
     sum = 0
     for (let i = 1; i <= 10; i++) 
@@ -202,7 +204,7 @@ const validateCPF = (v) => {
     remainder = (sum * 10) % 11
 
     if ((remainder === 10) || (remainder === 11))  remainder = 0
-    if (remainder !== parseInt(cpf.substring(10, 11))) return 'CPF inválido'
+    if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
 
     return true
 }
@@ -224,7 +226,7 @@ const handleRegister = async () => {
       cleanCpf,
       form.value.data_nascimento
     )
-    toast.success("Cadastro realizado com sucesso!")
+    toast.success(t('toasts.register_success'))
     router.push({ name: 'Login' })
   } catch (err) {
     if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
@@ -233,9 +235,9 @@ const handleRegister = async () => {
             acc[key] = err.response.data.errors[key][0]
             return acc
         }, {})
-        error.value = 'Verifique os campos em vermelho.'
+        error.value = t('toasts.check_errors')
     } else {
-        error.value = err.message || 'Erro ao cadastrar'
+        error.value = err.message || t('toasts.register_error')
     }
     toast.error(error.value)
   } finally {

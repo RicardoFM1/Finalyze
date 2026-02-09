@@ -1,9 +1,9 @@
 <template>
-  <ModalBase v-model="internalValue" title="Excluir Meta?" maxWidth="400px">
-    <p class="text-body-1">Esta ação não pode ser desfeita. Deseja realmente excluir "{{ meta?.titulo }}"?</p>
+  <ModalBase v-model="internalValue" :title="$t('admin.deleteTitle')" maxWidth="400px">
+    <p class="text-body-1">{{ $t('admin.deleteConfirm') }} "{{ meta?.titulo }}"?</p>
     <template #actions>
-      <v-btn variant="text" @click="internalValue = false">Cancelar</v-btn>
-      <v-btn color="error" variant="elevated" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">Excluir</v-btn>
+      <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
+      <v-btn color="error" variant="elevated" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('common.delete') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -13,6 +13,9 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -41,12 +44,12 @@ const confirmDelete = async () => {
       method: 'DELETE'
     })
     if (response.ok) {
-      toast.success(isAnotacao ? 'Anotação removida' : 'Meta removida')
+      toast.success(isAnotacao ? t('toasts.success_update') : t('toasts.success_update'))
       internalValue.value = false
       emit('deleted')
     }
   } catch (e) {
-    toast.error('Erro ao deletar')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

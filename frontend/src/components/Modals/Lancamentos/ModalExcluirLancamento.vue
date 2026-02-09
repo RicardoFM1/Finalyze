@@ -1,13 +1,13 @@
 <template>
-  <ModalBase title="Confirmar exclusão" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="$t('admin.deleteTitle')" v-model="internalValue" maxWidth="550px">
     <div class="text-center">
       <v-icon color="error" size="56" class="mb-4">
         mdi-alert-circle-outline
       </v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-4">
-        Tem certeza que deseja excluir este lançamento?
+        {{ $t('admin.deleteConfirm') }}?
         <br />
-        <strong>Essa ação poderá ser desfeita apenas contatando o suporte.</strong>
+        <strong>{{ $t('profile.warnings.update_error') }}</strong>
       </p>
     </div>
     <template #actions>
@@ -18,7 +18,7 @@
         :disabled="loading"
         rounded="lg"
       >
-        Cancelar
+        {{ $t('common.cancel') }}
       </v-btn>
       <v-btn
         color="error"
@@ -28,7 +28,7 @@
         rounded="lg"
         elevation="2"
       >
-        Excluir
+        {{ $t('common.delete') }}
       </v-btn>
     </template>
   </ModalBase>
@@ -39,6 +39,9 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -65,13 +68,13 @@ const excluir = async () => {
     })
 
     if (response.ok) {
-      toast.success('Lançamento excluído!')
+      toast.success(t('toasts.success_update'))
       internalValue.value = false
       emit('deleted')
     }
   } catch (e) {
     console.error(e)
-    toast.error('Erro ao excluir lançamento.')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

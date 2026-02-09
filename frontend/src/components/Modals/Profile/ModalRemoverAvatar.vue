@@ -1,11 +1,11 @@
 <template>
-  <ModalBase v-model="internalValue" title="Remover foto?" maxWidth="400px">
+  <ModalBase v-model="internalValue" :title="$t('modals.remove_avatar.title')" maxWidth="400px">
     <p class="text-body-1">
-      Tem certeza que deseja remover sua foto de perfil? Ela será excluída permanentemente.
+      {{ $t('modals.remove_avatar.description') }}
     </p>
     <template #actions>
-      <v-btn variant="text" @click="internalValue = false">Cancelar</v-btn>
-      <v-btn color="error" variant="flat" class="rounded-lg ml-2" :loading="loading" @click="confirmRemove">Remover</v-btn>
+      <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
+      <v-btn color="error" variant="flat" class="rounded-lg ml-2" :loading="loading" @click="confirmRemove">{{ $t('modals.remove_avatar.confirm') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -15,6 +15,9 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean
@@ -38,16 +41,16 @@ const confirmRemove = async () => {
     })
     
     if (response.ok) {
-      toast.success('Avatar removido!')
+      toast.success(t('toasts.success_update'))
       const data = await response.json()
       authStore.user = data.usuario
       emit('removed', data.usuario)
       internalValue.value = false
     } else {
-      toast.error('Erro ao remover avatar')
+      toast.error(t('toasts.error_generic'))
     }
   } catch (e) {
-    toast.error('Erro de conexão')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

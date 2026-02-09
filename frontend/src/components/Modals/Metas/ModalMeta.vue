@@ -1,12 +1,12 @@
 <template>
-  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? 'Editar Meta' : 'Editar Anotação') : (form.tipo === 'financeira' ? 'Nova Meta' : 'Nova Anotação')" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : $t('modals.titles.edit_note')) : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : $t('modals.titles.new_note'))" v-model="internalValue" maxWidth="550px">
     <v-form ref="metaForm" @submit.prevent="saveMeta">
 
       <v-text-field
         v-model="form.titulo"
-        label="Título"
+        :label="$t('modals.labels.title')"
         variant="outlined"
-        placeholder="Ex: Reserva de Emergência"
+        :placeholder="$t('modals.placeholders.goal_example')"
         class="mb-2"
         rounded="lg"
         required
@@ -14,9 +14,9 @@
 
       <v-textarea
         v-model="form.descricao"
-        :label="form.tipo === 'financeira' ? 'Descrição / Subtítulo' : 'Conteúdo da Anotação'"
+        :label="form.tipo === 'financeira' ? $t('modals.labels.description') + ' / Subtítulo' : $t('modals.placeholders.desc_note')"
         variant="outlined"
-        :placeholder="form.tipo === 'financeira' ? 'Pequeno detalhe ou frase de impacto' : 'Escreva aqui tudo o que precisar...'"
+        :placeholder="form.tipo === 'financeira' ? $t('modals.placeholders.desc_financial') : $t('modals.placeholders.desc_note')"
         class="mb-2"
         rounded="lg"
         :rows="form.tipo === 'pessoal' ? 6 : 2"
@@ -28,7 +28,7 @@
           <v-col cols="6">
             <v-text-field
               v-model="form.valor_atual"
-              label="Valor Atual"
+              :label="$t('modals.labels.current_value')"
               prefix="R$"
               type="number"
               variant="outlined"
@@ -38,7 +38,7 @@
           <v-col cols="6">
             <v-text-field
               v-model="form.valor_objetivo"
-              label="Objetivo"
+              :label="$t('modals.labels.goal_value')"
               prefix="R$"
               type="number"
               variant="outlined"
@@ -56,8 +56,8 @@
               <template v-slot:activator="{ props }">
                 <v-text-field
                   v-model="form.icone"
-                  label="Ícone/Emoji"
-                  placeholder="Selecione um emoji"
+                  :label="$t('modals.labels.icon')"
+                  :placeholder="$t('modals.placeholders.emoji')"
                   variant="outlined"
                   rounded="lg"
                   prepend-inner-icon="mdi-emoticon-outline"
@@ -71,7 +71,7 @@
                 <v-card-title class="pa-4 pb-2">
                   <v-text-field
                     v-model="emojiSearch"
-                    placeholder="Pesquisar emoji..."
+                    :placeholder="$t('modals.placeholders.search_emoji')"
                     variant="solo-filled"
                     density="compact"
                     hide-details
@@ -110,7 +110,7 @@
           <v-col cols="6">
             <v-text-field
               v-model="form.cor"
-              label="Cor do Cabeçalho"
+              :label="$t('modals.labels.color') + ' do Cabeçalho'"
               type="color"
               variant="outlined"
               rounded="lg"
@@ -151,7 +151,7 @@
         :loading="loading" 
         elevation="2"
       >
-        Salvar Meta
+        {{ $t('common.save') }}
       </v-btn>
     </v-form>
   </ModalBase>
@@ -162,6 +162,9 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -263,15 +266,15 @@ const saveMeta = async () => {
     })
 
     if (response.ok) {
-      toast.success(isEdit ? (isAnotacao ? 'Anotação atualizada!' : 'Meta atualizada!') : (isAnotacao ? 'Anotação salva!' : 'Meta criada com sucesso!'))
+      toast.success(isEdit ? (isAnotacao ? t('toasts.success_update') : t('toasts.success_update')) : (isAnotacao ? t('toasts.success_add') : t('toasts.success_add')))
       internalValue.value = false
       emit('saved')
     } else {
       const data = await response.json()
-      toast.error(data.message || 'Erro ao salvar')
+      toast.error(data.message || t('toasts.error_generic'))
     }
   } catch (e) {
-    toast.error('Erro de conexão')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

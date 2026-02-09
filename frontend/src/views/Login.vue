@@ -89,8 +89,10 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -113,7 +115,7 @@ const handleLogin = async () => {
   try {
     await authStore.login(form.value.email, form.value.senha)
     
-      toast.success("Login realizado com sucesso!")
+      toast.success(t('toasts.login_success'))
     
     
     const redirectName = route.query.redirect || 'Dashboard'
@@ -142,7 +144,7 @@ const handleLogin = async () => {
     }
     
   } catch (err) {
-    toast.error(err.message || 'Erro ao fazer login')
+    toast.error(err.message || t('toasts.login_error'))
   } finally {
     loading.value = false
   }

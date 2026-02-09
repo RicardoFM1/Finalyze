@@ -1,18 +1,18 @@
 <template>
-  <ModalBase title="Editar Lançamento" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="$t('modals.titles.edit_transaction')" v-model="internalValue" maxWidth="550px">
     <v-form @submit.prevent="editar">
       <v-row dense>
         <v-col cols="12">
           <v-btn-toggle v-model="localForm.tipo" mandatory color="primary" class="w-100 mb-4 rounded-lg" border>
-            <v-btn value="receita" class="flex-grow-1" prepend-icon="mdi-cash-plus">Receita</v-btn>
-            <v-btn value="despesa" class="flex-grow-1" prepend-icon="mdi-cash-minus">Despesa</v-btn>
+            <v-btn value="receita" class="flex-grow-1" prepend-icon="mdi-cash-plus">{{ $t('transactions.type.income') }}</v-btn>
+            <v-btn value="despesa" class="flex-grow-1" prepend-icon="mdi-cash-minus">{{ $t('transactions.type.expense') }}</v-btn>
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="localForm.valor" label="Valor" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field v-model="localForm.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="localForm.data" label="Data" type="date" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field v-model="localForm.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12">
                             <v-autocomplete
@@ -20,12 +20,12 @@
                                 :items="categorias"
                                 item-title="title"
                                 item-value="title"
-                                label="Categoria"
+                                :label="$t('modals.labels.category')"
                                 variant="outlined"
                                 rounded="lg"
                                 required
-                                placeholder="Selecione ou digite para filtrar"
-                                no-data-text="Nenhuma categoria encontrada"
+                                :placeholder="$t('modals.placeholders.select_category')"
+                                :no-data-text="$t('transactions.no_data')"
                             >
                                 <template v-slot:item="{ props, item }">
                                     <v-list-item 
@@ -45,7 +45,7 @@
                             </v-autocomplete>
                         </v-col>
         <v-col cols="12">
-          <v-textarea v-model="localForm.descricao" label="Descrição" variant="outlined" rounded="lg" rows="2"></v-textarea>
+          <v-textarea v-model="localForm.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2"></v-textarea>
         </v-col>
       </v-row>
     </v-form>
@@ -60,7 +60,7 @@
         elevation="3"
         @click="editar"
       >
-        Salvar Alterações
+        {{ $t('common.save') }}
       </v-btn>
     </template>
   </ModalBase>
@@ -72,6 +72,9 @@ import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import { categorias } from '../../../constants/categorias'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -115,7 +118,7 @@ const editar = async () => {
   try {
     const valor = Number(localForm.value.valor)
     if (isNaN(valor) || valor <= 0) {
-      toast.warning('Por favor, informe um valor válido.')
+      toast.warning(t('validation.invalid_value'))
       loading.value = false
       return
     }
@@ -129,13 +132,13 @@ const editar = async () => {
     })
 
     if (response.ok) {
-      toast.success('Lançamento atualizado!')
+      toast.success(t('toasts.success_update'))
       internalValue.value = false
       emit('updated')
     }
   } catch (e) {
     console.error(e)
-    toast.error('Erro ao atualizar lançamento.')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

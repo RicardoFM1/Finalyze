@@ -24,10 +24,9 @@
       </v-col>
     </v-row>
 
-    <ModalBase v-model="showPendingDialog" title="Pagamento Pendente Encontrado" maxWidth="500px" persistent>
+    <ModalBase v-model="showPendingDialog" :title="$t('plans.pending_title')" maxWidth="500px" persistent>
         <p class="text-body-1 text-center mb-4">
-          Você já iniciou o pagamento para o plano <strong>{{ pendingPlanName }}</strong>. 
-          Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?
+          {{ $t('plans.pending_desc', { plan: pendingPlanName }) }}
         </p>
         <template #actions>
           <v-btn
@@ -37,7 +36,7 @@
             :loading="cancelling"
             @click="cancelarPagamento"
           >
-            Cancelar Anterior
+            {{ $t('plans.cancel_prev') }}
           </v-btn>
           <v-btn
             variant="flat"
@@ -45,7 +44,7 @@
             class="rounded-lg px-6 ml-4"
             @click="continuePayment"
           >
-            Continuar Pagamento
+            {{ $t('plans.continue') }}
           </v-btn>
         </template>
     </ModalBase>
@@ -59,7 +58,9 @@ import PlanCard from '../components/PlanCard.vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../components/Modals/modalBase.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
@@ -121,12 +122,12 @@ const cancelarPagamento = async () => {
             method: 'POST'
         })
         if (response.ok) {
-            toast.success('Assinatura anterior cancelada.')
+            toast.success(t('plans.toast_cancel_success'))
             showPendingDialog.value = false
             currentSubscription.value = null
         }
     } catch (e) {
-        toast.error('Erro ao cancelar assinatura.')
+        toast.error(t('plans.toast_cancel_error'))
     } finally {
         cancelling.value = false
     }

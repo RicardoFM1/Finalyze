@@ -8,14 +8,14 @@
                 <v-icon icon="mdi-swap-horizontal" color="white" size="32"></v-icon>
             </v-avatar>
             <div>
-                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">Lançamentos</h1>
-                <p class="text-h6 text-medium-emphasis font-weight-medium">Gestão completa das suas movimentações.</p>
+                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('transactions.title') }}</h1>
+                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('transactions.subtitle') }}</p>
             </div>
         </div>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-md-end">
         <v-btn color="primary" size="large" class="rounded-xl px-8" prepend-icon="mdi-plus" @click="abrirNovo" elevation="4">
-          Novo Lançamento
+          {{ $t('transactions.new') }}
         </v-btn>
       </v-col>
     </v-row>
@@ -30,7 +30,7 @@
     <v-col cols="12" md="2">
       <v-text-field
         v-model="filters.data"
-        label="Data"
+        :label="$t('transactions.table.date')"
         type="date"
         variant="underlined"
         density="compact"
@@ -43,8 +43,8 @@
     <v-col cols="12" md="3">
       <v-text-field
         v-model="filters.descricao"
-        label="Descrição"
-        placeholder="Buscar..."
+        :label="$t('transactions.table.description')"
+        :placeholder="$t('common.search')"
         variant="underlined"
         density="compact"
         hide-details
@@ -56,7 +56,7 @@
       <v-select
         v-model="filters.categoria"
         :items="categorias"
-        label="Categoria"
+        :label="$t('transactions.table.category')"
         variant="underlined"
         density="compact"
         hide-details
@@ -69,11 +69,11 @@
       <v-select
         v-model="filters.tipo"
         :items="[
-          { title: 'Todos', value: 'todos' },
-          { title: 'Receita', value: 'receita' },
-          { title: 'Despesa', value: 'despesa' }
+          { title: $t('common.all'), value: 'todos' },
+          { title: $t('transactions.type.income'), value: 'receita' },
+          { title: $t('transactions.type.expense'), value: 'despesa' }
         ]"
-        label="Tipo"
+        :label="$t('transactions.table.type')"
         variant="underlined"
         density="compact"
         hide-details
@@ -84,7 +84,7 @@
     <v-col cols="12" md="2">
       <v-text-field
         v-model="filters.valor"
-        label="Valor"
+        :label="$t('transactions.table.amount')"
         prefix="R$"
         type="number"
         variant="underlined"
@@ -119,26 +119,11 @@
 </v-card>
 
 
-    <!-- Cards de Resumo Rápido -->
-    <v-row class="mb-8 px-2">
-      <v-col cols="12" md="4" v-for="(stat, i) in summaryStats" :key="i">
-        <v-card class="stat-card glass-card rounded-xl pa-6 border-card" elevation="4">
-          <div class="d-flex align-center justify-space-between mb-4">
-            <div class="icon-circle-small" :class="stat.colorClass">
-              <v-icon :icon="stat.icon" color="white" size="20"></v-icon>
-            </div>
-            <span class="text-overline font-weight-bold opacity-70">{{ stat.label }}</span>
-          </div>
-          <div class="text-h4 font-weight-bold" :class="stat.textClass">
-            R$ {{ formatNumber(stat.value) }}
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
       <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
-        <v-toolbar-title class="font-weight-bold">Histórico de Movimentações</v-toolbar-title>
+        <v-toolbar-title class="font-weight-bold">{{ $t('transactions.history') }}</v-toolbar-title>
         <v-spacer></v-spacer>
       </v-toolbar>
 
@@ -155,9 +140,9 @@
         @update:options="loadItems"
         class="bg-transparent"
         hover
-        no-data-text="Nenhum lançamento encontrado"
-        loading-text="Carregando lançamentos..."
-        items-per-page-text="Itens por página"
+        :no-data-text="$t('transactions.no_data')"
+        :loading-text="$t('transactions.loading')"
+        :items-per-page-text="$t('common.items_per_page')"
         :items-per-page-options="[5, 10, 25, 50]"
       >
         <template v-slot:item.tipo="{ item }">
@@ -224,7 +209,7 @@ const filters = ref({
   valor: ''
 })
 
-const stats = ref({ receitas: 0, despesas: 0 })
+
 
 const headers = [
   { title: 'Data', key: 'data', align: 'start', sortable: false },
@@ -238,11 +223,7 @@ const headers = [
 const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 
-const summaryStats = computed(() => [
-  { label: 'Total Recebido', value: stats.value.receitas, icon: 'mdi-arrow-up', colorClass: 'receita-gradient', textClass: 'text-success' },
-  { label: 'Total Gasto', value: stats.value.despesas, icon: 'mdi-arrow-down', colorClass: 'despesa-gradient', textClass: 'text-error' },
-  { label: 'Saldo líquido', value: stats.value.receitas - stats.value.despesas, icon: 'mdi-bank', colorClass: 'saldo-gradient', textClass: '' }
-])
+
 
 const categorias = computed(() => {
   const set = new Set()
@@ -295,16 +276,7 @@ const limparFiltros = () => {
   search.value = ''
 }
 
-const buscarStats = async () => {
-  try {
-    const response = await authStore.apiFetch('/painel/resumo')
-    if (response.ok) {
-       const data = await response.json()
-       stats.value.receitas = data.receita
-       stats.value.despesas = data.despesa
-    }
-  } catch (e) { console.error(e) }
-}
+
 
 const buscarLancamentos = () => {
     // Força o reload do v-data-table-server
@@ -316,9 +288,7 @@ const abrirNovo = () => { dialogNovo.value = true }
 const abrirEditar = (item) => { itemAEditar.value = item; dialogEditar.value = true }
 const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
 
-onMounted(() => {
-  buscarStats()
-})
+
 </script>
 
 <style scoped>
