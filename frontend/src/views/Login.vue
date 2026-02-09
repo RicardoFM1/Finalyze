@@ -121,12 +121,12 @@ const handleLogin = async () => {
     const redirectName = route.query.redirect || 'Dashboard'
     const planId = route.query.plan
     
-    // If redirectName starts with /, remove it (legacy support if query comes from old code)
+  
     const finalName = typeof redirectName === 'string' && redirectName.startsWith('/') 
         ? redirectName.substring(1).charAt(0).toUpperCase() + redirectName.substring(2)
         : redirectName;
 
-    // Mapping common paths to names if they somehow end up in the query
+   
     const nameMap = {
         'painel': 'Dashboard',
         'planos': 'Plans',
