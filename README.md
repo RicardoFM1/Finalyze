@@ -17,6 +17,14 @@ O backend é uma API RESTful construída com Laravel, focada em segurança, proc
 - **Middlewares de Segurança**:
     - `EnsureUserHasPlan`: Bloqueia o acesso a funcionalidades do dashboard se o usuário não possuir um plano ativo.
     - `EnsureUserIsAdmin`: Restringe rotas administrativas para usuários com o papel de 'admin'.
+- **Gerenciamento Automático de Assinaturas**:
+    - **Expiração Automática**: Command agendado (`app:verificar-assinaturas-expiradas`) que roda diariamente à meia-noite para expirar assinaturas vencidas e remover planos de usuários.
+    - **Lembretes de Renovação por Email**: 
+        - Sistema de notificações automáticas enviado 2x ao dia (9h e 18h).
+        - Email amigável 3 dias antes da expiração com detalhes da assinatura.
+        - Email urgente 1 dia antes com contador de horas restantes.
+        - Templates profissionais e responsivos com links diretos para renovação.
+        - Sistema anti-duplicação para evitar múltiplos envios.
 - **Manutenção de Assinaturas**:
     - Lógica de ativação/atualização de plano do usuário no banco de dados.
     - Endpoint para cancelamento de assinaturas pendentes, permitindo que o usuário mude de plano antes de concluir um pagamento aberto.
@@ -62,3 +70,26 @@ Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para 
    ```
 3. **Webhooks**:
    Utilize o NGROK para expor a URL local e configure o `notification_url` no `CheckoutController.php`.
+
+4. **Scheduler (Produção)**:
+   Para ativar os comandos de expiração e lembretes de renovação, adicione ao cron:
+   ```bash
+   * * * * * cd /caminho/para/finalyze/backend && php artisan schedule:run >> /dev/null 2>&1
+   ```
+   Ou em desenvolvimento, rode continuamente:
+   ```bash
+   php artisan schedule:work
+   ```
+
+5. **Configuração de Email**:
+   Configure as variáveis de email no `.env` para ativar os lembretes de renovação:
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=seu_servidor_smtp
+   MAIL_PORT=587
+   MAIL_USERNAME=seu_usuario
+   MAIL_PASSWORD=sua_senha
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS=noreply@finalyze.com
+   APP_FRONTEND_URL=http://localhost:5173
+   ```
