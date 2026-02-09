@@ -19,6 +19,105 @@
         </v-btn>
       </v-col>
     </v-row>
+<v-card
+  class="filter-bar mb-6"
+  elevation="1"
+  rounded="lg"
+>
+  <v-row dense align="center" class="px-2 py-1">
+
+    <!-- DATA -->
+    <v-col cols="12" md="2">
+      <v-text-field
+        v-model="filters.data"
+        label="Data"
+        type="date"
+        variant="underlined"
+        density="compact"
+        prepend-inner-icon="mdi-calendar"
+        hide-details
+      />
+    </v-col>
+
+    <!-- DESCRIÇÃO -->
+    <v-col cols="12" md="3">
+      <v-text-field
+        v-model="filters.descricao"
+        label="Descrição"
+        placeholder="Buscar..."
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- CATEGORIA -->
+    <v-col cols="12" md="2">
+      <v-select
+        v-model="filters.categoria"
+        :items="categorias"
+        label="Categoria"
+        variant="underlined"
+        density="compact"
+        hide-details
+        clearable
+      />
+    </v-col>
+
+    <!-- TIPO -->
+    <v-col cols="12" md="2">
+      <v-select
+        v-model="filters.tipo"
+        :items="[
+          { title: 'Todos', value: 'todos' },
+          { title: 'Receita', value: 'receita' },
+          { title: 'Despesa', value: 'despesa' }
+        ]"
+        label="Tipo"
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- VALOR -->
+    <v-col cols="12" md="2">
+      <v-text-field
+        v-model="filters.valor"
+        label="Valor"
+        prefix="R$"
+        type="number"
+        variant="underlined"
+        density="compact"
+        hide-details
+      />
+    </v-col>
+
+    <!-- AÇÕES -->
+    <v-col cols="12" md="1" class="d-flex justify-end">
+      <v-btn
+        icon
+        color="primary"
+        size="small"
+        class="mr-1"
+        @click="aplicarFiltros"
+      >
+        <v-icon size="18">mdi-magnify</v-icon>
+      </v-btn>
+
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        @click="limparFiltros"
+      >
+        <v-icon size="18">mdi-close</v-icon>
+      </v-btn>
+    </v-col>
+
+  </v-row>
+</v-card>
+
 
     <!-- Cards de Resumo Rápido -->
     <v-row class="mb-8 px-2">
@@ -37,7 +136,6 @@
       </v-col>
     </v-row>
 
-    <!-- Tabela de Lançamentos Modernizada -->
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
       <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
         <v-toolbar-title class="font-weight-bold">Histórico de Movimentações</v-toolbar-title>
@@ -111,11 +209,22 @@ const search = ref('')
 const serverItems = ref([])
 const totalItems = ref(0)
 const itemsPerPage = ref(10)
+
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
 const dialogNovo = ref(false)
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
+
+const filters = ref({
+  data: '',
+  descricao: '',
+  categoria: '',
+  tipo: 'todos',
+  valor: ''
+})
+
+const stats = ref({ receitas: 0, despesas: 0 })
 
 const headers = [
   { title: 'Data', key: 'data', align: 'start', sortable: false },
@@ -127,34 +236,40 @@ const headers = [
 ]
 
 const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR')
+const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 
-// Estatísticas de resumo (podemos manter o fetch global apenas para isso ou buscar do primeiro request)
-const stats = ref({ receitas: 0, despesas: 0 })
 const summaryStats = computed(() => [
   { label: 'Total Recebido', value: stats.value.receitas, icon: 'mdi-arrow-up', colorClass: 'receita-gradient', textClass: 'text-success' },
   { label: 'Total Gasto', value: stats.value.despesas, icon: 'mdi-arrow-down', colorClass: 'despesa-gradient', textClass: 'text-error' },
   { label: 'Saldo líquido', value: stats.value.receitas - stats.value.despesas, icon: 'mdi-bank', colorClass: 'saldo-gradient', textClass: '' }
 ])
 
-const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
+const categorias = computed(() => {
+  const set = new Set()
+  serverItems.value.forEach(l => l.categoria && set.add(l.categoria))
+  return Array.from(set)
+})
+
+const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) => {
   loading.value = true
   try {
-    const query = new URLSearchParams({
+    const params = new URLSearchParams({
       page,
       per_page: itemsPerPage,
-      search: search || ''
-    }).toString()
+    })
 
-    const response = await authStore.apiFetch(`/lancamentos?${query}`)
+    if (tableSearch) params.append('search', tableSearch)
+    if (filters.value.data) params.append('data', filters.value.data)
+    if (filters.value.categoria) params.append('categoria', filters.value.categoria)
+    if (filters.value.tipo && filters.value.tipo !== 'todos') params.append('tipo', filters.value.tipo)
+    if (filters.value.valor) params.append('valor', filters.value.valor)
+    if (filters.value.descricao) params.append('descricao', filters.value.descricao)
+
+    const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)
     if (response.ok) {
         const data = await response.json()
         serverItems.value = data.data
         totalItems.value = data.total
-        
-        // Atualiza stats de resumo (opcional: o backend poderia retornar isso no meta da paginação)
-        // Por ora, vamos fazer um fetch separado para o resumo se necessário, ou usar os dados da primeira página
-        // Mas o ideal é um endpoint de stats. Vou manter o fetch global simplificado para o resumo se houver lag.
     }
   } catch (e) {
     console.error(e)
@@ -163,8 +278,21 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
   }
 }
 
-const buscarLancamentos = () => {
-  // Dispara o update do v-data-table-server
+const aplicarFiltros = () => {
+    // Força o recarregamento do v-data-table-server
+    search.value = filters.value.descricao || ' '
+    setTimeout(() => { search.value = filters.value.descricao || '' }, 10)
+}
+
+const limparFiltros = () => {
+  filters.value = {
+    data: '',
+    descricao: '',
+    categoria: '',
+    tipo: 'todos',
+    valor: ''
+  }
+  search.value = ''
 }
 
 const buscarStats = async () => {
@@ -176,6 +304,12 @@ const buscarStats = async () => {
        stats.value.despesas = data.despesa
     }
   } catch (e) { console.error(e) }
+}
+
+const buscarLancamentos = () => {
+    // Força o reload do v-data-table-server
+    search.value = (search.value || '') + ' '
+    setTimeout(() => { search.value = search.value.trim() }, 10)
 }
 
 const abrirNovo = () => { dialogNovo.value = true }
@@ -236,4 +370,25 @@ onMounted(() => {
 }
 
 .opacity-70 { opacity: 0.7; }
+</style>
+
+<style scoped>
+.filter-bar {
+  background: #ffffff;
+  border: 1px solid #eef1f5;
+}
+
+.filter-bar .v-field {
+  font-size: 14px;
+}
+
+.filter-bar .v-icon {
+  opacity: 0.75;
+}
+
+.filter-bar .v-btn {
+  border-radius: 50%;
+}
+
+
 </style>
