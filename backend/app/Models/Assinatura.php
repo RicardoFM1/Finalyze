@@ -42,4 +42,9 @@ class Assinatura extends Model
     {
         return $this->belongsTo(Periodo::class, 'periodo_id');
     }
+
+    public function lembretesEnviados()
+    {
+        return $this->hasMany(LembreteEnviado::class, 'assinatura_id');
+    }
 }
