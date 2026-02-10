@@ -317,13 +317,13 @@ const validateCPF = (v) => {
 const handleLogin = async () => {
     loading.value = true
     try {
-        await authStore.login(loginForm.value.email, loginForm.value.senha)
-        toast.success('Login realizado com sucesso!')
-        step.value = 2
+      await authStore.login(loginForm.value.email, loginForm.value.senha)
+      toast.success('Login realizado com sucesso!')
+      router.push({ name: 'Home' })
     } catch (e) {
-        toast.error(e.message || 'Erro ao fazer login')
+      toast.error(e.message || 'Erro ao fazer login')
     } finally {
-        loading.value = false
+      loading.value = false
     }
 }
 
@@ -342,6 +342,7 @@ const handleRegister = async () => {
         )
         toast.success('Cadastro realizado com sucesso!')
         authTab.value = 'login'
+        router.push({ name: 'Home' })
     } catch (e) {
         if (e.response && e.response.status === 422 && e.response.data && e.response.data.errors) {
           

@@ -1,53 +1,62 @@
 <template>
   <v-layout>
-    <v-app-bar color="primary" elevation="2">
-       <v-app-bar-nav-icon
-  v-if="authStore.isAuthenticated"
-  @click="toggleDrawer"
-  class="mr-2"
-  variant="text"
-/>
-  <v-toolbar-title
-    class="font-weight-bold app-title"
-    style="cursor: pointer"
-    @click="$router.push({ name: 'Home' })"
-  >
-    <v-icon icon="mdi-chart-pie" class="mr-2" />
-    Finalyze
-  </v-toolbar-title>
+    <template v-if="!uiAuthStore.loading">
+      <v-app-bar color="primary" elevation="2">
+         <v-app-bar-nav-icon
+      v-if="
+        authStore.isAuthenticated &&
+        !isAuthPage
+      "
+      @click="toggleDrawer"
+      class="mr-2"
+      variant="text"
+    />
 
-  <v-spacer />
+      <v-toolbar-title
+        class="font-weight-bold app-title"
+        style="cursor: pointer"
+        @click="$router.push({ name: 'Home' })"
+      >
+        <v-icon icon="mdi-chart-pie" class="mr-2" />
+        Finalyze
+      </v-toolbar-title>
 
-    <Coinselector />
-    <LanguageSelector />
-    
-    <template v-if="!authStore.isAuthenticated">
-        <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
-          {{ $t('landing.btn_plans') }}
-        </v-btn>
+      <v-spacer />
 
-        <v-btn
-          :to="{ name: 'Login' }"
-          variant="elevated"
-          color="white"
-          class="ml-2 mr-2 font-weight-bold text-primary text-none"
-        >
-          {{ $t('landing.btn_login') }}
-        </v-btn>
-    </template>
-</v-app-bar>
+        <Coinselector />
+        <LanguageSelector />
+        
+        <template v-if="!authStore.isAuthenticated">
+            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
+              {{ $t('landing.btn_plans') }}
+            </v-btn>
+
+            <v-btn
+              :to="{ name: 'Login' }"
+              variant="elevated"
+              color="white"
+              class="ml-2 mr-2 font-weight-bold text-primary text-none"
+            >
+              {{ $t('landing.btn_login') }}
+            </v-btn>
+        </template>
+      </v-app-bar>
 
 
-    <v-navigation-drawer
-  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
-  v-model="drawer"
-  :rail="isDesktop && rail"
-  :permanent="isDesktop"
-  :temporary="!isDesktop"
-  class="animated-drawer"
-  elevation="6"
->
-        <v-list>
+      <v-navigation-drawer
+      v-if="
+        authStore.isAuthenticated &&
+        !isAuthPage
+      "
+      v-model="drawer"
+      :rail="isDesktop && rail"
+      :permanent="isDesktop"
+      :temporary="!isDesktop"
+      class="animated-drawer"
+      elevation="6"
+    >
+
+            <v-list>
             <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
@@ -79,6 +88,10 @@
         
     </v-navigation-drawer>
 
+      <v-main>
+        <router-view></router-view>
+      </v-main>
+    </template>
     <ModalBase v-model="confirmLogout" :title="$t('features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
@@ -108,18 +121,16 @@
             </v-btn>
         </template>
     </ModalBase>
-
-    <v-main>
-      <router-view></router-view>
-    </v-main>
   </v-layout>
 </template>
 
 <script setup>
-import { useAuthStore } from '../stores/auth'
-import { useRouter,useRoute } from 'vue-router'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
+import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
+
 import ModalBase from '../components/Modals/modalBase.vue'
 import LanguageSelector from './Language/LanguageSelector.vue'
 import Coinselector from './Currency/Coinselector.vue'
@@ -127,64 +138,62 @@ import Coinselector from './Currency/Coinselector.vue'
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
 const router = useRouter()
-const confirmLogout = ref(false)
+const route = useRoute()
 
+const confirmLogout = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
+
 const { mdAndUp } = useDisplay()
 const isDesktop = computed(() => mdAndUp.value)
 
+const isAuthPage = computed(() =>
+  ['Login', 'Register'].includes(route.name)
+)
+
 const toggleDrawer = () => {
+  if (uiAuthStore.loading) return; // Prevent opening drawer while loading
   if (isDesktop.value) {
-    rail.value = !rail.value
-    drawer.value = true
+    rail.value = !rail.value;
+    drawer.value = true;
   } else {
-    rail.value = false
-    drawer.value = !drawer.value
+    rail.value = false;
+    drawer.value = !drawer.value;
   }
 }
 
-const isAuthPage = computed(() => {
-  return route.name === 'Login' || route.name === 'Register'
-})
-
-
-import { onMounted } from 'vue'
-import { useUiStore } from '../stores/ui'
-onMounted(async () => {
-    if (authStore.isAuthenticated) {
-        await authStore.fetchUser()
-    }
-})
-
 const handleLogout = () => {
-    confirmLogout.value = false
-    authStore.logout()
-    router.push({ name: 'Home' })
+  confirmLogout.value = false
+  authStore.logout()
+  router.push({ name: 'Home' })
 }
 
 const getInitials = (name) => {
-    if (!name) return ''
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+  if (!name) return ''
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase()
 }
 
-onMounted(() => {
-  if (isDesktop.value) {
-    drawer.value = true
-    rail.value = false
+
+onMounted(async () => {
+  if (authStore.isAuthenticated && !authStore.user) {
+    await authStore.fetchUser();
+  }
+  if (isDesktop.value && authStore.isAuthenticated) {
+    drawer.value = true;
   }
 })
 
 watch(isDesktop, (desktop) => {
-  if (desktop) {
-    drawer.value = true
-    rail.value = false
-  } else {
-    drawer.value = false
-    rail.value = false
-  }
+  drawer.value = desktop && authStore.isAuthenticated
+  rail.value = false
 })
 </script>
+
 
 <style scoped>
 

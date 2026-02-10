@@ -25,7 +25,6 @@
   rounded="lg"
 >
   <v-row dense align="center" class="px-2 py-1">
-
     <!-- DATA -->
     <v-col cols="12" md="2">
       <v-text-field
@@ -93,7 +92,6 @@
       />
     </v-col>
 
-    <!-- AÇÕES -->
     <v-col cols="12" md="1" class="d-flex justify-end">
       <v-btn
         icon
@@ -114,7 +112,6 @@
         <v-icon size="18">mdi-close</v-icon>
       </v-btn>
     </v-col>
-
   </v-row>
 </v-card>
 

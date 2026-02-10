@@ -12,14 +12,14 @@
             <p class="text-h6 text-md-h5 text-medium-emphasis mb-8 animate-fade-up-delay">
               Acompanhe, analise e alcance. Finalyze é a ponte entre seus sonhos e sua realidade financeira.
             </p>
-            <div class="d-flex gap-4 justify-center justify-md-start animate-fade-up-delay-2">
-              <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn" :to="{ name: 'Plans' }" elevation="12">
+            <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
+              <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Plans' }" elevation="12">
                 Começar Agora
               </v-btn>
-              <v-btn v-if="!authStore.isAuthenticated" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn" :to="{ name: 'Login' }">
+              <v-btn v-if="!authStore.isAuthenticated" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Login' }">
                 Entrar
               </v-btn>
-              <v-btn v-else variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn" :to="{ name: 'Dashboard' }">
+              <v-btn v-else variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
                 Meu Painel
               </v-btn>
             </div>
@@ -90,9 +90,19 @@ const features = [
 </script>
 
 <style scoped>
-.home-wrapper {
-  background-color: #fafbfc;
-  overflow-x: hidden;
+/* ...existing code... */
+.gap-btns > .v-btn {
+  margin-bottom: 16px;
+  margin-right: 0;
+}
+@media (min-width: 768px) {
+  .gap-btns > .v-btn {
+    margin-bottom: 0;
+    margin-right: 24px;
+  }
+  .gap-btns > .v-btn:last-child {
+    margin-right: 0;
+  }
 }
 
 .hero-section {

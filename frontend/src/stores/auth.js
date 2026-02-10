@@ -13,6 +13,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isAuthenticated = computed(() => !!token.value);
 
+    const hasActivePlan = computed(() => {
+        // Admin always has access
+        if (user.value?.admin) return true;
+        // User must have a plan with recursos
+        return !!(user.value?.plano && user.value.plano.recursos && user.value.plano.recursos.length > 0);
+    });
+
     async function apiFetch(endpoint, options = {}) {
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
@@ -129,8 +136,14 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value?.plano?.recursos) return false;
 
         const features = user.value.plano.recursos;
-        return features.some(f => f.slug === featureSlug || f.nome === featureSlug);
+        // Normaliza para comparar ignorando case e acentos
+        const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
+        const target = normalize(featureSlug);
+        return features.some(f => {
+            return normalize(f.slug) === target || normalize(f.nome) === target;
+        });
     }
 
     return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };
+    return { user, token, isAuthenticated, hasActivePlan, login, register, logout, fetchUser, apiFetch, hasFeature };
 });
