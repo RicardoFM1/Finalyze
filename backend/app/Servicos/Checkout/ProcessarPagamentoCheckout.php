@@ -36,14 +36,20 @@ class ProcessarPagamentoCheckout
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
+        
+        Assinatura::where('user_id', $usuario->id)
+    ->where('status', 'pending')
+    ->update(['status' => 'cancelled']);
 
-        $assinatura = Assinatura::updateOrCreate(
-            ['user_id' => $usuario->id, 'status' => 'pending', 'plano_id' => (int)$plano_id],
-            [
-                'periodo_id' => (int)$periodo_id,
-                'inicia_em' => now(),
-            ]
-        );
+
+        $assinatura = Assinatura::create([
+    'user_id'    => $usuario->id,
+    'plano_id'   => (int) $plano_id,
+    'periodo_id' => (int) $periodo_id,
+    'status'     => 'pending',
+    'inicia_em'  => now(),
+]);
+
 
         $payer = $dados['payer'] ?? [];
         $payerIdNumber = $payer['identification']['number'] ?? $usuario->cpf;

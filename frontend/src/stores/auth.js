@@ -136,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value?.plano?.recursos) return false;
 
         const features = user.value.plano.recursos;
-        // Normaliza para comparar ignorando case e acentos
+       
         const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
         const target = normalize(featureSlug);
         return features.some(f => {
