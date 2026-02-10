@@ -136,7 +136,11 @@ const salvarLancamento = async () => {
       emit('saved')
     } else {
       const data = await response.json()
-      toast.error(data.message || t('toasts.error_generic'))
+      if (data.message && data.message.toLowerCase().includes('description') && data.message.includes('255')) {
+        toast.error(t('validation.description_too_long'))
+      } else {
+        toast.error(data.message || t('toasts.error_generic'))
+      }
     }
   } catch (e) {
     console.error(e)
