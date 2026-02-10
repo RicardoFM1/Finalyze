@@ -1,63 +1,62 @@
 <template>
   <v-layout>
-    <v-app-bar color="primary" elevation="2">
-       <v-app-bar-nav-icon
-  v-if="
-    authStore.isAuthenticated &&
-    uiAuthStore.loading === false &&
-    !isAuthPage
-  "
-  @click="toggleDrawer"
-  class="mr-2"
-  variant="text"
-/>
+    <template v-if="!uiAuthStore.loading">
+      <v-app-bar color="primary" elevation="2">
+         <v-app-bar-nav-icon
+      v-if="
+        authStore.isAuthenticated &&
+        !isAuthPage
+      "
+      @click="toggleDrawer"
+      class="mr-2"
+      variant="text"
+    />
 
-  <v-toolbar-title
-    class="font-weight-bold app-title"
-    style="cursor: pointer"
-    @click="$router.push({ name: 'Home' })"
-  >
-    <v-icon icon="mdi-chart-pie" class="mr-2" />
-    Finalyze
-  </v-toolbar-title>
+      <v-toolbar-title
+        class="font-weight-bold app-title"
+        style="cursor: pointer"
+        @click="$router.push({ name: 'Home' })"
+      >
+        <v-icon icon="mdi-chart-pie" class="mr-2" />
+        Finalyze
+      </v-toolbar-title>
 
-  <v-spacer />
+      <v-spacer />
 
-    <Coinselector />
-    <LanguageSelector />
-    
-    <template v-if="!authStore.isAuthenticated">
-        <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
-          {{ $t('landing.btn_plans') }}
-        </v-btn>
+        <Coinselector />
+        <LanguageSelector />
+        
+        <template v-if="!authStore.isAuthenticated">
+            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
+              {{ $t('landing.btn_plans') }}
+            </v-btn>
 
-        <v-btn
-          :to="{ name: 'Login' }"
-          variant="elevated"
-          color="white"
-          class="ml-2 mr-2 font-weight-bold text-primary text-none"
-        >
-          {{ $t('landing.btn_login') }}
-        </v-btn>
-    </template>
-</v-app-bar>
+            <v-btn
+              :to="{ name: 'Login' }"
+              variant="elevated"
+              color="white"
+              class="ml-2 mr-2 font-weight-bold text-primary text-none"
+            >
+              {{ $t('landing.btn_login') }}
+            </v-btn>
+        </template>
+      </v-app-bar>
 
 
-    <v-navigation-drawer
-  v-if="
-    authStore.isAuthenticated &&
-    uiAuthStore.loading === false &&
-    !isAuthPage
-  "
-  v-model="drawer"
-  :rail="isDesktop && rail"
-  :permanent="isDesktop"
-  :temporary="!isDesktop"
-  class="animated-drawer"
-  elevation="6"
->
+      <v-navigation-drawer
+      v-if="
+        authStore.isAuthenticated &&
+        !isAuthPage
+      "
+      v-model="drawer"
+      :rail="isDesktop && rail"
+      :permanent="isDesktop"
+      :temporary="!isDesktop"
+      class="animated-drawer"
+      elevation="6"
+    >
 
-        <v-list>
+            <v-list>
             <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
@@ -89,6 +88,10 @@
         
     </v-navigation-drawer>
 
+      <v-main>
+        <router-view></router-view>
+      </v-main>
+    </template>
     <ModalBase v-model="confirmLogout" :title="$t('features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
@@ -118,10 +121,6 @@
             </v-btn>
         </template>
     </ModalBase>
-
-    <v-main>
-      <router-view></router-view>
-    </v-main>
   </v-layout>
 </template>
 
@@ -153,12 +152,13 @@ const isAuthPage = computed(() =>
 )
 
 const toggleDrawer = () => {
+  if (uiAuthStore.loading) return; // Prevent opening drawer while loading
   if (isDesktop.value) {
-    rail.value = !rail.value
-    drawer.value = true
+    rail.value = !rail.value;
+    drawer.value = true;
   } else {
-    rail.value = false
-    drawer.value = !drawer.value
+    rail.value = false;
+    drawer.value = !drawer.value;
   }
 }
 

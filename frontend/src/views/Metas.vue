@@ -17,8 +17,10 @@
       </v-btn>
     </div>
 
-    <div v-if="loading" class="d-flex justify-center align-center py-12">
-      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+    <div v-if="loading" class="d-flex flex-column align-center py-12">
+      <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
+      <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
+      <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
     </div>
 
 

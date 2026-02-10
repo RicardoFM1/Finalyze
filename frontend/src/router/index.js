@@ -80,31 +80,35 @@ const router = createRouter({
 
 
 router.beforeEach((to) => {
-  const auth = useAuthStore()
-  const ui = useUiStore()
+  const auth = useAuthStore();
+  const ui = useUiStore();
 
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { name: 'Login' }
+ 
+  if (ui.loading) {
+    return false; 
   }
 
-  // Always allow admin users
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return { name: 'Login' };
+  }
+
   if (auth.user?.admin) {
     return true;
   }
 
   if (to.meta.requiresAdmin && !auth.user?.admin) {
-    toast.error('Acesso restrito para administradores')
-    return { name: 'Dashboard' }
+    toast.error('Acesso restrito para administradores');
+    return { name: 'Dashboard' };
   }
 
   if (to.meta.requiresPlan && !auth.hasActivePlan) {
-    toast.error('Seu plano não permite acessar essa funcionalidade')
-    return { name: 'Plans' }
+    toast.error('Seu plano não permite acessar essa funcionalidade');
+    return { name: 'Plans' };
   }
 
   if (to.meta.requiresFeature && !auth.hasFeature(to.meta.requiresFeature)) {
-    toast.error('Funcionalidade não disponível no seu plano')
-    return { name: 'Dashboard' }
+    toast.error('Funcionalidade não disponível no seu plano');
+    return { name: 'Dashboard' };
   }
 })
 
