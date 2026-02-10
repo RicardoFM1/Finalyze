@@ -144,6 +144,5 @@ export const useAuthStore = defineStore('auth', () => {
         });
     }
 
-    return { user, token, isAuthenticated, login, register, logout, fetchUser, apiFetch, hasFeature };
     return { user, token, isAuthenticated, hasActivePlan, login, register, logout, fetchUser, apiFetch, hasFeature };
 });
