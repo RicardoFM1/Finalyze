@@ -12,7 +12,7 @@ class Meta extends Model
         'descricao',
         'tipo',
         'valor_objetivo',
-        'valor_atual',
+        'valor_objetivo',
         'meta_quantidade',
         'atual_quantidade',
         'unidade',
@@ -24,7 +24,7 @@ class Meta extends Model
 
     protected $casts = [
         'valor_objetivo' => 'float',
-        'valor_atual' => 'float',
+        'valor_objetivo' => 'float',
         'meta_quantidade' => 'integer',
         'atual_quantidade' => 'integer',
         'prazo' => 'date',

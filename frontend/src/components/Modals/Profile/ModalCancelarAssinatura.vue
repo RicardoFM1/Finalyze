@@ -4,8 +4,10 @@
       {{ $t('modals.cancel_subscription.description') }} <strong>{{ dataExpiracaoFormatada }}</strong>.
     </p>
     <template #actions>
-      <v-btn variant="text" @click="internalValue = false">{{ $t('modals.cancel_subscription.keep') }}</v-btn>
-      <v-btn color="error" variant="flat" class="rounded-lg ml-2" :loading="loading" @click="confirmCancel">{{ $t('modals.cancel_subscription.confirm') }}</v-btn>
+      <div class="d-flex w-100 flex-column flex-sm-row justify-end gap-2">
+         <v-btn variant="text" class="mb-2 mb-sm-0" @click="internalValue = false">{{ $t('modals.cancel_subscription.keep') }}</v-btn>
+         <v-btn color="error" variant="flat" class="rounded-lg ml-sm-2" :loading="loading" @click="confirmCancel">{{ $t('modals.cancel_subscription.confirm') }}</v-btn>
+      </div>
     </template>
   </ModalBase>
 </template>

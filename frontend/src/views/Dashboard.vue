@@ -4,7 +4,7 @@
     <v-row class="mb-8 pt-4">
       <v-col cols="12">
         <div class="d-flex align-center">
-            <v-avatar color="#2962FF" size="64" class="mr-4 elevation-4 glass-icon">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4">
                 <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
             </v-avatar>
             <div>

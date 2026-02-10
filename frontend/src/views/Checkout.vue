@@ -136,6 +136,19 @@
                     :plan-id="planId"
                     :period-id="periodId"
                   />
+                  
+                  <div v-if="preferenceId" class="text-center mt-6">
+                    <v-btn 
+                        variant="text" 
+                        color="error" 
+                        size="small"
+                        @click="cancelPendingPayment"
+                        :loading="cancelling"
+                    >
+                        Cancelar Pedido Pendente / Escolher Outro Plano
+                    </v-btn>
+                  </div>
+
                   <div v-else-if="!checkoutError" class="text-center py-10">
                     <v-progress-circular indeterminate color="primary"></v-progress-circular>
                     <p class="mt-4">Preparando ambiente de pagamento...</p>
@@ -143,6 +156,7 @@
                   <v-alert v-else type="error" variant="tonal" class="mt-4">
                     {{ checkoutError }}
                     <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">Tentar Novamente</v-btn>
+                    <v-btn block variant="text" class="mt-2" @click="router.push({name: 'Plans'})">Voltar para Planos</v-btn>
                   </v-alert>
                </div>
             </template>
@@ -202,25 +216,32 @@ onMounted(async () => {
             const response = await authStore.apiFetch('/checkout/preferencia')
             if (response.ok) {
                 const data = await response.json()
-                preferenceId.value = data.id
-                planInfo.value = data.plan
-                planId.value = data.plan.id
-               
-                if (route.query.period && data.plan.periodos) {
-                     const found = data.plan.periodos.find(p => p.id == route.query.period)
-                     if (found) {
-                         periodId.value = found.id
-                         periodInfo.value = found
-                     }
-                }
                 
-               
-                if (!periodInfo.value && data.period_id) {
-                    periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
-                    periodId.value = data.period_id
-                }
+                // CHECK: If user selected a specific plan via URL that is DIFFERENT from the pending preference,
+                // we should ignore the pending preference and let the flow create a new one.
+                if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
+                    console.log('[Checkout] Ignoring pending preference because user selected a new plan.')
+                    preferenceId.value = null // This will trigger the next block to create a new preference
+                } else {
+                    preferenceId.value = data.id
+                    planInfo.value = data.plan
+                    planId.value = data.plan.id
+                
+                    if (route.query.period && data.plan.periodos) {
+                        const found = data.plan.periodos.find(p => p.id == route.query.period)
+                        if (found) {
+                            periodId.value = found.id
+                            periodInfo.value = found
+                        }
+                    }
+                    
+                    if (!periodInfo.value && data.period_id) {
+                        periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
+                        periodId.value = data.period_id
+                    }
 
-                step.value = 2
+                    step.value = 2
+                }
             }
         } catch (e) {
             console.warn('No pending preference found or error:', e)
@@ -384,6 +405,27 @@ const initPayment = async () => {
         console.error('Init payment error:', e)
         checkoutError.value = e.message || 'Falha ao iniciar ambiente de pagamento. Verifique sua conexão.'
         toast.error(checkoutError.value)
+    }
+}
+
+const cancelling = ref(false)
+
+const cancelPendingPayment = async () => {
+    cancelling.value = true
+    try {
+        await authStore.apiFetch('/checkout/cancelar_pagamento', { method: 'PUT' })
+        preferenceId.value = null
+        planId.value = null
+        periodId.value = null
+        toast.success('Pedido cancelado.')
+        router.push({ name: 'Plans' })
+    } catch (e) {
+        console.error(e)
+        // Even if error, force reset to allow user to proceed
+        preferenceId.value = null
+        router.push({ name: 'Plans' })
+    } finally {
+        cancelling.value = false
     }
 }
 

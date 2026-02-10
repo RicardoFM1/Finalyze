@@ -29,23 +29,25 @@
           {{ $t('plans.pending_desc', { plan: pendingPlanName }) }}
         </p>
         <template #actions>
-          <v-btn
-            variant="outlined"
-            color="error"
-            class="rounded-lg px-6"
-            :loading="cancelling"
-            @click="cancelarPagamento"
-          >
-            {{ $t('plans.cancel_prev') }}
-          </v-btn>
-          <v-btn
-            variant="flat"
-            color="primary"
-            class="rounded-lg px-6 ml-4"
-            @click="continuePayment"
-          >
-            {{ $t('plans.continue') }}
-          </v-btn>
+          <div class="d-flex w-100 flex-column flex-sm-row justify-end gap-2">
+            <v-btn
+                variant="outlined"
+                color="error"
+                class="mb-2 mb-sm-0"
+                :loading="cancelling"
+                @click="cancelarPagamento"
+            >
+                {{ $t('plans.cancel_prev') }}
+            </v-btn>
+            <v-btn
+                variant="flat"
+                color="primary"
+                class="ml-0 ml-sm-4"
+                @click="continuePayment"
+            >
+                {{ $t('plans.continue') }}
+            </v-btn>
+          </div>
         </template>
     </ModalBase>
   </v-container>

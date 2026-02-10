@@ -2,7 +2,7 @@
   <v-dialog v-model="dialog" :max-width="maxWidth" :persistent="persistent" class="modal-base-dialog">
     <v-card class="rounded-xl overflow-hidden elevation-12">
       <v-toolbar color="primary" density="comfortable">
-        <v-toolbar-title class="font-weight-bold">{{ title }}</v-toolbar-title>
+        <v-toolbar-title class="font-weight-bold text-wrap" style="line-height: 1.2; overflow: visible; white-space: normal;">{{ title }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon="mdi-close" variant="text" @click="close"></v-btn>
       </v-toolbar>
@@ -63,6 +63,21 @@ const close = () => {
 
 .modal-base-dialog .v-card {
   will-change: transform, opacity;
+}
+
+/* Force title to wrap and not truncate */
+.modal-base-dialog .v-toolbar-title__placeholder {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Allow toolbar to grow if text wraps */
+.modal-base-dialog .v-toolbar {
+  height: auto !important;
+  min-height: 48px; /* standard density comfortable height */
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 </style>
 

@@ -19,9 +19,13 @@ class CancelarAssinatura
         }
 
         $subscription->update([
-            'status' => 'cancelled',
+            'status' => 'cancelled', // ou 'inactive', conforme sua preferência de status final
             'renovacao_automatica' => false
         ]);
+
+        // Remove imediatamente o plano do usuário
+        $user->plano_id = null;
+        $user->save();
 
         return $subscription;
     }

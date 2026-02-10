@@ -279,8 +279,9 @@
         </v-window-item>
       </v-window>
     </v-card>
+    <ModalCancelarAssinatura v-model="confirmCancel" @cancelled="fetchSubscription" />
+    <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null" />
   </v-container>
-
 </template>
 
 <script setup>

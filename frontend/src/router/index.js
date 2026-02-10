@@ -83,10 +83,8 @@ router.beforeEach((to) => {
   const auth = useAuthStore();
   const ui = useUiStore();
 
- 
-  if (ui.loading) {
-    return false; 
-  }
+
+
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'Login' };
