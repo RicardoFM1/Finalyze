@@ -218,6 +218,9 @@
     "continue_payment": "Continuar Pagamento",
     "leave_new": "Sair agora"
   },
+  "validation": {
+    "description_too_long": "A descrição não pode ter mais que 255 caracteres."
+  },
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",
