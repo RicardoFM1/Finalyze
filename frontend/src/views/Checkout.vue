@@ -340,7 +340,9 @@ const handleLogin = async () => {
     try {
       await authStore.login(loginForm.value.email, loginForm.value.senha)
       toast.success('Login realizado com sucesso!')
-      router.push({ name: 'Home' })
+      // Proceed to payment step
+      step.value = 2
+      await initPayment()
     } catch (e) {
       toast.error(e.message || 'Erro ao fazer login')
     } finally {
@@ -362,8 +364,20 @@ const handleRegister = async () => {
             registerForm.value.data_nascimento
         )
         toast.success('Cadastro realizado com sucesso!')
-        authTab.value = 'login'
-        router.push({ name: 'Home' })
+        
+        // After register, user is usually logged in. Proceed to payment.
+        // If the backend requires explicit login after register, we would do that here.
+        // Assuming authStore.register handles login (or settign token).
+        if (authStore.isAuthenticated) {
+             step.value = 2
+             await initPayment()
+        } else {
+            // Fallback if not auto-logged in
+            authTab.value = 'login'
+            loginForm.value.email = registerForm.value.email
+            toast.info('Por favor, faça login com sua nova conta.')
+        }
+        
     } catch (e) {
         if (e.response && e.response.status === 422 && e.response.data && e.response.data.errors) {
           
