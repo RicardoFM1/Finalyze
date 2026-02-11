@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('faturamentos', function (Blueprint $table) {
+        Schema::create('historico_pagamentos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
             $table->foreignId('assinatura_id')->constrained('assinaturas')->onDelete('cascade');
@@ -26,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('faturamentos');
+        Schema::dropIfExists('historico_pagamentos');
     }
 };

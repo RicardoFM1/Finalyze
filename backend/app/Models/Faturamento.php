@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Faturamento extends Model
 {
-    protected $table = 'faturamentos';
+    protected $table = 'historico_pagamentos';
 
     protected $fillable = [
         'user_id',

@@ -73,4 +73,5 @@ class Usuario extends Authenticatable
     {
         return $this->hasMany(Meta::class, 'usuario_id');
     }
+    
 }
