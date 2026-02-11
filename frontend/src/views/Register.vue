@@ -1,5 +1,5 @@
 <template>
-  <v-container class="fill-height" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
+  <v-container class="fill-height auth-wrapper" fluid>
     <v-row align="center" justify="center" class="h-100">
       <v-col cols="12" md="8" lg="6" xl="4">
         <v-card elevation="24" rounded="lg" class="overflow-hidden">
@@ -24,6 +24,7 @@
                   prepend-inner-icon="mdi-account"
                   variant="outlined"
                   color="primary"
+                  :disabled="loading"
                   :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.nome"
                   @input="errors.nome = ''"
@@ -36,6 +37,7 @@
                   variant="outlined"
                   color="primary"
                   type="email"
+                  :disabled="loading"
                   :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.email"
                   @input="errors.email = ''"
@@ -47,12 +49,14 @@
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
                   color="primary"
+                  :disabled="loading"
                   :type="showPass ? 'text' : 'password'"
                   :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPass = !showPass"
                   :rules="passwordRules"
                   :error-messages="errors.senha"
                   @input="errors.senha = ''"
+                  @paste.prevent
                 ></v-text-field>
 
                   <v-text-field
@@ -61,10 +65,12 @@
                     prepend-inner-icon="mdi-lock-check"
                     variant="outlined"
                     color="primary"
+                    :disabled="loading"
                     :type="showPass ? 'text' : 'password'"
                     :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
                     :error-messages="errors.senha_confirmation"
                     @input="errors.senha_confirmation = ''"
+                    @paste.prevent
                   ></v-text-field>
 
                 <v-text-field
@@ -75,6 +81,7 @@
                   color="primary"
                   @input="handleCpfInput"
                   maxlength="14"
+                  :disabled="loading"
                   :rules="[v => !!v || $t('validation.required'), validateCPF]"
                   :error-messages="errors.cpf"
                 ></v-text-field>
@@ -86,6 +93,7 @@
                   variant="outlined"
                   color="primary"
                   type="date"
+                  :disabled="loading"
                   :rules="[v => !!v || $t('validation.required'), validateAge]"
                   :error-messages="errors.data_nascimento"
                   @input="errors.data_nascimento = ''"

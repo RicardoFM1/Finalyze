@@ -6,21 +6,21 @@
       <v-container>
         <v-row align="center" justify="center">
           <v-col cols="12" md="7" class="text-center text-md-left hero-content">
-            <h1 class="text-h2 text-md-h1 font-weight-black mb-6 animate-fade-up">
-              Domine seu <span class="gradient-text">Destino</span> Financeiro
+            <h1 class="text-h3 text-md-h2 font-weight-black mb-6 animate-fade-up">
+               {{ $t('landing.hero_title_alt').split('{destiny}')[0] }}<span class="gradient-text">{{ $t('landing.destiny') }}</span>{{ $t('landing.hero_title_alt').split('{destiny}')[1] }}
             </h1>
-            <p class="text-h6 text-md-h5 text-medium-emphasis mb-8 animate-fade-up-delay">
-              Acompanhe, analise e alcance. Finalyze é a ponte entre seus sonhos e sua realidade financeira.
+            <p class="text-body-1 text-md-h6 text-medium-emphasis mb-8 animate-fade-up-delay">
+              {{ $t('landing.hero_subtitle_alt') }}
             </p>
             <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
               <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Plans' }" elevation="12">
-                Começar Agora
+                {{ $t('landing.btn_start') }}
               </v-btn>
               <v-btn v-if="!authStore.isAuthenticated" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Login' }">
-                Entrar
+                {{ $t('landing.btn_login') }}
               </v-btn>
               <v-btn v-else variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
-                Meu Painel
+                {{ $t('landing.btn_my_dashboard') }}
               </v-btn>
             </div>
           </v-col>
@@ -39,8 +39,8 @@
     <v-container class="py-16">
       <v-row class="mb-12 text-center">
         <v-col cols="12">
-          <h2 class="text-h4 text-md-h3 font-weight-bold mb-2">Poder em suas mãos</h2>
-          <p class="text-subtitle-1 text-medium-emphasis">Tudo o que você precisa para uma saúde financeira impecável.</p>
+          <h2 class="text-h5 text-md-h4 font-weight-bold mb-2">{{ $t('landing.power_title') }}</h2>
+          <p class="text-body-1 text-medium-emphasis">{{ $t('landing.power_subtitle') }}</p>
         </v-col>
       </v-row>
       <v-row>
@@ -49,44 +49,60 @@
             <div class="icon-circle mb-6" :class="feature.colorClass">
               <v-icon :icon="feature.icon" size="32" color="white"></v-icon>
             </div>
-            <h3 class="text-h5 font-weight-bold mb-3">{{ feature.title }}</h3>
-            <p class="text-body-1 text-medium-emphasis">{{ feature.desc }}</p>
+            <h3 class="text-h6 font-weight-bold mb-3">{{ feature.title }}</h3>
+            <p class="text-body-2 text-medium-emphasis">{{ feature.desc }}</p>
             <div class="card-glow" :style="{ backgroundColor: feature.glowColor }"></div>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
-    
+
+    <!-- Call to Action -->
+    <section class="cta-section py-16">
+      <v-container>
+        <v-card class="cta-card rounded-pill pa-8 pa-md-12 text-center overflow-hidden" elevation="10" color="primary">
+          <div class="cta-bg-pattern"></div>
+          <h2 class="text-h5 text-md-h4 font-weight-black mb-6">{{ $t('landing.cta_title') }}</h2>
+          <v-btn color="white" size="x-large" class="rounded-xl text-primary font-weight-bold px-12" :to="{ name: 'Plans' }" elevation="4">
+            {{ $t('landing.cta_btn') }}
+          </v-btn>
+        </v-card>
+      </v-container>
+    </section>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
-const authStore = useAuthStore()
+import { useI18n } from 'vue-i18n'
 
-const features = [
+const authStore = useAuthStore()
+const { t } = useI18n()
+
+const features = computed(() => [
   {
-    title: 'Análise Inteligente',
-    desc: 'Algoritmos que transformam números em insights claros sobre seu consumo.',
+    title: t('landing.features.analysis_title'),
+    desc: t('landing.features.analysis_text'),
     icon: 'mdi-auto-fix',
     colorClass: 'receita-gradient',
     glowColor: 'rgba(56, 239, 125, 0.1)'
   },
   {
-    title: 'Segurança de Elite',
-    desc: 'Criptografia de ponta a ponta para garantir que seus dados sejam apenas seus.',
+    title: t('landing.features.security_title'),
+    desc: t('landing.features.security_text'),
     icon: 'mdi-security',
     colorClass: 'despesa-gradient',
     glowColor: 'rgba(255, 75, 43, 0.1)'
   },
   {
-    title: 'Metas em Foco',
-    desc: 'Defina objetivos e veja como cada centavo te aproxima da sua próxima conquista.',
+    title: t('landing.features.goals_title'),
+    desc: t('landing.features.goals_text'),
     icon: 'mdi-bullseye-arrow',
     colorClass: 'saldo-gradient',
     glowColor: 'rgba(0, 131, 176, 0.1)'
   }
-]
+])
 </script>
 
 <style scoped>
@@ -125,8 +141,8 @@ const features = [
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
   transition: all 0.4s ease;
 }
 

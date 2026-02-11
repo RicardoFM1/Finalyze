@@ -206,12 +206,19 @@ const toggleStatusConcluido = async (item) => {
 }
 
 // Helpers
-const formatPrice = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+const formatPrice = (value) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
+}
 const formatShortPrice = (value) => {
   if (value >= 1000) return (value / 1000) + 'k'
   return value
 }
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR')
+const formatDate = (date) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return new Date(date).toLocaleDateString(locale)
+}
 const calculatePercentage = (current, total) => {
   if (!total || total === 0) return 0
   const p = Math.round((current / total) * 100)
@@ -246,7 +253,7 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 <style scoped>
 .goal-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .goal-card:hover {
@@ -255,15 +262,20 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 }
 
 .finance-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+  background: linear-gradient(135deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-surface), 0.8) 100%);
 }
 
 .notepad-card {
-  background: #FFF9C4; /* Light Yellow */
+  background: #FFF9C4; /* Default Light Yellow */
   position: relative;
   min-height: 200px;
   display: flex;
   flex-direction: column;
+}
+
+:root[data-v-theme="dark"] .notepad-card,
+.v-theme--dark .notepad-card {
+  background: #33301a;
 }
 
 .notepad-header {
@@ -282,12 +294,13 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 }
 
 .notepad-title {
-  color: #5D4037;
+  color: inherit;
   font-family: 'Inter', sans-serif;
 }
 
 .notepad-text {
-  color: #795548;
+  color: inherit;
+  opacity: 0.9;
   font-size: 0.95rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -301,6 +314,5 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 /* Glassmorphism subtle touch */
 .v-dialog .v-card {
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
 }
 </style>

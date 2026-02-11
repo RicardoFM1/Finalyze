@@ -4,7 +4,7 @@
         <v-icon icon="mdi-shield-crown" color="primary" size="32" class="mr-3"></v-icon>
         <h1 class="text-h4 font-weight-bold">{{ $t('admin.header') }}</h1>
         <v-spacer></v-spacer>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog()" elevation="2">{{ $t('admin.new_plan_btn') }}</v-btn>
+        <v-btn color="primary" :disabled="loadingPlans" prepend-icon="mdi-plus" @click="openDialog()" elevation="2">{{ $t('admin.new_plan_btn') }}</v-btn>
     </div>
 
     <v-card class="rounded-xl overflow-hidden" elevation="4">
@@ -90,6 +90,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import ModalPlano from '../components/Modals/Admin/ModalPlano.vue'
 import ModalExcluirPlano from '../components/Modals/Admin/ModalExcluirPlano.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const authStore = useAuthStore()
 
@@ -145,7 +148,9 @@ const confirmDelete = (item) => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
 }
 
 </script>

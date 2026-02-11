@@ -29,8 +29,7 @@ const router = createRouter({
     {
       path: '/pagamento',
       name: 'Checkout',
-      component: () => import('@/views/Checkout.vue'),
-      meta: { requiresAuth: true }
+      component: () => import('@/views/Checkout.vue')
     },
 
     {
@@ -64,6 +63,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/configuracoes',
+      name: 'Settings',
+      component: () => import('@/views/Settings.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/admin',
       name: 'Admin',
       component: () => import('@/views/Admin.vue'),
@@ -83,10 +88,8 @@ router.beforeEach((to) => {
   const auth = useAuthStore();
   const ui = useUiStore();
 
- 
-  if (ui.loading) {
-    return false; 
-  }
+
+
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'Login' };

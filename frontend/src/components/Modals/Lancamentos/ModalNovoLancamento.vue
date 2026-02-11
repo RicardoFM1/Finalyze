@@ -9,10 +9,10 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="form.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field v-model="form.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required :disabled="loading"></v-text-field>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="form.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field v-model="form.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required :disabled="loading"></v-text-field>
         </v-col>
        <v-col cols="12">
                             <v-autocomplete
@@ -24,6 +24,7 @@
                                 variant="outlined"
                                 rounded="lg"
                                 required
+                                :disabled="loading"
                                 :placeholder="$t('modals.placeholders.select_category')"
                                 :no-data-text="$t('transactions.no_data')"
                             >
@@ -45,7 +46,7 @@
                             </v-autocomplete>
                         </v-col>
         <v-col cols="12">
-          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2"></v-textarea>
+          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" :disabled="loading"></v-textarea>
         </v-col>
       </v-row>
     </v-form>

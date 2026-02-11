@@ -10,6 +10,7 @@
         class="mb-2"
         rounded="lg"
         required
+        :disabled="loading"
       ></v-text-field>
 
       <v-textarea
@@ -21,29 +22,22 @@
         rounded="lg"
         :rows="form.tipo === 'pessoal' ? 6 : 2"
         auto-grow
+        :disabled="loading"
       ></v-textarea>
 
       <template v-if="form.tipo === 'financeira'">
         <v-row dense>
-          <v-col cols="6">
-            <v-text-field
-              v-model="form.valor_atual"
-              :label="$t('modals.labels.current_value')"
-              prefix="R$"
-              type="number"
-              variant="outlined"
-              rounded="lg"
-            ></v-text-field>
-          </v-col>
+
           <v-col cols="6">
             <v-text-field
               v-model="form.valor_objetivo"
               :label="$t('modals.labels.goal_value')"
-              prefix="R$"
+              :prefix="$t('common.currency')"
               type="number"
               variant="outlined"
               rounded="lg"
               required
+              :disabled="loading"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -136,6 +130,7 @@
             type="color"
             variant="outlined"
             rounded="lg"
+            :disabled="loading"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -217,7 +212,7 @@ const form = ref({
   titulo: '',
   descricao: '',
   valor_objetivo: null,
-  valor_atual: 0,
+
   meta_quantidade: null,
   atual_quantidade: 0,
   unidade: '',
@@ -239,8 +234,7 @@ watch(() => props.modelValue, (newVal) => {
         tipo: props.initialTipo,
         titulo: '',
         descricao: '',
-        valor_objetivo: null,
-        valor_atual: 0,
+        objetivo: null,
         meta_quantidade: null,
         atual_quantidade: 0,
         unidade: props.initialTipo === 'financeira' ? 'BRL' : '',

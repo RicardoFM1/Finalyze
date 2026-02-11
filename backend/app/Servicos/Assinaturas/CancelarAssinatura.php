@@ -10,6 +10,7 @@ class CancelarAssinatura
     public function executar()
     {
         $user = Auth::user();
+
         $subscription = Assinatura::where('user_id', $user->id)
             ->where('status', 'active')
             ->first();
@@ -21,8 +22,12 @@ class CancelarAssinatura
         $subscription->update([
             'status' => 'cancelled',
             'renovacao_automatica' => false
+      
         ]);
+
+        
 
         return $subscription;
     }
 }
+

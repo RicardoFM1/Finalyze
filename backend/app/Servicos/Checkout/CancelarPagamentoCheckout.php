@@ -13,13 +13,11 @@ class CancelarPagamentoCheckout
             throw new \Exception('Usuário não autenticado', 401);
         }
 
-        $assinatura = Assinatura::where('user_id', $usuario->id)
+        $affected = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
-            ->latest()
-            ->first();
+            ->update(['status' => 'cancelled']);
 
-        if ($assinatura) {
-            $assinatura->update(['status' => 'cancelled']);
+        if ($affected > 0) {
             return true;
         }
 

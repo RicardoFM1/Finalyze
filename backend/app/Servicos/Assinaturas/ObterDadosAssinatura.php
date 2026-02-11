@@ -18,7 +18,7 @@ class ObterDadosAssinatura
             ->first();
 
         $history = Faturamento::where('user_id', $user->id)
-            ->with(['assinatura.plano'])
+            ->with(['assinatura.plano', 'assinatura.periodo'])
             ->latest()
             ->get();
 

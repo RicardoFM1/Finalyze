@@ -4,7 +4,7 @@
     <v-row class="mb-4 pt-4" align="center">
       <v-col cols="12" md="6">
         <div class="d-flex align-center">
-            <v-avatar color="#2962FF" size="64" class="mr-4 elevation-4 glass-icon">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4">
                 <v-icon icon="mdi-swap-horizontal" color="white" size="32"></v-icon>
             </v-avatar>
             <div>
@@ -84,7 +84,7 @@
       <v-text-field
         v-model="filters.valor"
         :label="$t('transactions.table.amount')"
-        prefix="R$"
+        :prefix="$t('common.currency')"
         type="number"
         variant="underlined"
         density="compact"
@@ -149,13 +149,13 @@
             size="small"
             class="font-weight-bold text-uppercase"
           >
-            {{ item.tipo === 'receita' ? 'Receita' : 'Despesa' }}
+            {{ item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense') }}
           </v-chip>
         </template>
 
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
-            {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
+            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
           </span>
         </template>
 
@@ -181,6 +181,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const authStore = useAuthStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
@@ -208,17 +212,23 @@ const filters = ref({
 
 
 
-const headers = [
-  { title: 'Data', key: 'data', align: 'start', sortable: false },
-  { title: 'Descrição', key: 'descricao', align: 'start', sortable: false },
-  { title: 'Categoria', key: 'categoria', align: 'start', sortable: false },
-  { title: 'Tipo', key: 'tipo', align: 'center', sortable: false },
-  { title: 'Valor', key: 'valor', align: 'end', sortable: false },
-  { title: 'Ações', key: 'acoes', align: 'end', sortable: false },
-]
+const headers = computed(() => [
+  { title: t('transactions.table.date'), key: 'data', align: 'start', sortable: true },
+  { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
+  { title: t('transactions.table.category'), key: 'category', align: 'start', sortable: true },
+  { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
+  { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
+  { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
+])
 
-const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+const formatNumber = (val) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return Number(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+const formatDate = (date) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return new Date(date).toLocaleDateString(locale, { timeZone: 'UTC' })
+}
 
 
 
@@ -235,6 +245,11 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
       page,
       per_page: itemsPerPage,
     })
+
+    if (sortBy && sortBy.length) {
+      params.append('sort_by', sortBy[0].key)
+      params.append('sort_order', sortBy[0].order)
+    }
 
     if (tableSearch) params.append('search', tableSearch)
     if (filters.value.data) params.append('data', filters.value.data)
@@ -290,12 +305,12 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 
 <style scoped>
 .lancamentos-wrapper {
-  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
   min-height: 100vh;
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #1867C0, #11998E);
+  background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #11998E);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -307,12 +322,12 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .border-card {
-  border: 1px solid rgba(0,0,0,0.05) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .icon-circle-small {
@@ -341,8 +356,8 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 
 <style scoped>
 .filter-bar {
-  background: #ffffff;
-  border: 1px solid #eef1f5;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .filter-bar .v-field {

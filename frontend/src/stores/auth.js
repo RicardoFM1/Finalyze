@@ -8,7 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref(null);
 
     const token = ref(localStorage.getItem('token') || null);
-    const API_URL = 'http://localhost:8000/api';
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
@@ -136,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (!user.value?.plano?.recursos) return false;
 
         const features = user.value.plano.recursos;
-        // Normaliza para comparar ignorando case e acentos
+
         const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
         const target = normalize(featureSlug);
         return features.some(f => {

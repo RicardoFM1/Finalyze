@@ -17,7 +17,9 @@ import en from './components/Language/en.json'
 import VCalendar from 'v-calendar'
 import 'v-calendar/style.css'
 
-// plugins
+// import LogRocket from 'logrocket';
+// LogRocket.init('x6etoi/finalyze');
+
 const pinia = createPinia()
 
 const i18n = createI18n({
@@ -29,10 +31,10 @@ const i18n = createI18n({
   },
 })
 
-// APP — UM SÓ
+
 const app = createApp(App)
 
-app.use(pinia)      // ⬅️ SEMPRE PRIMEIRO
+app.use(pinia)      
 app.use(router)
 app.use(vuetify)
 app.use(i18n)

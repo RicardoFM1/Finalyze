@@ -5,6 +5,10 @@
       <span class="mt-4 text-subtitle-1">Iniciando checkout seguro...</span>
     </div>
 
+    <v-alert icon="mdi-information" type="info" variant="tonal" class="mb-4 text-body-2" density="compact">
+      Se escolher <strong>Pix</strong>, o código e o QR Code aparecerão nesta tela após clicar em Pagar.
+    </v-alert>
+
     <div id="paymentBrick_container" :style="{ visibility: loading ? 'hidden' : 'visible', minHeight: '300px' }"></div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
@@ -16,7 +20,7 @@
         <div class="text-center">
           <div class="d-flex justify-center mb-6">
              <div class="rounded-lg border pa-2 bg-white elevation-2" v-if="qrCodeBase64">
-                <img :src="'data:image/png;base64,' + qrCodeBase64" style="width: 200px; height: 200px; display: block;" />
+                <img :src="'data:image/png;base64,' + qrCodeBase64" style="max-width: 100%; width: 200px; height: auto; display: block;" />
              </div>
           </div>
 
@@ -37,7 +41,7 @@
              <div class="text-caption font-weight-bold text-grey-darken-1 mb-2">Pix Copia e Cola</div>
              
              <div class="d-flex align-center bg-white rounded border pa-2 pr-1">
-                <div class="text-caption text-truncate flex-grow-1 text-grey-darken-3 px-2" style="max-width: 250px;">
+                <div class="text-caption text-truncate flex-grow-1 text-grey-darken-3 px-2" style="min-width: 0;">
                     {{ qrCodeCopy }}
                 </div>
                 <v-btn 
@@ -71,6 +75,17 @@
 
     <div v-if="!loading && !error && !brickMounted" class="mt-4 text-center">
       <v-btn color="primary" @click="initMercadoPago">Tentar Carregar Novamente</v-btn>
+    </div>
+
+    <div v-if="qrCodeBase64 && !showQrDialog" class="mt-4 text-center">
+        <v-btn 
+            color="primary" 
+            variant="tonal" 
+            prepend-icon="mdi-qrcode"
+            @click="showQrDialog = true"
+        >
+            Ver QR Code Pix
+        </v-btn>
     </div>
   </div>
 </template>
@@ -173,8 +188,8 @@ const initMercadoPago = async () => {
 
   try {
     let attempts = 0
-    while (!window.MercadoPago && attempts < 20) {
-      await new Promise(resolve => setTimeout(resolve, 500))
+    while (!window.MercadoPago && attempts < 50) { 
+      await new Promise(resolve => setTimeout(resolve, 200))
       attempts++
     }
     if (!window.MercadoPago) {
