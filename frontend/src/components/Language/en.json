@@ -20,7 +20,16 @@
       "goals_text": "Define financial goals and track your progress automatically.",
       "DS": "Do you want to log out?",
       "VDS": "You will need to log in again to access your data."
-    }
+    },
+    "hero_title_alt": "Master your Financial {destiny}",
+    "destiny": "Destiny",
+    "hero_subtitle_alt": "Track, analyze and achieve. Finalyze is the bridge between your dreams and your financial reality.",
+    "btn_start": "Start Now",
+    "btn_my_dashboard": "My Dashboard",
+    "power_title": "Power in your hands",
+    "power_subtitle": "Everything you need for impeccable financial health.",
+    "cta_title": "Ready to transform your finances?",
+    "cta_btn": "Choose Plan"
   },
   "auth": {
     "join_us_title": "Join Us",
@@ -40,7 +49,9 @@
   },
   "settings": {
     "appearance": "Appearance",
-    "theme": "System Theme"
+    "theme": "System Theme",
+    "light_mode_active": "Light Mode Active",
+    "dark_mode_active": "Dark Mode Active"
   },
   "login": {
     "email_label": "E-mail",
@@ -147,7 +158,12 @@
       "pay_ahead": "Pay Ahead",
       "cancel": "Cancel Subscription",
       "recent_payments": "Recent Payments",
-      "no_history": "No billing history found."
+      "no_history": "No billing history found.",
+      "expires_at": "Expires at",
+      "days_remaining": "{count} days remaining",
+      "days_remaining_singular": "1 day remaining",
+      "paid": "PAID",
+      "failed": "FAILED"
     },
     "warnings": {
       "image_size": "Image must be at most 10MB.",
@@ -233,7 +249,9 @@
     "delete": "Delete",
     "search": "Search...",
     "all": "All",
-    "items_per_page": "Items per page"
+    "items_per_page": "Items per page",
+    "welcome_fallback": "welcome",
+    "currency": "R$"
   },
   "register": {
     "title": "Create Account",
@@ -269,7 +287,27 @@
     "title_assinatura": "Subscription Plan ${planName}",
     "quantity": "Quantity",
     "unit_price": "Unit Price",
-    "total": "Total"
+    "total": "Total",
+    "price_per_period": "{period}: {price}",
+    "steps": {
+      "identification": "Identification",
+      "payment": "Payment"
+    },
+    "auth_tabs": {
+      "login": "Login",
+      "register": "Register"
+    },
+    "btn_login_continue": "Login and Continue",
+    "btn_register_continue": "Register and Continue",
+    "btn_payment_continue": "Continue to Payment",
+    "identified_as": "Identified as {name}",
+    "ready_to_pay": "You are ready to proceed with payment.",
+    "payment_data": "Payment Data",
+    "plan_selected": "You selected the {plan} plan ({period}).",
+    "cancel_pending": "Cancel Pending Order / Choose Another Plan",
+    "preparing_payment": "Preparing payment environment...",
+    "try_again": "Try Again",
+    "back_to_plans": "Back to Plans"
   },
   "NotFound": {
     "title": "404",
@@ -308,6 +346,11 @@
       "description": "Are you sure you want to remove your profile photo?",
       "confirm": "Remove Photo"
     },
+    "manage_plan": {
+      "edit": "Edit Plan",
+      "new": "Create New Plan",
+      "save": "Save Plan"
+    },
     "titles": {
       "add_transaction": "Add Transaction",
       "edit_transaction": "Edit Transaction",
@@ -326,7 +369,9 @@
       "goal_value": "Target Amount",
       "current_value": "Current Amount",
       "deadline": "Deadline",
+      "deadline_optional": "Deadline (Optional)",
       "color": "Color",
+      "header_color": "Header Color",
       "icon": "Icon/Emoji"
     },
     "placeholders": {

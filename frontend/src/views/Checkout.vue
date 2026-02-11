@@ -3,12 +3,12 @@
     <v-row justify="center">
       <v-col cols="12" md="10" lg="8">
         <v-card class="rounded-xl overflow-hidden" elevation="12">
-          <v-stepper v-model="step" :items="['Identificação', 'Pagamento']" hide-actions>
+          <v-stepper v-model="step" :items="[$t('checkout.steps.identification'), $t('checkout.steps.payment')]" hide-actions>
             <template v-slot:item.1>
               <div v-if="!authStore.isAuthenticated">
                 <v-tabs v-model="authTab" color="primary" grow class="mb-6 unique-tabs-no-outline">
-                  <v-tab value="login" class="no-outline">Entrar</v-tab>
-                  <v-tab value="register" class="no-outline">Cadastrar</v-tab>
+                  <v-tab value="login" class="no-outline">{{ $t('checkout.auth_tabs.login') }}</v-tab>
+                  <v-tab value="register" class="no-outline">{{ $t('checkout.auth_tabs.register') }}</v-tab>
                 </v-tabs>
 
                 <v-window v-model="authTab">
@@ -16,14 +16,14 @@
                     <v-form @submit.prevent="handleLogin" class="pa-4" v-model="isLoginFormValid">
                       <v-text-field 
                         v-model="loginForm.email" 
-                        label="E-mail" 
+                        :label="$t('login.email_label')" 
                         variant="outlined" 
                         prepend-inner-icon="mdi-email"
-                        :rules="[v => !!v || 'E-mail é obrigatório']"
+                        :rules="[v => !!v || $t('login.rules.email_required')]"
                       ></v-text-field>
                       <v-text-field 
                         v-model="loginForm.senha" 
-                        label="Senha" 
+                        :label="$t('login.password_label')" 
                         :type="showPassword ? 'text' : 'password'" 
                         variant="outlined" 
                         prepend-inner-icon="mdi-lock"
@@ -32,7 +32,7 @@
                         :rules="loginPasswordRules"
                         @paste.prevent
                       ></v-text-field>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">Entrar e Continuar</v-btn>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">{{ $t('checkout.btn_login_continue') }}</v-btn>
                     </v-form>
                   </v-window-item>
 
@@ -42,9 +42,9 @@
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.nome" 
-                            label="Nome Completo" 
+                            :label="$t('register.name_label')" 
                             variant="outlined"
-                            :rules="[v => !!v || 'Nome é obrigatório']"
+                            :rules="[v => !!v || $t('register.rules.name_required')]"
                             :error-messages="errors.nome"
                             @input="errors.nome = ''"
                           ></v-text-field>
@@ -52,9 +52,9 @@
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.email" 
-                            label="E-mail" 
+                            :label="$t('register.email_label')" 
                             variant="outlined"
-                            :rules="[v => !!v || 'E-mail é obrigatório']"
+                            :rules="[v => !!v || $t('register.rules.email_required')]"
                             :error-messages="errors.email"
                             @input="errors.email = ''"
                           ></v-text-field>
@@ -62,7 +62,7 @@
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.senha" 
-                            label="Senha" 
+                            :label="$t('register.password_label')" 
                             :type="showRegisterPassword ? 'text' : 'password'" 
                             variant="outlined"
                             :append-inner-icon="showRegisterPassword ? 'mdi-eye' : 'mdi-eye-off'"
@@ -76,10 +76,10 @@
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.senha_confirmation" 
-                            label="Confirmar Senha" 
+                            :label="$t('register.password_confirm_label')" 
                             :type="showRegisterPassword ? 'text' : 'password'" 
                             variant="outlined"
-                            :rules="[v => !!v || 'Confirmação é obrigatória', v => v === registerForm.senha || 'As senhas não coincidem']"
+                            :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === registerForm.senha || $t('register.rules.passwords_match')]"
                             :error-messages="errors.senha_confirmation"
                             @input="errors.senha_confirmation = ''"
                             @paste.prevent
@@ -88,36 +88,36 @@
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.cpf" 
-                            label="CPF" 
+                            :label="$t('profile.labels.cpf')" 
                             variant="outlined"
                             @input="handleCpfInput"
                             maxlength="14"
                             :error-messages="errors.cpf"
-                            :rules="[v => !!v || 'CPF é obrigatório', validateCPF]"
+                            :rules="[v => !!v || $t('register.rules.required', { field: 'CPF' }), validateCPF]"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
                           <v-text-field 
                             v-model="registerForm.data_nascimento" 
-                            label="Data de Nascimento" 
+                            :label="$t('profile.labels.birthdate')" 
                             type="date" 
                             variant="outlined" 
-                            :rules="[v => !!v || 'Campo obrigatório', validateAge]"
+                            :rules="[v => !!v || $t('validation.required'), validateAge]"
                             :error-messages="errors.data_nascimento"
                             @input="errors.data_nascimento = ''"
                           ></v-text-field>
                         </v-col>
                       </v-row>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isRegisterFormValid">Cadastrar e Continuar</v-btn>
+                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isRegisterFormValid">{{ $t('checkout.btn_register_continue') }}</v-btn>
                     </v-form>
                   </v-window-item>
                 </v-window>
               </div>
               <div v-else class="text-center pa-10">
                 <v-icon color="success" size="64" icon="mdi-account-check" class="mb-4"></v-icon>
-                <h3 class="text-h5 mb-2">Identificado como {{ authStore.user?.nome }}</h3>
-                <p class="text-medium-emphasis mb-6">Você está pronto para prosseguir com o pagamento.</p>
-                <v-btn color="primary" size="large" @click="step = 2">Continuar para Pagamento</v-btn>
+                <h3 class="text-h5 mb-2">{{ $t('checkout.identified_as', { name: authStore.user?.nome }) }}</h3>
+                <p class="text-medium-emphasis mb-6">{{ $t('checkout.ready_to_pay') }}</p>
+                <v-btn color="primary" size="large" @click="step = 2">{{ $t('checkout.btn_payment_continue') }}</v-btn>
               </div>
             </template>
 
@@ -125,12 +125,12 @@
                <div class="pa-4">
                   <div class="d-flex align-center mb-6">
                     <v-btn icon="mdi-arrow-left" variant="text" @click="step = 1" class="mr-2"></v-btn>
-                    <h3 class="text-h5 font-weight-bold">Dados de Pagamento</h3>
+                    <h3 class="text-h5 font-weight-bold">{{ $t('checkout.payment_data') }}</h3>
                   </div>
 
                   <v-alert v-if="planInfo" type="info" variant="tonal" class="mb-6 rounded-lg">
-                    Você selecionou o plano <strong>{{ planInfo.nome }}</strong> ({{ periodInfo?.nome }}).
-                    <div class="text-h6 mt-2">Total: {{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</div>
+                    {{ $t('checkout.plan_selected', { plan: planInfo.nome, period: periodInfo?.nome }) }}
+                    <div class="text-h6 mt-2">{{ $t('checkout.total') }}: {{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</div>
                   </v-alert>
 
                   <PaymentBrick 
@@ -148,18 +148,18 @@
                         @click="cancelPendingPayment"
                         :loading="cancelling"
                     >
-                        Cancelar Pedido Pendente / Escolher Outro Plano
+                        {{ $t('checkout.cancel_pending') }}
                     </v-btn>
                   </div>
 
                   <div v-else-if="!checkoutError" class="text-center py-10">
                     <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                    <p class="mt-4">Preparando ambiente de pagamento...</p>
+                    <p class="mt-4">{{ $t('checkout.preparing_payment') }}</p>
                   </div>
                   <v-alert v-else type="error" variant="tonal" class="mt-4">
                     {{ checkoutError }}
-                    <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">Tentar Novamente</v-btn>
-                    <v-btn block variant="text" class="mt-2" @click="router.push({name: 'Plans'})">Voltar para Planos</v-btn>
+                    <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">{{ $t('checkout.try_again') }}</v-btn>
+                    <v-btn block variant="text" class="mt-2" @click="router.push({name: 'Plans'})">{{ $t('checkout.back_to_plans') }}</v-btn>
                   </v-alert>
                </div>
             </template>
@@ -176,6 +176,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import PaymentBrick from '../components/PaymentBrick.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -204,16 +207,16 @@ const isRegisterFormValid = ref(false)
 const isLoginFormValid = ref(false)
 
 const registerPasswordRules = [
-  v => !!v || 'Senha é obrigatória',
-  v => v.length >= 8 || 'Mínimo 8 caracteres',
-  v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
-  v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',
-  v => /[0-9]/.test(v) || 'Deve conter um número',
-  v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
+  v => !!v || t('register.rules.pass_required'),
+  v => v.length >= 8 || t('register.rules.min_chars', { count: 8 }),
+  v => /[A-Z]/.test(v) || t('register.rules.uppercase'),
+  v => /[a-z]/.test(v) || t('register.rules.lowercase'),
+  v => /[0-9]/.test(v) || t('register.rules.number'),
+  v => /[^A-Za-z0-9]/.test(v) || t('register.rules.special_char')
 ]
 
 const loginPasswordRules = [
-    v => !!v || 'Senha é obrigatória'
+    v => !!v || t('login.rules.password_required')
 ]
 
 onMounted(async () => {
@@ -301,7 +304,7 @@ const validateAge = (v) => {
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
     age--
   }
-  return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+  return age >= 18 || t('validation.age_restriction')
 }
 
 const validateCPF = (v) => {
@@ -315,21 +318,21 @@ const validateCPF = (v) => {
     if (cpf.length !== 11) {
         // Only show error if we have enough chars to start validating or if it's blur? 
         // For strict validation let's return error if not empty and not 11
-        return 'CPF inválido'
+        return t('validation.cpf_invalid')
     }
 
     // Check for known invalid patterns (all same digits)
-    if (/^(\d)\1+$/.test(cpf)) return 'CPF inválido'
+    if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
 
     let sum = 0
     let remainder
-
+    
     for (let i = 1; i <= 9; i++) 
         sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
     remainder = (sum * 10) % 11
     
     if ((remainder === 10) || (remainder === 11))  remainder = 0
-    if (remainder !== parseInt(cpf.substring(9, 10)) ) return 'CPF inválido'
+    if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
 
     sum = 0
     for (let i = 1; i <= 10; i++) 
@@ -337,7 +340,7 @@ const validateCPF = (v) => {
     remainder = (sum * 10) % 11
 
     if ((remainder === 10) || (remainder === 11))  remainder = 0
-    if (remainder !== parseInt(cpf.substring(10, 11))) return 'CPF inválido'
+    if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
 
     return true
 }
@@ -346,12 +349,12 @@ const handleLogin = async () => {
     loading.value = true
     try {
       await authStore.login(loginForm.value.email, loginForm.value.senha)
-      toast.success('Login realizado com sucesso!')
+      toast.success(t('toasts.login_success'))
       // Proceed to payment step
       step.value = 2
       await initPayment()
     } catch (e) {
-      toast.error(e.message || 'Erro ao fazer login')
+      toast.error(e.message || t('toasts.login_error'))
     } finally {
       loading.value = false
     }
@@ -370,7 +373,7 @@ const handleRegister = async () => {
             cleanCpf,
             registerForm.value.data_nascimento
         )
-        toast.success('Cadastro realizado com sucesso!')
+        toast.success(t('toasts.register_success'))
         
         // After register, user is usually logged in. Proceed to payment.
         // If the backend requires explicit login after register, we would do that here.
@@ -382,7 +385,7 @@ const handleRegister = async () => {
             // Fallback if not auto-logged in
             authTab.value = 'login'
             loginForm.value.email = registerForm.value.email
-            toast.info('Por favor, faça login com sua nova conta.')
+            toast.info(t('auth.VDS'))
         }
         
     } catch (e) {
@@ -392,9 +395,9 @@ const handleRegister = async () => {
                 acc[key] = e.response.data.errors[key][0] 
                 return acc
             }, {})
-            toast.error('Verifique os campos em vermelho.')
+            toast.error(t('toasts.check_errors'))
         } else {
-             toast.error(e.message || 'Erro ao realizar cadastro')
+             toast.error(e.message || t('toasts.register_error'))
         }
     } finally {
         loading.value = false
@@ -420,11 +423,11 @@ const initPayment = async () => {
         if (response.ok) {
             preferenceId.value = data.id
         } else {
-            throw new Error(data.error || 'Erro ao gerar preferência')
+            throw new Error(data.error || t('toasts.error_generic'))
         }
     } catch (e) {
         console.error('Init payment error:', e)
-        checkoutError.value = e.message || 'Falha ao iniciar ambiente de pagamento. Verifique sua conexão.'
+        checkoutError.value = e.message || t('toasts.error_generic')
         toast.error(checkoutError.value)
     }
 }
@@ -438,7 +441,7 @@ const cancelPendingPayment = async () => {
         preferenceId.value = null
         planId.value = null
         periodId.value = null
-        toast.success('Pedido cancelado.')
+        toast.success(t('plans.toast_cancel_success'))
         router.push({ name: 'Plans' })
     } catch (e) {
         console.error(e)
@@ -451,7 +454,9 @@ const cancelPendingPayment = async () => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
 }
 
 const handleCpfInput = (event) => {

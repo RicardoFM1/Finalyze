@@ -84,7 +84,7 @@
       <v-text-field
         v-model="filters.valor"
         :label="$t('transactions.table.amount')"
-        prefix="R$"
+        :prefix="$t('common.currency')"
         type="number"
         variant="underlined"
         density="compact"
@@ -149,13 +149,13 @@
             size="small"
             class="font-weight-bold text-uppercase"
           >
-            {{ item.tipo === 'receita' ? 'Receita' : 'Despesa' }}
+            {{ item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense') }}
           </v-chip>
         </template>
 
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
-            {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
+            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
           </span>
         </template>
 
@@ -181,6 +181,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const authStore = useAuthStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
@@ -208,17 +212,23 @@ const filters = ref({
 
 
 
-const headers = [
-  { title: 'Data', key: 'data', align: 'start', sortable: true },
-  { title: 'Descrição', key: 'descricao', align: 'start', sortable: true },
-  { title: 'Categoria', key: 'categoria', align: 'start', sortable: true },
-  { title: 'Tipo', key: 'tipo', align: 'center', sortable: true },
-  { title: 'Valor', key: 'valor', align: 'end', sortable: true },
-  { title: 'Ações', key: 'acoes', align: 'end', sortable: false },
-]
+const headers = computed(() => [
+  { title: t('transactions.table.date'), key: 'data', align: 'start', sortable: true },
+  { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
+  { title: t('transactions.table.category'), key: 'category', align: 'start', sortable: true },
+  { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
+  { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
+  { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
+])
 
-const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+const formatNumber = (val) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return Number(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+const formatDate = (date) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return new Date(date).toLocaleDateString(locale, { timeZone: 'UTC' })
+}
 
 
 

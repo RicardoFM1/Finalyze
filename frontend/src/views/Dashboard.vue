@@ -8,8 +8,8 @@
                 <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
             </v-avatar>
             <div>
-                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('home_welcome') }}, {{ authStore.user?.nome || 'bem-vindo' }}!</h1>
-                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('home_subtitle') }}</p>
+                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
+                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
             </div>
         </div>
     </v-col>
@@ -35,7 +35,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.receita) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.receita) }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_income_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -50,7 +50,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.despesa) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.despesa) }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_expense_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -65,7 +65,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.saldo) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.saldo) }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.net_worth_today') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -101,7 +101,7 @@
                     <div class="dot receita-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.incomes') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.receita) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ $t('common.currency') }} {{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="mb-4 d-flex align-center justify-space-between">
@@ -109,7 +109,7 @@
                     <div class="dot despesa-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.expenses') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.despesa) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ $t('common.currency') }} {{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="d-flex align-center justify-space-between">
@@ -118,7 +118,7 @@
                     <span class="text-body-2">{{ $t('features.net') }}</span>
                   </div>
                   <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
-                    R$ {{ formatNumber(resumo.saldo) }}
+                    {{ $t('common.currency') }} {{ formatNumber(resumo.saldo) }}
                   </span>
                 </div>
               </v-col>
@@ -145,7 +145,7 @@
                 </template>
                 <template v-slot:append>
                     <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
-                        {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
+                        {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
                     </span>
                 </template>
               </v-list-item>
@@ -221,6 +221,8 @@ import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 
 import { categorias } from '../constants/categorias'
@@ -245,7 +247,7 @@ const getMarginPercentage = computed(() => {
 const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const chartData = computed(() => ({
-    labels: ['Receitas', 'Despesas', 'Líquido'],
+    labels: [t('features.incomes'), t('features.expenses'), t('features.net')],
     datasets: [{
         data: [resumo.value.receita, resumo.value.despesa, resumo.value.saldo > 0 ? resumo.value.saldo : 0],
         backgroundColor: ['#38ef7d', '#ff4b2b', '#0083b0'],
@@ -261,7 +263,7 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
-                label: (context) => ` R$ ${formatNumber(context.raw)}`
+                label: (context) => ` ${t('common.currency')} ${formatNumber(context.raw)}`
             }
         }
     },
@@ -315,12 +317,21 @@ const calculatePercentage = (meta) => {
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
 }
 
+const saving = ref(false)
+const form = ref({
+    tipo: 'despesa',
+    valor: '',
+    categoria: '',
+    data: new Date().toISOString().substr(0, 10),
+    descricao: ''
+})
+
 const salvarLancamento = async () => {
     saving.value = true
     try {
         const valor = Number(form.value.valor)
         if (isNaN(valor) || valor <= 0) {
-            toast.warning('Por favor, informe um valor válido.')
+            toast.warning(t('validation.invalid_value'))
             saving.value = false
             return
         }
@@ -334,7 +345,7 @@ const salvarLancamento = async () => {
         })
 
         if (response.ok) {
-            toast.success('Lançamento adicionado!')
+            toast.success(t('toasts.success_add'))
             dialog.value = false
             fetchSummary()
            
@@ -347,10 +358,10 @@ const salvarLancamento = async () => {
             }
         } else {
             const data = await response.json().catch(() => ({}))
-            toast.error(data.message || 'Erro ao salvar lançamento')
+            toast.error(data.message || t('toasts.error_generic'))
         }
     } catch (e) {
-        toast.error('Erro de conexão')
+        toast.error(t('toasts.error_generic'))
     } finally {
         saving.value = false
     }

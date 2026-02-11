@@ -206,12 +206,19 @@ const toggleStatusConcluido = async (item) => {
 }
 
 // Helpers
-const formatPrice = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+const formatPrice = (value) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
+}
 const formatShortPrice = (value) => {
   if (value >= 1000) return (value / 1000) + 'k'
   return value
 }
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR')
+const formatDate = (date) => {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return new Date(date).toLocaleDateString(locale)
+}
 const calculatePercentage = (current, total) => {
   if (!total || total === 0) return 0
   const p = Math.round((current / total) * 100)

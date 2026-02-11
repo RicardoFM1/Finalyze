@@ -32,7 +32,7 @@
             <v-text-field
               v-model="form.valor_objetivo"
               :label="$t('modals.labels.goal_value')"
-              prefix="R$"
+              :prefix="$t('common.currency')"
               type="number"
               variant="outlined"
               rounded="lg"

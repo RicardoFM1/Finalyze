@@ -90,6 +90,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import ModalPlano from '../components/Modals/Admin/ModalPlano.vue'
 import ModalExcluirPlano from '../components/Modals/Admin/ModalExcluirPlano.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const authStore = useAuthStore()
 
@@ -145,7 +148,9 @@ const confirmDelete = (item) => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
 }
 
 </script>

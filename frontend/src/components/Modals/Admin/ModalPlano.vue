@@ -1,15 +1,15 @@
 <template>
-  <ModalBase v-model="internalValue" :title="form.id ? 'Editar Plano' : 'Criar Novo Plano'" maxWidth="800px" persistent>
+  <ModalBase v-model="internalValue" :title="form.id ? $t('admin.editPlan') : $t('admin.newPlan')" maxWidth="800px" persistent>
     <v-form ref="planForm">
       <v-row>
         <v-col cols="12" md="8">
-          <v-text-field v-model="form.nome" label="Nome do Plano" variant="outlined" density="comfortable"></v-text-field>
+          <v-text-field v-model="form.nome" :label="$t('admin.form.name')" variant="outlined" density="comfortable"></v-text-field>
         </v-col>
         <v-col cols="12" md="4">
-          <v-text-field v-model="form.limite_lancamentos" label="Limite Lançamentos" type="number" variant="outlined" density="comfortable"></v-text-field>
+          <v-text-field v-model="form.limite_lancamentos" :label="$t('admin.form.maxTransactions')" type="number" variant="outlined" density="comfortable"></v-text-field>
         </v-col>
         <v-col cols="12">
-          <v-textarea v-model="form.descricao" label="Descrição (HTML suportado)" variant="outlined" rows="2" density="comfortable"></v-textarea>
+          <v-textarea v-model="form.descricao" :label="$t('admin.form.description')" variant="outlined" rows="2" density="comfortable"></v-textarea>
         </v-col>
 
         <v-divider class="my-4 w-100"></v-divider>
@@ -17,15 +17,15 @@
         <v-col cols="12">
           <div class="text-h6 mb-4 d-flex align-center">
             <v-icon icon="mdi-currency-usd" class="mr-2" color="primary"></v-icon>
-            Configuração de Preços
+            {{ $t('admin.active_prices') }}
           </div>
           
           <v-row align="center" class="mb-4 pa-2 bg-blue-lighten-5 rounded-lg">
             <v-col cols="12" md="6">
               <v-text-field 
                 v-model="baseMonthlyPrice" 
-                label="Preço Base (Mensal)" 
-                prefix="R$" 
+                :label="$t('admin.form.price') + ' (' + $t('admin.intervals.month') + ')'" 
+                :prefix="$t('common.currency')" 
                 variant="solo" 
                 type="number"
                 @input="calculatePeriodPrices"
@@ -45,8 +45,8 @@
             <v-col cols="12" md="4">
               <v-text-field 
                 v-model="p.price" 
-                label="Preço Final" 
-                prefix="R$" 
+                :label="$t('admin.price')" 
+                :prefix="$t('common.currency')" 
                 variant="outlined" 
                 density="compact" 
                 type="number" 
@@ -57,7 +57,7 @@
             <v-col cols="12" md="3">
               <v-text-field 
                 v-model="p.discount" 
-                label="Desconto (%)" 
+                :label="$t('admin.form.features')" 
                 suffix="%" 
                 variant="outlined" 
                 density="compact" 
@@ -67,7 +67,7 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="2" class="text-caption text-right">
-              {{ p.active ? 'Ativo' : 'Inativo' }}
+              {{ p.active ? $t('profile.active') : $t('profile.inactive') }}
             </v-col>
           </v-row>
         </v-col>
@@ -77,7 +77,7 @@
         <v-col cols="12">
           <div class="text-h6 mb-4 d-flex align-center">
             <v-icon icon="mdi-check-all" class="mr-2" color="success"></v-icon>
-            Benefícios do Plano
+            {{ $t('admin.form.features') }}
           </div>
           <v-row dense>
             <v-col cols="12" sm="6" v-for="feat in dbFeatures" :key="feat.id">
@@ -94,14 +94,14 @@
         </v-col>
 
         <v-col cols="12">
-           <v-switch v-model="form.ativo" label="Tornar este plano disponível no site" color="primary"></v-switch>
+           <v-switch v-model="form.ativo" :label="$t('admin.form.active')" color="primary"></v-switch>
         </v-col>
       </v-row>
     </v-form>
 
     <template #actions>
-      <v-btn variant="text" rounded="lg" @click="internalValue = false" class="px-6">Cancelar</v-btn>
-      <v-btn color="primary" variant="elevated" rounded="lg" @click="savePlan" :loading="loading" class="px-8">Salvar Plano</v-btn>
+      <v-btn variant="text" rounded="lg" @click="internalValue = false" class="px-6">{{ $t('common.cancel') }}</v-btn>
+      <v-btn color="primary" variant="elevated" rounded="lg" @click="savePlan" :loading="loading" class="px-8">{{ $t('modals.manage_plan.save') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -111,6 +111,9 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -207,13 +210,13 @@ const calculatePeriodPrices = () => {
 
 const savePlan = async () => {
     if (form.value.recursos.length === 0) {
-        toast.error('Escolha pelo menos uma funcionalidade.')
+        toast.error(t('admin.form.features') + '?') // Fallback toast
         return
     }
 
     const activePeriods = form.value.periodos_config.filter(p => p.active)
     if (activePeriods.length === 0) {
-        toast.error('O plano deve ter pelo menos um período de cobrança ativo.')
+        toast.error(t('toasts.error_generic'))
         return
     }
 
@@ -239,15 +242,15 @@ const savePlan = async () => {
         })
 
         if (response.ok) {
-            toast.success('Plano salvo com sucesso!')
+            toast.success(t('toasts.success_update'))
             internalValue.value = false
             emit('saved')
         } else {
             const data = await response.json()
-            toast.error(data.message || 'Erro ao salvar plano')
+            toast.error(data.message || t('toasts.error_generic'))
         }
     } catch (e) {
-        toast.error('Erro de conexão')
+        toast.error(t('toasts.error_generic'))
     } finally {
         loading.value = false
     }

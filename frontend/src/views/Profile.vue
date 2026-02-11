@@ -170,8 +170,8 @@
 
                     <div class="subscription-timeline mb-6">
                       <div class="d-flex justify-space-between text-caption mb-1">
-                        <span>Vence em: {{ formatDate(subscriptionData.assinatura.termina_em) }}</span>
-                        <span>{{ daysRemaining }} dias restantes</span>
+                        <span>{{ $t('profile.subscription.expires_at') }}: {{ formatDate(subscriptionData.assinatura.termina_em) }}</span>
+                        <span>{{ daysRemaining === 1 ? $t('profile.subscription.days_remaining_singular') : $t('profile.subscription.days_remaining', { count: daysRemaining }) }}</span>
                       </div>
                       <v-progress-linear
                         :model-value="progressPercentage"
@@ -248,10 +248,10 @@
             <v-table v-else-if="subscriptionData.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
               <thead>
                 <tr>
-                  <th class="text-left font-weight-bold">Data</th>
-                  <th class="text-left font-weight-bold">Plano</th>
-                  <th class="text-left font-weight-bold">Período</th>
-                  <th class="text-left font-weight-bold">Método</th>
+                  <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.title') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.duration') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('checkout.payment_data') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
                   <th class="text-right font-weight-bold">{{ $t('admin.price') }}</th>
                 </tr>
@@ -267,10 +267,10 @@
                   </td>
                   <td>
                     <v-chip size="x-small" :color="item.status === 'paid' ? 'success' : 'error'" class="font-weight-bold">
-                      {{ item.status === 'paid' ? 'PAGO' : 'FALHOU' }}
+                      {{ item.status === 'paid' ? $t('profile.subscription.paid') : $t('profile.subscription.failed') }}
                     </v-chip>
                   </td>
-                  <td class="text-right font-weight-bold">R$ {{ (item.valor_centavos / 100).toFixed(2) }}</td>
+                  <td class="text-right font-weight-bold">{{ formatPrice(item.valor_centavos / 100) }}</td>
                 </tr>
               </tbody>
             </v-table>
@@ -514,7 +514,8 @@ const getStorageUrl = (path) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return new Date(dateString).toLocaleDateString(locale, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
