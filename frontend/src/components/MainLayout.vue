@@ -24,7 +24,7 @@
       <v-spacer />
 
         <Coinselector />
-        <LanguageSelector />
+
         
         <template v-if="!authStore.isAuthenticated">
             <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
@@ -62,7 +62,7 @@
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
                             v-if="authStore.user.avatar"
-                            :src="'http://localhost:8000/storage/' + authStore.user.avatar"
+                            :src="getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>
                         <span v-else class="text-caption font-weight-bold text-primary">
@@ -82,6 +82,7 @@
             <v-list-item prepend-icon="mdi-account" :title="$t('sidebar.profile')" :to="{ name: 'Profile' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.user?.admin" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-tag-text-outline" :title="$t('sidebar.plans')" :to="{ name: 'Plans' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item prepend-icon="mdi-cog" :title="$t('sidebar.settings') || 'Configurações'" :to="{ name: 'Settings' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" :title="$t('sidebar.logout')"></v-list-item>
         </v-list>
 
@@ -132,7 +133,7 @@ import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 
 import ModalBase from '../components/Modals/modalBase.vue'
-import LanguageSelector from './Language/LanguageSelector.vue'
+
 import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
@@ -179,6 +180,12 @@ const getInitials = (name) => {
 }
 
 
+const getStorageUrl = (path) => {
+  if (!path) return ''
+  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
+  return `${baseUrl}/storage/${path}`
+}
+
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {
     await authStore.fetchUser();
@@ -207,7 +214,7 @@ watch(isDesktop, (desktop) => {
 
 .v-navigation-drawer--rail {
   box-shadow: 0 0 0 rgba(0,0,0,0);
-  background-color: rgba(24, 103, 192, 0.05);
+  background-color: rgb(var(--v-theme-surface));
 }
 
 .app-title {

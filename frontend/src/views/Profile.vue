@@ -39,7 +39,7 @@
             <v-col cols="12" md="4" class="text-center">
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
-                  <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`" cover></v-img>
+                  <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || getStorageUrl(user.avatar)" cover></v-img>
                   <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
                 </v-avatar>
                 <v-btn
@@ -78,9 +78,9 @@
                       v-model="user.nome"
                       :label="$t('profile.name_label')"
                       variant="outlined"
-                      bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-account"
+                      :disabled="saving"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12">
@@ -88,9 +88,9 @@
                       v-model="user.email"
                       :label="$t('profile.email_label')"
                       variant="outlined"
-                      bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-email"
+                      :disabled="saving"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="6">
@@ -98,12 +98,12 @@
                       v-model="user.cpf"
                       :label="$t('profile.labels.cpf')"
                       variant="outlined"
-                      bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-card-account-details"
                       :rules="cpfRules"
                       @input="formatCPF"
                       maxlength="14"
+                      :disabled="saving"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="6">
@@ -112,10 +112,10 @@
                       :label="$t('profile.labels.birthdate')"
                       type="date"
                       variant="outlined"
-                      bg-color="grey-lighten-4"
                       rounded="lg"
                       prepend-inner-icon="mdi-calendar"
                       :rules="ageRules"
+                      :disabled="saving"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -136,7 +136,7 @@
           </v-row>
         </v-window-item>
 
-        <v-window-item value="assinatura" class="bg-grey-lighten-5">
+        <v-window-item value="assinatura">
           <v-container class="pa-6 pa-md-10">
             <div v-if="loadingSub && activeTab === 'assinatura'" class="text-center py-10">
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
@@ -249,6 +249,8 @@
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">Data</th>
+                  <th class="text-left font-weight-bold">Plano</th>
+                  <th class="text-left font-weight-bold">Período</th>
                   <th class="text-left font-weight-bold">Método</th>
                   <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
                   <th class="text-right font-weight-bold">{{ $t('admin.price') }}</th>
@@ -257,6 +259,8 @@
               <tbody>
                 <tr v-for="item in subscriptionData.historico" :key="item.id">
                   <td class="text-body-2">{{ formatDate(item.pago_em) }}</td>
+                  <td class="text-body-2">{{ item.assinatura?.plano?.nome || '-' }}</td>
+                  <td class="text-body-2">{{ item.assinatura?.periodo?.nome || '-' }}</td>
                   <td class="text-body-2">
                     <v-icon :icon="item.metodo_pagamento === 'pix' ? 'mdi-cellphone-nfc' : 'mdi-credit-card'" size="small" class="mr-2"></v-icon>
                     {{ item.metodo_pagamento?.toUpperCase() }}
@@ -317,6 +321,11 @@ const loadingSub = ref(true)
 const saving = ref(false)
 const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+
+const cpfRules = [
+  v => !!v || t('validation.required'),
+  v => validateCPF(v) || t('validation.cpf_invalid')
+]
 
 onMounted(async () => {
    await fetchUser()
@@ -497,6 +506,12 @@ const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
 }
 
+const getStorageUrl = (path) => {
+    if (!path) return ''
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
+    return `${baseUrl}/storage/${path}`
+}
+
 const formatDate = (dateString) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -560,7 +575,7 @@ const formatCPF = (event) => {
   position: absolute;
   bottom: 5px;
   right: 5px;
-  border: 4px solid white !important;
+  border: 4px solid rgb(var(--v-theme-surface)) !important;
   z-index: 2;
 }
 
@@ -568,7 +583,7 @@ const formatCPF = (event) => {
   position: absolute;
   bottom: 5px;
   left: 5px;
-  border: 2px solid white !important;
+  border: 2px solid rgb(var(--v-theme-surface)) !important;
   z-index: 2;
 }
 
@@ -609,11 +624,11 @@ const formatCPF = (event) => {
 }
 
 .border-left-lg {
-  border-left: 6px solid #1867c0;
+  border-left: 6px solid rgb(var(--v-theme-primary));
 }
 
 .billing-table :deep(th) {
-  color: #1867c0 !important;
+  color: rgb(var(--v-theme-primary)) !important;
   font-size: 0.8rem;
   text-transform: uppercase;
 }

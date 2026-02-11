@@ -10,6 +10,7 @@
         class="mb-2"
         rounded="lg"
         required
+        :disabled="loading"
       ></v-text-field>
 
       <v-textarea
@@ -21,6 +22,7 @@
         rounded="lg"
         :rows="form.tipo === 'pessoal' ? 6 : 2"
         auto-grow
+        :disabled="loading"
       ></v-textarea>
 
       <template v-if="form.tipo === 'financeira'">
@@ -35,6 +37,7 @@
               variant="outlined"
               rounded="lg"
               required
+              :disabled="loading"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -127,6 +130,7 @@
             type="color"
             variant="outlined"
             rounded="lg"
+            :disabled="loading"
           ></v-text-field>
         </v-col>
       </v-row>

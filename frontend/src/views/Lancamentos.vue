@@ -209,11 +209,11 @@ const filters = ref({
 
 
 const headers = [
-  { title: 'Data', key: 'data', align: 'start', sortable: false },
-  { title: 'Descrição', key: 'descricao', align: 'start', sortable: false },
-  { title: 'Categoria', key: 'categoria', align: 'start', sortable: false },
-  { title: 'Tipo', key: 'tipo', align: 'center', sortable: false },
-  { title: 'Valor', key: 'valor', align: 'end', sortable: false },
+  { title: 'Data', key: 'data', align: 'start', sortable: true },
+  { title: 'Descrição', key: 'descricao', align: 'start', sortable: true },
+  { title: 'Categoria', key: 'categoria', align: 'start', sortable: true },
+  { title: 'Tipo', key: 'tipo', align: 'center', sortable: true },
+  { title: 'Valor', key: 'valor', align: 'end', sortable: true },
   { title: 'Ações', key: 'acoes', align: 'end', sortable: false },
 ]
 
@@ -235,6 +235,11 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
       page,
       per_page: itemsPerPage,
     })
+
+    if (sortBy && sortBy.length) {
+      params.append('sort_by', sortBy[0].key)
+      params.append('sort_order', sortBy[0].order)
+    }
 
     if (tableSearch) params.append('search', tableSearch)
     if (filters.value.data) params.append('data', filters.value.data)
@@ -290,12 +295,12 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 
 <style scoped>
 .lancamentos-wrapper {
-  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
   min-height: 100vh;
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #1867C0, #11998E);
+  background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #11998E);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -307,12 +312,12 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .border-card {
-  border: 1px solid rgba(0,0,0,0.05) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .icon-circle-small {
@@ -341,8 +346,8 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 
 <style scoped>
 .filter-bar {
-  background: #ffffff;
-  border: 1px solid #eef1f5;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .filter-bar .v-field {

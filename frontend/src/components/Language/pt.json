@@ -32,10 +32,15 @@
     "transactions": "Lançamentos",
     "goals": "Metas",
     "reports": "Relatórios",
-    "profile": "Perfil",
-    "admin": "Admin",
+    "profile": "Meu Perfil",
+    "settings": "Configurações",
+    "admin": "Administração",
     "plans": "Planos",
     "logout": "Sair"
+  },
+  "settings": {
+    "appearance": "Aparência",
+    "theme": "Tema do Sistema"
   },
   "login": {
     "email_label": "E-mail",
@@ -99,6 +104,10 @@
   },
   "profile": {
     "title": "Detalhes do Perfil",
+    "settings": {
+      "language": "Idioma",
+      "language_desc": "Selecione o idioma da interface"
+    },
     "name_label": "Nome Completo",
     "email_label": "E-mail",
     "btn_update": "Salvar Alterações",
@@ -218,9 +227,6 @@
     "continue_payment": "Continuar Pagamento",
     "leave_new": "Sair agora"
   },
-  "validation": {
-    "description_too_long": "A descrição não pode ter mais que 255 caracteres."
-  },
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -277,7 +283,8 @@
     "cpf_invalid": "CPF inválido",
     "age_restriction": "Você deve ter pelo menos 18 anos.",
     "match_password": "As senhas não coincidem",
-    "invalid_value": "Valor inválido"
+    "invalid_value": "Valor inválido",
+    "description_too_long": "A descrição não pode ter mais que 255 caracteres."
   },
   "toasts": {
     "login_success": "Login realizado com sucesso!",

@@ -38,7 +38,7 @@ const props = defineProps({
   },
   persistent: {
     type: Boolean,
-    default: false
+    default: true
   }
 })
 
@@ -90,10 +90,10 @@ const close = () => {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e0e0e0;
+  background: rgba(var(--v-border-color), 0.3);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #bdbdbd;
+  background: rgba(var(--v-border-color), 0.5);
 }
 </style>

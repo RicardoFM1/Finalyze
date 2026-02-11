@@ -1,5 +1,5 @@
 <template>
-  <v-container class="fill-height py-4 py-md-0" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
+  <v-container class="fill-height py-4 py-md-0 auth-wrapper" fluid>
     <v-row align="center" justify="center" class="h-100">
       <v-col cols="12" md="8" lg="6" xl="4">
         <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
@@ -19,14 +19,15 @@
                   variant="outlined"
                   color="primary"
                   type="email"
-                  class="mb-2"
+                  :disabled="loading"
                   :rules="[v => !!v || $t('login.rules.email_required')]"
                 ></v-text-field>
 
-                <v-text-field
+                  <v-text-field
                 class="mb-1 mb-md-2"
                   density="compact"
                   v-model="form.senha"
+                  :disabled="loading"
                   :label="$t('login.password_label')"
                   prepend-inner-icon="mdi-lock"
                   variant="outlined"
@@ -35,6 +36,7 @@
                   :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="showPass = !showPass"
                   :rules="[v => !!v || $t('login.rules.password_required')]"
+                  @paste.prevent
                 ></v-text-field>
 
                

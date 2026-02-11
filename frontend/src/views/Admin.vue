@@ -4,7 +4,7 @@
         <v-icon icon="mdi-shield-crown" color="primary" size="32" class="mr-3"></v-icon>
         <h1 class="text-h4 font-weight-bold">{{ $t('admin.header') }}</h1>
         <v-spacer></v-spacer>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openDialog()" elevation="2">{{ $t('admin.new_plan_btn') }}</v-btn>
+        <v-btn color="primary" :disabled="loadingPlans" prepend-icon="mdi-plus" @click="openDialog()" elevation="2">{{ $t('admin.new_plan_btn') }}</v-btn>
     </div>
 
     <v-card class="rounded-xl overflow-hidden" elevation="4">

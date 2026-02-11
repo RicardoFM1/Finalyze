@@ -33,9 +33,14 @@
     "goals": "Goals",
     "reports": "Reports",
     "profile": "Profile",
-    "admin": "Admin",
+    "settings": "Settings",
+    "admin": "Administration",
     "plans": "Plans",
     "logout": "Logout"
+  },
+  "settings": {
+    "appearance": "Appearance",
+    "theme": "System Theme"
   },
   "login": {
     "email_label": "E-mail",
@@ -99,6 +104,10 @@
   },
   "profile": {
     "title": "Profile Details",
+    "settings": {
+      "language": "Language",
+      "language_desc": "Select the interface language"
+    },
     "name_label": "Full Name",
     "email_label": "E-mail",
     "btn_update": "Save Changes",
@@ -274,7 +283,8 @@
     "cpf_invalid": "Invalid Tax ID",
     "age_restriction": "You must be at least 18 years old.",
     "match_password": "Passwords do not match",
-    "invalid_value": "Invalid value"
+    "invalid_value": "Invalid value",
+    "description_too_long": "The description cannot be longer than 255 characters."
   },
   "toasts": {
     "login_success": "Login successful!",

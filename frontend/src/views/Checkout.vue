@@ -29,7 +29,8 @@
                         prepend-inner-icon="mdi-lock"
                         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                         @click:append-inner="showPassword = !showPassword"
-                        :rules="passwordRules"
+                        :rules="loginPasswordRules"
+                        @paste.prevent
                       ></v-text-field>
                       <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">Entrar e Continuar</v-btn>
                     </v-form>
@@ -66,9 +67,10 @@
                             variant="outlined"
                             :append-inner-icon="showRegisterPassword ? 'mdi-eye' : 'mdi-eye-off'"
                             @click:append-inner="showRegisterPassword = !showRegisterPassword"
-                            :rules="passwordRules"
+                            :rules="registerPasswordRules"
                             :error-messages="errors.senha"
                             @input="errors.senha = ''"
+                            @paste.prevent
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -80,6 +82,7 @@
                             :rules="[v => !!v || 'Confirmação é obrigatória', v => v === registerForm.senha || 'As senhas não coincidem']"
                             :error-messages="errors.senha_confirmation"
                             @input="errors.senha_confirmation = ''"
+                            @paste.prevent
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" md="6">
@@ -200,13 +203,17 @@ const errors = ref({})
 const isRegisterFormValid = ref(false)
 const isLoginFormValid = ref(false)
 
-const passwordRules = [
+const registerPasswordRules = [
   v => !!v || 'Senha é obrigatória',
   v => v.length >= 8 || 'Mínimo 8 caracteres',
   v => /[A-Z]/.test(v) || 'Deve conter uma letra maiúscula',
   v => /[a-z]/.test(v) || 'Deve conter uma letra minúscula',
   v => /[0-9]/.test(v) || 'Deve conter um número',
   v => /[^A-Za-z0-9]/.test(v) || 'Deve conter um caractere especial (!@#$%...)'
+]
+
+const loginPasswordRules = [
+    v => !!v || 'Senha é obrigatória'
 ]
 
 onMounted(async () => {

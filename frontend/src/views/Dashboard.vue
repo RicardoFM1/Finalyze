@@ -372,13 +372,14 @@ const formatCurrency = (value) => {
 <style scoped>
 
 .dashboard-wrapper {
-    background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%);
+    background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
     min-height: 100vh;
 }
 
 .gradient-text {
-    background: linear-gradient(90deg, #1A237E, #1867C0);
+    background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #5CBBF6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -389,9 +390,9 @@ const formatCurrency = (value) => {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.07) !important;
 }
 
 .summary-card {
@@ -412,7 +413,7 @@ const formatCurrency = (value) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(var(--v-theme-surface), 0.9);
     box-shadow: 0 8px 16px rgba(0,0,0,0.05);
 }
 
@@ -448,13 +449,13 @@ const formatCurrency = (value) => {
 }
 
 .hover-item:hover {
-    background: rgba(24, 103, 192, 0.03) !important;
-    border-color: rgba(24, 103, 192, 0.1) !important;
+    background: rgba(var(--v-theme-primary), 0.05) !important;
+    border-color: rgba(var(--v-theme-primary), 0.1) !important;
     transform: translateX(5px);
 }
 
 .border-card {
-    border: 1px solid rgba(0,0,0,0.05) !important;
+    border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .quick-actions-gradient {
