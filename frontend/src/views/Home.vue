@@ -1,13 +1,13 @@
 <template>
   <div class="home-wrapper">
-    <!-- Cinematic Hero Section -->
+  
     <section class="hero-section d-flex align-center justify-center">
       <div class="hero-bg-overlay"></div>
       <v-container>
         <v-row align="center" justify="center">
           <v-col cols="12" md="7" class="text-center text-md-left hero-content">
             <h1 class="text-h3 text-md-h2 font-weight-black mb-6 animate-fade-up">
-               {{ $t('landing.hero_title_alt').split('{destiny}')[0] }}<span class="gradient-text">{{ $t('landing.destiny') }}</span>{{ $t('landing.hero_title_alt').split('{destiny}')[1] }}
+               {{ $t('landing.hero_title_alt') }}<span class="gradient-text ml-4" > {{$t('landing.destiny') }}</span> 
             </h1>
             <p class="text-body-1 text-md-h6 text-medium-emphasis mb-8 animate-fade-up-delay">
               {{ $t('landing.hero_subtitle_alt') }}
@@ -35,7 +35,7 @@
       </v-container>
     </section>
 
-    <!-- Value Propositions -->
+   
     <v-container class="py-16">
       <v-row class="mb-12 text-center">
         <v-col cols="12">
@@ -57,16 +57,10 @@
       </v-row>
     </v-container>
 
-    <!-- Call to Action -->
+  
     <section class="cta-section py-16">
       <v-container>
-        <v-card class="cta-card rounded-pill pa-8 pa-md-12 text-center overflow-hidden" elevation="10" color="primary">
-          <div class="cta-bg-pattern"></div>
-          <h2 class="text-h5 text-md-h4 font-weight-black mb-6">{{ $t('landing.cta_title') }}</h2>
-          <v-btn color="white" size="x-large" class="rounded-xl text-primary font-weight-bold px-12" :to="{ name: 'Plans' }" elevation="4">
-            {{ $t('landing.cta_btn') }}
-          </v-btn>
-        </v-card>
+       
       </v-container>
     </section>
   </div>
@@ -106,7 +100,6 @@ const features = computed(() => [
 </script>
 
 <style scoped>
-/* ...existing code... */
 .gap-btns > .v-btn {
   margin-bottom: 16px;
   margin-right: 0;
@@ -215,7 +208,7 @@ const features = computed(() => [
   background-size: 30px 30px;
 }
 
-/* Animations */
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
