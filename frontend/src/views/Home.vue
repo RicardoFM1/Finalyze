@@ -57,18 +57,7 @@
       </v-row>
     </v-container>
 
-    <!-- Call to Action -->
-    <section class="cta-section py-16">
-      <v-container>
-        <v-card class="cta-card rounded-pill pa-8 pa-md-12 text-center overflow-hidden" elevation="10" color="primary">
-          <div class="cta-bg-pattern"></div>
-          <h2 class="text-h5 text-md-h4 font-weight-black mb-6">{{ $t('landing.cta_title') }}</h2>
-          <v-btn color="white" size="x-large" class="rounded-xl text-primary font-weight-bold px-12" :to="{ name: 'Plans' }" elevation="4">
-            {{ $t('landing.cta_btn') }}
-          </v-btn>
-        </v-card>
-      </v-container>
-    </section>
+    
   </div>
 </template>
 
