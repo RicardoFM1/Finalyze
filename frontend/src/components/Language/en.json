@@ -1,5 +1,6 @@
 {
   "landing": {
+    "loading_system": "Preparing the system",
     "hero_title": "Master Your Finances with Finalyze",
     "hero_subtitle": "Track expenses, monitor income, and achieve your financial goals with our intuitive platform.",
     "btn_plans": "View Plans",
@@ -18,8 +19,12 @@
       "security_text": "Your financial data is encrypted and protected with bank-level security.",
       "goals_title": "Financial Goals",
       "goals_text": "Define financial goals and track your progress automatically.",
+      "transactions_title": "Financial Transactions",
+      "transactions_text": "Generate and view your financial transactions simply and efficiently.",
       "DS": "Do you want to log out?",
-      "VDS": "You will need to log in again to access your data."
+      "VDS": "You will need to log in again to access your data.",
+      "stay_new": "Stay",
+      "leave_new": "Logout"
     },
     "hero_title_alt": "Master your Financial {destiny}",
     "destiny": "Destiny",
@@ -29,7 +34,23 @@
     "power_title": "Power in your hands",
     "power_subtitle": "Everything you need for impeccable financial health.",
     "cta_title": "Ready to transform your finances?",
-    "cta_btn": "Choose Plan"
+    "cta_btn": "Choose Plan",
+    "carousel": {
+      "dashboard_title": "Intelligent Dashboard",
+      "dashboard_desc": "Visualize your financial health in real-time with interactive and intuitive charts.",
+      "reports_title": "Detailed Reports",
+      "reports_desc": "Analyze your spending by category and identify where you can save more.",
+      "goals_title": "Goal Management",
+      "goals_desc": "Set clear objectives and track every step of your journey to achieve them.",
+      "transactions_title": "Financial Transactions",
+      "transactions_text": "Generate and view your financial transactions simply and efficiently."
+    }
+  },
+  "home": {
+    "features": {
+      "title": "Main Features",
+      "subtitle": "Everything you need for impeccable financial health."
+    }
   },
   "auth": {
     "join_us_title": "Join Us",
@@ -54,15 +75,17 @@
     "dark_mode_active": "Dark Mode Active"
   },
   "login": {
-    "email_label": "E-mail",
-    "password_label": "Password",
-    "btn_login": "Login",
+    "welcome_back": "Welcome back",
+    "subtitle": "Log in to your account to manage your finances",
+    "email_label": "Registered Email",
+    "password_label": "Your Password",
+    "btn_login": "Sign in to Platform",
     "btn_back_home": "Back to Home",
-    "has_account_text": "Already have an account?",
-    "login_link": "Login",
+    "no_account": "Don't have an account?",
+    "register_link": "Create account now",
     "rules": {
-      "email_required": "E-mail is required",
-      "password_required": "Password is required"
+      "email_required": "Email is required for access",
+      "password_required": "Password is required for your security"
     }
   },
   "plans": {
@@ -92,7 +115,22 @@
     "completed": "Completed",
     "no_notes_available": "No notes available.",
     "history_dev": "History in development",
-    "planning_dev": "Planning in development"
+    "planning_dev": "Planning in development",
+    "tabs": {
+      "metas": "My Goals",
+      "notepad": "Notepad"
+    },
+    "filter": {
+      "active": "In Progress",
+      "completed": "Completed",
+      "all": "All"
+    },
+    "actions": {
+      "complete": "Complete",
+      "reopen": "Reopen",
+      "delete": "Delete",
+      "edit": "Edit"
+    }
   },
   "transactions": {
     "title": "Transactions",
@@ -185,6 +223,7 @@
     "features": "Features",
     "all_features": "All features:",
     "name": "Name",
+    "item": "Item",
     "price": "Price",
     "duration": "Duration",
     "actions": "Actions",
@@ -261,9 +300,9 @@
     "password_label": "Password",
     "password_confirm_label": "Confirm Password",
     "btn_submit": "Register",
-    "btn_home": "Home Page",
+    "btn_home": "Back to Home",
     "has_account_text": "Already have an account?",
-    "login_link": "Login",
+    "login_link": "Sign In",
     "error_register_generic": "Error during registration. Please try again.",
     "rules": {
       "required": "{field} is required",
@@ -332,6 +371,7 @@
     "check_errors": "Check the fields in red.",
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
+    "success_delete": "Item deleted successfully!",
     "error_generic": "An error occurred. Please try again."
   },
   "modals": {

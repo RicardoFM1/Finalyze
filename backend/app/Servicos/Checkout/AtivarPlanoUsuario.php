@@ -3,7 +3,7 @@
 namespace App\Servicos\Checkout;
 
 use App\Models\Assinatura;
-use App\Models\Faturamento;
+use App\Models\HistoricoPagamento;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Log;
 
@@ -45,7 +45,7 @@ class AtivarPlanoUsuario
                     'termina_em' => $newEndsAt
                 ]);
 
-                Faturamento::create([
+                HistoricoPagamento::create([
                     'user_id' => $assinatura->user_id,
                     'assinatura_id' => $assinatura->id,
                     'valor_centavos' => (int)($payment->transaction_amount * 100),

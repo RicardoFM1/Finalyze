@@ -3,7 +3,7 @@
 namespace App\Servicos\Assinaturas;
 
 use App\Models\Assinatura;
-use App\Models\Faturamento;
+use App\Models\HistoricoPagamento;
 use Illuminate\Support\Facades\Auth;
 
 class ObterDadosAssinatura
@@ -17,7 +17,7 @@ class ObterDadosAssinatura
             ->latest()
             ->first();
 
-        $history = Faturamento::where('user_id', $user->id)
+        $history = HistoricoPagamento::where('user_id', $user->id)
             ->with(['assinatura.plano', 'assinatura.periodo'])
             ->latest()
             ->get();

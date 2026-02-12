@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUiStore } from './ui';
 
 
 export const useAuthStore = defineStore('auth', () => {
@@ -21,6 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
     });
 
     async function apiFetch(endpoint, options = {}) {
+        const ui = useUiStore();
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
         const headers = {
@@ -111,6 +113,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchUser() {
         if (!token.value) return;
+        const ui = useUiStore();
+        ui.setLoading(true);
         try {
             const response = await apiFetch('/usuario');
             if (response.ok) {
@@ -120,6 +124,8 @@ export const useAuthStore = defineStore('auth', () => {
             }
         } catch (e) {
             console.error(e);
+        } finally {
+            ui.setLoading(false);
         }
     }
 

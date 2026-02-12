@@ -25,19 +25,40 @@
 
         <Coinselector />
 
+        <v-btn
+          icon
+          variant="text"
+          color="white"
+          class="ml-2"
+          @click="uiAuthStore.toggleTheme"
+        >
+          <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
+        </v-btn>
+
         
         <template v-if="!authStore.isAuthenticated">
-            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
+            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium d-none d-sm-inline-flex">
               {{ $t('landing.btn_plans') }}
             </v-btn>
 
+            <!-- Dynamic Auth Button -->
             <v-btn
+              v-if="route.name === 'Register'"
               :to="{ name: 'Login' }"
               variant="elevated"
               color="white"
-              class="ml-2 mr-2 font-weight-bold text-primary text-none"
+              class="ml-2 mr-4 font-weight-bold text-primary text-none"
             >
               {{ $t('landing.btn_login') }}
+            </v-btn>
+            <v-btn
+              v-else
+              :to="{ name: 'Register' }"
+              variant="elevated"
+              color="white"
+              class="ml-2 mr-4 font-weight-bold text-primary text-none"
+            >
+              {{ $t('landing.btn_start') }}
             </v-btn>
         </template>
       </v-app-bar>
@@ -93,12 +114,12 @@
         <router-view></router-view>
       </v-main>
     </template>
-    <ModalBase v-model="confirmLogout" :title="$t('features.DS')" maxWidth="400px" persistent>
+    <ModalBase v-model="confirmLogout" :title="$t('landing.features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
                 <v-icon icon="mdi-logout-variant" color="error" size="40"></v-icon>
             </v-avatar>
-            <p class="text-body-1 text-medium-emphasis">{{ $t('features.VDS') }}</p>
+            <p class="text-body-1 text-medium-emphasis">{{ $t('landing.features.VDS') }}</p>
         </div>
         
         <template #actions>
@@ -108,7 +129,7 @@
                 rounded="lg"
                 @click="confirmLogout = false"
             >
-                {{ $t('features.stay_new') }}
+                {{ $t('landing.features.stay_new') }}
             </v-btn>
             <v-btn 
                 color="error" 
@@ -118,7 +139,7 @@
                 rounded="lg"
                 @click="handleLogout"
             >
-                {{ $t('features.leave_new') }}
+                {{ $t('landing.features.leave_new') }}
             </v-btn>
         </template>
     </ModalBase>

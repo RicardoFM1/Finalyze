@@ -127,6 +127,7 @@
                     rounded="lg"
                     class="px-8 font-weight-bold"
                     :loading="saving"
+                    :disabled="saving || uiStore.loading"
                   >
                     {{ $t('profile.btn_update') }}
                   </v-btn>
@@ -155,12 +156,12 @@
                     <div class="text-overline mb-2 opacity-80">{{ $t('profile.subscription.current') }}</div>
                     <div class="text-h4 font-weight-black mb-4">
                         {{ user.plano?.nome }}
-                        <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData.assinatura.periodo">
+                        <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData?.assinatura?.periodo">
                             ({{ subscriptionData.assinatura.periodo.nome }})
                         </span>
                     </div>
                     
-                    <div class="d-flex align-center mb-6">
+                    <div class="d-flex align-center mb-6" v-if="subscriptionData?.assinatura">
                       <v-badge
                         :color="subscriptionData.assinatura.status === 'active' ? 'success' : 'warning'"
                         :content="subscriptionData.assinatura.status === 'active' ? $t('profile.active') : $t('profile.inactive')"
@@ -168,7 +169,7 @@
                       ></v-badge>
                     </div>
 
-                    <div class="subscription-timeline mb-6">
+                    <div class="subscription-timeline mb-6" v-if="subscriptionData?.assinatura">
                       <div class="d-flex justify-space-between text-caption mb-1">
                         <span>{{ $t('profile.subscription.expires_at') }}: {{ formatDate(subscriptionData.assinatura.termina_em) }}</span>
                         <span>{{ daysRemaining === 1 ? $t('profile.subscription.days_remaining_singular') : $t('profile.subscription.days_remaining', { count: daysRemaining }) }}</span>
@@ -197,11 +198,12 @@
                         <div class="text-body-2 text-medium-emphasis">{{ $t('profile.subscription.auto_renewal_desc') }}</div>
                       </div>
                       <v-switch
-                        :model-value="!!subscriptionData.assinatura.renovacao_automatica"
+                        :model-value="subscriptionData?.assinatura?.renovacao_automatica ? true : false"
                         color="primary"
                         hide-details
                         inset
                         @change="ativarAutoRenovacao"
+                        :disabled="loadingSub || uiStore.loading"
                       ></v-switch>
                     </div>
 
@@ -215,6 +217,7 @@
                           color="primary"
                           class="rounded-lg font-weight-bold"
                           @click="payAhead"
+                          :disabled="loadingSub || saving || uiStore.loading"
                         >
                           {{ $t('profile.subscription.pay_ahead') }}
                         </v-btn>
@@ -227,6 +230,7 @@
                           class="rounded-lg font-weight-bold"
                           v-if="subscriptionData.assinatura && subscriptionData.assinatura.status === 'active'"
                           @click="confirmCancel = true"
+                          :disabled="loadingSub || saving || uiStore.loading"
                         >
                           {{ $t('profile.subscription.cancel') }}
                         </v-btn>
@@ -245,38 +249,48 @@
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
 
-            <v-table v-else-if="subscriptionData.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
+            <v-table v-else-if="subscriptionData?.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.title') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.duration') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('checkout.payment_data') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
-                  <th class="text-right font-weight-bold">{{ $t('admin.price') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.item') || 'Item' }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.status') || 'Status' }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="item in subscriptionData.historico" :key="item.id">
-                  <td class="text-body-2">{{ formatDate(item.pago_em) }}</td>
-                  <td class="text-body-2">{{ item.assinatura?.plano?.nome || '-' }}</td>
-                  <td class="text-body-2">{{ item.assinatura?.periodo?.nome || '-' }}</td>
-                  <td class="text-body-2">
-                    <v-icon :icon="item.metodo_pagamento === 'pix' ? 'mdi-cellphone-nfc' : 'mdi-credit-card'" size="small" class="mr-2"></v-icon>
-                    {{ item.metodo_pagamento?.toUpperCase() }}
-                  </td>
+                  <td class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</td>
                   <td>
-                    <v-chip size="x-small" :color="item.status === 'paid' ? 'success' : 'error'" class="font-weight-bold">
-                      {{ item.status === 'paid' ? $t('profile.subscription.paid') : $t('profile.subscription.failed') }}
+                    <div class="d-flex align-center">
+                      <v-icon icon="mdi-package-variant" size="small" class="mr-2" color="primary"></v-icon>
+                      <span class="text-body-2">
+                        {{ item.assinatura?.plano?.nome || item.item_nome || '-' }}
+                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70 ml-1">
+                          ({{ item.assinatura.periodo.nome }})
+                        </span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</td>
+                  <td>
+                    <v-chip
+                      :color="getStatusColor(item.status)"
+                      size="x-small"
+                      class="text-uppercase font-weight-bold"
+                      variant="tonal"
+                    >
+                      {{ getStatusText(item.status) }}
                     </v-chip>
                   </td>
-                  <td class="text-right font-weight-bold">{{ formatPrice(item.valor_centavos / 100) }}</td>
                 </tr>
               </tbody>
             </v-table>
             
-            <div v-else class="text-center py-10 text-medium-emphasis">
-              {{ $t('profile.subscription.no_history') }}
+            <div v-else-if="!loadingSub" class="text-center py-12 billing-empty opacity-60">
+              <v-icon icon="mdi-receipt-text-minus-outline" size="64" class="mb-4"></v-icon>
+              <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.no_history') }}</h3>
+              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') || 'Suas cobranças e comprovantes aparecerão aqui.' }}</p>
             </div>
             
           </v-container>
@@ -291,6 +305,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -300,6 +315,7 @@ import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.
 const { t } = useI18n()
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const router = useRouter()
 const activeTab = ref('personal')
 const user = ref({
@@ -363,12 +379,44 @@ const fetchSubscription = async () => {
         const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
+        } else {
+            console.error('Error fetching subscription:', response.status)
         }
     } catch (e) {
         console.error(e)
+        // Only toast if it's the history tab explicitly or something? Usually quiet background fetch is better
     } finally {
         loadingSub.value = false
     }
+}
+
+const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+        case 'paid':
+        case 'pago':
+        case 'approved':
+        case 'active':
+            return 'success'
+        case 'pending':
+        case 'pendente':
+            return 'warning'
+        case 'failed':
+        case 'falhou':
+        case 'cancelled':
+        case 'cancelado':
+            return 'error'
+        default:
+            return 'grey'
+    }
+}
+
+const getStatusText = (status) => {
+    if (!status) return '-'
+    const s = status.toLowerCase()
+    if (s === 'paid' || s === 'pago' || s === 'approved') return t('profile.subscription.paid') || 'PAGO'
+    if (s === 'pending' || s === 'pendente') return 'PENDENTE'
+    if (s === 'failed' || s === 'falhou') return t('profile.subscription.failed') || 'FALHOU'
+    return status.toUpperCase()
 }
 
 const ativarAutoRenovacao = async () => {
@@ -520,6 +568,13 @@ const formatDate = (dateString) => {
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+const formatPrice = (value) => {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(value)
 }
 
 const validateCPF = (cpf) => {

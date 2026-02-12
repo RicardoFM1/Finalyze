@@ -152,14 +152,14 @@ const limpar = () => emit('clear')
 
 <style scoped>
 .filter-card {
-  background: white;
-  border: 1px solid rgba(var(--v-border-color), 0.08);
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), 0.15);
   transition: all 0.25s ease;
 }
 
 .filter-card:hover {
-  border-color: rgba(var(--v-theme-primary), 0.25);
-  box-shadow: 0 8px 28px rgba(var(--v-theme-primary), 0.08);
+  border-color: rgba(var(--v-theme-primary), 0.4);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
 }
 
 .filter-header {
@@ -173,21 +173,31 @@ const limpar = () => emit('clear')
   font-size: 14px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  opacity: 0.8;
+  color: rgb(var(--v-theme-on-surface));
+  opacity: 0.9;
 }
 
 :deep(.v-field) {
   border-radius: 14px !important;
-  background: rgba(var(--v-theme-primary), 0.03) !important;
+  background: rgba(var(--v-theme-primary), 0.08) !important;
 }
 
 :deep(.v-field:hover) {
-  background: rgba(var(--v-theme-primary), 0.06) !important;
+  background: rgba(var(--v-theme-primary), 0.12) !important;
 }
 
 :deep(.v-field--focused) {
-  background: rgba(var(--v-theme-primary), 0.08) !important;
-  box-shadow: 0 4px 14px rgba(var(--v-theme-primary), 0.12);
+  background: rgba(var(--v-theme-primary), 0.15) !important;
+  box-shadow: 0 4px 14px rgba(var(--v-theme-primary), 0.2);
+}
+
+:deep(.v-label.v-field-label) {
+  color: rgb(var(--v-theme-on-surface)) !important;
+  opacity: 0.7;
+}
+
+:deep(.v-field__input) {
+  color: rgb(var(--v-theme-on-surface)) !important;
 }
 
 

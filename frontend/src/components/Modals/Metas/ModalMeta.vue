@@ -143,7 +143,8 @@
         rounded="lg" 
         class="mt-4" 
         variant="flat"
-        :loading="loading" 
+        :loading="loading || uiStore.loading" 
+        :disabled="loading || uiStore.loading"
         elevation="2"
       >
         {{ $t('common.save') }}
@@ -155,6 +156,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import { useI18n } from 'vue-i18n'
@@ -173,6 +175,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const loading = ref(false)
 const emojiMenu = ref(false)
 const emojiSearch = ref('')
@@ -250,10 +253,18 @@ const saveMeta = async () => {
   loading.value = true
   try {
     const isEdit = !!form.value.id
-    const isAnotacao = form.value.tipo === 'pessoal' || (!form.value.tipo && props.initialTipo === 'pessoal')
+    // Determinando se é anotação baseado no objeto que veio para edição ou no initialTipo
+    const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
+    const isAnotacao = currentTipo === 'pessoal' || (!form.value.tipo && !props.meta?.tipo && props.initialTipo === 'pessoal')
+    
     const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
     const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
     
+    // Se for meta financeira, garantir que o tipo esteja definido para o backend
+    if (!isAnotacao && !form.value.tipo) {
+      form.value.tipo = 'financeira'
+    }
+
     const response = await authStore.apiFetch(endpoint, {
       method: isEdit ? 'PUT' : 'POST',
       body: JSON.stringify(form.value)

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Faturamento extends Model
+class HistoricoPagamento extends Model
 {
     protected $table = 'historico_pagamentos';
 
