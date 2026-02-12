@@ -1,136 +1,200 @@
 <template>
-  <v-container class="fill-height auth-wrapper" fluid>
-    <v-row align="center" justify="center" class="h-100">
-      <v-col cols="12" md="8" lg="6" xl="4">
-        <v-card elevation="24" rounded="lg" class="overflow-hidden">
-          <v-row no-gutters>
-            <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
-              <div class="text-center">
-                <v-icon size="80" color="white" class="mb-6">mdi-finance</v-icon>
-                <h2 class="text-h4 font-weight-bold text-white mb-2">{{ $t('auth.join_us_title') }}</h2>
-                <p class="text-white text-opacity-75">{{ $t('auth.join_us_subtitle') }}</p>
-              </div>
-            </v-col>
-            <v-col cols="12" md="7" class="pa-8">
-              <div class="text-center mb-8">
-                <h2 class="text-h4 font-weight-bold text-primary">  {{ $t('register.title') }}</h2>
-                <p class="text-medium-emphasis">{{ $t('register.subtitle') }}</p>
-              </div>
-              
-              <v-form @submit.prevent="handleRegister" v-model="isValid">
+  <v-container class="fill-height pa-0 auth-wrapper" fluid>
+    <v-row no-gutters class="fill-height flex-row-reverse">
+      <!-- Right Side: Visual/Branding (Hidden on mobile) -->
+      <v-col cols="12" md="6" lg="7" class="d-none d-md-flex flex-column justify-center align-center bg-primary relative overflow-hidden">
+        <div class="visual-bg-pattern"></div>
+        <div class="visual-content text-center animate-fade-in px-16">
+          <v-icon size="120" color="white" class="mb-8 floating-icon">mdi-account-plus-outline</v-icon>
+          <h1 class="text-h1 font-weight-black text-white mb-6">
+            {{ $t('auth.join_us_title') }}
+          </h1>
+          <p class="text-h6 text-white text-opacity-80 font-weight-light max-w-600 mx-auto">
+            {{ $t('auth.join_us_subtitle') }}
+          </p>
+          
+          <v-list bg-transparent class="mt-12 text-left mx-auto transparent-list" max-width="400">
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Gestão completa de despesas</v-list-item-title>
+            </v-list-item>
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Relatórios inteligentes em tempo real</v-list-item-title>
+            </v-list-item>
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Definição e acompanhamento de metas</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </div>
+        
+        <div class="visual-footer absolute-bottom pa-8 text-white opacity-50 text-caption text-center">
+          &copy; {{ new Date().getFullYear() }} Finalyze Finance. Sua jornada rumo à liberdade financeira.
+        </div>
+      </v-col>
+
+      <!-- Left Side: Register Form -->
+      <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
+        <v-btn
+          icon="mdi-arrow-left"
+          variant="text"
+          class="absolute-top-left ma-4 d-md-none"
+          @click="router.push({ name: 'Home' })"
+        ></v-btn>
+
+        <v-card flat max-width="500" width="100%" class="pa-8 pa-md-12 bg-transparent my-auto">
+          <div class="text-center text-md-left mb-10">
+            <div class="d-flex align-center justify-center justify-md-start mb-4">
+              <v-avatar color="primary" size="48" class="mr-3 elevation-4">
+                <v-icon icon="mdi-finance" color="white"></v-icon>
+              </v-avatar>
+              <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
+            </div>
+            <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
+            <p class="text-medium-emphasis">{{ $t('register.subtitle') }}</p>
+          </div>
+
+          <v-form @submit.prevent="handleRegister" v-model="isValid" class="mt-4">
+            <v-row dense>
+              <v-col cols="12">
                 <v-text-field
                   v-model="form.nome"
                   :label="$t('register.name_label')"
-                  prepend-inner-icon="mdi-account"
+                  prepend-inner-icon="mdi-account-outline"
                   variant="outlined"
                   color="primary"
+                  density="comfortable"
+                  class="rounded-lg"
                   :disabled="loading"
                   :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.nome"
-                  @input="errors.nome = ''"
+                  hide-details="auto"
                 ></v-text-field>
+              </v-col>
 
+              <v-col cols="12" class="mt-4">
                 <v-text-field
                   v-model="form.email"
                   :label="$t('register.email_label')"
-                  prepend-inner-icon="mdi-email"
+                  prepend-inner-icon="mdi-email-outline"
                   variant="outlined"
                   color="primary"
                   type="email"
+                  density="comfortable"
+                  class="rounded-lg"
                   :disabled="loading"
                   :rules="[v => !!v || $t('validation.required')]"
                   :error-messages="errors.email"
-                  @input="errors.email = ''"
+                  hide-details="auto"
                 ></v-text-field>
+              </v-col>
 
+              <v-col cols="12" md="6" class="mt-4">
                 <v-text-field
                   v-model="form.senha"
                   :label="$t('register.password_label')"
-                  prepend-inner-icon="mdi-lock"
+                  prepend-inner-icon="mdi-lock-outline"
                   variant="outlined"
                   color="primary"
+                  density="comfortable"
+                  class="rounded-lg"
                   :disabled="loading"
                   :type="showPass ? 'text' : 'password'"
-                  :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+                  :append-inner-icon="showPass ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
                   @click:append-inner="showPass = !showPass"
                   :rules="passwordRules"
                   :error-messages="errors.senha"
-                  @input="errors.senha = ''"
+                  hide-details="auto"
                   @paste.prevent
                 ></v-text-field>
+              </v-col>
 
-                  <v-text-field
-                    v-model="form.senha_confirmation"
-                    :label="$t('register.password_confirm_label')"
-                    prepend-inner-icon="mdi-lock-check"
-                    variant="outlined"
-                    color="primary"
-                    :disabled="loading"
-                    :type="showPass ? 'text' : 'password'"
-                    :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
-                    :error-messages="errors.senha_confirmation"
-                    @input="errors.senha_confirmation = ''"
-                    @paste.prevent
-                  ></v-text-field>
+              <v-col cols="12" md="6" class="mt-4">
+                <v-text-field
+                  v-model="form.senha_confirmation"
+                  :label="$t('register.password_confirm_label')"
+                  prepend-inner-icon="mdi-lock-check-outline"
+                  variant="outlined"
+                  color="primary"
+                  density="comfortable"
+                  class="rounded-lg"
+                  :disabled="loading"
+                  :type="showPass ? 'text' : 'password'"
+                  :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
+                  :error-messages="errors.senha_confirmation"
+                  hide-details="auto"
+                  @paste.prevent
+                ></v-text-field>
+              </v-col>
 
+              <v-col cols="12" md="6" class="mt-4">
                 <v-text-field
                   v-model="form.cpf"
                   :label="$t('profile.labels.cpf')"
-                  prepend-inner-icon="mdi-card-account-details"
+                  prepend-inner-icon="mdi-card-account-details-outline"
                   variant="outlined"
                   color="primary"
+                  density="comfortable"
+                  class="rounded-lg"
                   @input="handleCpfInput"
                   maxlength="14"
                   :disabled="loading"
                   :rules="[v => !!v || $t('validation.required'), validateCPF]"
                   :error-messages="errors.cpf"
+                  hide-details="auto"
                 ></v-text-field>
+              </v-col>
 
+              <v-col cols="12" md="6" class="mt-4">
                 <v-text-field
                   v-model="form.data_nascimento"
                   :label="$t('profile.labels.birthdate')"
-                  prepend-inner-icon="mdi-calendar"
+                  prepend-inner-icon="mdi-calendar-outline"
                   variant="outlined"
                   color="primary"
                   type="date"
+                  density="comfortable"
+                  class="rounded-lg"
                   :disabled="loading"
                   :rules="[v => !!v || $t('validation.required'), validateAge]"
                   :error-messages="errors.data_nascimento"
-                  @input="errors.data_nascimento = ''"
+                  hide-details="auto"
                 ></v-text-field>
+              </v-col>
+            </v-row>
 
-                <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
-                
-                <v-btn
-                  block
-                  color="primary"
-                  size="x-large"
-                  type="submit"
-                  :loading="loading"
-                  class="mb-4 font-weight-bold"
-                  elevation="4"
-                  :disabled="buttonDesativado"
-                >
-                  {{ $t('register.btn_submit') }}
-                </v-btn>
-              </v-form>
-               <v-btn
-                  block
-                  color="green"
-                  size="x-large"
-                  type="button"
-                  class="mb-4 font-weight-bold"
-                  elevation="4"
-                  @click="router.push({ name: 'Home' })"
-                >
-                  {{ $t('register.btn_home') }}
-                </v-btn>
-              <div class="text-center">
-                <span class="text-body-2 text-medium-emphasis"> {{ $t('register.has_account_text') }} </span>
-                <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">{{ $t('register.login_link') }}</router-link>
-              </div>
-            </v-col>
-          </v-row>
+            <v-alert v-if="error" type="error" variant="tonal" class="mt-6 rounded-lg" density="compact" closable>{{ error }}</v-alert>
+            
+            <v-btn
+              block
+              color="primary"
+              size="x-large"
+              type="submit"
+              :loading="loading"
+              class="mt-8 rounded-xl font-weight-bold py-4 text-none elevation-8"
+              :disabled="buttonDesativado"
+            >
+              {{ $t('register.btn_submit') }}
+              <v-icon end icon="mdi-account-check" class="ms-2"></v-icon>
+            </v-btn>
+
+            <v-btn
+              variant="tonal"
+              block
+              size="large"
+              class="mt-4 rounded-xl font-weight-medium text-none"
+              :to="{ name: 'Login' }"
+            >
+              {{ $t('register.login_link') }}
+            </v-btn>
+          </v-form>
+
+          <div class="text-center mt-10">
+            <p class="text-body-2 text-medium-emphasis">
+              {{ $t('register.has_account_text') }} 
+              <router-link to="/login" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                {{ $t('register.login_link') }}
+              </router-link>
+            </p>
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -186,45 +250,28 @@ const validateAge = (v) => {
 
 const validateCPF = (v) => {
     if (!v) return true
-    
-    
     const cpf = v.replace(/\D/g, '')
-    
-    if (cpf.length !== 11) {
-        return t('validation.cpf_invalid')
-    }
-
+    if (cpf.length !== 11) return t('validation.cpf_invalid')
     if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
-
     let sum = 0
     let remainder
-
-    for (let i = 1; i <= 9; i++) 
-        sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
+    for (let i = 1; i <= 9; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
     remainder = (sum * 10) % 11
-    
-    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if ((remainder === 10) || (remainder === 11)) remainder = 0
     if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
-
     sum = 0
-    for (let i = 1; i <= 10; i++) 
-        sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
+    for (let i = 1; i <= 10; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
     remainder = (sum * 10) % 11
-
-    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if ((remainder === 10) || (remainder === 11)) remainder = 0
     if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
-
     return true
 }
 
 const handleRegister = async () => {
   if (!isValid.value) return 
-  
   loading.value = true
   error.value = ''
-  
   try {
-    console.log('Dados do formulário:', form.value)
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
     await authStore.register(
       form.value.nome, 
@@ -238,7 +285,6 @@ const handleRegister = async () => {
     router.push({ name: 'Login' })
   } catch (err) {
     if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
-        
         errors.value = Object.keys(err.response.data.errors).reduce((acc, key) => {
             acc[key] = err.response.data.errors[key][0]
             return acc
@@ -254,14 +300,9 @@ const handleRegister = async () => {
 }
 
 const buttonDesativado = computed(() => 
-form.value.nome === '' 
-|| form.value.email === '' 
-|| form.value.senha === '' 
-|| form.value.senha_confirmation === '' 
-|| form.value.cpf === ''
-|| form.value.data_nascimento === ''
-|| form.value.senha !== form.value.senha_confirmation
-|| !isValid.value
+form.value.nome === '' || form.value.email === '' || form.value.senha === '' || 
+form.value.senha_confirmation === '' || form.value.cpf === '' || form.value.data_nascimento === '' || 
+form.value.senha !== form.value.senha_confirmation || !isValid.value || loading.value
 )
 
 const handleCpfInput = (event) => {
@@ -282,3 +323,87 @@ const formatCPF = (event) => {
   form.value.cpf = value
 }
 </script>
+
+<style scoped>
+.auth-wrapper {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.bg-primary {
+  background: linear-gradient(135deg, #1867C0 0%, #1A237E 100%) !important;
+}
+
+.visual-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+.floating-icon {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #1867C0, #1A237E);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-v-theme="dark"] .gradient-text {
+  background: linear-gradient(90deg, #5CBBF6, #A2D9FF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.max-w-600 {
+  max-width: 600px;
+}
+
+.absolute-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.absolute-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.scroll-y {
+  overflow-y: auto !important;
+}
+
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+.transparent-list, .transparent-list :deep(.v-list-item) {
+  background: transparent !important;
+}
+</style>

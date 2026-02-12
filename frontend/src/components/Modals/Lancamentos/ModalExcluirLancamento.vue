@@ -68,7 +68,7 @@ const excluir = async () => {
     })
 
     if (response.ok) {
-      toast.success(t('toasts.success_update'))
+      toast.success(t('toasts.success_delete'))
       internalValue.value = false
       emit('deleted')
     }

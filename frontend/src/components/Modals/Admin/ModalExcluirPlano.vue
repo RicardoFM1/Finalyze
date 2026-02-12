@@ -13,6 +13,9 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -38,7 +41,7 @@ const confirmDelete = async () => {
       method: 'DELETE'
     })
     if (response.ok) {
-      toast.success('Plano excluído.')
+      toast.success(t('toasts.success_delete'))
       internalValue.value = false
       emit('deleted')
     } else {
@@ -46,7 +49,7 @@ const confirmDelete = async () => {
       toast.error(data.message || 'Erro ao excluir')
     }
   } catch (e) {
-    toast.error('Erro de conexão')
+    toast.error(t('toasts.error_generic'))
   } finally {
     loading.value = false
   }

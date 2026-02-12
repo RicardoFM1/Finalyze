@@ -44,7 +44,7 @@ const confirmDelete = async () => {
       method: 'DELETE'
     })
     if (response.ok) {
-      toast.success(isAnotacao ? t('toasts.success_update') : t('toasts.success_update'))
+      toast.success(isAnotacao ? t('toasts.success_delete') : t('toasts.success_delete'))
       internalValue.value = false
       emit('deleted')
     }

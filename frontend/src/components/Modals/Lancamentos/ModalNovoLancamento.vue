@@ -57,7 +57,8 @@
         variant="flat" 
         size="large" 
         rounded="lg" 
-        :loading="loading" 
+        :loading="loading || uiStore.loading" 
+        :disabled="loading || uiStore.loading"
         elevation="3"
         @click="salvarLancamento"
       >
@@ -70,6 +71,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import { useI18n } from 'vue-i18n'
@@ -83,6 +85,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const loading = ref(false)
 
 const internalValue = computed({

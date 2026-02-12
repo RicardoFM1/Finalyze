@@ -1,5 +1,6 @@
 {
   "landing": {
+    "loading_system": "Preparando o sistema...",
     "hero_title": "Domine suas Finanças com Finalyze",
     "hero_subtitle": "Acompanhe despesas, monitore receitas e alcance seus objetivos financeiros com nossa plataforma intuitiva.",
     "btn_plans": "Ver Planos",
@@ -18,8 +19,12 @@
       "security_text": "Seus dados financeiros são criptografados e protegidos com segurança de nível bancário.",
       "goals_title": "Metas Financeiras",
       "goals_text": "Defina metas financeiras e acompanhe seu progresso automaticamente.",
+      "transactions_title": "Lançamentos Financeiros",
+      "transactions_text": "Gere e visualize seus lançamentos financeiros de forma simples e eficiente.",
       "DS": "Deseja sair?",
-      "VDS": "Você precisará fazer login novamente para acessar seus dados."
+      "VDS": "Você precisará fazer login novamente para acessar seus dados.",
+      "stay_new": "Ficar",
+      "leave_new": "Sair"
     },
     "hero_title_alt": "Domine seu",
     "destiny": "Destino Financeiro",
@@ -29,7 +34,23 @@
     "power_title": "Poder em suas mãos",
     "power_subtitle": "Tudo o que você precisa para uma saúde financeira impecável.",
     "cta_title": "Pronto para transformar suas finanças?",
-    "cta_btn": "Escolher Plano"
+    "cta_btn": "Escolher Plano",
+    "carousel": {
+      "dashboard_title": "Dashboard Inteligente",
+      "dashboard_desc": "Visualize sua saúde financeira em tempo real com gráficos interativos e intuitivos.",
+      "reports_title": "Relatórios Detalhados",
+      "reports_desc": "Analise seus gastos por categoria e identifique onde você pode economizar mais.",
+      "goals_title": "Gestão de Metas",
+      "goals_desc": "Defina objetivos claros e acompanhe cada passo da sua jornada para realizá-los.",
+      "transactions_title": "Lançamentos Financeiros",
+      "transactions_text": "Gere e visualize seus lançamentos financeiros de forma simples e eficiente."
+    }
+  },
+  "home": {
+    "features": {
+      "title": "Recursos Principais",
+      "subtitle": "Tudo o que você precisa para uma saúde financeira impecável."
+    }
   },
   "auth": {
     "join_us_title": "Junte-se a nós",
@@ -54,15 +75,17 @@
     "dark_mode_active": "Modo Escuro Ativo"
   },
   "login": {
-    "email_label": "E-mail",
-    "password_label": "Senha",
-    "btn_login": "Entrar",
-    "btn_back_home": "Página inicial",
-    "has_account_text": "Já tem uma conta?",
-    "login_link": "Entrar",
+    "welcome_back": "Bem-vindo de volta",
+    "subtitle": "Acesse sua conta para gerenciar suas finanças",
+    "email_label": "E-mail cadastrado",
+    "password_label": "Sua senha",
+    "btn_login": "Entrar na Plataforma",
+    "btn_back_home": "Voltar ao Início",
+    "no_account": "Não tem uma conta?",
+    "register_link": "Criar conta agora",
     "rules": {
-      "email_required": "E-mail é obrigatório",
-      "password_required": "Senha é obrigatória"
+      "email_required": "O e-mail é essencial para o acesso",
+      "password_required": "A senha é necessária para sua segurança"
     }
   },
   "plans": {
@@ -92,7 +115,22 @@
     "completed": "Concluído",
     "no_notes_available": "Nenhuma anotação disponível.",
     "history_dev": "Histórico em desenvolvimento",
-    "planning_dev": "Planejamento em desenvolvimento"
+    "planning_dev": "Planejamento em desenvolvimento",
+    "tabs": {
+      "metas": "Minhas Metas",
+      "notepad": "Bloco de Notas"
+    },
+    "filter": {
+      "active": "Em Andamento",
+      "completed": "Concluídas",
+      "all": "Todas"
+    },
+    "actions": {
+      "complete": "Concluir",
+      "reopen": "Reabrir",
+      "delete": "Excluir",
+      "edit": "Editar"
+    }
   },
   "transactions": {
     "title": "Lançamentos",
@@ -214,6 +252,7 @@
     "features": "Recursos",
     "all_features": "Todos os recursos:",
     "name": "Nome",
+    "item": "Item",
     "price": "Preço",
     "duration": "Duração",
     "actions": "Ações",
@@ -290,9 +329,9 @@
     "password_label": "Senha",
     "password_confirm_label": "Confirmar Senha",
     "btn_submit": "Cadastrar",
-    "btn_home": "Página inicial",
-    "has_account_text": "Já tem uma conta?",
-    "login_link": "Entrar",
+    "btn_home": "Voltar ao Início",
+    "has_account_text": "Já possui uma conta?",
+    "login_link": "Faça Login",
     "error_register_generic": "Erro ao cadastrar",
     "rules": {
       "required": "{field} é obrigatório",
@@ -332,6 +371,7 @@
     "check_errors": "Verifique os campos em vermelho.",
     "success_add": "Item adicionado com sucesso!",
     "success_update": "Item atualizado com sucesso!",
+    "success_delete": "Item excluído com sucesso!",
     "error_generic": "Ocorreu um erro. Tente novamente."
   },
   "modals": {
