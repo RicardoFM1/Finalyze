@@ -19,103 +19,13 @@
         </v-btn>
       </v-col>
     </v-row>
-<v-card
-  class="filter-bar mb-6"
-  elevation="1"
-  rounded="lg"
->
-  <v-row dense align="center" class="px-2 py-1">
-    <!-- DATA -->
-    <v-col cols="12" md="2">
-      <v-text-field
-        v-model="filters.data"
-        :label="$t('transactions.table.date')"
-        type="date"
-        variant="underlined"
-        density="compact"
-        prepend-inner-icon="mdi-calendar"
-        hide-details
-      />
-    </v-col>
 
-    <!-- DESCRIÇÃO -->
-    <v-col cols="12" md="3">
-      <v-text-field
-        v-model="filters.descricao"
-        :label="$t('transactions.table.description')"
-        :placeholder="$t('common.search')"
-        variant="underlined"
-        density="compact"
-        hide-details
-      />
-    </v-col>
-
-    <!-- CATEGORIA -->
-    <v-col cols="12" md="2">
-      <v-select
-        v-model="filters.categoria"
-        :items="categorias"
-        :label="$t('transactions.table.category')"
-        variant="underlined"
-        density="compact"
-        hide-details
-        clearable
-      />
-    </v-col>
-
-    <!-- TIPO -->
-    <v-col cols="12" md="2">
-      <v-select
-        v-model="filters.tipo"
-        :items="[
-          { title: $t('common.all'), value: 'todos' },
-          { title: $t('transactions.type.income'), value: 'receita' },
-          { title: $t('transactions.type.expense'), value: 'despesa' }
-        ]"
-        :label="$t('transactions.table.type')"
-        variant="underlined"
-        density="compact"
-        hide-details
-      />
-    </v-col>
-
-    <!-- VALOR -->
-    <v-col cols="12" md="2">
-      <v-text-field
-        v-model="filters.valor"
-        :label="$t('transactions.table.amount')"
-        :prefix="$t('common.currency')"
-        type="number"
-        variant="underlined"
-        density="compact"
-        hide-details
-      />
-    </v-col>
-
-    <v-col cols="12" md="1" class="d-flex justify-end">
-      <v-btn
-        icon
-        color="primary"
-        size="small"
-        class="mr-1"
-        @click="aplicarFiltros"
-      >
-        <v-icon size="18">mdi-magnify</v-icon>
-      </v-btn>
-
-      <v-btn
-        icon
-        variant="text"
-        size="small"
-        @click="limparFiltros"
-      >
-        <v-icon size="18">mdi-close</v-icon>
-      </v-btn>
-    </v-col>
-  </v-row>
-</v-card>
-
-
+    <FilterLancamentos
+  v-model="filters"
+  :categorias="categorias"
+  @apply="aplicarFiltros"
+  @clear="limparFiltros"
+/>
 
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
@@ -182,14 +92,16 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
+import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
+import FilterLancamentos from '../components/Filters/Filter.vue'
 
-const authStore = useAuthStore()
+
 const loading = ref(false)
 const search = ref('')
 const serverItems = ref([])
@@ -212,10 +124,11 @@ const filters = ref({
 
 
 
+
 const headers = computed(() => [
   { title: t('transactions.table.date'), key: 'data', align: 'start', sortable: true },
   { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
-  { title: t('transactions.table.category'), key: 'category', align: 'start', sortable: true },
+  { title: t('transactions.table.category'), key: 'categoria', align: 'start', sortable: true },
   { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
   { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
@@ -233,9 +146,15 @@ const formatDate = (date) => {
 
 
 const categorias = computed(() => {
-  const set = new Set()
-  serverItems.value.forEach(l => l.categoria && set.add(l.categoria))
-  return Array.from(set)
+  // Usar categorias predefinidas do arquivo de constantes (títulos)
+  try {
+    return categoriasConstantes.map(c => c.title)
+  } catch (e) {
+    // Fallback: extrair categorias dos itens carregados
+    const set = new Set()
+    serverItems.value.forEach(l => l.categoria && set.add(l.categoria))
+    return Array.from(set)
+  }
 })
 
 const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) => {
@@ -272,10 +191,13 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
 }
 
 const aplicarFiltros = () => {
-    // Força o recarregamento do v-data-table-server
-    search.value = filters.value.descricao || ' '
-    setTimeout(() => { search.value = filters.value.descricao || '' }, 10)
+  loadItems({
+    page: 1,
+    itemsPerPage: itemsPerPage.value,
+    sortBy: []
+  })
 }
+
 
 const limparFiltros = () => {
   filters.value = {
@@ -285,8 +207,14 @@ const limparFiltros = () => {
     tipo: 'todos',
     valor: ''
   }
-  search.value = ''
+
+  loadItems({
+    page: 1,
+    itemsPerPage: itemsPerPage.value,
+    sortBy: []
+  })
 }
+
 
 
 

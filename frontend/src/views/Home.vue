@@ -57,12 +57,7 @@
       </v-row>
     </v-container>
 
-  
-    <section class="cta-section py-16">
-      <v-container>
-       
-      </v-container>
-    </section>
+    
   </div>
 </template>
 

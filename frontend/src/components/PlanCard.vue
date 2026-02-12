@@ -77,7 +77,7 @@
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.nome }}</span>
+          <span class="text-body-2 font-weight-medium feature-text">{{ feature.nome }}</span>
         </v-list-item>
       </v-list>
     </v-card-text>
@@ -175,6 +175,7 @@ const formatPrice = (value) => {
   border: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  background: rgb(var(--v-theme-surface));
 }
 
 .plan-card:hover {
@@ -185,7 +186,7 @@ const formatPrice = (value) => {
 
 .featured-card {
   border: 2px solid #1867C0;
-  background: linear-gradient(to bottom, #ffffff, #f8faff);
+  background: linear-gradient(to bottom, rgb(var(--v-theme-surface)), rgba(24, 103, 192, 0.05));
   transform: scale(1.05);
 }
 
@@ -207,7 +208,7 @@ const formatPrice = (value) => {
 }
 
 .plan-name {
-  color: #1a237e;
+  color: rgb(var(--v-theme-primary));
   letter-spacing: -0.5px;
 }
 
@@ -258,5 +259,10 @@ const formatPrice = (value) => {
 .action-btn:not(:disabled):hover {
   box-shadow: 0 6px 15px rgba(24, 103, 192, 0.2);
   transform: scale(1.02);
+}
+
+.feature-text {
+  color: rgb(var(--v-theme-on-surface)) !important;
+  opacity: 0.9;
 }
 </style>
