@@ -271,6 +271,7 @@
       "maxTransactions": "Transações máximas",
       "description": "Descrição",
       "features": "Recursos",
+      "error_missing_features": "É necessário selecionar pelo menos um recurso para o plano.",
       "active": "Plano ativo"
     }
   },
