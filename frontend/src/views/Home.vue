@@ -127,7 +127,6 @@ const { t } = useI18n()
 const loading = ref(true)
 
 onMounted(() => {
-  // Simulate initial content loading for smoother experience
   setTimeout(() => {
     loading.value = false
   }, 1200)

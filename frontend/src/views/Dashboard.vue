@@ -1,6 +1,5 @@
 <template>
   <v-container class="dashboard-wrapper">
-    <!-- Header Modernizado -->
     <v-row class="mb-8 pt-4">
       <v-col cols="12">
         <div class="d-flex align-center">
@@ -15,7 +14,7 @@
     </v-col>
     </v-row>
 
-   
+ 
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -75,7 +74,6 @@
     </v-row>
 
     <v-row>
-      <!-- Saúde Financeira e Atividade -->
       <v-col cols="12" md="8">
         <v-card class="rounded-xl mb-8 glass-card border-card overflow-hidden" elevation="4">
           <v-card-title class="font-weight-bold pa-6 d-flex align-center">
@@ -157,7 +155,6 @@
         </v-card>
       </v-col>
 
-      <!-- Dashboard Lado Direito -->
       <v-col cols="12" md="4">
         <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 text-white">{{ $t('features.quick_access') }}</v-card-title>
@@ -303,7 +300,7 @@ const fetchMetas = async () => {
         const response = await authStore.apiFetch('/metas')
         if (response.ok) {
             const data = await response.json()
-            metasSummary.value = data.slice(0, 3) // Pega as 3 primeiras
+            metasSummary.value = data.slice(0, 3)
         }
     } catch (e) { console.error(e) }
 }

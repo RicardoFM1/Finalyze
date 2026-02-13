@@ -191,7 +191,7 @@ const emojiCategories = [
 
 const filterEmojis = (emojis) => {
   if (!emojiSearch.value) return emojis
-  return emojis.filter(e => e.includes(emojiSearch.value)) // Basic filter, would be better with names but emojis are just chars
+  return emojis.filter(e => e.includes(emojiSearch.value))
 }
 
 const selectEmoji = (emoji) => {
@@ -253,14 +253,12 @@ const saveMeta = async () => {
   loading.value = true
   try {
     const isEdit = !!form.value.id
-    // Determinando se é anotação baseado no objeto que veio para edição ou no initialTipo
     const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
     const isAnotacao = currentTipo === 'pessoal' || (!form.value.tipo && !props.meta?.tipo && props.initialTipo === 'pessoal')
     
     const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
     const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
     
-    // Se for meta financeira, garantir que o tipo esteja definido para o backend
     if (!isAnotacao && !form.value.tipo) {
       form.value.tipo = 'financeira'
     }

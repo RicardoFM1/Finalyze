@@ -35,13 +35,10 @@
           <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
         </v-btn>
 
-        
         <template v-if="!authStore.isAuthenticated">
             <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium d-none d-sm-inline-flex">
               {{ $t('landing.btn_plans') }}
             </v-btn>
-
-            <!-- Dynamic Auth Button -->
             <v-btn
               v-if="route.name === 'Register'"
               :to="{ name: 'Login' }"
@@ -174,7 +171,7 @@ const isAuthPage = computed(() =>
 )
 
 const toggleDrawer = () => {
-  if (uiAuthStore.loading) return; // Prevent opening drawer while loading
+  if (uiAuthStore.loading) return;
   if (isDesktop.value) {
     rail.value = !rail.value;
     drawer.value = true;

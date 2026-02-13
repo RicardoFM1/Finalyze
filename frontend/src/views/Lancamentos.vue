@@ -1,6 +1,5 @@
 <template>
   <v-container class="lancamentos-wrapper">
-    <!-- Header Moderno -->
     <v-row class="mb-4 pt-4" align="center">
       <v-col cols="12" md="6">
         <div class="d-flex align-center">
@@ -146,11 +145,9 @@ const formatDate = (date) => {
 
 
 const categorias = computed(() => {
-  // Usar categorias predefinidas do arquivo de constantes (títulos)
   try {
     return categoriasConstantes.map(c => c.title)
   } catch (e) {
-    // Fallback: extrair categorias dos itens carregados
     const set = new Set()
     serverItems.value.forEach(l => l.categoria && set.add(l.categoria))
     return Array.from(set)
@@ -219,7 +216,6 @@ const limparFiltros = () => {
 
 
 const buscarLancamentos = () => {
-    // Força o reload do v-data-table-server
     search.value = (search.value || '') + ' '
     setTimeout(() => { search.value = search.value.trim() }, 10)
 }
