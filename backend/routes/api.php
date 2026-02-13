@@ -23,6 +23,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
 
+    Route::get('/avisos', [App\Http\Controllers\AvisoController::class, 'index']);
+    Route::post('/avisos', [App\Http\Controllers\AvisoController::class, 'store']);
+    Route::put('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'update']);
+    Route::patch('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'patch']);
+    Route::patch('/avisos/{id}/status', [App\Http\Controllers\AvisoController::class, 'patchStatus']);
+    Route::delete('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'destroy']);
+
+    Route::get('/avisos/convites', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
+    Route::post('/avisos/convites', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
+    Route::put('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
+    Route::patch('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
+    Route::delete('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
+
 
 
     Route::middleware('has_plan')->group(function () {

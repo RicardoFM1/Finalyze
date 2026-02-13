@@ -68,4 +68,14 @@ class Usuario extends Authenticatable
     {
         return $this->hasMany(Meta::class, 'usuario_id');
     }
+
+    public function avisos()
+    {
+        return $this->hasMany(Aviso::class, 'usuario_id');
+    }
+
+    public function convitesAvisos()
+    {
+        return $this->hasMany(ConviteAviso::class, 'usuario_id');
+    }
 }

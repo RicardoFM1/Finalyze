@@ -1,15 +1,14 @@
 <template>
   <v-dialog v-model="dialog" max-width="500">
     <v-card style="max-height: 90vh; display: flex; flex-direction: column;">
-
       <v-card-title>
         Compartilhar
       </v-card-title>
 
       <v-card-text>
         <v-text-field
-          label="Email"
           v-model="form.email"
+          label="Email"
           type="email"
           :error="!!error"
           :error-messages="error"
@@ -21,7 +20,6 @@
         <v-btn variant="text" @click="close">
           Cancelar
         </v-btn>
-
         <v-btn
           color="primary"
           :loading="loading"
@@ -31,56 +29,37 @@
           Enviar convite
         </v-btn>
       </v-card-actions>
-
     </v-card>
   </v-dialog>
 </template>
+
 <script setup>
 import { reactive, computed, ref } from 'vue'
+import { useAuthStore } from '../../../stores/auth'
 
-/* props */
 const props = defineProps({
   modelValue: Boolean
 })
 
-/* emits */
 const emit = defineEmits(['update:modelValue', 'invite'])
+const authStore = useAuthStore()
 
-/* dialog v-model */
 const dialog = computed({
   get: () => props.modelValue,
-  set: v => emit('update:modelValue', v)
+  set: value => emit('update:modelValue', value)
 })
 
-/* form */
 const form = reactive({
   email: ''
 })
 
-/* states */
 const loading = ref(false)
 const error = ref(null)
-const success = ref(false)
 
-/* validation */
 const isValidEmail = computed(() =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
 )
 
-/* fake service */
-function inviteUser(email) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email.includes('erro')) {
-        reject({ message: 'Usuário não encontrado' })
-      } else {
-        resolve({ status: 'ok' })
-      }
-    }, 1200)
-  })
-}
-
-/* submit */
 async function submitInvite() {
   if (!isValidEmail.value) return
 
@@ -88,22 +67,28 @@ async function submitInvite() {
   error.value = null
 
   try {
-    await inviteUser(form.email)
+    const response = await authStore.apiFetch('/avisos/convites', {
+      method: 'POST',
+      body: JSON.stringify({ email_destino: form.email })
+    })
 
-    emit('invite', { email: form.email })
-    success.value = true
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(data.message || 'Nao foi possivel enviar o convite.')
+    }
 
+    emit('invite', data)
     form.email = ''
     dialog.value = false
   } catch (err) {
-    error.value = err.message
+    error.value = err.message || 'Erro ao enviar convite.'
   } finally {
     loading.value = false
   }
 }
 
-/* close */
 function close() {
+  error.value = null
   dialog.value = false
 }
 </script>
