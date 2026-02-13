@@ -17,6 +17,6 @@ class RegistrarUsuario
             'data_nascimento' => $dados['data_nascimento']
         ]);
 
-        return $usuario->load('plano');
+        return $usuario->load('plano.recursos');
     }
 }
