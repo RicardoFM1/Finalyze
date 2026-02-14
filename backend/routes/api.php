@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login');
+Route::post('/auth/verificar', [App\Http\Controllers\AuthController::class, 'verificarCodigo']);
+Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reenviarCodigo']);
 
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
@@ -42,11 +44,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
             Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+            Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
 
             Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
             Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
             Route::put('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
             Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
+            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\AnotacaoController::class, 'reativar']);
         });
     });
 

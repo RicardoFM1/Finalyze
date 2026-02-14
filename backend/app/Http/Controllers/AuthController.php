@@ -7,6 +7,8 @@ use App\Http\Requests\RegisterRequest;
 use App\Servicos\Autenticacao\RegistrarUsuario;
 use App\Servicos\Autenticacao\LoginUsuario;
 use App\Servicos\Autenticacao\LogoutUsuario;
+use App\Servicos\Autenticacao\VerificarCodigo;
+use App\Servicos\Autenticacao\ReenviarCodigo;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -29,6 +31,34 @@ class AuthController extends Controller
             return response()->json([
                 'message' => $e->getMessage()
             ], $e->getCode() ?: 401);
+        }
+    }
+
+    public function verificarCodigo(Request $request, VerificarCodigo $servico)
+    {
+        $dados = $request->validate([
+            'email' => 'required|email',
+            'codigo' => 'required|string|size:6'
+        ]);
+
+        try {
+            return response()->json($servico->executar($dados['email'], $dados['codigo']));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function reenviarCodigo(Request $request, ReenviarCodigo $servico)
+    {
+        $dados = $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        try {
+            $servico->executar($dados['email']);
+            return response()->json(['message' => 'Código reenviado com sucesso.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 

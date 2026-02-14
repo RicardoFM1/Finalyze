@@ -210,7 +210,7 @@ const calculatePeriodPrices = () => {
 
 const savePlan = async () => {
     if (form.value.recursos.length === 0) {
-        toast.error(t('admin.form.features') + '?') // Fallback toast
+        toast.error(t('admin.form.error_missing_features')) 
         return
     }
 
@@ -242,7 +242,7 @@ const savePlan = async () => {
         })
 
         if (response.ok) {
-            toast.success(t('toasts.success_update'))
+            toast.success(isEdit ? t('toasts.success_update') : 'Plano criado com sucesso!')
             internalValue.value = false
             emit('saved')
         } else {

@@ -8,7 +8,7 @@
           <v-icon size="120" color="white" class="mb-8 floating-icon">mdi-shield-lock-outline</v-icon>
           <h1 class="text-h2 font-weight-black text-white mb-6">
             {{ $t('landing.hero_title_alt') }}<br>
-            <span class="text-secondary">{{ $t('landing.destiny') }}</span>
+            <span class="vibrant-secondary">{{ t('landing.destiny') }}</span>
           </h1>
           <p class="text-h6 text-white text-opacity-80 font-weight-light max-w-600 mx-auto">
             {{ $t('landing.hero_subtitle_alt') }}
@@ -16,22 +16,22 @@
           
             <v-row class="mt-12 justify-center gap-4">
               <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
-                <v-icon start icon="mdi-check-decagram" color="secondary"></v-icon>
+                <v-icon start icon="mdi-check-decagram" color="#5CBBF6"></v-icon>
                 <span class="font-weight-medium">Segurança Total</span>
               </v-chip>
               <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
-                <v-icon start icon="mdi-chart-areaspline" color="secondary"></v-icon>
+                <v-icon start icon="mdi-chart-areaspline" color="#5CBBF6"></v-icon>
                 <span class="font-weight-medium">Análise Inteligente</span>
               </v-chip>
             </v-row>
         </div>
         
         <div class="visual-footer absolute-bottom pa-8 text-white opacity-50 text-caption">
-          &copy; {{ new Date().getFullYear() }} Finalyze Finance. Design Premium & Segurança Bancária.
+          &copy; {{ new Date().getFullYear() }} {{ t('login.login_footer') }}
         </div>
       </v-col>
 
-      <!-- Right Side: Login Form -->
+     
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface">
         <v-btn
           icon="mdi-arrow-left"
@@ -41,96 +41,43 @@
         ></v-btn>
 
         <v-card flat max-width="450" width="100%" class="pa-8 pa-md-12 bg-transparent">
-          <div class="text-center text-md-left mb-10">
-            <div class="d-flex align-center justify-center justify-md-start mb-4">
-              <v-avatar color="primary" size="48" class="mr-3 elevation-4">
-                <v-icon icon="mdi-finance" color="white"></v-icon>
-              </v-avatar>
-              <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
-            </div>
-            <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
-            <p class="text-medium-emphasis">{{ $t('login.subtitle') }}</p>
-          </div>
-
-          <v-form @submit.prevent="handleLogin" v-model="isValid" class="mt-4">
-            <div class="form-group mb-6">
-              <label class="text-caption font-weight-bold text-medium-emphasis mb-2 d-block ms-1">{{ $t('login.email_label') }}</label>
-              <v-text-field
-                v-model="form.email"
-                placeholder="exemplo@email.com"
-                prepend-inner-icon="mdi-email-outline"
-                variant="outlined"
-                color="primary"
-                type="email"
-                density="comfortable"
-                class="rounded-lg"
-                :disabled="loading"
-                :rules="[v => !!v || $t('login.rules.email_required')]"
-                hide-details="auto"
-              ></v-text-field>
-            </div>
-
-            <div class="form-group mb-4">
-              <div class="d-flex justify-space-between align-center mb-2">
-                <label class="text-caption font-weight-bold text-medium-emphasis ms-1">{{ $t('login.password_label') }}</label>
-                <router-link to="/recuperar-senha" class="text-caption text-primary font-weight-bold text-decoration-none">Esqueceu a senha?</router-link>
+          <template v-if="!showVerification">
+            <div class="text-center text-md-left mb-10">
+              <div class="d-flex align-center justify-center justify-md-start mb-4">
+                <v-avatar color="primary" size="48" class="mr-3 elevation-4">
+                  <v-icon icon="mdi-finance" color="white"></v-icon>
+                </v-avatar>
+                <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
               </div>
-              <v-text-field
-                v-model="form.senha"
-                placeholder="********"
-                prepend-inner-icon="mdi-lock-outline"
-                variant="outlined"
-                color="primary"
-                density="comfortable"
-                class="rounded-lg"
-                :type="showPass ? 'text' : 'password'"
-                :append-inner-icon="showPass ? 'mdi-eye-outline' : 'mdi-eye-off-outline'"
-                @click:append-inner="showPass = !showPass"
-                :disabled="loading"
-                :rules="[v => !!v || $t('login.rules.password_required')]"
-                hide-details="auto"
-                @paste.prevent
-              ></v-text-field>
+              <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
+              <div>
+                <p class="text-body-2 text-medium-emphasis">
+                  {{ $t('login.no_account') }} 
+                  <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                    {{ $t('login.register_link') }}
+                  </router-link>
+                </p>
+              </div>
             </div>
 
-            <v-alert v-if="error" type="error" variant="tonal" class="mb-6 rounded-lg" density="compact" closable>{{ error }}</v-alert>
-
-            <v-btn
-              color="primary"
-              block
-              size="x-large"
-              class="mt-8 rounded-xl font-weight-bold py-4 text-none elevation-8"
-              type="submit"
+            <AuthForm 
+              v-model="form"
+              mode="login"
               :loading="loading"
-              :disabled="buttonDesativado"
-            >
-              {{ $t('login.btn_login') }}
-              <v-icon end icon="mdi-chevron-right" class="ms-2"></v-icon>
-            </v-btn>
+              :error="error"
+              @submit="handleLogin"
+            />
+          </template>
 
-            <v-btn
-              variant="tonal"
-              block
-              size="large"
-              class="mt-4 rounded-xl font-weight-medium text-none"
-              :to="{ name: 'Register' }"
-            >
-              {{ $t('login.register_link') }}
-            </v-btn>
-          </v-form>
-
-          <v-divider class="my-10">
-            <span class="text-caption text-medium-emphasis px-4">OU</span>
-          </v-divider>
-
-          <div class="text-center">
-            <p class="text-body-2 text-medium-emphasis">
-              {{ $t('login.no_account') }} 
-              <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
-                {{ $t('login.register_link') }}
-              </router-link>
-            </p>
-          </div>
+          <EmailVerification 
+            v-else
+            :email="form.email"
+            :loading="loading"
+            :error="error"
+            @verify="handleVerify"
+            @resend="handleResend"
+            @back="showVerification = false"
+          />
         </v-card>
       </v-col>
     </v-row>
@@ -138,15 +85,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
+import AuthForm from '../components/Auth/AuthForm.vue'
+import EmailVerification from '../components/Auth/EmailVerification.vue'
 
 const { t } = useI18n()
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
@@ -155,31 +103,53 @@ const form = ref({
 })
 
 const loading = ref(false)
-const isValid = ref(false)
-const showPass = ref(false)
 const error = ref('')
+const showVerification = ref(false)
 
 const handleLogin = async () => {
-  if (!isValid.value) return
-  
   loading.value = true
+  error.value = ''
   
   try {
-    await authStore.login(form.value.email, form.value.senha)
-    toast.success(t('toasts.login_success'))
-    router.push({ name: 'Dashboard' })
+    const result = await authStore.login(form.value.email, form.value.senha)
+    
+    if (result && result.requer_verificacao) {
+      showVerification.value = true
+    } else {
+      toast.success(t('toasts.login_success'))
+      router.push({ name: 'Dashboard' })
+    }
   } catch (err) {
-    toast.error(err.message || t('toasts.login_error'))
+    error.value = err.message || t('toasts.login_error')
+    toast.error(error.value)
   } finally {
     loading.value = false
   }
 }
-const buttonDesativado = computed(() => 
-  form.value.email === '' || 
-  form.value.senha === '' || 
-  !isValid.value ||
-  loading.value
-)
+
+const handleVerify = async (code) => {
+  loading.value = true
+  error.value = ''
+  try {
+    await authStore.verifyCode(form.value.email, code)
+    toast.success(t('toasts.login_success'))
+    router.push({ name: 'Dashboard' })
+  } catch (err) {
+    error.value = err.message || 'Erro ao verificar código'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleResend = async () => {
+  try {
+    await authStore.resendCode(form.value.email)
+    toast.success('Novo código enviado com sucesso!')
+  } catch (err) {
+    toast.error(err.message || 'Erro ao reenviar código')
+  }
+}
 </script>
 
 <style scoped>
@@ -253,18 +223,11 @@ const buttonDesativado = computed(() =>
   z-index: 10;
 }
 
-.form-group :deep(.v-field__outline) {
-  --v-field-border-opacity: 0.2;
-  transition: all 0.2s;
-}
-
-.form-group :deep(.v-field--focused .v-field__outline) {
-  --v-field-border-opacity: 1;
-}
-
 .hover-underline:hover {
   text-decoration: underline !important;
 }
+
+.vibrant-secondary {
+  color: #5CBBF6 !important;
+}
 </style>
-
-

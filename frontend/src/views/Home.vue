@@ -25,10 +25,7 @@
                 <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Plans' }" elevation="12">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-                <v-btn v-if="!authStore.isAuthenticated" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Register' }">
-                  {{ $t('landing.btn_start') }}
-                </v-btn>
-                <v-btn v-else variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
@@ -127,7 +124,6 @@ const { t } = useI18n()
 const loading = ref(true)
 
 onMounted(() => {
-  // Simulate initial content loading for smoother experience
   setTimeout(() => {
     loading.value = false
   }, 1200)

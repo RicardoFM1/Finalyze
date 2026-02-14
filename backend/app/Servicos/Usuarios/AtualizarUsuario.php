@@ -21,6 +21,6 @@ class AtualizarUsuario
 
         $usuario->update($dados);
 
-        return $usuario->load('plano');
+        return $usuario->load('plano.recursos');
     }
 }
