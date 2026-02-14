@@ -74,8 +74,8 @@ class Usuario extends Authenticatable
         return $this->hasMany(Aviso::class, 'usuario_id');
     }
 
-    public function convitesAvisos()
+    public function convitesEnviados()
     {
-        return $this->hasMany(ConviteAviso::class, 'usuario_id');
+        return $this->hasMany(ConviteEnviado::class, 'usuario_id');
     }
 }

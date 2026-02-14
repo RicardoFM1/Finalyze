@@ -67,7 +67,7 @@ async function submitInvite() {
   error.value = null
 
   try {
-    const response = await authStore.apiFetch('/avisos/convites', {
+    const response = await authStore.apiFetch('/convites/enviar', {
       method: 'POST',
       body: JSON.stringify({ email_destino: form.email })
     })

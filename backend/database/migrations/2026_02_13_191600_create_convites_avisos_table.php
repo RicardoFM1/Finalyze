@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('convites_avisos', function (Blueprint $table) {
+        Schema::create('convites_enviados', function (Blueprint $table) {
             $table->id();
             $table->foreignId('usuario_id')->constrained('usuarios')->onDelete('cascade');
             $table->string('email_destino');
@@ -23,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('convites_avisos');
+        Schema::dropIfExists('convites_enviados');
     }
 };

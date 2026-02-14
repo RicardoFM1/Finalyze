@@ -30,11 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/avisos/{id}/status', [App\Http\Controllers\AvisoController::class, 'patchStatus']);
     Route::delete('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'destroy']);
 
-    Route::get('/avisos/convites', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
-    Route::post('/avisos/convites', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
-    Route::put('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
-    Route::patch('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
-    Route::delete('/avisos/convites/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
+    Route::get('/convites/buscar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
+    Route::post('/convites/enviar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
+    Route::put('/convites/atualizar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
+    Route::patch('/convites/atualizacao/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
+    Route::delete('/convites/deletar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
 
 
 

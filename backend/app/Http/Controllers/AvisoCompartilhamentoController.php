@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ConviteAviso;
+use App\Models\ConviteEnviado;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +11,7 @@ class AvisoCompartilhamentoController extends Controller
     public function index(Request $request)
     {
         return response()->json(
-            ConviteAviso::where('usuario_id', $request->user()->id)
+            ConviteEnviado::where('usuario_id', $request->user()->id)
                 ->latest()
                 ->get()
         );
@@ -24,7 +24,7 @@ class AvisoCompartilhamentoController extends Controller
             'mensagem' => 'nullable|string|max:1000',
         ]);
 
-        $convite = ConviteAviso::create([
+        $convite = ConviteEnviado::create([
             'usuario_id' => $request->user()->id,
             'email_destino' => $dados['email_destino'],
             'mensagem' => $dados['mensagem'] ?? null,
@@ -42,7 +42,7 @@ class AvisoCompartilhamentoController extends Controller
             'status' => ['required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
         ]);
 
-        $convite = ConviteAviso::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $convite = ConviteEnviado::where('usuario_id', $request->user()->id)->findOrFail($id);
         $convite->update($dados);
 
         return response()->json($convite->fresh());
@@ -56,7 +56,7 @@ class AvisoCompartilhamentoController extends Controller
             'status' => ['sometimes|required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
         ]);
 
-        $convite = ConviteAviso::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $convite = ConviteEnviado::where('usuario_id', $request->user()->id)->findOrFail($id);
         $convite->update($dados);
 
         return response()->json($convite->fresh());
@@ -64,7 +64,7 @@ class AvisoCompartilhamentoController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $convite = ConviteAviso::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $convite = ConviteEnviado::where('usuario_id', $request->user()->id)->findOrFail($id);
         $convite->delete();
 
         return response()->json(null, 204);
