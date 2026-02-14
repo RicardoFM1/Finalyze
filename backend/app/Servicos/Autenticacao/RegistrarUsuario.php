@@ -17,6 +17,8 @@ class RegistrarUsuario
             'data_nascimento' => $dados['data_nascimento']
         ]);
 
+        app(GerarCodigoVerificacao::class)->executar($usuario);
+
         return $usuario->load('plano.recursos');
     }
 }

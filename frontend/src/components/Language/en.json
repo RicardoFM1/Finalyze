@@ -86,7 +86,8 @@
     "rules": {
       "email_required": "Email is required for access",
       "password_required": "Password is required for your security"
-    }
+    },
+    "login_footer": "Finalyze Finance. Premium Design & Bank-Level Security."
   },
   "plans": {
     "title": "Simple and Transparent Prices",
@@ -106,7 +107,7 @@
     "goal_remaining": "{amount} remaining for your goal",
     "goal_reached": "Goal reached! Congratulations!",
     "edit": "Edit",
-    "delete": "Delete",
+    "delete": "Deactivate",
     "no_financial_goals": "No financial goals found.",
     "notepad_title": "Notepad",
     "notepad_tooltip": "Your personal notes and reminders.",
@@ -123,13 +124,17 @@
     "filter": {
       "active": "In Progress",
       "completed": "Completed",
+      "inactive": "Inactive",
       "all": "All"
     },
     "actions": {
       "complete": "Complete",
       "reopen": "Reopen",
-      "delete": "Delete",
-      "edit": "Edit"
+      "delete": "Deactivate",
+      "edit": "Edit",
+      "inactivate_title": "Deactivate Item",
+      "inactivate_confirm": "Are you sure you want to deactivate \"{title}\"?",
+      "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab."
     }
   },
   "transactions": {
@@ -318,7 +323,7 @@
       "pass_required": "Password is required",
       "confirm_required": "Confirmation is required"
     },
-    "toast_success": "Registration completed successfully! Please log in to continue."
+    "register_footer": "Finalyze Finance. Your journey to financial freedom."
   },
   "checkout": {
     "title": "Complete Your Subscription",
@@ -372,7 +377,8 @@
     "check_errors": "Check the fields in red.",
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
-    "success_delete": "Item deleted successfully!",
+    "success_delete": "Item inactivated successfully!",
+    "success_restore": "Item restored successfully!",
     "error_generic": "An error occurred. Please try again."
   },
   "modals": {

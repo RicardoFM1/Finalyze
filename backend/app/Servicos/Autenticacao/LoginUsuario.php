@@ -19,12 +19,12 @@ class LoginUsuario
         }
 
         $usuario = Usuario::where('email', $credenciais['email'])->firstOrFail();
-        $token = $usuario->createToken('auth_token')->plainTextToken;
+
+        app(GerarCodigoVerificacao::class)->executar($usuario);
 
         return [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'usuario' => $usuario->load('plano.recursos')
+            'requer_verificacao' => true,
+            'email' => $usuario->email
         ];
     }
 }

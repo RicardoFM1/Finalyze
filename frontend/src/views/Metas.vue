@@ -14,10 +14,12 @@
         </v-tabs>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-md-end mt-4 mt-md-0">
-        <v-btn-toggle v-model="statusFilter" mandatory rounded="lg" color="primary" variant="tonal" size="small">
-          <v-btn value="andamento">{{ $t('metas.filter.active') }}</v-btn>
-          <v-btn value="concluido">{{ $t('metas.filter.completed') }}</v-btn>
-        </v-btn-toggle>
+            <v-btn-toggle v-model="statusFilter" mandatory color="primary" rounded="xl" class="mr-4" density="comfortable" variant="tonal">
+              <v-btn value="andamento" class="px-4">{{ $t('metas.filter.active') }}</v-btn>
+              <v-btn value="concluido" class="px-4">{{ $t('metas.filter.completed') }}</v-btn>
+              <v-btn value="inativo" class="px-4">{{ $t('metas.filter.inactive') }}</v-btn>
+              <v-btn value="all" class="px-4">{{ $t('metas.filter.all') }}</v-btn>
+            </v-btn-toggle>
         
         <v-btn 
           color="primary" 
@@ -88,8 +90,19 @@
                 >
                   {{ meta.status === 'concluido' ? $t('metas.actions.reopen') : $t('metas.actions.complete') }}
                 </v-btn>
-                <v-btn variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
-                <v-btn variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
+                <v-btn 
+                  v-if="meta.status === 'inativo'"
+                  variant="tonal" 
+                  size="small" 
+                  rounded="lg" 
+                  color="info" 
+                  @click="reativarItem(meta)"
+                  prepend-icon="mdi-restore"
+                >
+                  Reativar
+                </v-btn>
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -142,8 +155,16 @@
                   :color="note.status === 'concluido' ? 'warning' : 'success'" 
                   @click="toggleStatusConcluido(note)"
                 ></v-btn>
-                <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(note)"></v-btn>
-                <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(note)"></v-btn>
+                <v-btn 
+                  v-if="note.status === 'inativo'"
+                  variant="text" 
+                  size="small" 
+                  color="info" 
+                  @click="reativarItem(note)"
+                  icon="mdi-restore"
+                ></v-btn>
+                <v-btn v-if="note.status !== 'inativo'" icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(note)"></v-btn>
+                <v-btn v-if="note.status !== 'inativo'" icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(note)"></v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -163,6 +184,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
 import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
 import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 import { useI18n } from 'vue-i18n'
@@ -205,10 +227,18 @@ const fetchMetas = async () => {
 }
 
 const filteredMetas = computed(() => {
+  if (statusFilter.value === 'all') return metas.value.filter(m => m.status !== 'inativo')
+  if (statusFilter.value === 'andamento') {
+    return metas.value.filter(m => m.status === 'andamento' || m.status === 'atrasado')
+  }
   return metas.value.filter(m => m.status === statusFilter.value)
 })
 
 const filteredNotes = computed(() => {
+  if (statusFilter.value === 'all') return anotacoes.value.filter(n => n.status !== 'inativo')
+  if (statusFilter.value === 'andamento') {
+    return anotacoes.value.filter(n => n.status === 'andamento' || n.status === 'atrasado')
+  }
   return anotacoes.value.filter(n => n.status === statusFilter.value)
 })
 
@@ -231,6 +261,15 @@ const confirmDelete = (meta) => {
 
 const toggleStatusConcluido = async (item) => {
   const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  
+  if (!isAnotacao && item.status !== 'concluido') {
+    const p = calculatePercentage(item.valor_atual, item.valor_objetivo)
+    if (p < 100) {
+      toast.error('A meta só pode ser finalizada quando atingir 100% de progresso.')
+      return
+    }
+  }
+
   const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
   
@@ -240,6 +279,19 @@ const toggleStatusConcluido = async (item) => {
       body: JSON.stringify({ ...item, status: newStatus })
     })
     if (response.ok) fetchMetas()
+  } catch (e) { console.error(e) }
+}
+
+const reativarItem = async (item) => {
+  const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
+  
+  try {
+    const response = await authStore.apiFetch(endpoint, { method: 'POST' })
+    if (response.ok) {
+      toast.success('Item reativado com sucesso!')
+      fetchMetas()
+    }
   } catch (e) { console.error(e) }
 }
 

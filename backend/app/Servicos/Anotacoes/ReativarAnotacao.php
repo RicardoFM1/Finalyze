@@ -5,11 +5,12 @@ namespace App\Servicos\Anotacoes;
 use App\Models\Anotacao;
 use Illuminate\Support\Facades\Auth;
 
-class ExcluirAnotacao
+class ReativarAnotacao
 {
     public function executar($id)
     {
         $anotacao = Auth::user()->anotacoes()->findOrFail($id);
-        return $anotacao->update(['status' => 'inativo']);
+        $anotacao->update(['status' => 'andamento']);
+        return $anotacao;
     }
 }

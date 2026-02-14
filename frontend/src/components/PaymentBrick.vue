@@ -103,6 +103,7 @@ const router = useRouter()
 const amount = ref(null)
 const preferenceId = ref(null)
 const planId = ref(null)
+const periodId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const brickMounted = ref(false)
@@ -254,7 +255,7 @@ const initMercadoPago = async () => {
                 body: JSON.stringify({
                     ...formData,
                     plano_id: planId.value,
-                    periodo_id: props.periodId
+                    periodo_id: periodId.value || props.periodId
                 })
               })
 
@@ -322,6 +323,7 @@ onMounted(async () => {
   if (props.preferenceId && props.planId) {
     preferenceId.value = props.preferenceId
     planId.value = props.planId
+    periodId.value = props.periodId
     
     try {
       const response = await authStore.apiFetch(`/planos`)
@@ -377,8 +379,13 @@ onUnmounted(() => {
     if (countdownInterval) clearInterval(countdownInterval)
 })
 
-watch([() => preferenceId.value, () => amount.value], ([newPrefId, newAmount]) => {
-    if (newPrefId && newAmount && !brickMounted.value) {
+watch([() => preferenceId.value, () => amount.value], async ([newPrefId, newAmount]) => {
+    if (newPrefId && newAmount) {
+        if (brickController) {
+            await brickController.unmount()
+            brickMounted.value = false
+            brickController = null
+        }
         initMercadoPago()
     }
 })
