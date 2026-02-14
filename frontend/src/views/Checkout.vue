@@ -32,7 +32,7 @@
                         :rules="loginPasswordRules"
                         @paste.prevent
                       ></v-text-field>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">{{ $t('checkout.btn_login_continue') }}</v-btn>
+                      <v-btn class="mt-6" block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isLoginFormValid">{{ $t('checkout.btn_login_continue') }}</v-btn>
                     </v-form>
                   </v-window-item>
 
@@ -108,7 +108,7 @@
                           ></v-text-field>
                         </v-col>
                       </v-row>
-                      <v-btn block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isRegisterFormValid">{{ $t('checkout.btn_register_continue') }}</v-btn>
+                      <v-btn class="mt-6" block color="primary" size="large" type="submit" :loading="loading" :disabled="loading || !isRegisterFormValid">{{ $t('checkout.btn_register_continue') }}</v-btn>
                     </v-form>
                   </v-window-item>
                 </v-window>

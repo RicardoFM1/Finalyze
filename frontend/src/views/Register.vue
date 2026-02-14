@@ -31,7 +31,7 @@
         </div>
       </v-col>
 
-      <!-- Left Side: Register Form -->
+    
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
         <v-btn
           icon="mdi-arrow-left"
@@ -49,7 +49,14 @@
               <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
             </div>
             <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
-            <p class="text-medium-emphasis">{{ $t('register.subtitle') }}</p>
+           <div>
+            <p class="text-body-2 text-medium-emphasis">
+              {{ $t('register.has_account_text') }} 
+              <router-link to="/login" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                {{ $t('register.login_link') }}
+              </router-link>
+            </p>
+          </div>
           </div>
 
           <v-form @submit.prevent="handleRegister" v-model="isValid" class="mt-4">
@@ -187,14 +194,7 @@
             </v-btn>
           </v-form>
 
-          <div class="text-center mt-10">
-            <p class="text-body-2 text-medium-emphasis">
-              {{ $t('register.has_account_text') }} 
-              <router-link to="/login" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
-                {{ $t('register.login_link') }}
-              </router-link>
-            </p>
-          </div>
+          
         </v-card>
       </v-col>
     </v-row>

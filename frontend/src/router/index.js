@@ -32,7 +32,8 @@ const router = createRouter({
     {
       path: '/pagamento',
       name: 'Checkout',
-      component: () => import('@/views/Checkout.vue')
+      component: () => import('@/views/Checkout.vue'),
+      meta: { hideNavBar: true}
     },
 
     {

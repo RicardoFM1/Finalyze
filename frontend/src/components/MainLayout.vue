@@ -4,8 +4,8 @@
       <v-app-bar color="primary" elevation="2">
          <v-app-bar-nav-icon
       v-if="
-        authStore.isAuthenticated &&
-        !isAuthPage
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
       "
       @click="toggleDrawer"
       class="mr-2"
@@ -63,8 +63,8 @@
 
       <v-navigation-drawer
       v-if="
-        authStore.isAuthenticated &&
-        !isAuthPage
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
       "
       v-model="drawer"
       :rail="isDesktop && rail"

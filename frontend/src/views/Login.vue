@@ -31,7 +31,7 @@
         </div>
       </v-col>
 
-      <!-- Right Side: Login Form -->
+     
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface">
         <v-btn
           icon="mdi-arrow-left"
@@ -49,7 +49,14 @@
               <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
             </div>
             <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
-            <p class="text-medium-emphasis">{{ $t('login.subtitle') }}</p>
+           <div>
+            <p class="text-body-2 text-medium-emphasis">
+              {{ $t('login.no_account') }} 
+              <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                {{ $t('login.register_link') }}
+              </router-link>
+            </p>
+          </div>
           </div>
 
           <v-form @submit.prevent="handleLogin" v-model="isValid" class="mt-4">
@@ -119,18 +126,9 @@
             </v-btn>
           </v-form>
 
-          <v-divider class="my-10">
-            <span class="text-caption text-medium-emphasis px-4">OU</span>
-          </v-divider>
+          
 
-          <div class="text-center">
-            <p class="text-body-2 text-medium-emphasis">
-              {{ $t('login.no_account') }} 
-              <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
-                {{ $t('login.register_link') }}
-              </router-link>
-            </p>
-          </div>
+          
         </v-card>
       </v-col>
     </v-row>
