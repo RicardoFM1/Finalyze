@@ -1,9 +1,10 @@
 <template>
-  <ModalBase v-model="internalValue" :title="$t('admin.deleteTitle')" maxWidth="400px">
-    <p class="text-body-1">{{ $t('admin.deleteConfirm') }} "{{ meta?.titulo }}"?</p>
+  <ModalBase v-model="internalValue" :title="$t('metas.actions.inactivate_title')" maxWidth="400px">
+    <p class="text-body-1">{{ $t('metas.actions.inactivate_confirm', { title: meta?.titulo }) }}</p>
+    <p class="text-caption text-medium-emphasis mt-2">{{ $t('metas.actions.inactivate_desc') }}</p>
     <template #actions>
       <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
-      <v-btn color="error" variant="elevated" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('common.delete') }}</v-btn>
+      <v-btn color="warning" variant="elevated" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('metas.actions.delete') }}</v-btn>
     </template>
   </ModalBase>
 </template>

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-const currency = ref('BRL') // moeda padrão
+const currency = ref('BRL')
 
 export function useCurrency() {
   const setCurrency = (newCurrency) => {

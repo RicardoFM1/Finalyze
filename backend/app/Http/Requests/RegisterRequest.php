@@ -15,7 +15,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'nome' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:usuarios',
+            'email' => 'required|string|email:strict|max:255|unique:usuarios',
             'senha' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()],
             'cpf' => ['required', 'string', 'size:11', 'unique:usuarios', new \App\Rules\Cpf],
             'data_nascimento' => 'required|date|before:18 years ago',

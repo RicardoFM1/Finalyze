@@ -1,4 +1,42 @@
-# Finalyze - Sistema de Gerenciamento Financeiro
+---
+
+## Documentação Técnica do Projeto (Implementações Recentes)
+
+### 1. Sistema de Segurança e 2FA
+- **Fluxo**: Ao registrar, um código de 6 dígitos é enviado ao e-mail. O acesso total ao sistema só é liberado após a verificação desse código.
+- **Expiração**: O código tem validade de 15 minutos.
+- **Status**: O usuário é redirecionado para `EmailVerification.vue` até que a conta esteja ativa.
+
+### 2. Gestão de Planos e Lançamentos
+- **Validação de Limites**: O sistema impede a criação de novos lançamentos se o usuário atingir o limite do seu plano (`limite_lancamentos`).
+- **Reatividade no Checkout**: O `PaymentBrick` é destruído e recriado automaticamente se o usuário mudar de plano na URL durante o checkout, garantindo valores sempre corretos.
+
+### 3. Inativação de Itens (Soft Delete)
+- Metas e Anotações agora são "Desativadas" em vez de excluídas.
+- Itens inativos podem ser consultados na aba dedicada e reativados a qualquer momento.
+
+---
+
+## Comandos Administrativos (CLI)
+
+### Designar Assidantura Manualmente
+Útil para assinaturas via Pix externo, cortesia ou testes.
+```bash
+php artisan app:designar-assinatura {usuario_id} {plano_id}
+```
+**Atenção**: Não utilize chaves `{}` ao executar. Exemplo: `php artisan app:designar-assinatura 1 2`
+
+> [!NOTE]
+> Se você receber o erro `No query results for model [App\Models\Usuario]`, significa que o ID do usuário informado não existe no banco de dados.
+> Para listar seus usuários e ver os IDs corretos, você pode rodar:
+> `php artisan tinker --execute="print_r(App\Models\Usuario::all(['id', 'email'])->toArray())"`
+
+---
+
+## Validações de E-mail
+- **Frontend**: Regex rigoroso impede e-mails mal formatados ou compostos apenas por números.
+- **Backend**: Validação `email:strict` configurada no `RegisterRequest.php`.
+
 
 Finalyze é uma plataforma robusta de controle financeiro pessoal, permitindo que usuários monitorem suas receitas, despesas e planejem seu futuro financeiro através de diversos planos de assinatura.
 

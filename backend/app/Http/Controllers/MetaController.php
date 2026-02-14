@@ -8,6 +8,7 @@ use App\Servicos\Metas\ListarMetas;
 use App\Servicos\Metas\CriarMeta;
 use App\Servicos\Metas\EditarMeta;
 use App\Servicos\Metas\DeletarMeta;
+use App\Servicos\Metas\ReativarMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,6 +32,11 @@ class MetaController extends Controller
     public function destroy($id, DeletarMeta $servico)
     {
         $servico->executar((int)$id);
-        return response()->json(['message' => 'Meta excluída com sucesso.']);
+        return response()->json(['message' => 'Meta movida para inativos.']);
+    }
+
+    public function reativar($id, ReativarMeta $servico)
+    {
+        return response()->json($servico->executar((int)$id));
     }
 }

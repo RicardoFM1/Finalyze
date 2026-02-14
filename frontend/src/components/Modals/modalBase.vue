@@ -55,7 +55,6 @@ const close = () => {
 </script>
 
 <style>
-/* Sem efeito de Blur no fundo do modal para performance máxima */
 .modal-base-dialog .v-overlay__scrim {
   background: rgba(0, 0, 0, 0.4) !important;
   opacity: 1 !important;
@@ -65,24 +64,22 @@ const close = () => {
   will-change: transform, opacity;
 }
 
-/* Force title to wrap and not truncate */
+
 .modal-base-dialog .v-toolbar-title__placeholder {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
 }
 
-/* Allow toolbar to grow if text wraps */
 .modal-base-dialog .v-toolbar {
   height: auto !important;
-  min-height: 48px; /* standard density comfortable height */
+  min-height: 48px;
   padding-top: 8px;
   padding-bottom: 8px;
 }
 </style>
 
 <style scoped>
-/* Estilização suave para o scroll interno */
 ::-webkit-scrollbar {
   width: 6px;
 }

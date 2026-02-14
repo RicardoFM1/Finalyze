@@ -6,6 +6,7 @@ use App\Servicos\Anotacoes\AtualizarAnotacao;
 use App\Servicos\Anotacoes\CriarAnotacao;
 use App\Servicos\Anotacoes\ExcluirAnotacao;
 use App\Servicos\Anotacoes\ListarAnotacoes;
+use App\Servicos\Anotacoes\ReativarAnotacao;
 use Illuminate\Http\Request;
 
 class AnotacaoController extends Controller
@@ -48,6 +49,11 @@ class AnotacaoController extends Controller
     public function destroy($id, ExcluirAnotacao $servico)
     {
         $servico->executar($id);
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Anotação movida para inativas.']);
+    }
+
+    public function reativar($id, ReativarAnotacao $servico)
+    {
+        return response()->json($servico->executar($id));
     }
 }

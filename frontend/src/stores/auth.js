@@ -15,9 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = computed(() => !!token.value);
 
     const hasActivePlan = computed(() => {
-        // Admin always has access
         if (user.value?.admin) return true;
-        // User must have a plan with recursos
         return !!(user.value?.plano && user.value.plano.recursos && user.value.plano.recursos.length > 0);
     });
 
@@ -79,12 +77,14 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (!response.ok) throw new Error(data.message || 'Falha no login');
 
+            if (data.requer_verificacao) {
+                return { requer_verificacao: true, email: data.email };
+            }
+
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
-
-
-            return true;
+            return { success: true };
         } catch (error) {
             console.error(error);
             throw error;
@@ -120,7 +120,6 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
-
             }
         } catch (e) {
             console.error(e);
@@ -133,7 +132,6 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         localStorage.removeItem('token');
-
     }
 
     function hasFeature(featureSlug) {
@@ -150,5 +148,44 @@ export const useAuthStore = defineStore('auth', () => {
         });
     }
 
-    return { user, token, isAuthenticated, hasActivePlan, login, register, logout, fetchUser, apiFetch, hasFeature };
+    async function verifyCode(email, codigo) {
+        try {
+            const response = await apiFetch('/auth/verificar', {
+                method: 'POST',
+                body: JSON.stringify({ email, codigo })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.message || 'Falha na verificação');
+
+            token.value = data.access_token;
+            user.value = data.usuario;
+            localStorage.setItem('token', token.value);
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async function resendCode(email) {
+        try {
+            const response = await apiFetch('/auth/reenviar', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.message || 'Falha ao reenviar código');
+
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature };
 });

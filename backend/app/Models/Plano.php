@@ -12,8 +12,8 @@ class Plano extends Model
     protected $table = 'planos';
 
     protected $primaryKey = 'id';
-    public $incrementing = true;       
-    protected $keyType = 'int';        
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'nome',
@@ -27,7 +27,6 @@ class Plano extends Model
         'limite_lancamentos' => 'integer'
     ];
 
-    // Relação com períodos
     public function periodos()
     {
         return $this->belongsToMany(
@@ -36,10 +35,9 @@ class Plano extends Model
             'plano_id',
             'periodo_id'
         )->withPivot('valor_centavos', 'percentual_desconto')
-         ->withTimestamps();
+            ->withTimestamps();
     }
 
-    // Relação com recursos
     public function recursos()
     {
         return $this->belongsToMany(

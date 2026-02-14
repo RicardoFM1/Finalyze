@@ -86,7 +86,8 @@
     "rules": {
       "email_required": "O e-mail é essencial para o acesso",
       "password_required": "A senha é necessária para sua segurança"
-    }
+    },
+    "login_footer": "Finalyze Finance. Design Premium & Segurança Bancária."
   },
   "plans": {
     "title": "Preços Simples e Transparentes",
@@ -106,7 +107,7 @@
     "goal_remaining": "Faltam {amount} para sua meta",
     "goal_reached": "Meta batida! Parabéns!",
     "edit": "Editar",
-    "delete": "Excluir",
+    "delete": "Desativar",
     "no_financial_goals": "Nenhuma meta financeira encontrada.",
     "notepad_title": "Bloco de Notas",
     "notepad_tooltip": "Suas anotações pessoais e lembretes.",
@@ -123,13 +124,17 @@
     "filter": {
       "active": "Em Andamento",
       "completed": "Concluídas",
+      "inactive": "Inativas",
       "all": "Todas"
     },
     "actions": {
       "complete": "Concluir",
       "reopen": "Reabrir",
-      "delete": "Excluir",
-      "edit": "Editar"
+      "delete": "Desativar",
+      "edit": "Editar",
+      "inactivate_title": "Desativar Item",
+      "inactivate_confirm": "Você tem certeza que deseja desativar \"{title}\"?",
+      "inactivate_desc": "O item sairá da sua lista atual, mas poderá ser recuperado na aba de itens inativos."
     }
   },
   "transactions": {
@@ -271,6 +276,7 @@
       "maxTransactions": "Transações máximas",
       "description": "Descrição",
       "features": "Recursos",
+      "error_missing_features": "É necessário selecionar pelo menos um recurso para o plano.",
       "active": "Plano ativo"
     }
   },
@@ -346,7 +352,7 @@
       "pass_required": "Senha é obrigatória",
       "confirm_required": "Confirmação é obrigatória"
     },
-    "toast_success": "Cadastro realizado com sucesso! Faça login para continuar."
+    "register_footer": "Finalyze Finance. Sua jornada rumo à liberdade financeira."
   },
   "NotFound": {
     "title": "404",
@@ -371,7 +377,8 @@
     "check_errors": "Verifique os campos em vermelho.",
     "success_add": "Item adicionado com sucesso!",
     "success_update": "Item atualizado com sucesso!",
-    "success_delete": "Item excluído com sucesso!",
+    "success_delete": "Item inativado com sucesso!",
+    "success_restore": "Item reativado com sucesso!",
     "error_generic": "Ocorreu um erro. Tente novamente."
   },
   "modals": {

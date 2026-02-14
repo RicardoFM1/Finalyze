@@ -103,6 +103,7 @@ const router = useRouter()
 const amount = ref(null)
 const preferenceId = ref(null)
 const planId = ref(null)
+const periodId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const brickMounted = ref(false)
@@ -115,7 +116,7 @@ const qrCodeCopy = ref(null)
 const paymentId = ref(null)
 let pollInterval = null
 
-const countdownPercentage = ref(600) // 10 minutes
+const countdownPercentage = ref(600)
 let countdownInterval = null
 
 const startCountdown = () => {
@@ -199,9 +200,10 @@ const initMercadoPago = async () => {
     }
 
     let publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY
-    if (!publicKey || publicKey.length > 50) {
-      console.warn('[Brick] Public Key inválida ou não configurada. Usando fallback de teste.')
-      publicKey = 'APP_USR-5a0a3834-8c4c-47ea-a49d-3ee5f0d2ced8'
+    if (!publicKey) {
+      error.value = "Chave Pública do Mercado Pago não configurada no frontend."
+      loading.value = false
+      return
     }
 
     const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' })
@@ -253,7 +255,7 @@ const initMercadoPago = async () => {
                 body: JSON.stringify({
                     ...formData,
                     plano_id: planId.value,
-                    periodo_id: props.periodId
+                    periodo_id: periodId.value || props.periodId
                 })
               })
 
@@ -318,12 +320,11 @@ const props = defineProps({
 })
 
 onMounted(async () => {
-  // If props are provided, use them directly
   if (props.preferenceId && props.planId) {
     preferenceId.value = props.preferenceId
     planId.value = props.planId
+    periodId.value = props.periodId
     
-    // Fetch plan details to get the price
     try {
       const response = await authStore.apiFetch(`/planos`)
       if (response.ok) {
@@ -334,11 +335,9 @@ onMounted(async () => {
           if (period) {
             amount.value = period.pivot.valor_centavos / 100
           } else {
-             // Fallback: use first period if the specified one isn't found
              const fallback = plan.periodos?.[0]
              if (fallback) {
                 amount.value = fallback.pivot.valor_centavos / 100
-                console.warn('[PaymentBrick] Period not found, using fallback:', fallback.id)
              }
           }
         }
@@ -348,7 +347,6 @@ onMounted(async () => {
       error.value = 'Erro ao carregar informações do plano'
     }
   } else {
-    // Fallback: fetch preference if no props provided
     try {
       const response = await authStore.apiFetch('/checkout/preferencia')
       if (!response.ok) throw new Error('Preferência não encontrada')
@@ -365,11 +363,7 @@ onMounted(async () => {
     }
   }
 
-  // Final check: if we have required info but amount is still null, try fallback
   if (preferenceId.value && !amount.value) {
-      // Last resort: if we have planId but amount is still null, try to reload/retry
-       console.warn('[PaymentBrick] preferenceId exists but amount is null. Retrying fetch...')
-       // Potentially reload plan details here if needed, but for now just stop loading if it's stuck
        setTimeout(() => {
            if (!amount.value && loading.value) {
                loading.value = false
@@ -385,8 +379,13 @@ onUnmounted(() => {
     if (countdownInterval) clearInterval(countdownInterval)
 })
 
-watch([() => preferenceId.value, () => amount.value], ([newPrefId, newAmount]) => {
-    if (newPrefId && newAmount && !brickMounted.value) {
+watch([() => preferenceId.value, () => amount.value], async ([newPrefId, newAmount]) => {
+    if (newPrefId && newAmount) {
+        if (brickController) {
+            await brickController.unmount()
+            brickMounted.value = false
+            brickController = null
+        }
         initMercadoPago()
     }
 })
