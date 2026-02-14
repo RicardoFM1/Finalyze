@@ -12,14 +12,15 @@
       variant="text"
     />
 
-      <v-toolbar-title
-        class="font-weight-bold app-title"
-        style="cursor: pointer"
-        @click="$router.push({ name: 'Home' })"
-      >
-        <v-icon icon="mdi-chart-pie" class="mr-2" />
-        Finalyze
-      </v-toolbar-title>
+      <v-toolbar-title class="app-title pa-0">
+  <div class="brand-wrapper" @click="$router.push({ name: 'Home' })">
+    <img :src="logotipo" alt="Logo" class="logo" />
+    <span class="brand-name">Finalyze</span>
+  </div>
+</v-toolbar-title>
+
+
+
 
       <v-spacer />
 
@@ -73,7 +74,7 @@
       :rail="isDesktop && rail"
       :permanent="isDesktop"
       :temporary="!isDesktop"
-      class="animated-drawer"
+      class="animated-drawer "
       elevation="6"
     >
 
@@ -152,6 +153,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
+import logotipo from '../assets/logotipo.png'
 
 import ModalBase from '../components/Modals/modalBase.vue'
 
@@ -237,12 +239,32 @@ watch(isDesktop, (desktop) => {
   box-shadow: 0 0 0 rgba(0,0,0,0);
   background-color: rgb(var(--v-theme-surface));
 }
-
 .app-title {
-  max-width: none !important;
-  overflow: visible !important;
-  white-space: nowrap;
+  display: flex !important;
+  align-items: center;
 }
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.logo {
+  height: 64px; 
+  width: auto;
+  display: block;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.6rem; 
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+
 
 @media (max-width: 600px) {
   .app-title {
