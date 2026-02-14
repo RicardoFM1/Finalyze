@@ -15,9 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = computed(() => !!token.value);
 
     const hasActivePlan = computed(() => {
-        // Admin always has access
         if (user.value?.admin) return true;
-        // User must have a plan with recursos
         return !!(user.value?.plano && user.value.plano.recursos && user.value.plano.recursos.length > 0);
     });
 
@@ -82,8 +80,6 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
-
-
             return true;
         } catch (error) {
             console.error(error);
@@ -120,7 +116,6 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
-
             }
         } catch (e) {
             console.error(e);
@@ -133,7 +128,6 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         localStorage.removeItem('token');
-
     }
 
     function hasFeature(featureSlug) {

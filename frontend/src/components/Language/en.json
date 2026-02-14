@@ -242,6 +242,7 @@
       "maxTransactions": "Maximum Transactions",
       "description": "Description",
       "features": "Features",
+      "error_missing_features": "At least one feature must be selected for the plan.",
       "active": "Plan Active"
     }
   },

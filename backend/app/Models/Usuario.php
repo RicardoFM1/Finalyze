@@ -29,11 +29,6 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
     public function getAuthPassword()
     {
         return $this->senha;
@@ -59,19 +54,18 @@ class Usuario extends Authenticatable
         return $this->belongsTo(Plano::class, 'plano_id');
     }
 
-  public function assinaturaAtiva()
-{
-    return $this->assinaturas()
-        ->where('status', 'active')
-        ->where('termina_em', '>=', now())
-        ->orderByDesc('termina_em')
-        ->first();
-}
+    public function assinaturaAtiva()
+    {
+        return $this->assinaturas()
+            ->where('status', 'active')
+            ->where('termina_em', '>=', now())
+            ->orderByDesc('termina_em')
+            ->first();
+    }
 
 
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');
     }
-    
 }

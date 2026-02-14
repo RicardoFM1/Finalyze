@@ -227,8 +227,6 @@ onMounted(async () => {
             if (response.ok) {
                 const data = await response.json()
                 
-                // CHECK: If user selected a specific plan via URL that is DIFFERENT from the pending preference,
-                // we should ignore the pending preference and let the flow create a new one.
                 if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
                     console.log('[Checkout] Ignoring pending preference because user selected a new plan.')
                     preferenceId.value = null // This will trigger the next block to create a new preference
@@ -273,7 +271,6 @@ onMounted(async () => {
                 periodId.value = periodInfo.value?.id
             }
 
-            // If already authenticated and we have plan info, init payment
             if (authStore.isAuthenticated) {
                 step.value = 2
                 await initPayment()
@@ -310,18 +307,14 @@ const validateAge = (v) => {
 const validateCPF = (v) => {
     if (!v) return true
     
-    // Remove non-digits
     const cpf = v.replace(/\D/g, '')
     
-    // Check if empty (optional field handled by required elsewhere) or incorrect length
-    // But here we want to validate format if typing has occurred
     if (cpf.length !== 11) {
         // Only show error if we have enough chars to start validating or if it's blur? 
         // For strict validation let's return error if not empty and not 11
         return t('validation.cpf_invalid')
     }
 
-    // Check for known invalid patterns (all same digits)
     if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
 
     let sum = 0
@@ -375,14 +368,10 @@ const handleRegister = async () => {
         )
         toast.success(t('toasts.register_success'))
         
-        // After register, user is usually logged in. Proceed to payment.
-        // If the backend requires explicit login after register, we would do that here.
-        // Assuming authStore.register handles login (or settign token).
         if (authStore.isAuthenticated) {
              step.value = 2
              await initPayment()
         } else {
-            // Fallback if not auto-logged in
             authTab.value = 'login'
             loginForm.value.email = registerForm.value.email
             toast.info(t('auth.VDS'))

@@ -357,11 +357,6 @@ const fetchUser = async () => {
         user.value = data
         
         
-        if (user.value.cpf) {
-          formatCPF({ target: { value: user.value.cpf } })
-        }
-        
-        
         if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
           user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
         } else {
@@ -384,7 +379,6 @@ const fetchSubscription = async () => {
         }
     } catch (e) {
         console.error(e)
-        // Only toast if it's the history tab explicitly or something? Usually quiet background fetch is better
     } finally {
         loadingSub.value = false
     }
@@ -460,8 +454,6 @@ const hasActiveOrValidSubscription = computed(() => {
     const s = subscriptionData.value.assinatura
     
     if (s.status === 'active') return true
-    
- 
     const end = new Date(s.termina_em).getTime()
     const now = new Date().getTime()
     return end > now

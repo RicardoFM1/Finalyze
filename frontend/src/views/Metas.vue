@@ -1,6 +1,5 @@
 <template>
   <v-container>
-    <!-- Header with Tabs -->
     <v-row align="center" no-gutters class="mb-6">
       <v-col cols="12" md="6">
         <v-tabs v-model="activeTab" color="primary" align-tabs="start">
@@ -33,7 +32,6 @@
     </v-row>
 
     <v-window v-model="activeTab">
-      <!-- Goals Window Item -->
       <v-window-item value="metas">
         <div v-if="loading" class="d-flex flex-column align-center py-12">
           <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
@@ -102,7 +100,6 @@
         </div>
       </v-window-item>
 
-      <!-- Notepad Window Item -->
       <v-window-item value="notepad">
         <div v-if="loading" class="d-flex flex-column align-center py-12">
           <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="120" />

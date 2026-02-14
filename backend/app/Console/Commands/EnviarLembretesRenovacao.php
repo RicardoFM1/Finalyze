@@ -12,33 +12,18 @@ use Illuminate\Support\Facades\Mail;
 
 class EnviarLembretesRenovacao extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:enviar-lembretes-renovacao';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Envia lembretes de renovação para assinaturas próximas do vencimento';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->info('Iniciando envio de lembretes de renovação...');
 
         $totalEnviados = 0;
 
-        // Lembrete: 3 dias antes da expiração
         $totalEnviados += $this->enviarLembretes3Dias();
 
-        // Lembrete Urgente: 1 dia antes da expiração
         $totalEnviados += $this->enviarLembretesUrgentes();
 
         $this->info("\n✓ Processo concluído: {$totalEnviados} lembrete(s) enviado(s).");

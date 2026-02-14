@@ -9,28 +9,14 @@ use Illuminate\Support\Facades\Log;
 
 class VerificarAssinaturasExpiradas extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:verificar-assinaturas-expiradas';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Verifica e expira assinaturas que ultrapassaram a data de término';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->info('Verificando assinaturas expiradas...');
 
-        // Encontrar assinaturas ativas que já expiraram
         $assinaturasExpiradas = Assinatura::where('status', 'active')
             ->where('termina_em', '<', now())
             ->get();
@@ -44,10 +30,8 @@ class VerificarAssinaturasExpiradas extends Command
         $count = 0;
         foreach ($assinaturasExpiradas as $assinatura) {
             try {
-                // Atualizar status da assinatura
                 $assinatura->update(['status' => 'expired']);
 
-                // Remover plano do usuário
                 Usuario::where('id', $assinatura->user_id)
                     ->update(['plano_id' => null]);
 

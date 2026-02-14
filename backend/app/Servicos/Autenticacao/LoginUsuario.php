@@ -24,7 +24,7 @@ class LoginUsuario
         return [
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'usuario' => $usuario->load('plano')
+            'usuario' => $usuario->load('plano.recursos')
         ];
     }
 }

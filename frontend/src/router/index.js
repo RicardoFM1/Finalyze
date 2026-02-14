@@ -9,17 +9,20 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: () => import('@/views/Home.vue')
+      component: () => import('@/views/Home.vue'),
+      
     },
     {
       path: '/login',
       name: 'Login',
-      component: () => import('@/views/Login.vue')
+      component: () => import('@/views/Login.vue'),
+      meta: {RequiresNoAuth: true}
     },
     {
       path: '/cadastro',
       name: 'Register',
-      component: () => import('@/views/Register.vue')
+      component: () => import('@/views/Register.vue'),
+      meta: {RequiresNoAuth: true}
     },
     {
       path: '/planos',
@@ -87,10 +90,12 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   const ui = useUiStore();
-
-  // Se estiver autenticado mas o usuário ainda não foi carregado, carregamos agora
   if (auth.isAuthenticated && !auth.user) {
     await auth.fetchUser();
+  }
+
+  if(to.meta.RequiresNoAuth && auth.isAuthenticated) {
+    return {name: 'Home'}
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
