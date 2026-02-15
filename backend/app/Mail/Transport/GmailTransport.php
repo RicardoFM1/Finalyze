@@ -1,17 +1,19 @@
 <?php
+// Forced sync comment
+
 
 namespace App\Mail\Transport;
 
 use Google\Client;
-use Google\Service\Gmail;
-use Google\Service\Gmail\Message;
-use Illuminate\Mail\Transport\Transport;
+use Google\Service\Gmail as GmailService;
+use Google\Service\Gmail\Message as GmailMessage;
+use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Email;
 
-class GmailTransport extends Transport
+class GmailTransport extends AbstractTransport
 {
     protected $client;
 
@@ -22,11 +24,11 @@ class GmailTransport extends Transport
 
     protected function doSend(SentMessage $message): void
     {
-        $service = new Gmail($this->client);
+        $service = new GmailService($this->client);
 
         $rawMessage = $this->getRawMessage($message);
 
-        $msg = new Message();
+        $msg = new GmailMessage();
         $msg->setRaw($rawMessage);
 
         try {
