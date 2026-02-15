@@ -55,12 +55,16 @@ class CriarPreferenciaCheckout
             "notification_url" => $baseUrl . "/api/webhook/mercadopago"
         ]);
 
+        Assinatura::where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->where('mercado_pago_id', '!=', $preference->id)
+            ->update(['status' => 'cancelled']);
+
         Assinatura::updateOrCreate(
-            ['user_id' => auth()->id(), 'status' => 'pending'],
+            ['user_id' => auth()->id(), 'status' => 'pending', 'mercado_pago_id' => $preference->id],
             [
                 'plano_id' => $plano->id,
-                'periodo_id' => $periodo->id,
-                'mercado_pago_id' => $preference->id,
+                'periodo_id' => $periodo->id
             ]
         );
 

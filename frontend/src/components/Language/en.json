@@ -155,7 +155,10 @@
     "type": {
       "income": "Income",
       "expense": "Expense"
-    }
+    },
+    "delete_title": "Confirm Deletion",
+    "delete_confirm": "Are you sure you want to delete this transaction?",
+    "delete_warning": "This action cannot be undone."
   },
   "profile": {
     "title": "Profile Details",
@@ -203,6 +206,7 @@
       "cancel": "Cancel Subscription",
       "recent_payments": "Recent Payments",
       "no_history": "No billing history found.",
+      "no_history_desc": "Your charges and receipts will appear here.",
       "expires_at": "Expires at",
       "days_remaining": "{count} days remaining",
       "days_remaining_singular": "1 day remaining",
@@ -378,7 +382,7 @@
     "check_errors": "Check the fields in red.",
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
-    "success_delete": "Item inactivated successfully!",
+    "success_delete": "Item removed successfully!",
     "success_restore": "Item restored successfully!",
     "error_generic": "An error occurred. Please try again."
   },

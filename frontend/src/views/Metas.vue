@@ -227,17 +227,17 @@ const fetchMetas = async () => {
 }
 
 const filteredMetas = computed(() => {
-  if (statusFilter.value === 'all') return metas.value.filter(m => m.status !== 'inativo')
+  if (statusFilter.value === 'all') return metas.value
   if (statusFilter.value === 'andamento') {
-    return metas.value.filter(m => m.status === 'andamento' || m.status === 'atrasado')
+    return metas.value.filter(m => (m.status === 'andamento' || m.status === 'atrasado') && m.status !== 'inativo')
   }
   return metas.value.filter(m => m.status === statusFilter.value)
 })
 
 const filteredNotes = computed(() => {
-  if (statusFilter.value === 'all') return anotacoes.value.filter(n => n.status !== 'inativo')
+  if (statusFilter.value === 'all') return anotacoes.value
   if (statusFilter.value === 'andamento') {
-    return anotacoes.value.filter(n => n.status === 'andamento' || n.status === 'atrasado')
+    return anotacoes.value.filter(n => (n.status === 'andamento' || n.status === 'atrasado') && n.status !== 'inativo')
   }
   return anotacoes.value.filter(n => n.status === statusFilter.value)
 })

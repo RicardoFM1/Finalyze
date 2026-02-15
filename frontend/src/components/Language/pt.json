@@ -155,7 +155,10 @@
     "type": {
       "income": "Receita",
       "expense": "Despesa"
-    }
+    },
+    "delete_title": "Confirmar Exclusão",
+    "delete_confirm": "Tem certeza que deseja excluir este lançamento?",
+    "delete_warning": "Esta ação não pode ser desfeita."
   },
   "profile": {
     "title": "Detalhes do Perfil",
@@ -203,6 +206,7 @@
       "cancel": "Cancelar Assinatura",
       "recent_payments": "Últimos Pagamentos",
       "no_history": "Nenhum histórico de faturamento encontrado.",
+      "no_history_desc": "Suas cobranças e comprovantes aparecerão aqui.",
       "expires_at": "Vence em",
       "days_remaining": "{count} dias restantes",
       "days_remaining_singular": "1 dia restante",
@@ -378,7 +382,7 @@
     "check_errors": "Verifique os campos em vermelho.",
     "success_add": "Item adicionado com sucesso!",
     "success_update": "Item atualizado com sucesso!",
-    "success_delete": "Item inativado com sucesso!",
+    "success_delete": "Item removido com sucesso!",
     "success_restore": "Item reativado com sucesso!",
     "error_generic": "Ocorreu um erro. Tente novamente."
   },

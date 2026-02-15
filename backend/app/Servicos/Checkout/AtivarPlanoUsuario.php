@@ -45,15 +45,19 @@ class AtivarPlanoUsuario
                     'termina_em' => $newEndsAt
                 ]);
 
-                HistoricoPagamento::create([
-                    'user_id' => $assinatura->user_id,
-                    'assinatura_id' => $assinatura->id,
-                    'valor_centavos' => (int)($payment->transaction_amount * 100),
-                    'status' => 'paid',
-                    'metodo_pagamento' => $payment->payment_method_id,
-                    'mercado_pago_id' => (string)$payment->id,
-                    'pago_em' => now()
-                ]);
+                $historicoExiste = HistoricoPagamento::where('mercado_pago_id', (string)$payment->id)->exists();
+
+                if (!$historicoExiste) {
+                    HistoricoPagamento::create([
+                        'user_id' => $assinatura->user_id,
+                        'assinatura_id' => $assinatura->id,
+                        'valor_centavos' => (int)($payment->transaction_amount * 100),
+                        'status' => 'paid',
+                        'metodo_pagamento' => $payment->payment_method_id,
+                        'mercado_pago_id' => (string)$payment->id,
+                        'pago_em' => now()
+                    ]);
+                }
 
                 Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
 

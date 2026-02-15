@@ -290,7 +290,7 @@
             <div v-else-if="!loadingSub" class="text-center py-12 billing-empty opacity-60">
               <v-icon icon="mdi-receipt-text-minus-outline" size="64" class="mb-4"></v-icon>
               <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.no_history') }}</h3>
-              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') || 'Suas cobranças e comprovantes aparecerão aqui.' }}</p>
+              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') }}</p>
             </div>
             
           </v-container>
@@ -547,7 +547,7 @@ const getInitials = (name) => {
 }
 
 const getStorageUrl = (path) => {
-    if (!path) return ''
+    if (!path) return null
     const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
     return `${baseUrl}/storage/${path}`
 }
