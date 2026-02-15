@@ -79,15 +79,16 @@
           <span class="text-body-2 font-weight-medium feature-text">{{ feature.nome }}</span>
         </v-list-item>
         <v-list-item 
-        v-for="limites in plan.limite_lancamentos"
-        :key="limites.id"
-        class="px-0 py-1"
-        min-height="32"
+          v-if="plan.limite_lancamentos"
+          class="px-0 py-1"
+          min-height="32"
         >
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium feature-text">Limite de {{ limites.limite }} Lançamentos</span>
+          <span class="text-body-2 font-weight-medium feature-text">
+            {{ plan.limite_lancamentos >= 100000 ? $t('plans.launch_unlimited') : $t('plans.launch_limits', { count: plan.limite_lancamentos }) }}
+          </span>
         </v-list-item>
       </v-list>
     </v-card-text>

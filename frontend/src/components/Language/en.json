@@ -97,6 +97,8 @@
     "pending_desc": "You have already started payment for the {plan} plan. Do you want to continue where you left off or cancel this payment to choose a new plan?",
     "cancel_prev": "Cancel Previous",
     "continue": "Continue Payment",
+    "launch_limits": "{count} Transactions Limit",
+    "launch_unlimited": "Unlimited Transactions",
     "toast_cancel_success": "Previous subscription canceled.",
     "toast_cancel_error": "Error canceling subscription."
   },

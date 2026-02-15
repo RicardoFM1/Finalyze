@@ -97,6 +97,8 @@
     "pending_desc": "Você já iniciou o pagamento para o plano {plan}. Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?",
     "cancel_prev": "Cancelar Anterior",
     "continue": "Continuar Pagamento",
+    "launch_limits": "Limite de {count} Lançamentos",
+    "launch_unlimited": "Lançamentos Ilimitados",
     "toast_cancel_success": "Assinatura anterior cancelada.",
     "toast_cancel_error": "Erro ao cancelar assinatura."
   },
