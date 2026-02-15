@@ -19,6 +19,7 @@ class GmailTransport extends AbstractTransport
 
     public function __construct(Client $client)
     {
+        parent::__construct();
         $this->client = $client;
     }
 

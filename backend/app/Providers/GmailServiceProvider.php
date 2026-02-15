@@ -18,12 +18,12 @@ class GmailServiceProvider extends ServiceProvider
     {
         Mail::extend('gmail', function (array $config = []) {
             $client = new Client();
-            $client->setClientId(env('GMAIL_CLIENT_ID'));
-            $client->setClientSecret(env('GMAIL_CLIENT_SECRET'));
+            $client->setClientId(config('services.gmail.client_id'));
+            $client->setClientSecret(config('services.gmail.client_secret'));
             $client->setAccessType('offline');
             $client->setApprovalPrompt('force');
 
-            $refreshToken = env('GMAIL_REFRESH_TOKEN');
+            $refreshToken = config('services.gmail.refresh_token');
 
             if ($refreshToken) {
                 $client->refreshToken($refreshToken);
