@@ -43,7 +43,16 @@
                 <v-icon color="success" size="64" icon="mdi-account-check" class="mb-4"></v-icon>
                 <h3 class="text-h5 mb-2">{{ $t('checkout.identified_as', { name: authStore.user?.nome }) }}</h3>
                 <p class="text-medium-emphasis mb-6">{{ $t('checkout.ready_to_pay') }}</p>
-                <v-btn color="primary" size="large" @click="step = 3">{{ $t('checkout.btn_payment_continue') }}</v-btn>
+                <v-btn 
+                  color="primary" 
+                  size="large" 
+                  min-height="56"
+                  @click="step = 3"
+                  block
+                  class="rounded-xl font-weight-bold py-3"
+                >
+                  {{ $t('checkout.btn_payment_continue') }}
+                </v-btn>
               </div>
             </template>
 

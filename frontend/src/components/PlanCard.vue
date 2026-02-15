@@ -35,7 +35,6 @@
             variant="outlined"
             filter
             class="ma-1 font-weight-bold"
-          
             size="small"
             style="border-color: rgba(var(--v-theme-primary), 0.2);"
           >
@@ -89,8 +88,8 @@
         :color="isCurrentPlan ? 'success' : (isFeatured ? 'primary' : 'primary')"
         variant="flat"
         block
-        height="54"
-        class="action-btn text-none text-subtitle-1 font-weight-bold rounded-lg"
+        min-height="54"
+        class="action-btn text-none text-subtitle-1 font-weight-bold rounded-lg py-3"
         @click="clickEscolha"
       >
         <v-icon v-if="isCurrentPlan" start icon="mdi-refresh" class="mr-2"></v-icon>

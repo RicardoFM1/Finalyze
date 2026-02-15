@@ -80,7 +80,7 @@
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
                             v-if="authStore.user.avatar"
-                            :src="getStorageUrl(authStore.user.avatar)"
+                            :src="authStore.getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>
                         <span v-else class="text-caption font-weight-bold text-primary">
@@ -198,11 +198,7 @@ const getInitials = (name) => {
 }
 
 
-const getStorageUrl = (path) => {
-  if (!path) return ''
-  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
-  return `${baseUrl}/storage/${path}`
-}
+// getStorageUrl removed as it is now in authStore
 
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {

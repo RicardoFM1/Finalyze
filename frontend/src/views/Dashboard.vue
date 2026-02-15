@@ -159,15 +159,15 @@
         <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 text-white">{{ $t('features.quick_access') }}</v-card-title>
             <v-card-text class="pa-6 pt-2">
-                <v-btn block color="white" height="56" class="mb-4 rounded-xl text-primary font-weight-bold" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
+                <v-btn block color="white" min-height="56" class="mb-4 rounded-xl text-primary font-weight-bold py-3" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
                   {{ $t('features.launch_now') }}
                 </v-btn>
                 <v-row dense>
-                    <v-col cols="6">
-                        <v-btn block height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">{{ $t('features.reports') }}</v-btn>
+                    <v-col cols="12" sm="6">
+                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold mb-2 mb-sm-0 py-2" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">{{ $t('features.reports') }}</v-btn>
                     </v-col>
-                    <v-col cols="6">
-                        <v-btn block height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold" prepend-icon="mdi-target" :to="{ name: 'Metas' }">{{ $t('features.my_goals') }}</v-btn>
+                    <v-col cols="12" sm="6">
+                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold py-2" prepend-icon="mdi-target" :to="{ name: 'Metas' }">{{ $t('features.my_goals') }}</v-btn>
                     </v-col>
                 </v-row>
             </v-card-text>

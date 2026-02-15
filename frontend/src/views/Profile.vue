@@ -39,7 +39,7 @@
             <v-col cols="12" md="4" class="text-center">
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
-                  <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || getStorageUrl(user.avatar)" cover></v-img>
+                  <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || authStore.getStorageUrl(user.avatar)" cover></v-img>
                   <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
                 </v-avatar>
                 <v-btn
@@ -107,16 +107,13 @@
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model="user.data_nascimento"
-                      :label="$t('profile.labels.birthdate')"
-                      type="date"
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-calendar"
-                      :rules="ageRules"
+                    <DateInput 
+                      v-model="user.data_nascimento" 
+                      :label="$t('profile.labels.birthdate')" 
+                      icon="mdi-calendar"
                       :disabled="saving"
-                    ></v-text-field>
+                      :rules="ageRules"
+                    />
                   </v-col>
                 </v-row>
                 <div class="d-flex justify-end mt-4">
@@ -311,6 +308,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
+import DateInput from '../components/Common/DateInput.vue'
 
 const { t } = useI18n()
 
@@ -546,11 +544,7 @@ const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
 }
 
-const getStorageUrl = (path) => {
-    if (!path) return null
-    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
-    return `${baseUrl}/storage/${path}`
-}
+// getStorageUrl removed as it is now in authStore
 
 const formatDate = (dateString) => {
     if (!dateString) return ''

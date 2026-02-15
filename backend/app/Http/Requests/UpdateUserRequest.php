@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
             'email.email' => 'O e-mail deve ser válido.',
             'email.unique' => 'Este e-mail já está em uso.',
             'avatar.image' => 'O avatar deve ser uma imagem.',
-            'avatar.max' => 'O avatar não pode ter mais de 2MB.',
+            'avatar.max' => 'O avatar não pode ter mais de 10MB.',
             'cpf.size' => 'O CPF deve ter 11 dígitos.',
             'cpf.unique' => 'Este CPF já está cadastrado.',
             'data_nascimento.date' => 'A data de nascimento deve ser válida.',

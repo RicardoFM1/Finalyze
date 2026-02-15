@@ -42,7 +42,8 @@
             <v-btn
                 variant="flat"
                 color="primary"
-                class="ml-0 ml-sm-4"
+                class="ml-0 ml-sm-4 px-6 py-2"
+                min-height="44"
                 @click="continuePayment"
             >
                 {{ $t('plans.continue') }}

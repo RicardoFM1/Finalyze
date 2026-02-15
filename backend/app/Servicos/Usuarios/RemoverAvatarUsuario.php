@@ -16,6 +16,6 @@ class RemoverAvatarUsuario
             $usuario->update(['avatar' => null]);
         }
 
-        return $usuario->load('plano');
+        return $usuario->load('plano.recursos');
     }
 }
