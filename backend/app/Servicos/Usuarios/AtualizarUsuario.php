@@ -16,10 +16,14 @@ class AtualizarUsuario
                 Storage::disk('public')->delete($usuario->avatar);
             }
             $path = $avatarFile->store('avatars', 'public');
-            $dados['avatar'] = $path;
+            $usuario->avatar = $path;
         }
 
-        $usuario->update($dados);
+        // Remove avatar from dados to prevent it being overwritten by null if handled separately
+        unset($dados['avatar']);
+
+        $usuario->fill($dados);
+        $usuario->save();
 
         return $usuario->load('plano.recursos');
     }

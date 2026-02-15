@@ -112,6 +112,7 @@
             :disabled="loading"
             class="rounded-lg"
             :rules="[v => !!v || $t('validation.required'), validateAge]"
+            hide-details="auto"
           />
           <div v-if="errors.data_nascimento" class="v-messages text-error text-caption mt-1">{{ errors.data_nascimento }}</div>
         </v-col>

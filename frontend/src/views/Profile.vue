@@ -39,7 +39,8 @@
             <v-col cols="12" md="4" class="text-center">
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
-                  <v-img v-if="user.avatar || previewAvatar" :src="previewAvatar || authStore.getStorageUrl(user.avatar)" cover></v-img>
+                  <v-img v-if="previewAvatar" :src="previewAvatar" cover></v-img>
+                  <v-img v-else-if="user.avatar" :src="authStore.getStorageUrl(user.avatar)" cover></v-img>
                   <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
                 </v-avatar>
                 <v-btn
@@ -521,6 +522,7 @@ const saveProfile = async () => {
               user.value.data_nascimento = ''
             }
             
+            previewAvatar.value = null 
             selectedFile.value = null 
         } else {
              const errorData = await response.json().catch(() => ({}))
@@ -581,8 +583,9 @@ const validateCPF = (cpf) => {
 
 const ageRules = [
   v => {
-    if (!v) return true
-    const birth = new Date(v)
+    if (!v || typeof v !== 'string' || !v.includes('-')) return true
+    const [year, month, day] = v.split('-').map(Number)
+    const birth = new Date(year, month - 1, day)
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
     const m = today.getMonth() - birth.getMonth()

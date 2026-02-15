@@ -23,7 +23,20 @@
 
       <v-spacer />
 
-        <Coinselector />
+        <template v-if="isAuthPage">
+          <v-btn
+            prepend-icon="mdi-home"
+            variant="text"
+            color="white"
+            class="text-none font-weight-bold"
+            :to="{ name: 'Home' }"
+          >
+            {{ $t('login.btn_back_home') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <Coinselector />
+        </template>
 
         <v-btn
           icon

@@ -46,10 +46,10 @@
                 <v-btn 
                   color="primary" 
                   size="large" 
-                  min-height="56"
                   @click="step = 3"
                   block
-                  class="rounded-xl font-weight-bold py-3 px-4 text-wrap h-auto"
+                  class="rounded-xl font-weight-bold py-6 px-4 text-wrap h-auto elevation-4"
+                  style="min-height: 80px; font-size: 1.1rem !important;"
                 >
                   {{ $t('checkout.btn_payment_continue') }}
                 </v-btn>
@@ -404,8 +404,9 @@ const handleCpfInput = (event) => {
 }
 
 const validateAge = (v) => {
-  if (!v) return true
-  const birth = new Date(v)
+  if (!v || typeof v !== 'string' || !v.includes('-')) return true
+  const [year, month, day] = v.split('-').map(Number)
+  const birth = new Date(year, month - 1, day)
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
