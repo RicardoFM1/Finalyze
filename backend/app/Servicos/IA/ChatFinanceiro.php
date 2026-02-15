@@ -2,6 +2,7 @@
 
 namespace App\Servicos\IA;
 
+use Gemini\Data\Content;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,14 +32,10 @@ class ChatFinanceiro
         6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
-        $chat = Gemini::chat()
-            ->withSystemInstruction($systemPrompt);
+        $model = Gemini::generativeModel('gemini-2.5-flash')
+            ->withSystemInstruction(Content::parse($systemPrompt));
 
-        // Se houver histórico, poderíamos injetar aqui, mas o Facade do Laravel às vezes é limitado.
-        // Vamos apenas enviar a mensagem por enquanto, ou simular o envio se necessário.
-        // O histórico virá do frontend e será gerenciado lá para economia de tokens se desejado.
-
-        $response = $chat->sendMessage($mensagem);
+        $response = $model->generateContent($mensagem);
 
         return $response->text();
     }
