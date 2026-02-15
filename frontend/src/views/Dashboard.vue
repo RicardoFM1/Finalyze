@@ -414,6 +414,24 @@ const formatCurrency = (value) => {
     box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
 }
 
+@media (max-width: 600px) {
+  .dashboard-wrapper {
+      padding: 12px !important;
+  }
+  .text-h3 {
+      font-size: 1.75rem !important;
+  }
+  .gradient-text {
+      font-size: 1.5rem !important;
+  }
+  .summary-card {
+      margin-bottom: 8px;
+  }
+  .summary-card:hover {
+      transform: none;
+  }
+}
+
 .icon-circle {
     width: 48px;
     height: 48px;

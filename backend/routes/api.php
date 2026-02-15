@@ -70,7 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/planos', [App\Http\Controllers\PlanController::class, 'criar']);
         Route::put('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'atualizar']);
         Route::delete('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'destruir']);
-        // IA Chat
+    });
+
+    Route::middleware('check_resource:finn-ai')->group(function () {
         Route::post('/chat/pergunta', [App\Http\Controllers\ChatIaController::class, 'perguntar']);
     });
 });

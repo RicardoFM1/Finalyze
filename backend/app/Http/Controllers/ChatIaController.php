@@ -11,18 +11,24 @@ class ChatIaController extends Controller
     {
         $request->validate([
             'mensagem' => 'required|string|max:1000',
+            'historico' => 'nullable|array',
         ]);
 
         try {
-            $resposta = $servico->perguntar($request->mensagem);
+            $resposta = $servico->perguntar($request->mensagem, $request->historico ?? []);
 
             return response()->json([
                 'resposta' => $resposta
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erro Gemini: ' . $e->getMessage());
+            \Log::error('Erro Finn AI: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'exception' => $e
+            ]);
+
             return response()->json([
-                'error' => 'O Finn está descansando um pouco. Tente novamente em alguns instantes.'
+                'error' => 'O Finn está descansando um pouco. Tente novamente em alguns instantes.',
+                'debug' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }

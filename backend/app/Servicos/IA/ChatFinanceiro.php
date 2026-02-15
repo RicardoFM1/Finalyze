@@ -28,10 +28,15 @@ class ChatFinanceiro
         3. Dê dicas práticas baseadas no saldo dele. 
         4. Sempre responda em Português Brasil.
         5. Nunca revele que você é um modelo de linguagem IA, aja como o Finn.
-        6. Se o saldo for negativo, seja empático e sugira cortes de gastos.";
+        6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
+        7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
-        // Usando o Facade do Laravel para simplificar
-        $chat = Gemini::chat()->withSystemInstruction($systemPrompt);
+        $chat = Gemini::chat()
+            ->withSystemInstruction($systemPrompt);
+
+        // Se houver histórico, poderíamos injetar aqui, mas o Facade do Laravel às vezes é limitado.
+        // Vamos apenas enviar a mensagem por enquanto, ou simular o envio se necessário.
+        // O histórico virá do frontend e será gerenciado lá para economia de tokens se desejado.
 
         $response = $chat->sendMessage($mensagem);
 

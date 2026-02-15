@@ -2,10 +2,10 @@
   <div class="finn-chat-container">
     <!-- Chat Button -->
     <v-btn
-      v-if="!isOpen"
+      v-if="!isOpen && authStore.hasFeature('finn-ai')"
       color="primary"
       size="x-large"
-      icon="mdi-robot"
+      icon
       class="finn-fab elevation-8"
       @click="toggleChat"
     >
@@ -18,8 +18,9 @@
     <v-card
       v-if="isOpen"
       class="finn-window rounded-xl elevation-12 overflow-hidden"
-      width="350"
-      max-height="500"
+      :width="isMobile ? '100%' : '350'"
+      :style="isMobile ? 'bottom: 0; right: 0; height: 100%; max-height: 100dvh; border-radius: 0 !important;' : ''"
+      max-height="600"
     >
       <!-- Header -->
       <v-toolbar color="primary" density="comfortable">
@@ -32,7 +33,7 @@
       </v-toolbar>
 
       <!-- Messages Area -->
-      <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4">
+      <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4 flex-grow-1">
         <div v-for="(msg, i) in messages" :key="i" :class="['message-wrapper', msg.role]">
           <v-card
             :color="msg.role === 'user' ? 'primary' : 'white'"
@@ -69,10 +70,14 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, computed } from 'vue'
 import { useAuthStore } from '../../stores/auth'
+import { useDisplay } from 'vuetify'
 
 const authStore = useAuthStore()
+const { mobile } = useDisplay()
+const isMobile = computed(() => mobile.value)
+
 const isOpen = ref(false)
 const input = ref('')
 const loading = ref(false)
@@ -103,6 +108,13 @@ const sendMessage = async () => {
 
   const userMsg = input.value
   messages.value.push({ role: 'user', text: userMsg })
+  
+  // Keep only last 10 messages for context to avoid huge payloads
+  const history = messages.value.slice(-10).map(m => ({
+    role: m.role,
+    content: m.text
+  }))
+
   input.value = ''
   loading.value = true
   scrollToBottom()
@@ -110,7 +122,10 @@ const sendMessage = async () => {
   try {
     const response = await authStore.apiFetch('/chat/pergunta', {
       method: 'POST',
-      body: JSON.stringify({ mensagem: userMsg })
+      body: JSON.stringify({ 
+        mensagem: userMsg,
+        historico: history
+      })
     })
     
     const data = await response.json()
@@ -151,10 +166,33 @@ const sendMessage = async () => {
 }
 
 .chat-messages {
-  height: 350px;
+  flex-grow: 1;
+  height: 400px;
+  max-height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 600px) {
+  .finn-chat-container {
+    bottom: 0px;
+    right: 0px;
+  }
+  .finn-window {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0;
+  }
+  .chat-messages {
+    height: calc(100vh - 120px) !important;
+  }
 }
 
 .message-wrapper {
