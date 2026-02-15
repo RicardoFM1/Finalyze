@@ -35,6 +35,7 @@
                 color="error"
                 class="mb-2 mb-sm-0"
                 :loading="cancelling"
+                :disabled="cancelling || continuing"
                 @click="cancelarPagamento"
             >
                 {{ $t('plans.cancel_prev') }}
@@ -44,6 +45,8 @@
                 color="primary"
                 class="ml-0 ml-sm-4 px-6 py-2"
                 min-height="44"
+                :loading="continuing"
+                :disabled="cancelling || continuing"
                 @click="continuePayment"
             >
                 {{ $t('plans.continue') }}
@@ -72,6 +75,7 @@ const checkingPreference = ref(false)
 const showPendingDialog = ref(false)
 const pendingPlanName = ref('')
 const cancelling = ref(false)
+const continuing = ref(false)
 const currentSubscription = ref(null)
 
 onMounted(async () => {
@@ -115,6 +119,7 @@ const handleSelectPlan = ({ plan, period }) => {
 }
 
 const continuePayment = () => {
+    continuing.value = true
     router.push({ name: 'Checkout' })
 }
 

@@ -49,7 +49,7 @@
                   min-height="56"
                   @click="step = 3"
                   block
-                  class="rounded-xl font-weight-bold py-3"
+                  class="rounded-xl font-weight-bold py-3 px-4 text-wrap h-auto"
                 >
                   {{ $t('checkout.btn_payment_continue') }}
                 </v-btn>
