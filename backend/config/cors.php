@@ -8,6 +8,7 @@ return [
 
     'allowed_origins' => [
         'http://localhost:5173',
+        'https://finalyze-6gw9.onrender.com',
     ],
 
     'allowed_origins_patterns' => [],
