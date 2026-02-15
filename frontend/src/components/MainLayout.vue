@@ -55,7 +55,7 @@
               color="white"
               class="ml-2 mr-4 font-weight-bold text-primary text-none"
             >
-              {{ $t('landing.btn_start') }}
+              {{ $t('landing.btn_create_account') }}
             </v-btn>
         </template>
       </v-app-bar>
