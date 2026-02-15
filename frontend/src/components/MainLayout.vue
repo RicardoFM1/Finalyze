@@ -153,6 +153,7 @@
             </v-btn>
         </template>
     </ModalBase>
+    <FinnChat v-if="authStore.isAuthenticated" />
   </v-layout>
 </template>
 
@@ -164,6 +165,7 @@ import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 
 import ModalBase from '../components/Modals/modalBase.vue'
+import FinnChat from './IA/FinnChat.vue'
 
 import Coinselector from './Currency/Coinselector.vue'
 

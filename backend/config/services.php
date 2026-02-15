@@ -45,4 +45,7 @@ return [
         'refresh_token' => env('GMAIL_REFRESH_TOKEN'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
 ];

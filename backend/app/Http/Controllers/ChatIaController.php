@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Servicos\IA\ChatFinanceiro;
+use Illuminate\Http\Request;
+
+class ChatIaController extends Controller
+{
+    public function perguntar(Request $request, ChatFinanceiro $servico)
+    {
+        $request->validate([
+            'mensagem' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $resposta = $servico->perguntar($request->mensagem);
+
+            return response()->json([
+                'resposta' => $resposta
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erro Gemini: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'O Finn está descansando um pouco. Tente novamente em alguns instantes.'
+            ], 500);
+        }
+    }
+}
