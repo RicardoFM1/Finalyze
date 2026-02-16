@@ -7,19 +7,6 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'timestamp' => now()]);
 });
 
-Route::get('/debug-info', function () {
-    return response()->json([
-        'php_version' => PHP_VERSION,
-        'upload_max_filesize' => ini_get('upload_max_filesize'),
-        'post_max_size' => ini_get('post_max_size'),
-        'memory_limit' => ini_get('memory_limit'),
-        'max_execution_time' => ini_get('max_execution_time'),
-        'app_url' => config('app.url'),
-        'env' => config('app.env'),
-        'storage_linked' => file_exists(public_path('storage'))
-    ]);
-});
-
 Route::post('/auth/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login');
 Route::post('/auth/verificar', [App\Http\Controllers\AuthController::class, 'verificarCodigo']);
