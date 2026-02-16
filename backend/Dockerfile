@@ -31,7 +31,10 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Permissões (CRÍTICO no Laravel)
-RUN chmod -R 775 storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache public
+
+# Cria o link simbólico do storage
+RUN php artisan storage:link
 
 # Porta Render
 EXPOSE 10000

@@ -53,10 +53,11 @@ class SubscriptionService
                     "transaction_amount" => (float)$transactionAmount,
                     "currency_id" => "BRL"
                 ],
-                "card_token_id" => (string)$cardToken
+                "card_token_id" => (string)$cardToken,
+                "status" => "authorized"
             ];
 
-            Log::info("Subscription Data Payload (V4 Payer Email Top Level):", $data);
+            Log::info("Subscription Data Payload (V5 - Strict Types + Status):", $data);
 
             $subscription = $preApprovalClient->create($data);
 
