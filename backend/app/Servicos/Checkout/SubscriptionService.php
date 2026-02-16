@@ -43,9 +43,7 @@ class SubscriptionService
             $transactionAmount = (float)number_format(($periodo->pivot->valor_centavos / 100), 2, '.', '');
 
             $data = [
-                "payer" => [
-                    "email" => $usuario->email
-                ],
+                "payer_email" => (string)$usuario->email,
                 "back_url" => config('app.url'),
                 "reason" => $plano->nome . " - " . $periodo->nome,
                 "external_reference" => "SUB-" . $usuario->id . "-" . time(),
@@ -58,7 +56,7 @@ class SubscriptionService
                 "card_token_id" => (string)$cardToken
             ];
 
-            Log::info("Subscription Data Payload (Final Refined):", $data);
+            Log::info("Subscription Data Payload (V4 Payer Email Top Level):", $data);
 
             $subscription = $preApprovalClient->create($data);
 
