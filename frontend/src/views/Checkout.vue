@@ -462,4 +462,10 @@ const validateCPF = (v) => {
 .unique-tabs-no-outline .v-tab__overlay {
     opacity: 0 !important;
 }
+/* Fix for button text overflow */
+.v-btn .v-btn__content {
+    white-space: normal !important;
+    width: 100%;
+    line-height: 1.2;
+}
 </style>

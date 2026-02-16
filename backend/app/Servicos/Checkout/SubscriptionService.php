@@ -45,13 +45,15 @@ class SubscriptionService
                 "auto_recurring" => [
                     "frequency" => $frequency['value'],
                     "frequency_type" => $frequency['type'],
-                    "transaction_amount" => $periodo->pivot->valor_centavos / 100,
+                    "transaction_amount" => (float)($periodo->pivot->valor_centavos / 100),
                     "currency_id" => "BRL"
                 ],
                 "card_token_id" => $cardToken,
                 "payer_id" => $customerId, // Critical: Link subscription to the customer
                 "status" => "authorized"
             ];
+
+            Log::info("Subscription Data Payload:", $data);
 
             $subscription = $preApprovalClient->create($data);
 
