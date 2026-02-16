@@ -26,15 +26,22 @@ class AtivarPlanoUsuario
             $assinatura = Assinatura::find($assinaturaId);
             if ($assinatura) {
                 $quantidadeDias = $metadata->quantidade_dias ?? 30;
-                $newEndsAt = now()->addDays((int)$quantidadeDias);
 
+                // Busca qualquer assinatura ativa do usuário que ainda não expirou
                 $activeSub = Assinatura::where('user_id', $assinatura->user_id)
                     ->where('status', 'active')
-                    ->where('id', '!=', $assinatura->id)
+                    ->where('termina_em', '>', now())
+                    ->orderBy('termina_em', 'desc')
                     ->first();
 
-                if ($activeSub && $activeSub->termina_em && $activeSub->termina_em->isFuture()) {
-                    $newEndsAt = $activeSub->termina_em->addDays((int)$quantidadeDias);
+                // Se houver uma assinatura ativa e válida, somamos os dias a partir do vencimento dela
+                // Caso contrário, somamos a partir de agora
+                $baseDate = ($activeSub && $activeSub->termina_em) ? $activeSub->termina_em : now();
+                $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
+
+                // Se a assinatura que estamos ativando for diferente da atual ativa,
+                // cancelamos a antiga para que apenas a nova fique como 'active'
+                if ($activeSub && $activeSub->id !== $assinatura->id) {
                     $activeSub->update(['status' => 'cancelled']);
                 }
 

@@ -37,15 +37,31 @@ class CriarPreferenciaCheckout
             "unit_price" => $periodo->pivot->valor_centavos / 100
         ]];
 
-        $baseUrl = 'https://roentgenographic-unsensuous-shizue.ngrok-free.dev';
+        $baseUrl = config('app.url');
 
         Log::info('Creating Mercado Pago Preference', [
             'baseUrl' => $baseUrl,
-            'items' => $items
+            'items' => $items,
+            'user_id' => auth()->id()
+        ]);
+
+        // Criamos uma assinatura pendente primeiro para ter o ID
+        $assinatura = Assinatura::create([
+            'user_id' => auth()->id(),
+            'plano_id' => $plano->id,
+            'periodo_id' => $periodo->id,
+            'status' => 'pending'
         ]);
 
         $preference = $client->create([
             "items" => $items,
+            "external_reference" => (string)$assinatura->id,
+            "metadata" => [
+                "user_id" => auth()->id(),
+                "plano_id" => $plano->id,
+                "assinatura_id" => $assinatura->id,
+                "quantidade_dias" => $periodo->quantidade_dias
+            ],
             "back_urls" => [
                 "success" => $baseUrl . "/?status=success",
                 "failure" => $baseUrl . "/?status=failure",
@@ -55,18 +71,14 @@ class CriarPreferenciaCheckout
             "notification_url" => $baseUrl . "/api/webhook/mercadopago"
         ]);
 
+        // Atualizamos a assinatura com o ID da preferência
+        $assinatura->update(['mercado_pago_id' => $preference->id]);
+
+        // Cancelamos outras assinaturas pendentes para evitar duplicidade
         Assinatura::where('user_id', auth()->id())
             ->where('status', 'pending')
-            ->where('mercado_pago_id', '!=', $preference->id)
+            ->where('id', '!=', $assinatura->id)
             ->update(['status' => 'cancelled']);
-
-        Assinatura::updateOrCreate(
-            ['user_id' => auth()->id(), 'status' => 'pending', 'mercado_pago_id' => $preference->id],
-            [
-                'plano_id' => $plano->id,
-                'periodo_id' => $periodo->id
-            ]
-        );
 
         return $preference->id;
     }

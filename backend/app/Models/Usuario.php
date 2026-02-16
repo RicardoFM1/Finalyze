@@ -57,6 +57,11 @@ class Usuario extends Authenticatable
         return $this->belongsTo(Plano::class, 'plano_id');
     }
 
+    public function assinaturas()
+    {
+        return $this->hasMany(Assinatura::class, 'user_id');
+    }
+
     public function assinaturaAtiva()
     {
         return $this->assinaturas()
