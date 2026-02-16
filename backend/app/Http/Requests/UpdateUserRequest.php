@@ -11,6 +11,23 @@ class UpdateUserRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->hasFile('avatar')) {
+            $file = $this->file('avatar');
+            \Log::info('Avatar Upload Debug:', [
+                'original_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType(),
+                'error' => $file->getError(), // 0 = UPLOAD_ERR_OK
+                'valid' => $file->isValid(),
+                'path' => $file->getPathname()
+            ]);
+        } else {
+            \Log::info('Avatar Upload Debug: No file received in request.');
+        }
+    }
+
     public function rules()
     {
         $userId = $this->user()->id ?? null;

@@ -52,13 +52,18 @@ class CheckoutController extends Controller
         try {
             $payment = $servico->executar($request->all());
 
+            // Extrai dados do QR Code com segurança (pode não existir em cartão)
+            $qrCode = $payment->point_of_interaction?->transaction_data?->qr_code ?? null;
+            $qrCodeBase64 = $payment->point_of_interaction?->transaction_data?->qr_code_base64 ?? null;
+            $ticketUrl = $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url ?? null;
+
             return response()->json([
                 'status' => $payment->status,
                 'status_detail' => $payment->status_detail,
                 'id' => $payment->id,
-                'qr_code' => $payment->point_of_interaction?->transaction_data?->qr_code,
-                'qr_code_base64' => $payment->point_of_interaction?->transaction_data?->qr_code_base64,
-                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url,
+                'qr_code' => $qrCode,
+                'qr_code_base64' => $qrCodeBase64,
+                'ticket_url' => $ticketUrl,
             ]);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             Log::error('MPApiException', [

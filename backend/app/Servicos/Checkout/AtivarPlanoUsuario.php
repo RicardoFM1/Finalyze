@@ -25,36 +25,40 @@ class AtivarPlanoUsuario
         if ($assinaturaId) {
             $assinatura = Assinatura::find($assinaturaId);
             if ($assinatura) {
-                $quantidadeDias = $metadata->quantidade_dias ?? 30;
-
-                // Busca qualquer assinatura ativa do usuário que ainda não expirou
-                $activeSub = Assinatura::where('user_id', $assinatura->user_id)
-                    ->where('status', 'active')
-                    ->where('termina_em', '>', now())
-                    ->orderBy('termina_em', 'desc')
-                    ->first();
-
-                // Se houver uma assinatura ativa e válida, somamos os dias a partir do vencimento dela
-                // Caso contrário, somamos a partir de agora
-                $baseDate = ($activeSub && $activeSub->termina_em) ? $activeSub->termina_em : now();
-                $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
-
-                // Se a assinatura que estamos ativando for diferente da atual ativa,
-                // cancelamos a antiga para que apenas a nova fique como 'active'
-                if ($activeSub && $activeSub->id !== $assinatura->id) {
-                    $activeSub->update(['status' => 'cancelled']);
-                }
-
-                $assinatura->update([
-                    'mercado_pago_id' => $payment->id,
-                    'status' => 'active',
-                    'inicia_em' => now(),
-                    'termina_em' => $newEndsAt
-                ]);
-
+                // Verifica se este pagamento JÁ foi processado para evitar duplicidade de dias
                 $historicoExiste = HistoricoPagamento::where('mercado_pago_id', (string)$payment->id)->exists();
 
-                if (!$historicoExiste) {
+                if ($historicoExiste) {
+                    Log::info("Pagamento {$payment->id} já processado anteriormente. Ignorando atualização de dias.");
+                    // Ainda atualizamos o usuário e plano para garantir que o status esteja correto, mas não somamos dias
+                } else {
+                    $quantidadeDias = $metadata->quantidade_dias ?? 30;
+
+                    // Busca qualquer assinatura ativa do usuário que ainda não expirou
+                    $activeSub = Assinatura::where('user_id', $assinatura->user_id)
+                        ->where('status', 'active')
+                        ->where('termina_em', '>', now())
+                        ->orderBy('termina_em', 'desc')
+                        ->first();
+
+                    // Se houver uma assinatura ativa e válida, somamos os dias a partir do vencimento dela
+                    // Caso contrário, somamos a partir de agora
+                    $baseDate = ($activeSub && $activeSub->termina_em) ? $activeSub->termina_em : now();
+                    $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
+
+                    // Se a assinatura que estamos ativando for diferente da atual ativa,
+                    // cancelamos a antiga para que apenas a nova fique como 'active'
+                    if ($activeSub && $activeSub->id !== $assinatura->id) {
+                        $activeSub->update(['status' => 'cancelled']);
+                    }
+
+                    $assinatura->update([
+                        'mercado_pago_id' => $payment->id,
+                        'status' => 'active',
+                        'inicia_em' => now(),
+                        'termina_em' => $newEndsAt
+                    ]);
+
                     HistoricoPagamento::create([
                         'user_id' => $assinatura->user_id,
                         'assinatura_id' => $assinatura->id,
@@ -64,6 +68,8 @@ class AtivarPlanoUsuario
                         'mercado_pago_id' => (string)$payment->id,
                         'pago_em' => now()
                     ]);
+
+                    Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
                 }
 
                 Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);

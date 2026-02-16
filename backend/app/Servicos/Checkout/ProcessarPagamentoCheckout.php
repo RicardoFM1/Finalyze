@@ -36,19 +36,19 @@ class ProcessarPagamentoCheckout
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
-        
+
         Assinatura::where('user_id', $usuario->id)
-    ->where('status', 'pending')
-    ->update(['status' => 'cancelled']);
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
 
 
         $assinatura = Assinatura::create([
-    'user_id'    => $usuario->id,
-    'plano_id'   => (int) $plano_id,
-    'periodo_id' => (int) $periodo_id,
-    'status'     => 'pending',
-    'inicia_em'  => now(),
-]);
+            'user_id'    => $usuario->id,
+            'plano_id'   => (int) $plano_id,
+            'periodo_id' => (int) $periodo_id,
+            'status'     => 'pending',
+            'inicia_em'  => now(),
+        ]);
 
 
         $payer = $dados['payer'] ?? [];
@@ -74,11 +74,11 @@ class ProcessarPagamentoCheckout
             ],
             "external_reference" => (string)$assinatura->id,
             "metadata" => [
-                "user_id" => (string)$usuario->id,
-                "plano_id" => (string)$plano_id,
-                "periodo_id" => (string)$periodo_id,
-                "assinatura_id" => (string)$assinatura->id,
-                "quantidade_dias" => (string)$periodo->quantidade_dias
+                "user_id" => $usuario->id, // Removida cast string para deixar MP gerenciar ou usar int se possível (mas string é safer pra meta)
+                "plano_id" => $plano_id,
+                "periodo_id" => $periodo_id,
+                "assinatura_id" => $assinatura->id,
+                "quantidade_dias" => $periodo->quantidade_dias // Aqui está a mágica: enviamos os dias do período (7, 30, 90, 365)
             ]
         ];
 
