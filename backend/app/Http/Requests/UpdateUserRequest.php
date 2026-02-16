@@ -34,7 +34,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'nome' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:usuarios,email,' . $userId,
-            'avatar' => 'nullable|image|max:10240',
+            'avatar' => 'nullable|image|max:65536',
             'cpf' => 'nullable|string|size:11|unique:usuarios,cpf,' . $userId,
             'data_nascimento' => 'nullable|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d')
         ];

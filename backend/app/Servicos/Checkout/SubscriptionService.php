@@ -38,18 +38,19 @@ class SubscriptionService
             $frequency = $this->mapPeriodToFrequency($periodo);
 
             $data = [
+                "payer_email" => $usuario->email,
                 "back_url" => config('app.url'),
                 "reason" => $plano->nome . " - " . $periodo->nome,
                 "external_reference" => "SUB-" . $usuario->id . "-" . time(),
                 "auto_recurring" => [
                     "frequency" => $frequency['value'],
                     "frequency_type" => $frequency['type'],
-                    "transaction_amount" => (float)($periodo->pivot->valor_centavos / 100),
+                    "transaction_amount" => (float)number_format(($periodo->pivot->valor_centavos / 100), 2, '.', ''),
                     "currency_id" => "BRL"
                 ],
                 "card_token_id" => $cardToken,
                 "payer_id" => $customerId,
-                // "status" removed as it is invalid during creation (defaults to authorized/pending)
+                "status" => "authorized"
             ];
 
             Log::info("Subscription Data Payload:", $data);
@@ -59,6 +60,11 @@ class SubscriptionService
             Log::info("Subscription Created: " . ($subscription->id ?? 'no-id'));
 
             return $subscription;
+        } catch (\MercadoPago\Exceptions\MPApiException $e) {
+            Log::error("MP Sub API Error: " . $e->getMessage(), [
+                'content' => $e->getApiResponse()?->getContent()
+            ]);
+            throw $e;
         } catch (\Exception $e) {
             Log::error("Subscription Error: " . $e->getMessage());
             throw $e;
