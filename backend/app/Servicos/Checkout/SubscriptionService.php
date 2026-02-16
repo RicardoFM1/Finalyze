@@ -38,7 +38,6 @@ class SubscriptionService
             $frequency = $this->mapPeriodToFrequency($periodo);
 
             $data = [
-                "payer_email" => $usuario->email,
                 "back_url" => config('app.url'),
                 "reason" => $plano->nome . " - " . $periodo->nome,
                 "external_reference" => "SUB-" . $usuario->id . "-" . time(),
@@ -49,15 +48,15 @@ class SubscriptionService
                     "currency_id" => "BRL"
                 ],
                 "card_token_id" => $cardToken,
-                "payer_id" => $customerId, // Critical: Link subscription to the customer
-                "status" => "authorized"
+                "payer_id" => $customerId,
+                // "status" removed as it is invalid during creation (defaults to authorized/pending)
             ];
 
             Log::info("Subscription Data Payload:", $data);
 
             $subscription = $preApprovalClient->create($data);
 
-            Log::info("Subscription Created: " . $subscription->id);
+            Log::info("Subscription Created: " . ($subscription->id ?? 'no-id'));
 
             return $subscription;
         } catch (\Exception $e) {
@@ -86,10 +85,10 @@ class SubscriptionService
         $customer = $customerClient->create([
             "email" => $usuario->email,
             "first_name" => explode(' ', $usuario->nome)[0],
-            "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?? 'User',
+            "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?: 'User',
             "identification" => [
                 "type" => "CPF",
-                "number" => $usuario->cpf ?? '19119119100'
+                "number" => str_replace(['.', '-'], '', $usuario->cpf ?? '19119119100')
             ]
         ]);
 
@@ -99,16 +98,9 @@ class SubscriptionService
 
     private function mapPeriodToFrequency(Periodo $periodo)
     {
-        // 7 dias = 1 semana
-        // 30 dias = 1 mês
-        // 90 dias = 3 meses
-        // 365 dias = 12 meses (ou 1 ano)
-
         switch ($periodo->quantidade_dias) {
             case 7:
-                return ['value' => 7, 'type' => 'days']; // MP suporta frequencies em days? Verificar docs. Geralmente months.
-                // Se MP não suportar days na V1, usar months. Preapproval suporta days?
-                // Docs dizem frequency_type: days, months.
+                return ['value' => 7, 'type' => 'days'];
             case 30:
                 return ['value' => 1, 'type' => 'months'];
             case 90:
@@ -123,11 +115,15 @@ class SubscriptionService
     public function toggleAutoRenewal(string $preapprovalId, bool $enable)
     {
         $client = new PreApprovalClient();
-
         $status = $enable ? 'authorized' : 'paused';
-
         $client->update($preapprovalId, ['status' => $status]);
-
         return $status;
+    }
+
+    public function cancelSubscription(string $preapprovalId)
+    {
+        $client = new PreApprovalClient();
+        $client->update($preapprovalId, ['status' => 'cancelled']);
+        return 'cancelled';
     }
 }

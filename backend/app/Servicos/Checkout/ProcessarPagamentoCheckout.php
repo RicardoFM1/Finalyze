@@ -102,7 +102,7 @@ class ProcessarPagamentoCheckout
                 'status' => 'active', // Assinaturas no MP nascem authorized, então ativamos aqui? 
                 // Melhor esperar o webhook ou resposta imediata. 
                 // O MP retorna status "authorized" se deu certo.
-                'auto_renew' => true
+                'renovacao_automatica' => true
             ]);
 
             // Se for authorized, já ativamos o plano do usuário

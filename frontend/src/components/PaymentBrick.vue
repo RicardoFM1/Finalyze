@@ -225,7 +225,8 @@ const initMercadoPago = async () => {
           bankTransfer: 'all',
           creditCard: 'all',
           debitCard: 'all',
-          mercadoPago: 'all'
+          mercadoPago: 'all',
+          maxInstallments: 1
         }
       },
       callbacks: {
