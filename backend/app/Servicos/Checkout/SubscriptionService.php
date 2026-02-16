@@ -12,6 +12,7 @@ use MercadoPago\Client\Customer\CustomerClient;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\PreApproval\PreApprovalClient;
 use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Net\MPSearchRequest;
 
 class SubscriptionService
 {
@@ -70,7 +71,9 @@ class SubscriptionService
         }
 
         $customerClient = new CustomerClient();
-        $search = $customerClient->search(["email" => $usuario->email]);
+
+        $searchRequest = new MPSearchRequest(1, 0, ["email" => $usuario->email]);
+        $search = $customerClient->search($searchRequest);
 
         if ($search && count($search->results) > 0) {
             $customer = $search->results[0];

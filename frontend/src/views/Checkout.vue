@@ -48,8 +48,8 @@
                   size="large" 
                   @click="step = 3"
                   block
-                  class="rounded-xl font-weight-bold py-6 px-4 text-wrap h-auto elevation-4"
-                  style="min-height: 80px; font-size: 1.1rem !important;"
+                  class="rounded-xl font-weight-bold py-6 px-4 h-auto elevation-4"
+                  style="min-height: 80px; font-size: 1.1rem !important; white-space: normal !important;"
                 >
                   {{ $t('checkout.btn_payment_continue') }}
                 </v-btn>
