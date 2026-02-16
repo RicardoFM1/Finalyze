@@ -141,7 +141,7 @@
               <v-progress-circular indeterminate color="primary"></v-progress-circular>
             </div>
             
-            <div v-else-if="!hasActiveOrValidSubscription" class="text-center py-10 no-plan-empty">
+            <div v-else-if="!hasActiveOrValidSubscription && subscriptionData?.assinatura?.status !== 'pending'" class="text-center py-10 no-plan-empty">
               <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
               <h3 class="text-h5 mt-4">{{ $t('profile.subscription.no_active') }}</h3>
               <p class="text-medium-emphasis mb-6">{{ $t('profile.subscription.no_active_desc') }}</p>
@@ -149,6 +149,11 @@
             </div>
 
             <v-row v-else>
+                <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
+                   <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
+                      O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.
+                   </v-alert>
+                </v-col>
                 <v-col cols="12" md="5">
                   <v-card class="plan-hero-card rounded-xl pa-6 text-white" elevation="6">
                     <div class="text-overline mb-2 opacity-80">{{ $t('profile.subscription.current') }}</div>

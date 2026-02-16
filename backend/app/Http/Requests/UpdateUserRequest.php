@@ -21,7 +21,10 @@ class UpdateUserRequest extends FormRequest
                 'mime' => $file->getMimeType(),
                 'error' => $file->getError(), // 0 = UPLOAD_ERR_OK
                 'valid' => $file->isValid(),
-                'path' => $file->getPathname()
+                'path' => $file->getPathname(),
+                'php_upload_max' => ini_get('upload_max_filesize'),
+                'php_post_max' => ini_get('post_max_size'),
+                'php_memory_limit' => ini_get('memory_limit')
             ]);
         } else {
             \Log::info('Avatar Upload Debug: No file received in request.');

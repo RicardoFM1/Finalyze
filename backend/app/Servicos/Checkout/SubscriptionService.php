@@ -23,7 +23,8 @@ class SubscriptionService
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        // Changed to SERVER for production environments like Render
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function createSubscription(Usuario $usuario, Plano $plano, Periodo $periodo, string $cardToken)
@@ -37,23 +38,27 @@ class SubscriptionService
 
             $frequency = $this->mapPeriodToFrequency($periodo);
 
+            // MP Subscriptions V2 often prefers amount as a float/number but sometimes string works better in older SDKs.
+            // Let's try sending it as a direct numeric value but ensuring 2 decimal places in format.
+            $transactionAmount = (float)number_format(($periodo->pivot->valor_centavos / 100), 2, '.', '');
+
             $data = [
-                "payer_email" => $usuario->email,
+                "payer" => [
+                    "email" => $usuario->email
+                ],
                 "back_url" => config('app.url'),
                 "reason" => $plano->nome . " - " . $periodo->nome,
                 "external_reference" => "SUB-" . $usuario->id . "-" . time(),
                 "auto_recurring" => [
-                    "frequency" => $frequency['value'],
-                    "frequency_type" => $frequency['type'],
-                    "transaction_amount" => (float)number_format(($periodo->pivot->valor_centavos / 100), 2, '.', ''),
+                    "frequency" => (int)$frequency['value'],
+                    "frequency_type" => (string)$frequency['type'],
+                    "transaction_amount" => (float)$transactionAmount,
                     "currency_id" => "BRL"
                 ],
-                "card_token_id" => $cardToken,
-                "payer_id" => $customerId,
-                "status" => "authorized"
+                "card_token_id" => (string)$cardToken
             ];
 
-            Log::info("Subscription Data Payload:", $data);
+            Log::info("Subscription Data Payload (Final Refined):", $data);
 
             $subscription = $preApprovalClient->create($data);
 
@@ -61,12 +66,13 @@ class SubscriptionService
 
             return $subscription;
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
-            Log::error("MP Sub API Error: " . $e->getMessage(), [
-                'content' => $e->getApiResponse()?->getContent()
+            Log::error("MP Sub API Error (400?): " . $e->getMessage(), [
+                'content' => $e->getApiResponse()?->getContent(),
+                'status' => $e->getApiResponse()?->getStatusCode()
             ]);
-            throw $e;
+            throw new \Exception('Mercado Pago: ' . ($e->getApiResponse()?->getContent()['message'] ?? $e->getMessage()));
         } catch (\Exception $e) {
-            Log::error("Subscription Error: " . $e->getMessage());
+            Log::error("Subscription Generic Error: " . $e->getMessage());
             throw $e;
         }
     }
