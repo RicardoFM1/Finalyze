@@ -44,9 +44,20 @@ class ChatFinanceiro
         6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
+        // Injetando instruções do sistema no início do histórico para garantir compatibilidade
+        $historicoInstrucoes = array_merge([
+            [
+                'role' => 'user',
+                'parts' => [['text' => $systemPrompt]]
+            ],
+            [
+                'role' => 'model',
+                'parts' => [['text' => "Entendido! Serei o Finn, o assistente financeiro da Finalyze. Pode contar comigo."]]
+            ]
+        ], $historico);
+
         $response = Gemini::geminiFlash()
-            ->withSystemInstruction(Content::parse($systemPrompt))
-            ->startChat(history: $historico)
+            ->startChat(history: $historicoInstrucoes)
             ->sendMessage($mensagem);
 
         return $response->text();

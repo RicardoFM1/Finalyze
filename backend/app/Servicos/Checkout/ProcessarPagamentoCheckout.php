@@ -96,33 +96,50 @@ class ProcessarPagamentoCheckout
             $payer['identification']['type'] = 'CPF';
         }
 
+        $paymentData = [
+            "transaction_amount" => (float)$transactionAmount,
+            "payment_method_id" => $dados['payment_method_id'],
+            "description" => $plano->nome . " - " . $periodo->nome,
+            "payer" => [
+                "email" => $usuario->email,
+                "identification" => [
+                    "type" => "CPF",
+                    "number" => $payerIdNumber
+                ]
+            ],
+            "external_reference" => (string)$assinatura->id,
+            "metadata" => [
+                "user_id" => $usuario->id,
+                "plano_id" => $plano_id,
+                "periodo_id" => $periodo_id,
+                "assinatura_id" => $assinatura->id,
+                "quantidade_dias" => $periodo->quantidade_dias,
+                "creditos_prorrata" => $creditos
+            ]
+        ];
+
         if ($dados['payment_method_id'] === 'pix') {
-            $paymentData = [
-                "transaction_amount" => (float)$transactionAmount,
-                "payment_method_id" => $dados['payment_method_id'],
-                "description" => ($dados['description'] ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
-                "payer" => [
-                    "email" => $usuario->email,
-                    "identification" => [
-                        "type" => "CPF",
-                        "number" => $payerIdNumber
-                    ]
-                ],
-                "external_reference" => (string)$assinatura->id,
-                "metadata" => [
-                    "user_id" => $usuario->id,
-                    "plano_id" => $plano_id,
-                    "periodo_id" => $periodo_id,
-                    "assinatura_id" => $assinatura->id,
-                    "quantidade_dias" => $periodo->quantidade_dias,
-                    "creditos_prorrata" => $creditos
-                ],
-                "date_of_expiration" => now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O')
-            ];
+            $paymentData["date_of_expiration"] = now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O');
+        } else {
+            $paymentData["token"] = $dados['token'];
+            $paymentData["installments"] = (int)($dados['installments'] ?? 1);
+            if (isset($dados['issuer_id'])) {
+                $paymentData["issuer_id"] = $dados['issuer_id'];
+            }
+        }
 
-            $response = $client->create($paymentData);
+        $response = $client->create($paymentData);
 
-            // Criar registro no histórico mesmo sendo pendente/rejeitado para o usuário ver no front
+        // Ativação automática se for aprovado (comum em cartão)
+        if (isset($response->status) && $response->status === 'approved') {
+            try {
+                $ativarServico = new AtivarPlanoUsuario();
+                $ativarServico->executar($response);
+            } catch (\Exception $e) {
+                Log::error("Erro ao ativar plano após aprovação: " . $e->getMessage());
+            }
+        } else if ($dados['payment_method_id'] === 'pix') {
+            // Registrar no histórico para Pix pendente
             try {
                 \App\Models\HistoricoPagamento::create([
                     'user_id' => $usuario->id,
@@ -134,53 +151,10 @@ class ProcessarPagamentoCheckout
                     'pago_em' => ($response->status === 'approved') ? now() : null
                 ]);
             } catch (\Exception $e) {
-                Log::error("Erro ao salvar histórico inicial de Pix: " . $e->getMessage());
+                Log::error("Erro ao salvar histórico de Pix: " . $e->getMessage());
             }
-
-            return $response;
-        } else {
-            // Credit Card = Auto Renewal (Subscription)
-            $token = $dados['token'];
-            if (!$token) {
-                throw new \Exception('Token do cartão é obrigatório.');
-            }
-
-            $subscriptionService = new SubscriptionService();
-            // Para assinaturas (PreApproval), o MP não aceita cobrança com desconto direto no unit_price de forma trivial?
-            // Na verdade aceita no auto_recurring.
-            $subscription = $subscriptionService->createSubscription($usuario, $plano, $periodo, $token, $creditos);
-
-            // Atualiza assinatura local com o ID da preapproval
-            $assinatura->update([
-                'preapproval_id' => $subscription->id,
-                'status' => 'active',
-                'renovacao_automatica' => true
-            ]);
-
-            // Se for authorized, já ativamos o plano do usuário
-            if ($subscription->status === 'authorized') {
-                // Simular estrutura de response de pagamento para o front não quebrar?
-                // Ou retornar objeto específico. O front espera 'status', 'id', etc.
-
-                // Precisamos ativar o plano aqui também, pois webhook pode demorar
-                // Vamos usar uma logica simplificada ou chamar service
-
-                // Mas atenção: Preapproval não gera "Payment" imediato com ID de payment.
-                // Gera uma recorrência. A primeira cobrança pode ou não vir instantânea.
-                // Geralmente vem. Vamos retornar um objeto fake compatível com o front.
-                return (object)[
-                    'status' => 'approved',
-                    'status_detail' => 'accredited',
-                    'id' => $subscription->id, // Usando ID da assinatura como ID de ref
-                    'payment_method_id' => $dados['payment_method_id']
-                ];
-            }
-
-            return (object)[
-                'status' => $subscription->status,
-                'status_detail' => $subscription->status,
-                'id' => $subscription->id
-            ];
         }
+
+        return $response;
     }
 }
