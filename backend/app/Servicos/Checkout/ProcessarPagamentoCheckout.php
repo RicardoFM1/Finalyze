@@ -103,10 +103,8 @@ class ProcessarPagamentoCheckout
                 "description" => ($dados['description'] ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
                 "payer" => [
                     "email" => $usuario->email,
-                    "first_name" => explode(' ', $usuario->nome)[0] ?: 'Usuario',
-                    "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?: (explode(' ', $usuario->nome)[0] ?: 'Usuario'),
                     "identification" => [
-                        "type" => $payer['identification']['type'] ?? 'CPF',
+                        "type" => "CPF",
                         "number" => $payerIdNumber
                     ]
                 ],

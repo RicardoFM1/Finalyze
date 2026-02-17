@@ -63,15 +63,6 @@ class SubscriptionService
                     "transaction_amount" => (float)number_format($transactionAmount, 2, '.', ''),
                     "currency_id" => "BRL"
                 ],
-                "payer" => [
-                    "email" => (string)$usuario->email,
-                    "first_name" => $firstName,
-                    "last_name" => $lastName,
-                    "identification" => [
-                        "type" => "CPF",
-                        "number" => $cpfNumber
-                    ]
-                ],
                 "card_token_id" => (string)$cardToken,
                 "status" => "authorized"
             ];

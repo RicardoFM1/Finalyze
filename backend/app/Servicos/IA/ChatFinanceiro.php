@@ -3,6 +3,7 @@
 namespace App\Servicos\IA;
 
 use Gemini\Laravel\Facades\Gemini;
+use Gemini\Data\Content;
 use Illuminate\Support\Facades\Auth;
 
 class ChatFinanceiro
@@ -44,7 +45,7 @@ class ChatFinanceiro
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
         $response = Gemini::geminiFlash()
-            ->withSystemInstruction($systemPrompt)
+            ->withSystemInstruction(Content::parse($systemPrompt))
             ->startChat(history: $historico)
             ->sendMessage($mensagem);
 
