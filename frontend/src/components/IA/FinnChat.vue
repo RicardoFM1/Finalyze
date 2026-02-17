@@ -1,27 +1,38 @@
-<template>
-  <div class="finn-chat-container">
-    <!-- Chat Button -->
+  <div class="finn-chat-wrapper" v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated">
+    <!-- FAB Toggle (The small arrow to show/hide the main icon) -->
     <v-btn
-      v-if="!isOpen && authStore.hasFeature('finn-ai')"
-      color="primary"
-      size="x-large"
+      size="x-small"
       icon
-      class="finn-fab elevation-8"
-      @click="toggleChat"
+      color="primary"
+      :class="['finn-toggle-btn', { 'is-hidden': isHidden }]"
+      @click="isHidden = !isHidden"
     >
-      <v-avatar size="45">
-        <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
-      </v-avatar>
+      <v-icon>{{ isHidden ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
     </v-btn>
 
-    <!-- Chat Window -->
-    <v-card
-      v-if="isOpen"
-      class="finn-window rounded-xl elevation-12 overflow-hidden"
-      :width="isMobile ? '100%' : '350'"
-      :style="isMobile ? 'bottom: 0; right: 0; height: 100%; max-height: 100dvh; border-radius: 0 !important;' : ''"
-      max-height="600"
-    >
+    <div :class="['finn-chat-container', { 'is-hidden': isHidden }]">
+      <!-- Chat Button (FAB) -->
+      <v-btn
+        v-if="!isOpen"
+        color="primary"
+        size="x-large"
+        icon
+        class="finn-fab elevation-8"
+        @click="toggleChat"
+      >
+        <v-avatar size="45">
+          <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
+        </v-avatar>
+      </v-btn>
+
+      <!-- Chat Window -->
+      <v-card
+        v-if="isOpen"
+        class="finn-window rounded-xl elevation-12 overflow-hidden"
+        :width="isMobile ? '100%' : '380'"
+        :style="isMobile ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
+        max-height="650"
+      >
       <!-- Header -->
       <v-toolbar color="primary" density="comfortable">
         <v-avatar size="32" class="ml-4 mr-2">
@@ -98,7 +109,7 @@ import { useDisplay } from 'vuetify'
 const authStore = useAuthStore()
 const { mobile } = useDisplay()
 const isMobile = computed(() => mobile.value)
-
+const isHidden = ref(false)
 const isOpen = ref(false)
 const input = ref('')
 const loading = ref(false)
@@ -222,9 +233,33 @@ const saveEdit = async () => {
 }
 </script>
 
-<style scoped>
-.finn-chat-container {
+.finn-chat-wrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
   z-index: 9999;
+  display: flex;
+  align-items: center;
+}
+
+.finn-toggle-btn {
+  transition: transform 0.3s ease;
+  margin-right: 8px;
+  z-index: 10000;
+}
+
+.finn-toggle-btn.is-hidden {
+  transform: translateX(10px);
+}
+
+.finn-chat-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.finn-chat-container.is-hidden {
+  opacity: 0;
+  transform: translateX(100px);
+  pointer-events: none;
 }
 
 .finn-fab {
@@ -238,6 +273,7 @@ const saveEdit = async () => {
   display: flex;
   flex-direction: column;
   box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
+  z-index: 10001;
 }
 
 .chat-messages {
@@ -250,23 +286,27 @@ const saveEdit = async () => {
 }
 
 @media (max-width: 600px) {
-  .finn-chat-container {
-    bottom: 0px;
-    right: 0px;
+  .finn-chat-wrapper {
+    bottom: 0;
+    right: 0;
+  }
+  .finn-toggle-btn {
+    display: none; /* Hide toggle on mobile to avoid covering UI */
   }
   .finn-window {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100% !important;
-    height: 100dvh !important;
-    max-height: 100vh !important;
-    margin: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    bottom: 0 !important;
   }
   .chat-messages {
     height: calc(100vh - 140px) !important;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .finn-window {
+    width: 400px !important;
+    right: 0;
   }
 }
 

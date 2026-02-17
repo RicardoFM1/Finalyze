@@ -177,21 +177,26 @@ const handleSelectPlan = async ({ plan, period }) => {
         return
     }
 
-    try {
-        checkingPreference.value = true
-        const response = await authStore.apiFetch(`/checkout/check-upgrade?plano_id=${plan.id}&periodo_id=${period.id}`)
-        if (response.ok) {
-            const data = await response.json()
-            if (data.gratuito) {
-                selectedForUpgrade.value = { plan, period, creditos: data.creditos }
-                showFreeUpgradeModal.value = true
-                return
+    // Verificamos se é um plano diferente do atual para oferecer o upgrade grátis
+    const isDifferentPlan = authStore.user?.plano_id && authStore.user.plano_id !== plan.id
+
+    if (isDifferentPlan) {
+        try {
+            checkingPreference.value = true
+            const response = await authStore.apiFetch(`/checkout/check-upgrade?plano_id=${plan.id}&periodo_id=${period.id}`)
+            if (response.ok) {
+                const data = await response.json()
+                if (data.gratuito) {
+                    selectedForUpgrade.value = { plan, period, creditos: data.creditos }
+                    showFreeUpgradeModal.value = true
+                    return
+                }
             }
+        } catch (e) {
+            console.error('Erro ao verificar upgrade:', e)
+        } finally {
+            checkingPreference.value = false
         }
-    } catch (e) {
-        console.error('Erro ao verificar upgrade:', e)
-    } finally {
-        checkingPreference.value = false
     }
 
     router.push({ 
