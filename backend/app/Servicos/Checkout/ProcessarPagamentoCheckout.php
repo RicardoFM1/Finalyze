@@ -17,7 +17,7 @@ class ProcessarPagamentoCheckout
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function executar(array $dados)
@@ -36,7 +36,17 @@ class ProcessarPagamentoCheckout
 
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
+
+        // Cálculo de Prorrata
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+        $creditos = 0;
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
+
+        if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
+            $calculadora = new CalculadoraProrata();
+            $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+            $transactionAmount = max(0, $transactionAmount - $creditos);
+        }
 
         Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
@@ -51,6 +61,32 @@ class ProcessarPagamentoCheckout
             'inicia_em'  => now(),
         ]);
 
+        // Se o valor for zero, ativamos direto (Simulando aprovação)
+        if ($transactionAmount <= 0) {
+            $ativarServico = new AtivarPlanoUsuario();
+            $ativarServico->executar((object)[
+                'id' => 'CREDITO-' . time(),
+                'transaction_amount' => 0,
+                'payment_method_id' => 'credits',
+                'status' => 'approved',
+                'status_detail' => 'accredited',
+                'metadata' => [
+                    'user_id' => $usuario->id,
+                    'plano_id' => $plano_id,
+                    'periodo_id' => $periodo_id,
+                    'assinatura_id' => $assinatura->id,
+                    'quantidade_dias' => $periodo->quantidade_dias,
+                    'creditos_prorrata' => $creditos
+                ]
+            ]);
+
+            return (object)[
+                'status' => 'approved',
+                'status_detail' => 'accredited',
+                'id' => 'CREDITO-' . time()
+            ];
+        }
+
 
         $payer = $dados['payer'] ?? [];
         $payerIdNumber = $payer['identification']['number'] ?? $usuario->cpf;
@@ -62,7 +98,7 @@ class ProcessarPagamentoCheckout
 
         if ($dados['payment_method_id'] === 'pix') {
             $paymentData = [
-                "transaction_amount" => $transactionAmount,
+                "transaction_amount" => (float)$transactionAmount,
                 "payment_method_id" => $dados['payment_method_id'],
                 "description" => ($dados['description'] ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
                 "payer" => [
@@ -80,7 +116,8 @@ class ProcessarPagamentoCheckout
                     "plano_id" => $plano_id,
                     "periodo_id" => $periodo_id,
                     "assinatura_id" => $assinatura->id,
-                    "quantidade_dias" => $periodo->quantidade_dias
+                    "quantidade_dias" => $periodo->quantidade_dias,
+                    "creditos_prorrata" => $creditos
                 ],
                 "date_of_expiration" => now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O')
             ];
@@ -94,14 +131,14 @@ class ProcessarPagamentoCheckout
             }
 
             $subscriptionService = new SubscriptionService();
-            $subscription = $subscriptionService->createSubscription($usuario, $plano, $periodo, $token);
+            // Para assinaturas (PreApproval), o MP não aceita cobrança com desconto direto no unit_price de forma trivial?
+            // Na verdade aceita no auto_recurring.
+            $subscription = $subscriptionService->createSubscription($usuario, $plano, $periodo, $token, $creditos);
 
             // Atualiza assinatura local com o ID da preapproval
             $assinatura->update([
                 'preapproval_id' => $subscription->id,
-                'status' => 'active', // Assinaturas no MP nascem authorized, então ativamos aqui? 
-                // Melhor esperar o webhook ou resposta imediata. 
-                // O MP retorna status "authorized" se deu certo.
+                'status' => 'active',
                 'renovacao_automatica' => true
             ]);
 

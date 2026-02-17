@@ -27,7 +27,7 @@ class SubscriptionService
         MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
-    public function createSubscription(Usuario $usuario, Plano $plano, Periodo $periodo, string $cardToken)
+    public function createSubscription(Usuario $usuario, Plano $plano, Periodo $periodo, string $cardToken, float $creditos = 0)
     {
         try {
             // 1. Get or Create Customer
@@ -38,9 +38,10 @@ class SubscriptionService
 
             $frequency = $this->mapPeriodToFrequency($periodo);
 
-            // MP Subscriptions V2 often prefers amount as a float/number but sometimes string works better in older SDKs.
-            // Let's try sending it as a direct numeric value but ensuring 2 decimal places in format.
-            $transactionAmount = (float)number_format(($periodo->pivot->valor_centavos / 100), 2, '.', '');
+            $transactionAmount = ($periodo->pivot->valor_centavos / 100);
+
+            // Aplicar créditos de prorrata
+            $transactionAmount = max(0, $transactionAmount - $creditos);
 
             $data = [
                 "payer_email" => (string)$usuario->email,
@@ -50,7 +51,7 @@ class SubscriptionService
                 "auto_recurring" => [
                     "frequency" => (int)$frequency['value'],
                     "frequency_type" => (string)$frequency['type'],
-                    "transaction_amount" => (float)$transactionAmount,
+                    "transaction_amount" => (float)number_format($transactionAmount, 2, '.', ''),
                     "currency_id" => "BRL"
                 ],
                 "card_token_id" => (string)$cardToken,

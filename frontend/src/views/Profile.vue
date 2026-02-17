@@ -40,6 +40,7 @@
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
                   <v-img v-if="previewAvatar" :src="previewAvatar" cover></v-img>
+                  <v-img v-else-if="user.avatar_url" :src="user.avatar_url" cover></v-img>
                   <v-img v-else-if="user.avatar" :src="authStore.getStorageUrl(user.avatar)" cover></v-img>
                   <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
                 </v-avatar>

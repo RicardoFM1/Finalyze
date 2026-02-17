@@ -79,18 +79,55 @@
                   </div>
 
                   <v-alert v-if="planInfo" type="info" variant="tonal" class="mb-6 rounded-lg">
-                    {{ $t('checkout.plan_selected', { plan: planInfo.nome, period: periodInfo?.nome }) }}
-                    <div class="text-h6 mt-2">{{ $t('checkout.total') }}: {{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</div>
+                    <div class="d-flex justify-space-between align-center">
+                      <span>{{ $t('checkout.plan_selected', { plan: planInfo.nome, period: periodInfo?.nome }) }}</span>
+                    </div>
+
+                    <v-divider class="my-3 opacity-20"></v-divider>
+
+                    <div class="d-flex justify-space-between text-body-2 mb-1">
+                      <span>Subtotal:</span>
+                      <span>{{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</span>
+                    </div>
+
+                    <div v-if="creditosRestantes > 0" class="d-flex justify-space-between text-body-2 mb-1 text-success">
+                      <span>Crédito do plano atual (-):</span>
+                      <span>{{ formatPrice(creditosRestantes) }}</span>
+                    </div>
+
+                    <div class="d-flex justify-space-between text-h6 mt-2 font-weight-bold">
+                      <span>{{ $t('checkout.total') }}:</span>
+                      <span>{{ formatPrice(totalFinal) }}</span>
+                    </div>
                   </v-alert>
 
+                  <!-- Direct activation Button for zero cost -->
+                  <div v-if="totalFinal <= 0 && preferenceId" class="text-center py-4">
+                    <v-icon color="success" size="64" icon="mdi-gift-outline" class="mb-4"></v-icon>
+                    <h4 class="text-h6 mb-2">Upgrade Gratuito!</h4>
+                    <p class="text-body-2 text-medium-emphasis mb-6">
+                      Seus créditos cobrem o valor total deste novo plano.
+                    </p>
+                    <v-btn 
+                      color="success" 
+                      block 
+                      size="large" 
+                      class="rounded-xl font-weight-bold"
+                      :loading="activating"
+                      @click="ativarComCreditos"
+                    >
+                      Confirmar Upgrade Grátis
+                    </v-btn>
+                  </div>
+
                   <PaymentBrick 
-                    v-if="preferenceId" 
+                    v-else-if="preferenceId" 
                     :preferenceId="preferenceId" 
                     :plan-id="planId"
                     :period-id="periodId"
                   />
                   
-                  <div v-if="preferenceId" class="text-center mt-6">
+                  <div v-if="preferenceId && totalFinal > 0" class="text-center mt-6">
                     <v-btn 
                         variant="text" 
                         color="error" 
@@ -147,6 +184,12 @@ const planId = ref(route.query.plan)
 const periodId = ref(route.query.period)
 const planInfo = ref(null)
 const periodInfo = ref(null)
+const creditosRestantes = ref(0)
+const totalFinal = computed(() => {
+    if (!periodInfo.value) return 0
+    const original = periodInfo.value?.pivot?.valor_centavos / 100
+    return Math.max(0, original - creditosRestantes.value)
+})
 
 const loginForm = ref({ email: '', senha: '' })
 const registerForm = ref({ 
@@ -174,6 +217,7 @@ onMounted(async () => {
             const response = await authStore.apiFetch('/checkout/preferencia')
             if (response.ok) {
                 const data = await response.json()
+                creditosRestantes.value = data.creditos_prorrata || 0
                 
                 if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
                     preferenceId.value = null
@@ -358,12 +402,41 @@ const initPayment = async () => {
         const data = await response.json()
         if (response.ok) {
             preferenceId.value = data.id
+            creditosRestantes.value = data.creditos_prorrata || 0
         } else {
             throw new Error(data.error || t('toasts.error_generic'))
         }
     } catch (e) {
         checkoutError.value = e.message || t('toasts.error_generic')
         toast.error(checkoutError.value)
+    }
+}
+
+const activating = ref(false)
+const ativarComCreditos = async () => {
+    activating.value = true
+    try {
+        const response = await authStore.apiFetch('/checkout/processar_pagamento', {
+            method: 'POST',
+            body: JSON.stringify({
+                plano_id: planId.value,
+                periodo_id: periodId.value,
+                payment_method_id: 'credits'
+            })
+        })
+        if (response.ok) {
+            toast.success('Assinatura ativada com sucesso!')
+            setTimeout(() => {
+                window.location.href = '/'
+            }, 2000)
+        } else {
+            const data = await response.json()
+            throw new Error(data.error || 'Erro ao ativar assinatura')
+        }
+    } catch (e) {
+        toast.error(e.message)
+    } finally {
+        activating.value = false
     }
 }
 

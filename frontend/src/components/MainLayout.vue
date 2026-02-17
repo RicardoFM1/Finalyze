@@ -92,7 +92,12 @@
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
-                            v-if="authStore.user.avatar"
+                            v-if="authStore.user.avatar_url"
+                            :src="authStore.user.avatar_url"
+                            cover
+                        ></v-img>
+                        <v-img
+                            v-else-if="authStore.user.avatar"
                             :src="authStore.getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>

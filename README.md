@@ -15,6 +15,15 @@
 - Metas e Anotações agora são "Desativadas" em vez de excluídas.
 - Itens inativos podem ser consultados na aba dedicada e reativados a qualquer momento.
 
+### 4. Gestão Avançada de Assinaturas (Prorrata e Upgrades)
+- **Cálculo de Prorrata**: Ao mudar de plano, o tempo restante do plano atual é convertido em crédito monetário.
+- **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente sem necessidade de pagamento via Mercado Pago.
+- **Acúmulo de Dias**: Renovação do mesmo plano soma os dias à data de expiração atual; mudança de plano (upgrade) reseta o ciclo usando o desconto calculado.
+- **Persistência**: Integração com **Supabase Storage** para garantir que avatares e arquivos não sejam perdidos em cada deploy do Render.
+
+> [!NOTE]
+> Para detalhes técnicos de implementação da prorrata, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
+
 ---
 
 ## Comandos Administrativos (CLI)

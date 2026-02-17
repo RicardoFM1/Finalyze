@@ -3,6 +3,21 @@
     <div class="text-center mb-10">
       <h1 class="text-h3 font-weight-bold mb-2">{{ $t('plans.title') }}</h1>
       <p class="text-subtitle-1 text-medium-emphasis">{{ $t('plans.subtitle') }}</p>
+      
+      <v-row justify="center" class="mt-4">
+        <v-col cols="12" md="8">
+          <v-alert
+            color="info"
+            variant="tonal"
+            icon="mdi-swap-horizontal"
+            class="rounded-lg text-left"
+            density="comfortable"
+          >
+            <div class="text-subtitle-2 font-weight-bold mb-1">Dica de Upgrade</div>
+            Ao mudar de plano, o tempo restante do seu plano atual é convertido em crédito e descontado automaticamente no valor do novo plano.
+          </v-alert>
+        </v-col>
+      </v-row>
     </div>
 
     <v-row v-if="loading" justify="center" align="center" style="min-height: 40vh">

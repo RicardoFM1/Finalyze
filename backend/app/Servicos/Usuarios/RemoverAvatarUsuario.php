@@ -12,7 +12,7 @@ class RemoverAvatarUsuario
         $usuario = Auth::user();
 
         if ($usuario->avatar) {
-            Storage::disk('public')->delete($usuario->avatar);
+            Storage::delete($usuario->avatar);
             $usuario->update(['avatar' => null]);
         }
 

@@ -39,7 +39,7 @@ class SubscriptionController extends Controller
                 ->first();
 
             $historico = HistoricoPagamento::where('user_id', $user->id)
-                ->with('assinatura.plano')
+                ->with(['assinatura.plano', 'assinatura.periodo'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 

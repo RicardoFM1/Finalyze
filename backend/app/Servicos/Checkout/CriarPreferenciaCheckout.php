@@ -17,7 +17,7 @@ class CriarPreferenciaCheckout
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function executar(array $dados)
@@ -31,10 +31,22 @@ class CriarPreferenciaCheckout
         $plano = Plano::findOrFail($planoId);
         $periodo = $plano->periodos()->where('periodos.id', $periodoId)->firstOrFail();
 
+        // Cálculo de Prorrata
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+        $creditos = 0;
+        $totalPagar = $periodo->pivot->valor_centavos / 100;
+
+        if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
+            $calculadora = new CalculadoraProrata();
+            $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+            $totalPagar = max(0, $totalPagar - $creditos);
+        }
+
         $items = [[
             "title" => $plano->nome . " (" . $periodo->nome . ")",
             "quantity" => 1,
-            "unit_price" => $periodo->pivot->valor_centavos / 100
+            "unit_price" => (float)$totalPagar
         ]];
 
         $baseUrl = config('app.url');
@@ -42,25 +54,27 @@ class CriarPreferenciaCheckout
         Log::info('Creating Mercado Pago Preference', [
             'baseUrl' => $baseUrl,
             'items' => $items,
-            'user_id' => auth()->id()
+            'user_id' => $usuario->id,
+            'creditos_aplicados' => $creditos
         ]);
 
         // Criamos uma assinatura pendente primeiro para ter o ID
         $assinatura = Assinatura::create([
-            'user_id' => auth()->id(),
+            'user_id' => $usuario->id,
             'plano_id' => $plano->id,
             'periodo_id' => $periodo->id,
             'status' => 'pending'
         ]);
 
-        $preference = $client->create([
+        $preferenceData = [
             "items" => $items,
             "external_reference" => (string)$assinatura->id,
             "metadata" => [
-                "user_id" => auth()->id(),
+                "user_id" => $usuario->id,
                 "plano_id" => $plano->id,
                 "assinatura_id" => $assinatura->id,
-                "quantidade_dias" => $periodo->quantidade_dias
+                "quantidade_dias" => $periodo->quantidade_dias,
+                "creditos_prorrata" => $creditos
             ],
             "back_urls" => [
                 "success" => $baseUrl . "/?status=success",
@@ -69,7 +83,9 @@ class CriarPreferenciaCheckout
             ],
             "auto_return" => "approved",
             "notification_url" => $baseUrl . "/api/webhook/mercadopago"
-        ]);
+        ];
+
+        $preference = $client->create($preferenceData);
 
         // Atualizamos a assinatura com o ID da preferência
         $assinatura->update(['mercado_pago_id' => $preference->id]);
