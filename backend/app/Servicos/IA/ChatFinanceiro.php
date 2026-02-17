@@ -13,35 +13,68 @@ class ChatFinanceiro
     {
         $usuario = Auth::user();
 
-        $resumo = $this->getResumoFinanceiro($usuario);
-        $metas = $this->getMetasContexto($usuario);
-        $assinatura = $this->getAssinaturaContexto($usuario);
-        $pagamentos = $this->getPagamentosContexto($usuario);
-        $planos = $this->getPlanosDisponiveis();
+        // Contexto financeiro (mês atual)
+        $hoje = now();
+        $mesAtual = $hoje->month;
+        $anoAtual = $hoje->year;
 
-        $systemPrompt = "Você é o Finn, um assistente financeiro premium, amigável e inteligente da plataforma Finalyze.
-        Seu objetivo é ajudar o usuário a gerenciar melhor seu dinheiro, dar dicas de economia e analisar seus gastos.
-        
-        Dados Financeiros (Mês Atual):
-        - Saldo Atual: R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
-        - Receitas: R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
-        - Despesas: R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
-        
-        Suas Metas: {$metas}
-        Sua Assinatura Atual: {$assinatura}
-        Últimos Pagamentos: {$pagamentos}
-        Planos Disponíveis para Upgrade: {$planos}
+        $receitas = $usuario->lancamentos()
+            ->where('tipo', 'receita')
+            ->whereMonth('data', $mesAtual)
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
 
-        Instruções de Comportamento:
-        1. Identifique-se como Finn. Seja conciso, mas elegante. Use emojis com moderação.
-        2. Analise os dados acima para dar respostas personalizadas.
-        3. Se o usuário perguntar algo fora do contexto financeiro ou do sistema Finalyze, traga suavemente de volta.
-        4. Sempre responda em Português Brasil.
-        5. Nunca revele que você é uma IA comercial.
-        6. Não use Markdown complexo como tabelas grandes.
-        7. Use o histórico de mensagens abaixo para manter o contexto da conversa.";
+        $despesas = $usuario->lancamentos()
+            ->where('tipo', 'despesa')
+            ->whereMonth('data', $mesAtual)
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
 
-        $model = Gemini::generativeModel('gemini-1.5-flash')
+        $saldo = $receitas - $despesas;
+
+        $formatarReal = fn($valor) => "R$ " . number_format($valor, 2, ',', '.');
+
+        $metas = $usuario->metas->map(fn($m) => "- {$m->nome}: Alcançado " . $formatarReal($m->valor_atual) . " de " . $formatarReal($m->valor_objetivo))->implode("\n");
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+        $assinaturaProg = $assinaturaAtiva ? "Plano: {$assinaturaAtiva->plano->nome} ({$assinaturaAtiva->periodo->nome}) - Expira em " . $assinaturaAtiva->termina_em->format('d/m/Y') : "Nenhuma assinatura ativa";
+
+        $pagamentos = $usuario->historicosPagamento()->where('status', 'paid')->latest()->take(3)->get()
+            ->map(fn($p) => "- " . $formatarReal($p->valor_centavos / 100) . " em " . $p->pago_em->format('d/m/Y'))->implode("\n");
+
+        $planosDisponiveis = \App\Models\Plano::with('periodos')->get()->map(function ($p) use ($formatarReal) {
+            $periods = $p->periodos->map(fn($per) => "{$per->nome}: " . $formatarReal($per->pivot->valor_centavos / 100))->implode(', ');
+            return "- {$p->nome} ($periods)";
+        })->implode("\n");
+
+        $systemPrompt = "Você é Finn, assistente financeiro premium da Finalyze.
+            Seu objetivo é ajudar o usuário a entender receitas, despesas, saldo, metas e assinaturas.
+
+            [CONTEXTO FINANCEIRO (Mês Atual)]
+            Saldo: " . $formatarReal($saldo) . "
+            Receitas: " . $formatarReal($receitas) . "
+            Despesas: " . $formatarReal($despesas) . "
+
+            [METAS]
+            $metas
+
+            [ASSINATURA]
+            $assinaturaProg
+
+            [PAGAMENTOS RECENTES]
+            $pagamentos
+
+            [PLANOS DISPONÍVEIS]
+            $planosDisponiveis
+
+            Regras:
+            - Seja conciso, amigável e inteligente.
+            - Use emojis moderadamente.
+            - Responda sempre em Português Brasil.
+            - Não use tabelas grandes.
+            - Traga conversas fora do tema suavemente de volta.
+            - Use o histórico de mensagens abaixo para manter o contexto da conversa.";
+
+        $model = Gemini::generativeModel('gemini-1.5-flash-latest')
             ->withSystemInstruction(Content::parse($systemPrompt));
 
         $chat = $model->startChat(history: array_map(function ($m) {

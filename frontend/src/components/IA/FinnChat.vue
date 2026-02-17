@@ -1,18 +1,22 @@
 <template>
-  <div class="finn-chat-wrapper" v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated">
-    <!-- FAB Toggle (The small arrow to show/hide the main icon) -->
-    <v-btn
-      size="x-small"
-      icon
-      color="primary"
-      v-if="!isOpen"
-      :class="['finn-toggle-btn', { 'is-hidden': isHidden }]"
-      @click="isHidden = !isHidden"
+  <div v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated">
+    <div 
+      :class="['finn-chat-wrapper', { 'is-hidden': isHidden }]"
+      :style="draggableStyle"
     >
-      <v-icon>{{ isHidden ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
-    </v-btn>
+      <!-- FAB Toggle -->
+      <v-btn
+        size="x-small"
+        icon
+        color="primary"
+        v-if="!isOpen"
+        class="finn-toggle-btn"
+        @click="isHidden = !isHidden"
+      >
+        <v-icon>{{ isHidden ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
+      </v-btn>
 
-    <div :class="['finn-chat-container', { 'is-hidden': isHidden || isOpen }]">
+      <div :class="['finn-chat-container', { 'is-hidden': isHidden || isOpen }]">
       <!-- Chat Button (FAB) -->
       <v-btn
         v-if="!isOpen"
@@ -36,14 +40,17 @@
         max-height="650"
       >
       <!-- Header -->
-      <v-toolbar color="primary" density="comfortable">
-        <v-avatar size="32" class="ml-4 mr-2">
-            <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
-        </v-avatar>
-        <v-toolbar-title class="text-subtitle-1 font-weight-bold">Finn - Assistente IA</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-btn icon="mdi-close" size="small" @click="isOpen = false"></v-btn>
-      </v-toolbar>
+        <v-card-title 
+          class="d-flex align-center py-2 px-4 draggable-header"
+          @mousedown="startDrag"
+        >
+          <v-avatar size="32" class="mr-3">
+            <v-img src="/finn-avatar.png" alt="Finn"></v-img>
+          </v-avatar>
+          <span class="text-subtitle-1 font-weight-bold">Finn</span>
+          <v-spacer></v-spacer>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false"></v-btn>
+        </v-card-title>
 
       <!-- Messages Area -->
       <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4 flex-grow-1">
@@ -102,6 +109,7 @@
       </v-card>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -114,6 +122,44 @@ const { mobile } = useDisplay()
 const isMobile = computed(() => mobile.value)
 const isHidden = ref(false)
 const isOpen = ref(false)
+
+// Draggable Logic
+const position = ref({ x: 0, y: 0 })
+const isDragging = ref(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+const draggableStyle = computed(() => {
+  if (position.value.x === 0 && position.value.y === 0) return {}
+  return {
+    transform: `translate(${position.value.x}px, ${position.value.y}px)`,
+    transition: isDragging.value ? 'none' : 'transform 0.3s ease'
+  }
+})
+
+const startDrag = (e) => {
+  if (window.innerWidth < 960) return // Disable on mobile
+  isDragging.value = true
+  dragOffset.value = {
+    x: e.clientX - position.value.x,
+    y: e.clientY - position.value.y
+  }
+  window.addEventListener('mousemove', onDrag)
+  window.addEventListener('mouseup', stopDrag)
+}
+
+const onDrag = (e) => {
+  if (!isDragging.value) return
+  position.value = {
+    x: e.clientX - dragOffset.value.x,
+    y: e.clientY - dragOffset.value.y
+  }
+}
+
+const stopDrag = () => {
+  isDragging.value = false
+  window.removeEventListener('mousemove', onDrag)
+  window.removeEventListener('mouseup', stopDrag)
+}
 const input = ref('')
 const loading = ref(false)
 const chatBox = ref(null)
@@ -249,17 +295,25 @@ const saveEdit = async () => {
   z-index: 9999;
   display: flex;
   align-items: center;
+  transition: right 0.3s ease;
+}
+
+.finn-chat-wrapper.is-hidden {
+  right: -8px;
 }
 
 .finn-toggle-btn {
   transition: all 0.3s ease;
   z-index: 10000;
-  position: absolute;
-  right: 0;
+  margin-right: -4px;
 }
 
-.finn-toggle-btn.is-hidden {
-  right: -20px;
+.draggable-header {
+  cursor: grab;
+}
+
+.draggable-header:active {
+  cursor: grabbing;
 }
 
 .finn-chat-container {

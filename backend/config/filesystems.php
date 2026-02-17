@@ -71,7 +71,6 @@ return [
             'use_path_style_endpoint' => env('SUPABASE_USE_PATH_STYLE_ENDPOINT', true),
             'throw' => true,
             'report' => false,
-            'visibility' => 'public',
         ],
 
     ],

@@ -43,6 +43,15 @@ class SubscriptionService
             // Aplicar créditos de prorrata
             $transactionAmount = max(0, $transactionAmount - $creditos);
 
+            // Prepare payer identification
+            $cpfNumber = str_replace(['.', '-', ' '], '', $usuario->cpf ?? '');
+            if (empty($cpfNumber) && config('app.env') !== 'production') {
+                $cpfNumber = '19119119100'; // Test CPF
+            }
+
+            $firstName = explode(' ', $usuario->nome)[0] ?? 'Usuario';
+            $lastName = implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?: 'Finalyze';
+
             $data = [
                 "payer_email" => (string)$usuario->email,
                 "back_url" => config('app.url'),
@@ -53,6 +62,15 @@ class SubscriptionService
                     "frequency_type" => (string)$frequency['type'],
                     "transaction_amount" => (float)number_format($transactionAmount, 2, '.', ''),
                     "currency_id" => "BRL"
+                ],
+                "payer" => [
+                    "email" => (string)$usuario->email,
+                    "first_name" => $firstName,
+                    "last_name" => $lastName,
+                    "identification" => [
+                        "type" => "CPF",
+                        "number" => $cpfNumber
+                    ]
                 ],
                 "card_token_id" => (string)$cardToken,
                 "status" => "authorized"

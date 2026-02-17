@@ -32,12 +32,13 @@ class CriarPreferenciaCheckout
         $periodo = $plano->periodos()->where('periodos.id', $periodoId)->firstOrFail();
 
         // Cálculo de Prorrata
+        /** @var \App\Models\Usuario $usuario */
         $usuario = auth()->user();
         $assinaturaAtiva = $usuario->assinaturaAtiva();
         $creditos = 0;
         $totalPagar = $periodo->pivot->valor_centavos / 100;
 
-        if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
+        if ($assinaturaAtiva && ($assinaturaAtiva->plano_id != $plano->id || $assinaturaAtiva->periodo_id != $periodo->id)) {
             $calculadora = new CalculadoraProrata();
             $creditos = $calculadora->calcularCredito($assinaturaAtiva);
             $totalPagar = max(0, $totalPagar - $creditos);
@@ -91,7 +92,7 @@ class CriarPreferenciaCheckout
         $assinatura->update(['mercado_pago_id' => $preference->id]);
 
         // Cancelamos outras assinaturas pendentes para evitar duplicidade
-        Assinatura::where('user_id', auth()->id())
+        Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->where('id', '!=', $assinatura->id)
             ->update(['status' => 'cancelled']);
