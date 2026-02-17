@@ -27,8 +27,14 @@ class SubscriptionController extends Controller
             $user = auth()->user();
 
             // Busca a assinatura ativa ou a mais recente que ainda não expirou
+            // Prioriza status 'active' ou 'authorized' sobre 'cancelled' ou 'expired'
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->with(['plano', 'periodo'])
+                ->orderByRaw("CASE 
+                    WHEN status = 'active' THEN 1 
+                    WHEN status = 'authorized' THEN 2
+                    WHEN status = 'pending' THEN 3
+                    ELSE 4 END")
                 ->orderBy('termina_em', 'desc')
                 ->first();
 

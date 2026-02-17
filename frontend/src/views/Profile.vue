@@ -457,7 +457,12 @@ const hasActiveOrValidSubscription = computed(() => {
     if (!subscriptionData.value.assinatura) return false
     const s = subscriptionData.value.assinatura
     
-    if (s.status === 'active') return true
+    // Consideramos ativa se o status for active ou authorized (MP)
+    if (s.status === 'active' || s.status === 'authorized') return true
+    
+    // Se estiver pendente, também queremos mostrar o card (embora com aviso)
+    if (s.status === 'pending') return true
+
     const end = new Date(s.termina_em).getTime()
     const now = new Date().getTime()
     return end > now
