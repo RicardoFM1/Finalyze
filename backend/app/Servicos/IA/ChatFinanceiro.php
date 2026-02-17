@@ -2,8 +2,6 @@
 
 namespace App\Servicos\IA;
 
-use Gemini\Data\Content;
-use Gemini\Enums\Role;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,76 +11,40 @@ class ChatFinanceiro
     {
         $usuario = Auth::user();
 
-        // Contexto financeiro (mês atual)
-        $hoje = now();
-        $mesAtual = $hoje->month;
-        $anoAtual = $hoje->year;
+        $resumo = $this->getResumoFinanceiro($usuario);
+        $metas = $this->getMetasContexto($usuario);
+        $assinatura = $this->getAssinaturaContexto($usuario);
+        $pagamentos = $this->getPagamentosContexto($usuario);
 
-        $receitas = $usuario->lancamentos()
-            ->where('tipo', 'receita')
-            ->whereMonth('data', $mesAtual)
-            ->whereYear('data', $anoAtual)
-            ->sum('valor');
+        $systemPrompt = "Você é o Finn, um assistente financeiro premium, amigável e inteligente da plataforma Finalyze.
+        Seu objetivo é ajudar o usuário a gerenciar melhor seu dinheiro, dar dicas de economia e analisar seus gastos.
+        
+        Contexto do Usuário:
+        - Nome: {$usuario->nome}
+        - Saldo Atual: R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
+        - Receitas (Mês Atual): R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
+        - Despesas (Mês Atual): R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
+        
+        Metas Financeiras:
+        {$metas}
+        
+        Assinatura:
+        {$assinatura}
+        
+        Pagamentos Recentes:
+        {$pagamentos}
+        
+        Instruções de Comportamento:
+        1. Seja conciso, mas elegante. Use emojis com moderação.
+        2. Se o usuário perguntar algo fora do contexto financeiro, tente trazer suavemente de volta para o assunto de finanças.
+        3. Dê dicas práticas baseadas no saldo e metas dele. 
+        4. Sempre responda em Português Brasil.
+        5. Nunca revele que você é um modelo de linguagem IA, aja como o Finn.
+        6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
+        7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
-        $despesas = $usuario->lancamentos()
-            ->where('tipo', 'despesa')
-            ->whereMonth('data', $mesAtual)
-            ->whereYear('data', $anoAtual)
-            ->sum('valor');
-
-        $saldo = $receitas - $despesas;
-
-        $formatarReal = fn($valor) => "R$ " . number_format($valor, 2, ',', '.');
-
-        $metas = $usuario->metas->map(fn($m) => "- {$m->nome}: Alcançado " . $formatarReal($m->valor_atual) . " de " . $formatarReal($m->valor_objetivo))->implode("\n");
-        $assinaturaAtiva = $usuario->assinaturaAtiva();
-        $assinaturaProg = $assinaturaAtiva ? "Plano: {$assinaturaAtiva->plano->nome} ({$assinaturaAtiva->periodo->nome}) - Expira em " . $assinaturaAtiva->termina_em->format('d/m/Y') : "Nenhuma assinatura ativa";
-
-        $pagamentos = $usuario->historicosPagamento()->where('status', 'paid')->latest()->take(3)->get()
-            ->map(fn($p) => "- " . $formatarReal($p->valor_centavos / 100) . " em " . $p->pago_em->format('d/m/Y'))->implode("\n");
-
-        $planosDisponiveis = \App\Models\Plano::with('periodos')->get()->map(function ($p) use ($formatarReal) {
-            $periods = $p->periodos->map(fn($per) => "{$per->nome}: " . $formatarReal($per->pivot->valor_centavos / 100))->implode(', ');
-            return "- {$p->nome} ($periods)";
-        })->implode("\n");
-
-        $systemPrompt = "Você é Finn, assistente financeiro premium da Finalyze.
-            Seu objetivo é ajudar o usuário a entender receitas, despesas, saldo, metas e assinaturas.
-
-            [CONTEXTO FINANCEIRO (Mês Atual)]
-            Saldo: " . $formatarReal($saldo) . "
-            Receitas: " . $formatarReal($receitas) . "
-            Despesas: " . $formatarReal($despesas) . "
-
-            [METAS]
-            $metas
-
-            [ASSINATURA]
-            $assinaturaProg
-
-            [PAGAMENTOS RECENTES]
-            $pagamentos
-
-            [PLANOS DISPONÍVEIS]
-            $planosDisponiveis
-
-            Regras:
-            - Seja conciso, amigável e inteligente.
-            - Use emojis moderadamente.
-            - Responda sempre em Português Brasil.
-            - Não use tabelas grandes.
-            - Traga conversas fora do tema suavemente de volta.
-            - Use o histórico de mensagens abaixo para manter o contexto da conversa.";
-
-        $model = Gemini::generativeModel('gemini-1.5-flash')
-            ->withSystemInstruction(Content::parse($systemPrompt));
-
-        $chat = $model->startChat(history: array_map(function ($m) {
-            return new Content(
-                parts: [new \Gemini\Data\Part(text: $m['content'])],
-                role: $m['role'] === 'user' ? Role::USER : Role::MODEL
-            );
-        }, $historico));
+        $chat = Gemini::chat()
+            ->withSystemInstruction($systemPrompt);
 
         $response = $chat->sendMessage($mensagem);
 
@@ -120,35 +82,39 @@ class ChatFinanceiro
     protected function getMetasContexto($usuario)
     {
         $metas = $usuario->metas()->where('status', 'ativo')->get();
-        if ($metas->isEmpty()) return "Nenhuma meta ativa no momento.";
+        if ($metas->isEmpty()) return "Nenhuma meta ativa";
 
-        return $metas->map(fn($m) => "{$m->titulo} (Alvo: R$ {$m->valor_objetivo})")->implode(', ');
+        return $metas->map(function ($m) {
+            $percent = $m->valor_objetivo > 0 ? round(($m->valor_atual / $m->valor_objetivo) * 100) : 0;
+            return "- {$m->nome}: R$ " . number_format($m->valor_atual, 2, ',', '.') .
+                " / R$ " . number_format($m->valor_objetivo, 2, ',', '.') . " ({$percent}%)";
+        })->implode("\n");
     }
 
     protected function getAssinaturaContexto($usuario)
     {
         $assinatura = $usuario->assinaturaAtiva();
-        if (!$assinatura) return "Sem plano premium ativo (Plano Free).";
+        if (!$assinatura) return "Plano Free (sem assinatura premium)";
 
         $nomePlano = $assinatura->plano->nome;
         $vencimento = $assinatura->termina_em->format('d/m/Y');
-        return "Plano {$nomePlano}, vence em {$vencimento}.";
+        return "Plano {$nomePlano}, vence em {$vencimento}";
     }
 
     protected function getPagamentosContexto($usuario)
     {
-        $historico = $usuario->historicosPagamento()->latest()->take(3)->get();
-        if ($historico->isEmpty()) return "Nenhum pagamento registrado.";
+        $historico = $usuario->historicosPagamento()
+            ->where('status', 'paid')
+            ->latest('pago_em')
+            ->take(3)
+            ->get();
 
-        return $historico->map(fn($h) => "R$ {$h->valor_pago} em {$h->created_at->format('d/m/Y')}")->implode('; ');
-    }
+        if ($historico->isEmpty()) return "Nenhum pagamento registrado";
 
-    protected function getPlanosDisponiveis()
-    {
-        $planos = \App\Models\Plano::where('ativo', true)->with('periodos')->get();
-        return $planos->map(function ($p) {
-            $valores = $p->periodos->map(fn($per) => "{$per->nome}: R$ " . ($per->pivot->valor_centavos / 100))->implode(', ');
-            return "{$p->nome} ({$valores})";
-        })->implode(' | ');
+        return $historico->map(function ($h) {
+            $valor = number_format($h->valor_centavos / 100, 2, ',', '.');
+            $data = $h->pago_em ? $h->pago_em->format('d/m/Y') : $h->created_at->format('d/m/Y');
+            return "- R$ {$valor} em {$data}";
+        })->implode("\n");
     }
 }

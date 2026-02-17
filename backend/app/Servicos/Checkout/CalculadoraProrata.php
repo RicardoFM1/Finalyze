@@ -36,17 +36,15 @@ class CalculadoraProrata
         $diasRestantes = $agora->diffInDays($fim, false);
         if ($diasRestantes <= 0) return 0.0;
 
-        // Buscar o valor que o usuário realmente pagou por essa assinatura
-        // Primeiro tenta o histórico de pagamento vinculado a esta assinatura específica
-        $ultimoPagamento = $assinatura->usuario->historicosPagamento()
+        // Buscar TODOS os pagamentos da assinatura atual e somar
+        $totalPagoEmCentavos = $assinatura->usuario->historicosPagamento()
             ->where('status', 'paid')
             ->where('assinatura_id', $assinatura->id)
             ->where('valor_centavos', '>', 0)
-            ->orderBy('pago_em', 'desc')
-            ->first();
+            ->sum('valor_centavos');
 
-        // Se não encontrou, usa o valor do plano/período atual da assinatura
-        if (!$ultimoPagamento) {
+        // Se não encontrou nenhum pagamento, usa o valor do plano/período atual
+        if ($totalPagoEmCentavos == 0) {
             \Log::info("Prorata: Nenhum pagamento encontrado para assinatura #{$assinatura->id}, usando valor do plano");
 
             $plano = $assinatura->plano;
@@ -70,7 +68,7 @@ class CalculadoraProrata
 
             $valorPago = $valorCentavos / 100;
         } else {
-            $valorPago = $ultimoPagamento->valor_centavos / 100;
+            $valorPago = $totalPagoEmCentavos / 100;
         }
 
         \Log::info("Calculando Prorrata:", [
@@ -78,7 +76,7 @@ class CalculadoraProrata
             'totalDias' => $totalDias,
             'diasRestantes' => $diasRestantes,
             'valorPago' => $valorPago,
-            'pagamento_id' => $ultimoPagamento->id ?? 'usando_valor_plano'
+            'total_pagamentos_centavos' => $totalPagoEmCentavos
         ]);
 
         // Regra de Prorrata simples: (dias_restantes / total_dias) * valor_pago
