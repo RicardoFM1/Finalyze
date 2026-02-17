@@ -190,6 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
     const getStorageUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
+        if (path.startsWith('data:')) return path; // Base64
         const baseUrl = API_URL.replace('/api', '');
         return `${baseUrl}/storage/${path}`;
     }

@@ -65,9 +65,7 @@ class AtualizarUsuario
             \Log::info('No new avatar file received.');
         }
 
-        // Remove avatar from dados to prevent it being overwritten by null if handled separately
-        unset($dados['avatar']);
-
+        // Fill and save the user
         $usuario->fill($dados);
         $usuario->save();
 
