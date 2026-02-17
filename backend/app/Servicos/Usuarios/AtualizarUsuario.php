@@ -11,40 +11,60 @@ class AtualizarUsuario
     {
         $usuario = Auth::user();
 
-        if ($avatarFile) {
-            \Log::info('Avatar file received', [
-                'name' => $avatarFile->getClientOriginalName(),
-                'size' => $avatarFile->getSize(),
-                'mime' => $avatarFile->getMimeType()
-            ]);
+        // Avatar em base64
+        if ($request->hasFile('avatar')) {
+            $avatarFile = $request->file('avatar');
 
             if (!$avatarFile->isValid()) {
-                \Log::error('Avatar file is not valid', ['error' => $avatarFile->getErrorMessage()]);
-                throw new \Exception('O arquivo de avatar é inválido ou excedeu o limite do servidor.');
+                throw new \Exception('Arquivo de avatar inválido.');
             }
 
+            // Remove avatar antigo se existir
             if ($usuario->avatar) {
-                Storage::delete($usuario->avatar);
-            }
-            try {
-                $path = $avatarFile->store('avatars', 'public');
-
-                if (!$path) {
-                    \Log::error('Failed to store avatar file: storage returned null');
-                    throw new \Exception('O serviço de armazenamento não retornou o caminho do arquivo.');
+                // If the old avatar was a file path, delete it.
+                // If it was base64, setting to null is sufficient.
+                // Assuming previous avatars might have been file paths,
+                // we should check if it's a path before attempting to delete.
+                if (strpos($usuario->avatar, 'data:') !== 0) { // If it's not a base64 string
+                    Storage::delete($usuario->avatar);
                 }
+                $usuario->avatar = null;
+            }
+
+            try {
+                // Converte para base64
+                $imageData = file_get_contents($avatarFile->getRealPath());
+                $base64 = base64_encode($imageData);
+                $mimeType = $avatarFile->getMimeType();
+
+                // Formato: data:image/png;base64,iVBORw0KG...
+                $dados['avatar'] = "data:{$mimeType};base64,{$base64}";
+
+                \Log::info('Avatar convertido para base64', [
+                    'mime_type' => $mimeType,
+                    'size_bytes' => strlen($imageData)
+                ]);
             } catch (\Exception $e) {
-                \Log::error('Exception storing avatar file', [
+                \Log::error('Exception converting avatar to base64', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                throw new \Exception('Erro ao salvar avatar: ' . $e->getMessage());
+                throw new \Exception('Erro ao processar avatar: ' . $e->getMessage());
             }
-
-            \Log::info('Avatar stored successfully', ['path' => $path]);
-            $usuario->avatar = $path;
         } else {
-            \Log::info('No avatar file received');
+            // If no new avatar file is provided, and 'avatar' key exists in $dados
+            // and its value is explicitly null or empty, it means the user wants to remove the avatar.
+            if (isset($dados['avatar']) && (is_null($dados['avatar']) || $dados['avatar'] === '')) {
+                if ($usuario->avatar) {
+                    // If the old avatar was a file path, delete it.
+                    if (strpos($usuario->avatar, 'data:') !== 0) {
+                        Storage::delete($usuario->avatar);
+                    }
+                    $usuario->avatar = null;
+                    \Log::info('Avatar removed by user request.');
+                }
+            }
+            \Log::info('No new avatar file received.');
         }
 
         // Remove avatar from dados to prevent it being overwritten by null if handled separately

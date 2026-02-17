@@ -91,9 +91,7 @@ class Usuario extends Authenticatable
 
     public function getAvatarUrlAttribute()
     {
-        if (!$this->avatar) return null;
-
-        // On Render, return full API URL to avatar endpoint
-        return env('APP_URL') . '/api/avatar/' . basename($this->avatar);
+        // Avatar já está em base64 (data:image/png;base64,...)
+        return $this->avatar;
     }
 }

@@ -20,13 +20,14 @@ class UserController extends Controller
         return $servico->executar($request->validated(), $request->file('avatar'));
     }
 
-    public function removerAvatar(RemoverAvatarUsuario $servico)
+    public function removerAvatar(Request $request)
     {
-        $usuario = $servico->executar();
+        $usuario = $request->user();
 
-        return response()->json([
-            'message' => 'Avatar removido com sucesso.',
-            'usuario' => $usuario
-        ]);
+        // Como está em base64 no banco, só precisa setar null
+        $usuario->avatar = null;
+        $usuario->save();
+
+        return response()->json(['message' => 'Avatar removido com sucesso']);
     }
 }
