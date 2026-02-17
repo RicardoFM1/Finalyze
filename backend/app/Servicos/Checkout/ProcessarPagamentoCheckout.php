@@ -103,8 +103,8 @@ class ProcessarPagamentoCheckout
                 "description" => ($dados['description'] ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
                 "payer" => [
                     "email" => $usuario->email,
-                    "first_name" => explode(' ', $usuario->nome)[0] ?? 'Usuario',
-                    "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?? 'Usuario',
+                    "first_name" => explode(' ', $usuario->nome)[0] ?: 'Usuario',
+                    "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?: (explode(' ', $usuario->nome)[0] ?: 'Usuario'),
                     "identification" => [
                         "type" => $payer['identification']['type'] ?? 'CPF',
                         "number" => $payerIdNumber
@@ -122,7 +122,24 @@ class ProcessarPagamentoCheckout
                 "date_of_expiration" => now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O')
             ];
 
-            return $client->create($paymentData);
+            $response = $client->create($paymentData);
+
+            // Criar registro no histórico mesmo sendo pendente/rejeitado para o usuário ver no front
+            try {
+                \App\Models\HistoricoPagamento::create([
+                    'user_id' => $usuario->id,
+                    'assinatura_id' => $assinatura->id,
+                    'valor_centavos' => (int)($transactionAmount * 100),
+                    'status' => $response->status ?? 'pending',
+                    'metodo_pagamento' => 'pix',
+                    'mercado_pago_id' => (string)($response->id ?? null),
+                    'pago_em' => ($response->status === 'approved') ? now() : null
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Erro ao salvar histórico inicial de Pix: " . $e->getMessage());
+            }
+
+            return $response;
         } else {
             // Credit Card = Auto Renewal (Subscription)
             $token = $dados['token'];

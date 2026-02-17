@@ -12,9 +12,7 @@ class AtualizarUsuario
         $usuario = Auth::user();
 
         // Avatar em base64
-        if ($request->hasFile('avatar')) {
-            $avatarFile = $request->file('avatar');
-
+        if ($avatarFile) {
             if (!$avatarFile->isValid()) {
                 throw new \Exception('Arquivo de avatar inválido.');
             }

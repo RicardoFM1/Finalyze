@@ -37,11 +37,13 @@ class CalculadoraProrata
         if ($diasRestantes <= 0) return 0.0;
 
         // Buscar TODOS os pagamentos da assinatura atual e somar
-        $totalPagoEmCentavos = $assinatura->usuario->historicosPagamento()
+        $pagamentos = $assinatura->usuario->historicosPagamento()
             ->where('status', 'paid')
             ->where('assinatura_id', $assinatura->id)
             ->where('valor_centavos', '>', 0)
-            ->sum('valor_centavos');
+            ->get();
+
+        $totalPagoEmCentavos = $pagamentos->sum('valor_centavos');
 
         // Se não encontrou nenhum pagamento, usa o valor do plano/período atual
         if ($totalPagoEmCentavos == 0) {
