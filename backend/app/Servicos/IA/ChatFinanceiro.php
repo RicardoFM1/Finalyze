@@ -74,7 +74,7 @@ class ChatFinanceiro
             - Traga conversas fora do tema suavemente de volta.
             - Use o histórico de mensagens abaixo para manter o contexto da conversa.";
 
-        $model = Gemini::generativeModel('gemini-1.5-flash-latest')
+        $model = Gemini::generativeModel('gemini-1.5-flash')
             ->withSystemInstruction(Content::parse($systemPrompt));
 
         $chat = $model->startChat(history: array_map(function ($m) {

@@ -15,6 +15,9 @@ class CalculadoraProrata
      */
     public function calcularCredito(Assinatura $assinatura)
     {
+        // VERSION CHECK: Se ver esta mensagem nos logs, o código NOVO está rodando
+        \Log::info("🔄 CalculadoraProrata v2.0 - FIXED VERSION", ['assinatura_id' => $assinatura->id]);
+
         if ($assinatura->status !== 'active' || !$assinatura->termina_em || !$assinatura->inicia_em) {
             return 0.0;
         }
