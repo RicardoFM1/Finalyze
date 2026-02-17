@@ -121,6 +121,14 @@ class CheckoutController extends Controller
         $periodo = $plano->periodos()->findOrFail($request->periodo_id);
         $valorPlano = $periodo->pivot->valor_centavos / 100;
 
+        \Log::info("Upgrade Check:", [
+            'user' => $usuario->id,
+            'current_sub' => $assinaturaAtiva->id,
+            'creditos' => $creditos,
+            'valor_plano' => $valorPlano,
+            'gratuito' => $creditos >= $valorPlano
+        ]);
+
         return response()->json([
             'creditos' => $creditos,
             'valor_plano' => $valorPlano,

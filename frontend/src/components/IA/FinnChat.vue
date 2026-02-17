@@ -224,10 +224,7 @@ const saveEdit = async () => {
 
 <style scoped>
 .finn-chat-container {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .finn-fab {
@@ -265,11 +262,11 @@ const saveEdit = async () => {
     bottom: 0;
     width: 100% !important;
     height: 100dvh !important;
-    max-height: 100dvh !important;
+    max-height: 100vh !important;
     margin: 0;
   }
   .chat-messages {
-    height: calc(100vh - 120px) !important;
+    height: calc(100vh - 140px) !important;
   }
 }
 

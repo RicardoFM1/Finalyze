@@ -101,27 +101,8 @@
                     </div>
                   </v-alert>
 
-                  <!-- Direct activation Button for zero cost -->
-                  <div v-if="totalFinal <= 0 && preferenceId" class="text-center py-4">
-                    <v-icon color="success" size="64" icon="mdi-gift-outline" class="mb-4"></v-icon>
-                    <h4 class="text-h6 mb-2">Upgrade Gratuito!</h4>
-                    <p class="text-body-2 text-medium-emphasis mb-6">
-                      Seus créditos cobrem o valor total deste novo plano.
-                    </p>
-                    <v-btn 
-                      color="success" 
-                      block 
-                      size="large" 
-                      class="rounded-xl font-weight-bold"
-                      :loading="activating"
-                      @click="ativarComCreditos"
-                    >
-                      Confirmar Upgrade Grátis
-                    </v-btn>
-                  </div>
-
                   <PaymentBrick 
-                    v-else-if="preferenceId" 
+                    v-if="preferenceId" 
                     :preferenceId="preferenceId" 
                     :plan-id="planId"
                     :period-id="periodId"
@@ -412,33 +393,6 @@ const initPayment = async () => {
     }
 }
 
-const activating = ref(false)
-const ativarComCreditos = async () => {
-    activating.value = true
-    try {
-        const response = await authStore.apiFetch('/checkout/processar_pagamento', {
-            method: 'POST',
-            body: JSON.stringify({
-                plano_id: planId.value,
-                periodo_id: periodId.value,
-                payment_method_id: 'credits'
-            })
-        })
-        if (response.ok) {
-            toast.success('Assinatura ativada com sucesso!')
-            setTimeout(() => {
-                window.location.href = '/'
-            }, 2000)
-        } else {
-            const data = await response.json()
-            throw new Error(data.error || 'Erro ao ativar assinatura')
-        }
-    } catch (e) {
-        toast.error(e.message)
-    } finally {
-        activating.value = false
-    }
-}
 
 const cancelling = ref(false)
 const cancelPendingPayment = async () => {

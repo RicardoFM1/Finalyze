@@ -31,14 +31,16 @@ class ChatIaController extends Controller
         ]);
 
         try {
-            // Pegar histórico para contexto (últimas 15 mensagens)
+            // Pegar histórico para contexto (últimas 15 mensagens, excluindo a atual)
             $historico = $usuario->mensagensChat()
+                ->where('role', '!=', 'pending') // Garantir que não pegamos temporários
                 ->orderBy('created_at', 'desc')
+                ->skip(1) // Pula a mensagem do usuário que acabamos de salvar
                 ->take(15)
                 ->get()
                 ->reverse()
                 ->map(fn($m) => [
-                    'role' => $m->role,
+                    'role' => $m->role === 'bot' ? 'model' : 'user',
                     'content' => $m->texto
                 ])
                 ->toArray();

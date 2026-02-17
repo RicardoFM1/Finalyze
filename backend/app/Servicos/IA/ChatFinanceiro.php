@@ -45,8 +45,8 @@ class ChatFinanceiro
             ->withSystemInstruction(Content::parse($systemPrompt));
 
         $chat = $model->startChat(history: array_map(function ($m) {
-            return Content::parse(
-                part: $m['content'],
+            return new Content(
+                parts: [new \Gemini\Data\Part(text: $m['content'])],
                 role: $m['role'] === 'user' ? Role::USER : Role::MODEL
             );
         }, $historico));
