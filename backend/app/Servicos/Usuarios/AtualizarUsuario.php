@@ -27,7 +27,13 @@ class AtualizarUsuario
                 Storage::delete($usuario->avatar);
             }
             try {
-                $path = $avatarFile->store('avatars', 'supabase');
+                $filename = uniqid() . '.' . $avatarFile->getClientOriginalExtension();
+                $path = Storage::disk('supabase')->putFileAs(
+                    'avatars',
+                    $avatarFile,
+                    $filename,
+                    ['visibility' => 'public']
+                );
 
                 if (!$path) {
                     \Log::error('Failed to store avatar file: storage returned null');

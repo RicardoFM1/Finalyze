@@ -76,8 +76,13 @@
             <v-icon color="success" size="64" class="mb-4">mdi-gift-outline</v-icon>
             <h3 class="text-h5 font-weight-bold mb-2">Você ganhou um Upgrade!</h3>
             <p class="text-body-1 text-medium-emphasis mb-4">
-                Seus créditos do plano atual (R$ {{ selectedForUpgrade?.creditos }}) cobrem totalmente o valor do novo plano.
-                Deseja migrar agora mesmo de forma gratuita?
+                <span v-if="selectedForUpgrade?.gratuito">
+                    Seus créditos (R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }}) cobrem totalmente o valor do novo plano!
+                </span>
+                <span v-else>
+                    Você tem R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }} de crédito do seu plano atual.
+                    Aproveite o desconto!
+                </span>
             </p>
             
             <v-card variant="tonal" :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" class="pa-3 rounded-lg mb-6">
@@ -86,12 +91,19 @@
                     <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
-                    <span class="text-subtitle-2">Crédito Aplicado:</span>
-                    <span class="text-success font-weight-bold">R$ {{ selectedForUpgrade?.creditos }}</span>
+                    <span class="text-subtitle-2">Valor Original:</span>
+                    <span :class="selectedForUpgrade?.gratuito ? 'text-decoration-line-through' : ''">R$ {{ selectedForUpgrade?.valorPlano?.toFixed(2) }}</span>
                 </div>
-                <div class="d-flex justify-space-between align-center mt-1" v-if="!selectedForUpgrade?.gratuito">
-                    <span class="text-subtitle-2">Valor Total:</span>
-                    <span class="text-decoration-line-through">R$ {{ selectedForUpgrade?.period.pivot.valor_centavos / 100 }}</span>
+                <div class="d-flex justify-space-between align-center mt-1">
+                    <span class="text-subtitle-2">Crédito Aplicado:</span>
+                    <span class="text-success font-weight-bold">- R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }}</span>
+                </div>
+                <v-divider class="my-2"></v-divider>
+                <div class="d-flex justify-space-between align-center">
+                    <span class="text-subtitle-1 font-weight-bold">Total a Pagar:</span>
+                    <span class="text-h6 font-weight-bold" :class="selectedForUpgrade?.gratuito ? 'text-success' : 'text-primary'">
+                        R$ {{ selectedForUpgrade?.valorFinal?.toFixed(2) }}
+                    </span>
                 </div>
             </v-card>
 
@@ -191,7 +203,14 @@ const handleSelectPlan = async ({ plan, period }) => {
             if (response.ok) {
                 const data = await response.json()
                 if (data.creditos > 0) {
-                    selectedForUpgrade.value = { plan, period, creditos: data.creditos, gratuito: data.gratuito }
+                    selectedForUpgrade.value = { 
+                        plan, 
+                        period, 
+                        creditos: data.creditos, 
+                        valorPlano: data.valor_plano,
+                        valorFinal: data.valor_final,
+                        gratuito: data.gratuito 
+                    }
                     showFreeUpgradeModal.value = true
                     return
                 }
