@@ -92,13 +92,6 @@ class Usuario extends Authenticatable
     public function getAvatarUrlAttribute()
     {
         if (!$this->avatar) return null;
-
-        if (config('filesystems.default') === 'supabase') {
-            $bucket = env('SUPABASE_BUCKET', 'avatars');
-            $baseUrl = str_replace('/s3', '', env('SUPABASE_URL')); // Remove /s3 from endpoint
-            return "{$baseUrl}/object/public/{$bucket}/{$this->avatar}";
-        }
-
         return \Illuminate\Support\Facades\Storage::url($this->avatar);
     }
 }

@@ -1,114 +1,92 @@
 <template>
-  <div v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated">
-    <div 
-      :class="['finn-chat-wrapper', { 'is-hidden': isHidden }]"
-      :style="draggableStyle"
+  <div v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated" class="finn-chat-wrapper">
+    <!-- Chat Button (FAB) -->
+    <v-btn
+      v-if="!isOpen"
+      color="primary"
+      size="x-large"
+      icon
+      class="finn-fab elevation-8"
+      @click="toggleChat"
     >
-      <!-- FAB Toggle -->
-      <v-btn
-        size="x-small"
-        icon
-        color="primary"
-        v-if="!isOpen && !isMobile"
-        class="finn-toggle-btn"
-        @click="isHidden = !isHidden"
-      >
-        <v-icon>{{ isHidden ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
-      </v-btn>
+      <v-avatar size="45">
+        <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
+      </v-avatar>
+    </v-btn>
 
-      <div :class="['finn-chat-container', { 'is-hidden': isHidden || isOpen }]">
-      <!-- Chat Button (FAB) -->
-      <v-btn
-        v-if="!isOpen"
-        color="primary"
-        size="x-large"
-        icon
-        class="finn-fab elevation-8"
-        @click="toggleChat"
-      >
-        <v-avatar size="45">
-          <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
+    <!-- Chat Window -->
+    <v-card
+      v-if="isOpen"
+      class="finn-window rounded-xl elevation-12 overflow-hidden"
+      :width="isMobile ? '100%' : '380'"
+      :style="isMobile ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
+      max-height="650"
+    >
+    <!-- Header -->
+      <v-card-title class="d-flex align-center py-2 px-4">
+        <v-avatar size="32" class="mr-3">
+          <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Finn"></v-img>
         </v-avatar>
-      </v-btn>
+        <span class="text-subtitle-1 font-weight-bold">Finn</span>
+        <v-spacer></v-spacer>
+        <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false"></v-btn>
+      </v-card-title>
 
-      <!-- Chat Window -->
-      <v-card
-        v-if="isOpen"
-        class="finn-window rounded-xl elevation-12 overflow-hidden"
-        :width="isMobile ? '100%' : '380'"
-        :style="isMobile ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
-        max-height="650"
-      >
-      <!-- Header -->
-        <v-card-title 
-          class="d-flex align-center py-2 px-4 draggable-header"
-          @mousedown="startDrag"
+    <!-- Messages Area -->
+    <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4 flex-grow-1">
+      <div v-for="(msg, i) in messages" :key="i" :class="['message-wrapper', msg.role]">
+        <v-card
+          :color="msg.role === 'user' ? 'primary' : 'white'"
+          :class="['pa-3 mb-2 rounded-lg elevation-1 message-card', msg.role === 'user' ? 'text-white' : 'text-grey-darken-3']"
+          max-width="85%"
         >
-          <v-avatar size="32" class="mr-3">
-            <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Finn"></v-img>
-          </v-avatar>
-          <span class="text-subtitle-1 font-weight-bold">Finn</span>
-          <v-spacer></v-spacer>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false"></v-btn>
-        </v-card-title>
+          <div v-if="editingId === msg.id" class="edit-area">
+              <v-textarea
+                  v-model="editText"
+                  rows="2"
+                  density="compact"
+                  hide-details
+                  variant="plain"
+                  auto-grow
+                  class="mb-2 text-body-2"
+              ></v-textarea>
+              <div class="d-flex justify-end">
+                  <v-btn size="x-small" variant="text" color="white" @click="editingId = null">Cancelar</v-btn>
+                  <v-btn size="x-small" color="secondary" class="ml-1" @click="saveEdit">Salvar</v-btn>
+              </div>
+          </div>
+          <div v-else class="text-body-2 white-space-pre">{{ msg.text }}</div>
+          
+          <!-- Actions for user messages -->
+          <div v-if="msg.role === 'user' && editingId !== msg.id" class="message-actions">
+              <v-btn icon="mdi-pencil" size="x-small" variant="text" density="comfortable" color="white" @click="startEdit(msg)"></v-btn>
+              <v-btn icon="mdi-delete" size="x-small" variant="text" density="comfortable" color="white" @click="deleteMessage(msg.id)"></v-btn>
+          </div>
+        </v-card>
+      </div>
+      <div v-if="loading" class="typing-indicator mb-2">
+        <v-progress-circular indeterminate size="20" width="2" color="primary"></v-progress-circular>
+        <span class="text-caption ml-2 text-medium-emphasis">Finn está pensando...</span>
+      </div>
+    </v-card-text>
 
-      <!-- Messages Area -->
-      <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4 flex-grow-1">
-        <div v-for="(msg, i) in messages" :key="i" :class="['message-wrapper', msg.role]">
-          <v-card
-            :color="msg.role === 'user' ? 'primary' : 'white'"
-            :class="['pa-3 mb-2 rounded-lg elevation-1 message-card', msg.role === 'user' ? 'text-white' : 'text-grey-darken-3']"
-            max-width="85%"
-          >
-            <div v-if="editingId === msg.id" class="edit-area">
-                <v-textarea
-                    v-model="editText"
-                    rows="2"
-                    density="compact"
-                    hide-details
-                    variant="plain"
-                    auto-grow
-                    class="mb-2 text-body-2"
-                ></v-textarea>
-                <div class="d-flex justify-end">
-                    <v-btn size="x-small" variant="text" color="white" @click="editingId = null">Cancelar</v-btn>
-                    <v-btn size="x-small" color="secondary" class="ml-1" @click="saveEdit">Salvar</v-btn>
-                </div>
-            </div>
-            <div v-else class="text-body-2 white-space-pre">{{ msg.text }}</div>
-            
-            <!-- Actions for user messages -->
-            <div v-if="msg.role === 'user' && editingId !== msg.id" class="message-actions">
-                <v-btn icon="mdi-pencil" size="x-small" variant="text" density="comfortable" color="white" @click="startEdit(msg)"></v-btn>
-                <v-btn icon="mdi-delete" size="x-small" variant="text" density="comfortable" color="white" @click="deleteMessage(msg.id)"></v-btn>
-            </div>
-          </v-card>
-        </div>
-        <div v-if="loading" class="typing-indicator mb-2">
-          <v-progress-circular indeterminate size="20" width="2" color="primary"></v-progress-circular>
-          <span class="text-caption ml-2 text-medium-emphasis">Finn está pensando...</span>
-        </div>
-      </v-card-text>
-
-      <!-- Input Area -->
-      <v-divider></v-divider>
-      <v-card-actions class="pa-3 bg-white">
-        <v-text-field
-          v-model="input"
-          placeholder="Pergunte sobre seus gastos..."
-          variant="solo-filled"
-          density="comfortable"
-          hide-details
-          rounded="pill"
-          append-inner-icon="mdi-send"
-          @click:append-inner="sendMessage"
-          @keyup.enter="sendMessage"
-          :disabled="loading"
-        ></v-text-field>
-      </v-card-actions>
-      </v-card>
-    </div>
-  </div>
+    <!-- Input Area -->
+    <v-divider></v-divider>
+    <v-card-actions class="pa-3 bg-white">
+      <v-text-field
+        v-model="input"
+        placeholder="Pergunte sobre seus gastos..."
+        variant="solo-filled"
+        density="comfortable"
+        hide-details
+        rounded="pill"
+        append-inner-icon="mdi-send"
+        @click:append-inner="sendMessage"
+        @keyup.enter="sendMessage"
+        :disabled="loading"
+      ></v-text-field>
+    </v-card-actions>
+    </v-card>
   </div>
 </template>
 
@@ -118,48 +96,9 @@ import { useAuthStore } from '../../stores/auth'
 import { useDisplay } from 'vuetify'
 
 const authStore = useAuthStore()
-const { mobile } = useDisplay()
-const isMobile = computed(() => mobile.value)
-const isHidden = ref(false)
+const { mobile: isMobile } = useDisplay()
+
 const isOpen = ref(false)
-
-// Draggable Logic
-const position = ref({ x: 0, y: 0 })
-const isDragging = ref(false)
-const dragOffset = ref({ x: 0, y: 0 })
-
-const draggableStyle = computed(() => {
-  if (position.value.x === 0 && position.value.y === 0) return {}
-  return {
-    transform: `translate(${position.value.x}px, ${position.value.y}px)`,
-    transition: isDragging.value ? 'none' : 'transform 0.3s ease'
-  }
-})
-
-const startDrag = (e) => {
-  if (window.innerWidth < 960) return // Disable on mobile
-  isDragging.value = true
-  dragOffset.value = {
-    x: e.clientX - position.value.x,
-    y: e.clientY - position.value.y
-  }
-  window.addEventListener('mousemove', onDrag)
-  window.addEventListener('mouseup', stopDrag)
-}
-
-const onDrag = (e) => {
-  if (!isDragging.value) return
-  position.value = {
-    x: e.clientX - dragOffset.value.x,
-    y: e.clientY - dragOffset.value.y
-  }
-}
-
-const stopDrag = () => {
-  isDragging.value = false
-  window.removeEventListener('mousemove', onDrag)
-  window.removeEventListener('mouseup', stopDrag)
-}
 const input = ref('')
 const loading = ref(false)
 const chatBox = ref(null)
