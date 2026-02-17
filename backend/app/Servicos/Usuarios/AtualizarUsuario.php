@@ -26,7 +26,7 @@ class AtualizarUsuario
             if ($usuario->avatar) {
                 Storage::delete($usuario->avatar);
             }
-            $path = $avatarFile->store('avatars');
+            $path = $avatarFile->store('avatars', 'supabase');
 
             if (!$path) {
                 \Log::error('Failed to store avatar file');

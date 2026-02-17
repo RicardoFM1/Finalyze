@@ -1,3 +1,4 @@
+<template>
   <div class="finn-chat-wrapper" v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated">
     <!-- FAB Toggle (The small arrow to show/hide the main icon) -->
     <v-btn

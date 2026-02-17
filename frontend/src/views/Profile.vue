@@ -302,7 +302,7 @@
       </v-window>
     </v-card>
     <ModalCancelarAssinatura v-model="confirmCancel" @cancelled="fetchSubscription" />
-    <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null" />
+    <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null; user.avatar_url = null; authStore.user.avatar = null; authStore.user.avatar_url = null;" />
   </v-container>
 </template>
 
