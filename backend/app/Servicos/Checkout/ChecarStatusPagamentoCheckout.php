@@ -14,7 +14,7 @@ class ChecarStatusPagamentoCheckout
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function executar($id, AtivarPlanoUsuario $ativarPlanoServico)
