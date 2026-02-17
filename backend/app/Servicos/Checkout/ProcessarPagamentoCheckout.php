@@ -89,7 +89,7 @@ class ProcessarPagamentoCheckout
 
 
         $payer = $dados['payer'] ?? [];
-        $payerIdNumber = $payer['identification']['number'] ?? $usuario->cpf;
+        $payerIdNumber = ($payer['identification']['number'] ?? null) ?: $usuario->cpf;
 
         if (!$payerIdNumber && config('app.env') !== 'production') {
             $payerIdNumber = '19119119100';
