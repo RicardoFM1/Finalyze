@@ -234,7 +234,7 @@ const saveEdit = async () => {
   }
 }
 </script>
-
+<style>
 .finn-chat-wrapper {
   position: fixed;
   bottom: 24px;
