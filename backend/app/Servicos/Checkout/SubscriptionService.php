@@ -76,7 +76,29 @@ class SubscriptionService
                 "status" => "authorized"
             ];
 
-            Log::info("Subscription Data Payload (V5 - Strict Types + Status):", $data);
+
+            // Validação adicional para debugging
+            if (empty($cpfNumber)) {
+                Log::warning("Usuario #{$usuario->id} sem CPF cadastrado", [
+                    'nome' => $usuario->nome,
+                    'email' => $usuario->email
+                ]);
+            }
+
+            Log::info("Subscription Data Payload (WITH PAYER INFO):", [
+                'usuario_id' => $usuario->id,
+                'plano' => $plano->nome,
+                'periodo' => $periodo->nome,
+                'transaction_amount' => $transactionAmount,
+                'payer' => [
+                    'email' => $usuario->email,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'cpf_number' => $cpfNumber,
+                    'cpf_original' => $usuario->cpf
+                ],
+                'card_token_exists' => !empty($cardToken)
+            ]);
 
             $subscription = $preApprovalClient->create($data);
 
@@ -84,11 +106,27 @@ class SubscriptionService
 
             return $subscription;
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
-            Log::error("MP Sub API Error (400?): " . $e->getMessage(), [
-                'content' => $e->getApiResponse()?->getContent(),
-                'status' => $e->getApiResponse()?->getStatusCode()
+            $errorContent = $e->getApiResponse()?->getContent();
+
+            Log::error("MP Subscription API Error:", [
+                'message' => $e->getMessage(),
+                'status_code' => $e->getApiResponse()?->getStatusCode(),
+                'content' => $errorContent,
+                'usuario_id' => $usuario->id ?? null,
+                'plano_id' => $plano->id ?? null
             ]);
-            throw new \Exception('Mercado Pago: ' . ($e->getApiResponse()?->getContent()['message'] ?? $e->getMessage()));
+
+            // Try to extract more specific error message
+            $errorMessage = $e->getMessage();
+            if (isset($errorContent['message'])) {
+                $errorMessage = $errorContent['message'];
+            } elseif (isset($errorContent['error'])) {
+                $errorMessage = $errorContent['error'];
+            } elseif (isset($errorContent['cause'])) {
+                $errorMessage = json_encode($errorContent['cause']);
+            }
+
+            throw new \Exception('Mercado Pago: ' . $errorMessage);
         } catch (\Exception $e) {
             Log::error("Subscription Generic Error: " . $e->getMessage());
             throw $e;
