@@ -7,6 +7,16 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'timestamp' => now()]);
 });
 
+Route::get('/avatar/{filename}', function ($filename) {
+    $path = storage_path('app/public/avatars/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path);
+});
+
 Route::post('/auth/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login');
 Route::post('/auth/verificar', [App\Http\Controllers\AuthController::class, 'verificarCodigo']);

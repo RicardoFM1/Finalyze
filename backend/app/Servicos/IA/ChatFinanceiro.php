@@ -43,10 +43,8 @@ class ChatFinanceiro
         6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
-        $chat = Gemini::chat()
-            ->withSystemInstruction($systemPrompt);
-
-        $response = $chat->sendMessage($mensagem);
+        $response = Gemini::geminiChat('gemini-1.5-flash')
+            ->generateContent($systemPrompt . "\n\nUsuário: " . $mensagem);
 
         return $response->text();
     }
