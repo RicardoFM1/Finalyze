@@ -98,7 +98,8 @@
           :disabled="loading"
         ></v-text-field>
       </v-card-actions>
-    </v-card>
+      </v-card>
+    </div>
   </div>
 </template>
 
