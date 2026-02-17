@@ -17,12 +17,23 @@
 
 ### 4. Gestão Avançada de Assinaturas (Prorrata e Upgrades)
 - **Cálculo de Prorrata**: Ao mudar de plano, o tempo restante do plano atual é convertido em crédito monetário.
-- **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente sem necessidade de pagamento via Mercado Pago.
+- **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente via modal na página de Planos, sem necessidade de ir ao checkout.
 - **Acúmulo de Dias**: Renovação do mesmo plano soma os dias à data de expiração atual; mudança de plano (upgrade) reseta o ciclo usando o desconto calculado.
-- **Persistência**: Integração com **Supabase Storage** para garantir que avatares e arquivos não sejam perdidos em cada deploy do Render.
+
+### 5. Finn AI - Assistente Financeiro com Memória
+- **Persistência**: Histórico de chat completo salvo no banco de dados (`mensagens_chat`).
+- **Interatividade**: Edição e exclusão de mensagens do usuário integradas.
+- **Contexto Financeiro Inteligente**: Em cada interação, o Finn recebe automaticamente:
+    - **Saldo e Resumo**: Receitas e despesas do mês atual.
+    - **Metas**: Títulos e valores das metas ativas do usuário.
+    - **Assinatura**: Detalhes do plano atual e data de renovação.
+    - **Pagamentos**: Resumo dos últimos 3 pagamentos realizados.
+    - **Upgrades**: Opções de planos disponíveis para facilitar a decisão do usuário.
+    - **Histórico**: As últimas 15 mensagens para manter o contexto da conversa.
+- **Cloud Storage**: Integração com **Supabase Storage** para persistência de avatares.
 
 > [!NOTE]
-> Para detalhes técnicos de implementação da prorrata, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
+> Para detalhes técnicos de implementação da prorrata e endpoints financeiros, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
 
 ---
 
@@ -96,11 +107,12 @@ Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para 
 
 ## Tecnologias Utilizadas
 
-- **Backend**: Laravel 11, PHP 8.2+, MySQL, Mercado Pago SDK.
+- **Backend**: Laravel 11, PHP 8.2+, PostgreSQL, Mercado Pago SDK.
 - **Frontend**: Vue.js 3 (Composition API), Vite, Vuetify 3, Pinia, Vue Router, Vue3-Toastify.
 - **DevOps/Ferramentas**: Axios para requisições, NGROK (para testes de Webhook locais).
-
----
+- **RocketLog**: Análise e controle de logs.
+- **Supabase**: Banco de dados e armazenamento de avatares.
+- **Google Cloud**: Gerenciador de emails.
 
 ## Como Rodar o Projeto
 

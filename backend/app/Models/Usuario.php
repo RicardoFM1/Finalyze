@@ -84,6 +84,11 @@ class Usuario extends Authenticatable
         return $this->hasMany(Meta::class, 'usuario_id');
     }
 
+    public function mensagensChat()
+    {
+        return $this->hasMany(MensagemChat::class, 'usuario_id');
+    }
+
     public function getAvatarUrlAttribute()
     {
         return $this->avatar ? \Illuminate\Support\Facades\Storage::url($this->avatar) : null;

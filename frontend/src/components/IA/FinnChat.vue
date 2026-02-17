@@ -37,10 +37,31 @@
         <div v-for="(msg, i) in messages" :key="i" :class="['message-wrapper', msg.role]">
           <v-card
             :color="msg.role === 'user' ? 'primary' : 'white'"
-            :class="['pa-3 mb-2 rounded-lg elevation-1', msg.role === 'user' ? 'text-white' : 'text-grey-darken-3']"
+            :class="['pa-3 mb-2 rounded-lg elevation-1 message-card', msg.role === 'user' ? 'text-white' : 'text-grey-darken-3']"
             max-width="85%"
           >
-            <div class="text-body-2 white-space-pre">{{ msg.text }}</div>
+            <div v-if="editingId === msg.id" class="edit-area">
+                <v-textarea
+                    v-model="editText"
+                    rows="2"
+                    density="compact"
+                    hide-details
+                    variant="plain"
+                    auto-grow
+                    class="mb-2 text-body-2"
+                ></v-textarea>
+                <div class="d-flex justify-end">
+                    <v-btn size="x-small" variant="text" color="white" @click="editingId = null">Cancelar</v-btn>
+                    <v-btn size="x-small" color="secondary" class="ml-1" @click="saveEdit">Salvar</v-btn>
+                </div>
+            </div>
+            <div v-else class="text-body-2 white-space-pre">{{ msg.text }}</div>
+            
+            <!-- Actions for user messages -->
+            <div v-if="msg.role === 'user' && editingId !== msg.id" class="message-actions">
+                <v-btn icon="mdi-pencil" size="x-small" variant="text" density="comfortable" color="white" @click="startEdit(msg)"></v-btn>
+                <v-btn icon="mdi-delete" size="x-small" variant="text" density="comfortable" color="white" @click="deleteMessage(msg.id)"></v-btn>
+            </div>
           </v-card>
         </div>
         <div v-if="loading" class="typing-indicator mb-2">
@@ -83,9 +104,33 @@ const input = ref('')
 const loading = ref(false)
 const chatBox = ref(null)
 
-const messages = ref([
-  { role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' }
-])
+const messages = ref([])
+
+onMounted(async () => {
+  if (authStore.isAuthenticated) {
+    await fetchHistory()
+  }
+})
+
+const fetchHistory = async () => {
+  try {
+    const response = await authStore.apiFetch('/chat')
+    if (response.ok) {
+      const data = await response.json()
+      messages.value = data.map(m => ({
+        id: m.id,
+        role: m.role,
+        text: m.texto
+      }))
+      if (messages.value.length === 0) {
+        messages.value.push({ role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' })
+      }
+      scrollToBottom()
+    }
+  } catch (e) {
+    console.error('Erro ao buscar histórico:', e)
+  }
+}
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value
@@ -109,12 +154,6 @@ const sendMessage = async () => {
   const userMsg = input.value
   messages.value.push({ role: 'user', text: userMsg })
   
-  // Keep only last 10 messages for context to avoid huge payloads
-  const history = messages.value.slice(-10).map(m => ({
-    role: m.role,
-    content: m.text
-  }))
-
   input.value = ''
   loading.value = true
   scrollToBottom()
@@ -122,16 +161,13 @@ const sendMessage = async () => {
   try {
     const response = await authStore.apiFetch('/chat/pergunta', {
       method: 'POST',
-      body: JSON.stringify({ 
-        mensagem: userMsg,
-        historico: history
-      })
+      body: JSON.stringify({ mensagem: userMsg })
     })
     
     const data = await response.json()
     
     if (data.resposta) {
-      messages.value.push({ role: 'bot', text: data.resposta })
+      await fetchHistory() // Refresh to get IDs
     } else {
       messages.value.push({ role: 'bot', text: data.error || 'Tive um probleminha. Pode repetir?' })
     }
@@ -140,6 +176,48 @@ const sendMessage = async () => {
   } finally {
     loading.value = false
     scrollToBottom()
+  }
+}
+
+const deleteMessage = async (id) => {
+  if (!id) return
+  if (!confirm('Deseja remover esta mensagem?')) return
+
+  try {
+    const response = await authStore.apiFetch(`/chat/${id}`, {
+      method: 'DELETE'
+    })
+    if (response.ok) {
+      messages.value = messages.value.filter(m => m.id !== id)
+    }
+  } catch (e) {
+    console.error('Erro ao deletar:', e)
+  }
+}
+
+const editingId = ref(null)
+const editText = ref('')
+
+const startEdit = (msg) => {
+  editingId.value = msg.id
+  editText.value = msg.text
+}
+
+const saveEdit = async () => {
+  if (!editText.value.trim()) return
+  
+  try {
+    const response = await authStore.apiFetch(`/chat/${editingId.value}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ texto: editText.value })
+    })
+    if (response.ok) {
+      const msg = messages.value.find(m => m.id === editingId.value)
+      if (msg) msg.text = editText.value
+      editingId.value = null
+    }
+  } catch (e) {
+    console.error('Erro ao editar:', e)
   }
 }
 </script>
@@ -206,6 +284,28 @@ const sendMessage = async () => {
 
 .message-wrapper.bot {
   justify-content: flex-start;
+}
+
+.message-card {
+  position: relative;
+}
+
+.message-actions {
+  position: absolute;
+  top: -10px;
+  right: 0;
+  display: none;
+  background: rgba(var(--v-theme-primary), 0.9);
+  border-radius: 20px;
+  padding: 2px;
+}
+
+.message-card:hover .message-actions {
+  display: flex;
+}
+
+.edit-area {
+    min-width: 200px;
 }
 
 .white-space-pre {

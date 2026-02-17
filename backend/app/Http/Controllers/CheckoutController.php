@@ -99,4 +99,89 @@ class CheckoutController extends Controller
         $servico->executar($request->all(), $ativarPlanoServico);
         return response()->json(['status' => 'success'], 200);
     }
+
+    public function checkUpgrade(Request $request)
+    {
+        $request->validate([
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id'
+        ]);
+
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+
+        if (!$assinaturaAtiva || $assinaturaAtiva->plano_id == $request->plano_id) {
+            return response()->json(['creditos' => 0, 'gratuito' => false]);
+        }
+
+        $calculadora = new \App\Servicos\Checkout\CalculadoraProrata();
+        $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+
+        $plano = \App\Models\Plano::findOrFail($request->plano_id);
+        $periodo = $plano->periodos()->findOrFail($request->periodo_id);
+        $valorPlano = $periodo->pivot->valor_centavos / 100;
+
+        return response()->json([
+            'creditos' => $creditos,
+            'valor_plano' => $valorPlano,
+            'valor_final' => max(0, $valorPlano - $creditos),
+            'gratuito' => $creditos >= $valorPlano
+        ]);
+    }
+
+    public function applyFreeUpgrade(Request $request, AtivarPlanoUsuario $servicoAtivacao)
+    {
+        $request->validate([
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id'
+        ]);
+
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+
+        if (!$assinaturaAtiva) {
+            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada.'], 422);
+        }
+
+        $calculadora = new \App\Servicos\Checkout\CalculadoraProrata();
+        $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+
+        $plano = \App\Models\Plano::findOrFail($request->plano_id);
+        $periodo = $plano->periodos()->findOrFail($request->periodo_id);
+        $valorPlano = $periodo->pivot->valor_centavos / 100;
+
+        if ($creditos < $valorPlano) {
+            return response()->json(['error' => 'Saldo insuficiente para upgrade gratuito.'], 422);
+        }
+
+        // Criar a assinatura pendente se necessário (ou usar AtivarPlanoSubscriber logic)
+        // Para simplificar, vamos criar a assinatura e ativar
+        $assinatura = \App\Models\Assinatura::create([
+            'user_id' => $usuario->id,
+            'plano_id' => $plano->id,
+            'periodo_id' => $periodo->id,
+            'status' => 'pending',
+            'valor_original_centavos' => $periodo->pivot->valor_centavos,
+        ]);
+
+        // Mock payment object for AtivarPlanoUsuario
+        $mockPayment = (object)[
+            'id' => 'FREE-UP-' . time(),
+            'transaction_amount' => 0,
+            'payment_method_id' => 'prorrata_credit',
+            'status' => 'approved',
+            'status_detail' => 'accredited',
+            'metadata' => [
+                'user_id' => $usuario->id,
+                'plano_id' => $plano->id,
+                'assinatura_id' => $assinatura->id,
+                'quantidade_dias' => $periodo->pivot->dias,
+                'creditos_prorrata' => $creditos
+            ]
+        ];
+
+        $servicoAtivacao->executar($mockPayment);
+
+        return response()->json(['message' => 'Upgrade realizado com sucesso!']);
+    }
 }

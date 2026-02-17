@@ -32,9 +32,8 @@ Implementada no `AtivarPlanoUsuario`:
 - **Mesmo Plano (Renovação)**: Os novos dias são **somados** à data de término atual. (Ex: Se vencia dia 10 e comprou mais 30 dias, agora vence dia 10 do mês seguinte).
 - **Novo Plano (Upgrade)**: A assinatura antiga é cancelada e a nova começa a valer **a partir de hoje**. O valor que "sobraria" da antiga já foi descontado como crédito no momento da compra.
 
-## 5. Histórico de Pagamentos
-O histórico (`HistoricoPagamento`) agora armazena:
-- O valor bruto do plano.
-- O valor dos créditos de prorrata utilizados.
-- O valor real pago.
-- O período (Mensal/Anual) vinculado à assinatura para exibição clara no perfil.
+### Endpoints de Upgrade
+- `GET /api/checkout/check-upgrade?plano_id={id}&periodo_id={id}`: Retorna se o upgrade será gratuito, o valor dos créditos e o valor final.
+- `POST /api/checkout/apply-free-upgrade`: Executa a migração imediata se os créditos cobrirem o valor total.
+
+

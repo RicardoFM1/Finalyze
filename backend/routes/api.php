@@ -24,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);
     Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checarStatusPagamento']);
     Route::match(['put', 'post'], '/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
+    Route::get('/checkout/check-upgrade', [App\Http\Controllers\CheckoutController::class, 'checkUpgrade']);
+    Route::post('/checkout/apply-free-upgrade', [App\Http\Controllers\CheckoutController::class, 'applyFreeUpgrade']);
 
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
@@ -74,7 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('check_resource:finn-ai')->group(function () {
+        Route::get('/chat', [App\Http\Controllers\ChatIaController::class, 'index']);
         Route::post('/chat/pergunta', [App\Http\Controllers\ChatIaController::class, 'perguntar']);
+        Route::patch('/chat/{id}', [App\Http\Controllers\ChatIaController::class, 'update']);
+        Route::delete('/chat/{id}', [App\Http\Controllers\ChatIaController::class, 'destroy']);
     });
 });
 
