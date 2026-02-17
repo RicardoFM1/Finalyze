@@ -5,13 +5,14 @@
       size="x-small"
       icon
       color="primary"
+      v-if="!isOpen"
       :class="['finn-toggle-btn', { 'is-hidden': isHidden }]"
       @click="isHidden = !isHidden"
     >
       <v-icon>{{ isHidden ? 'mdi-chevron-left' : 'mdi-chevron-right' }}</v-icon>
     </v-btn>
 
-    <div :class="['finn-chat-container', { 'is-hidden': isHidden }]">
+    <div :class="['finn-chat-container', { 'is-hidden': isHidden || isOpen }]">
       <!-- Chat Button (FAB) -->
       <v-btn
         v-if="!isOpen"
@@ -196,14 +197,20 @@ const deleteMessage = async (id) => {
   if (!id) return
   if (!confirm('Deseja remover esta mensagem?')) return
 
+  const originalMessages = [...messages.value]
+  messages.value = messages.value.filter(m => m.id !== id)
+
   try {
     const response = await authStore.apiFetch(`/chat/${id}`, {
       method: 'DELETE'
     })
-    if (response.ok) {
-      messages.value = messages.value.filter(m => m.id !== id)
+    if (!response.ok) {
+      messages.value = originalMessages
+      const data = await response.json()
+      console.error('Erro ao deletar:', data.error || response.statusText)
     }
   } catch (e) {
+    messages.value = originalMessages
     console.error('Erro ao deletar:', e)
   }
 }
@@ -245,13 +252,14 @@ const saveEdit = async () => {
 }
 
 .finn-toggle-btn {
-  transition: transform 0.3s ease;
-  margin-right: 8px;
+  transition: all 0.3s ease;
   z-index: 10000;
+  position: absolute;
+  right: 0;
 }
 
 .finn-toggle-btn.is-hidden {
-  transform: translateX(10px);
+  right: -20px;
 }
 
 .finn-chat-container {

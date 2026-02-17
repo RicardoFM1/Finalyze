@@ -26,11 +26,19 @@ class AtualizarUsuario
             if ($usuario->avatar) {
                 Storage::delete($usuario->avatar);
             }
-            $path = $avatarFile->store('avatars', 'supabase');
+            try {
+                $path = $avatarFile->store('avatars', 'supabase');
 
-            if (!$path) {
-                \Log::error('Failed to store avatar file');
-                throw new \Exception('Não foi possível salvar o arquivo de avatar.');
+                if (!$path) {
+                    \Log::error('Failed to store avatar file: storage returned null');
+                    throw new \Exception('O serviço de armazenamento não retornou o caminho do arquivo.');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Exception storing avatar file', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw new \Exception('Erro ao salvar avatar: ' . $e->getMessage());
             }
 
             \Log::info('Avatar stored successfully', ['path' => $path]);

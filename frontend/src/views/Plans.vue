@@ -80,27 +80,31 @@
                 Deseja migrar agora mesmo de forma gratuita?
             </p>
             
-            <v-card variant="tonal" color="success" class="pa-3 rounded-lg mb-6">
+            <v-card variant="tonal" :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" class="pa-3 rounded-lg mb-6">
                 <div class="d-flex justify-space-between align-center">
                     <span class="text-subtitle-2">Novo Plano:</span>
                     <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
-                    <span class="text-subtitle-2">Custo zero:</span>
-                    <span class="text-success font-weight-bold">R$ 0,00</span>
+                    <span class="text-subtitle-2">Crédito Aplicado:</span>
+                    <span class="text-success font-weight-bold">R$ {{ selectedForUpgrade?.creditos }}</span>
+                </div>
+                <div class="d-flex justify-space-between align-center mt-1" v-if="!selectedForUpgrade?.gratuito">
+                    <span class="text-subtitle-2">Valor Total:</span>
+                    <span class="text-decoration-line-through">R$ {{ selectedForUpgrade?.period.pivot.valor_centavos / 100 }}</span>
                 </div>
             </v-card>
 
             <div class="d-flex flex-column gap-2">
                 <v-btn
                     block
-                    color="success"
+                    :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'"
                     size="large"
                     class="rounded-pill"
                     :loading="upgrading"
                     @click="applyFreeUpgrade"
                 >
-                    Confirmar Upgrade Grátis
+                    {{ selectedForUpgrade?.gratuito ? 'Confirmar Upgrade Grátis' : 'Continuar com Desconto' }}
                 </v-btn>
                 <v-btn
                     block
@@ -178,7 +182,7 @@ const handleSelectPlan = async ({ plan, period }) => {
     }
 
     // Verificamos se é um plano diferente do atual para oferecer o upgrade grátis
-    const isDifferentPlan = authStore.user?.plano_id && authStore.user.plano_id !== plan.id
+    const isDifferentPlan = authStore.user?.plano_id && authStore.user.plano_id != plan.id
 
     if (isDifferentPlan) {
         try {
@@ -186,8 +190,8 @@ const handleSelectPlan = async ({ plan, period }) => {
             const response = await authStore.apiFetch(`/checkout/check-upgrade?plano_id=${plan.id}&periodo_id=${period.id}`)
             if (response.ok) {
                 const data = await response.json()
-                if (data.gratuito) {
-                    selectedForUpgrade.value = { plan, period, creditos: data.creditos }
+                if (data.creditos > 0) {
+                    selectedForUpgrade.value = { plan, period, creditos: data.creditos, gratuito: data.gratuito }
                     showFreeUpgradeModal.value = true
                     return
                 }
@@ -212,6 +216,18 @@ const upgrading = ref(false)
 const applyFreeUpgrade = async () => {
     if (!selectedForUpgrade.value) return
     
+    // Se não for gratuito, redireciona para o checkout onde o desconto já é aplicado
+    if (!selectedForUpgrade.value.gratuito) {
+        router.push({ 
+            name: 'Checkout', 
+            query: { 
+                plan: selectedForUpgrade.value.plan.id, 
+                period: selectedForUpgrade.value.period.id 
+            } 
+        })
+        return
+    }
+
     try {
         upgrading.value = true
         const response = await authStore.apiFetch('/checkout/apply-free-upgrade', {
