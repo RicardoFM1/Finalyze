@@ -31,8 +31,7 @@ class AtualizarUsuario
                 $path = Storage::disk('supabase')->putFileAs(
                     'avatars',
                     $avatarFile,
-                    $filename,
-                    ['visibility' => 'public']
+                    $filename
                 );
 
                 if (!$path) {

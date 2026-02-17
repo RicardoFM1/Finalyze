@@ -9,7 +9,7 @@
         size="x-small"
         icon
         color="primary"
-        v-if="!isOpen"
+        v-if="!isOpen && !isMobile"
         class="finn-toggle-btn"
         @click="isHidden = !isHidden"
       >
@@ -45,7 +45,7 @@
           @mousedown="startDrag"
         >
           <v-avatar size="32" class="mr-3">
-            <v-img src="/finn-avatar.png" alt="Finn"></v-img>
+            <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Finn"></v-img>
           </v-avatar>
           <span class="text-subtitle-1 font-weight-bold">Finn</span>
           <v-spacer></v-spacer>
@@ -354,9 +354,14 @@ const saveEdit = async () => {
     bottom: 0;
     right: 0;
   }
-  .finn-toggle-btn {
-    display: none; /* Hide toggle on mobile to avoid covering UI */
+  
+  /* Ensure chat container is always visible on mobile */
+  .finn-chat-container {
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: all !important;
   }
+  
   .finn-window {
     width: 100vw !important;
     height: 100vh !important;
