@@ -2,10 +2,7 @@
 
 namespace App\Servicos\IA;
 
-use Gemini\Laravel\Facades\Gemini;
-use Gemini\Data\Content;
-use Gemini\Data\Part;
-use Gemini\Enums\Role;
+use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Support\Facades\Auth;
 
 class ChatFinanceiro
@@ -14,72 +11,100 @@ class ChatFinanceiro
     {
         $usuario = Auth::user();
 
+        if (!$usuario) {
+            return "Usuário não autenticado.";
+        }
+
         $resumo = $this->getResumoFinanceiro($usuario);
         $metas = $this->getMetasContexto($usuario);
         $assinatura = $this->getAssinaturaContexto($usuario);
         $pagamentos = $this->getPagamentosContexto($usuario);
 
-        $systemPrompt = "Você é o Finn, um assistente financeiro premium, amigável e inteligente da plataforma Finalyze.
-        Seu objetivo é ajudar o usuário a gerenciar melhor seu dinheiro, dar dicas de economia e analisar seus gastos.
-        
-        Contexto do Usuário:
-        - Nome: {$usuario->nome}
-        - Saldo Atual: R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
-        - Receitas (Mês Atual): R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
-        - Despesas (Mês Atual): R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
-        
-        Metas Financeiras:
-        {$metas}
-        
-        Assinatura:
-        {$assinatura}
-        
-        Pagamentos Recentes:
-        {$pagamentos}
-        
-        Instruções de Comportamento:
-        1. Seja conciso, mas elegante. Use emojis com moderação.
-        2. Se o usuário perguntar algo fora do contexto financeiro, tente trazer suavemente de volta para o assunto de finanças.
-        3. Dê dicas práticas baseadas no saldo e metas dele. 
-        4. Sempre responda em Português Brasil.
-        5. Nunca revele que você é um modelo de linguagem IA, aja como o Finn.
-        6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
-        7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
+        $systemPrompt = "
+Você é o Finn, um assistente financeiro premium, amigável e inteligente da plataforma Finalyze.
+Seu objetivo é ajudar o usuário a gerenciar melhor seu dinheiro, dar dicas de economia e analisar seus gastos.
+
+Contexto do Usuário:
+- Nome: {$usuario->nome}
+- Saldo Atual: R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
+- Receitas (Mês Atual): R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
+- Despesas (Mês Atual): R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
+
+Metas Financeiras:
+{$metas}
+
+Assinatura:
+{$assinatura}
+
+Pagamentos Recentes:
+{$pagamentos}
+
+Instruções de Comportamento:
+1. Seja conciso, claro e útil. Use emojis com moderação.
+2. Foque sempre em finanças pessoais.
+3. Dê dicas práticas baseadas no saldo e metas.
+4. Sempre responda em Português Brasil.
+5. Nunca revele que você é uma IA.
+6. Se saldo negativo → seja empático e sugira melhorias.
+7. Evite Markdown complexo.
+";
 
         /*
-         * Injetamos contexto como primeira mensagem
+         * Montar mensagens
          */
-        $historicoInstrucoes = array_values(array_merge([
+        $messages = [
             [
-                'role' => 'user',
-                'parts' => [['text' => $systemPrompt]]
-            ],
-            [
-                'role' => 'model',
-                'parts' => [['text' => "Entendido! Serei o Finn, o assistente financeiro da Finalyze."]]
+                'role' => 'system',
+                'content' => $systemPrompt
             ]
-        ], $historico));
+        ];
 
         /*
-         * Converter histórico → objetos Gemini
+         * Histórico (resiliente)
          */
-        $chatHistory = array_map(function ($item) {
-            return new Content(
-                role: Role::from($item['role']),
-                parts: [
-                    new Part(text: $item['parts'][0]['text'])
-                ]
-            );
-        }, $historicoInstrucoes);
+        foreach ($historico as $item) {
+
+            if (!isset($item['role'])) {
+                continue;
+            }
+
+            $role = ($item['role'] === 'model' || $item['role'] === 'bot')
+                ? 'assistant'
+                : 'user';
+
+            $content =
+                $item['parts'][0]['text']
+                ?? $item['text']
+                ?? $item['content']
+                ?? null;
+
+            if ($content) {
+                $messages[] = [
+                    'role' => $role,
+                    'content' => $content
+                ];
+            }
+        }
 
         /*
-         * Chamada ao Gemini usando a Facade estável
+         * Mensagem atual
          */
-        $response = Gemini::generativeModel('gemini-1.5-flash')
-            ->startChat($chatHistory)
-            ->sendMessage($mensagem);
+        $messages[] = [
+            'role' => 'user',
+            'content' => $mensagem
+        ];
 
-        return $response->text();
+        /*
+         * Chamada OpenAI
+         */
+        $result = OpenAI::chat()->create([
+            'model' => 'gpt-5-mini',
+            'messages' => $messages,
+            'temperature' => 0.7,
+            'max_tokens' => 1000,
+        ]);
+
+        return $result->choices[0]->message->content ?? "Não consegui gerar uma resposta.";
     }
 
     protected function getResumoFinanceiro($usuario)
@@ -109,30 +134,34 @@ class ChatFinanceiro
             ->sum('valor');
 
         return [
-            'receitas' => $receitas,
-            'despesas' => $despesas,
-            'saldo' => $totalReceitas - $totalDespesas
+            'receitas' => $receitas ?? 0,
+            'despesas' => $despesas ?? 0,
+            'saldo' => ($totalReceitas ?? 0) - ($totalDespesas ?? 0)
         ];
     }
 
     protected function getMetasContexto($usuario)
     {
-        $metas = $usuario->metas()->where('status', 'ativo')->get();
+        $metas = $usuario->metas()
+            ->where('status', 'ativo')
+            ->get();
 
         if ($metas->isEmpty()) {
             return "Nenhuma meta ativa";
         }
 
         return $metas->map(function ($m) {
+
             $percent = $m->valor_objetivo > 0
                 ? round(($m->valor_atual / $m->valor_objetivo) * 100)
                 : 0;
 
-            return "- {$m->nome}: R$ " .
-                number_format($m->valor_atual, 2, ',', '.') .
-                " / R$ " .
-                number_format($m->valor_objetivo, 2, ',', '.') .
-                " ({$percent}%)";
+            return "- {$m->nome}: R$ "
+                . number_format($m->valor_atual, 2, ',', '.')
+                . " / R$ "
+                . number_format($m->valor_objetivo, 2, ',', '.')
+                . " ({$percent}%)";
+
         })->implode("\n");
     }
 
@@ -144,8 +173,10 @@ class ChatFinanceiro
             return "Plano Free";
         }
 
-        $nomePlano = $assinatura->plano->nome;
-        $vencimento = $assinatura->termina_em->format('d/m/Y');
+        $nomePlano = $assinatura->plano->nome ?? "Plano";
+        $vencimento = $assinatura->termina_em
+            ? $assinatura->termina_em->format('d/m/Y')
+            : "Sem vencimento";
 
         return "Plano {$nomePlano}, vence em {$vencimento}";
     }
@@ -163,13 +194,15 @@ class ChatFinanceiro
         }
 
         return $historico->map(function ($h) {
-            $valor = number_format($h->valor_centavos / 100, 2, ',', '.');
+
+            $valor = number_format(($h->valor_centavos ?? 0) / 100, 2, ',', '.');
 
             $data = $h->pago_em
                 ? $h->pago_em->format('d/m/Y')
                 : $h->created_at->format('d/m/Y');
 
             return "- R$ {$valor} em {$data}";
+
         })->implode("\n");
     }
 }

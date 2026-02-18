@@ -1,5 +1,5 @@
 <template>
-  <div v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated" class="finn-chat-wrapper">
+  <div v-if="authStore.isAuthenticated" class="finn-chat-wrapper">
     <!-- Toggle Arrow (when hidden) -->
     <v-btn
       v-if="isHidden && !isOpen"
@@ -37,8 +37,8 @@
     <v-card
       v-if="isOpen"
       class="finn-window rounded-xl elevation-12 overflow-hidden"
-      :width="display.xs.value ? '100%' : '380'"
-      :style="display.xs.value ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
+      :width="display.xs ? '100%' : '380'"
+      :style="display.xs ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
       max-height="650"
     >
     <!-- Header -->
