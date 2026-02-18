@@ -75,8 +75,8 @@ class ChatFinanceiro
         /*
          * Chamada ao Gemini usando a Facade estável
          */
-        $response = Gemini::generativeModel(model: 'gemini-1.5-flash-latest')
-            ->startChat(history: $chatHistory)
+        $response = Gemini::generativeModel('gemini-1.5-flash')
+            ->startChat($chatHistory)
             ->sendMessage($mensagem);
 
         return $response->text();
