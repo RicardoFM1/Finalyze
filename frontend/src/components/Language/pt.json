@@ -29,6 +29,7 @@
     "hero_title_alt": "Domine seu",
     "destiny": "Destino Financeiro",
     "hero_subtitle_alt": "Acompanhe, analise e alcance. Finalyze é a ponte entre seus sonhos e sua realidade financeira.",
+    "btn_create_account": "Criar uma conta",
     "btn_start": "Começar Agora",
     "btn_my_dashboard": "Meu Painel",
     "power_title": "Poder em suas mãos",
@@ -96,7 +97,9 @@
     "pending_desc": "Você já iniciou o pagamento para o plano {plan}. Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?",
     "cancel_prev": "Cancelar Anterior",
     "continue": "Continuar Pagamento",
-    "toast_cancel_success": "Assinatura anterior cancelada.",
+    "launch_limits": "Limite de {count} Lançamentos",
+    "launch_unlimited": "Lançamentos Ilimitados",
+    "toast_cancel_success": "Pagamento anterior cancelado.",
     "toast_cancel_error": "Erro ao cancelar assinatura."
   },
   "metas": {
@@ -154,7 +157,10 @@
     "type": {
       "income": "Receita",
       "expense": "Despesa"
-    }
+    },
+    "delete_title": "Confirmar Exclusão",
+    "delete_confirm": "Tem certeza que deseja excluir este lançamento?",
+    "delete_warning": "Esta ação não pode ser desfeita."
   },
   "profile": {
     "title": "Detalhes do Perfil",
@@ -202,6 +208,7 @@
       "cancel": "Cancelar Assinatura",
       "recent_payments": "Últimos Pagamentos",
       "no_history": "Nenhum histórico de faturamento encontrado.",
+      "no_history_desc": "Suas cobranças e comprovantes aparecerão aqui.",
       "expires_at": "Vence em",
       "days_remaining": "{count} dias restantes",
       "days_remaining_singular": "1 dia restante",
@@ -377,7 +384,7 @@
     "check_errors": "Verifique os campos em vermelho.",
     "success_add": "Item adicionado com sucesso!",
     "success_update": "Item atualizado com sucesso!",
-    "success_delete": "Item inativado com sucesso!",
+    "success_delete": "Item removido com sucesso!",
     "success_restore": "Item reativado com sucesso!",
     "error_generic": "Ocorreu um erro. Tente novamente."
   },
