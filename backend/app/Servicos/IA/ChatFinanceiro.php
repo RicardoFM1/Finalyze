@@ -57,7 +57,12 @@ class ChatFinanceiro
         ], $historico));
 
         $chatHistory = array_map(function ($item) {
-            return \Gemini\Data\Content::parse($item);
+            return new \Gemini\Data\Content(
+                role: \Gemini\Enums\Role::from($item['role']),
+                parts: [
+                    new \Gemini\Data\Part(text: $item['parts'][0]['text'])
+                ]
+            );
         }, $historicoInstrucoes);
 
         $response = Gemini::geminiFlash()

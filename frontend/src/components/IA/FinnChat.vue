@@ -37,18 +37,18 @@
     <v-card
       v-if="isOpen"
       class="finn-window rounded-xl elevation-12 overflow-hidden"
-      :width="isMobile ? '100%' : '380'"
-      :style="isMobile ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
+      :width="display.xs.value ? '100%' : '380'"
+      :style="display.xs.value ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
       max-height="650"
     >
     <!-- Header -->
-      <v-card-title class="d-flex align-center py-2 px-4">
+      <v-card-title class="d-flex align-center py-2 px-4 bg-primary text-white">
         <v-avatar size="32" class="mr-3">
           <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Finn"></v-img>
         </v-avatar>
         <span class="text-subtitle-1 font-weight-bold">Finn</span>
         <v-spacer></v-spacer>
-        <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false"></v-btn>
+        <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="isOpen = false"></v-btn>
       </v-card-title>
 
     <!-- Messages Area -->
@@ -115,7 +115,8 @@ import { useAuthStore } from '../../stores/auth'
 import { useDisplay } from 'vuetify'
 
 const authStore = useAuthStore()
-const { mobile: isMobile } = useDisplay()
+const display = useDisplay()
+const { mobile: isMobile } = display
 
 const isOpen = ref(false)
 const isHidden = ref(false)
