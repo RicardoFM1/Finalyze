@@ -12,6 +12,8 @@ class CriarLancamento
         $usuario = Auth::user();
         Lancamento::validarLimiteLancamentos($usuario->id);
 
-        return $usuario->lancamentos()->create($dados);
+        $lancamento = $usuario->lancamentos()->create($dados);
+        cache()->forget("user_summary_{$usuario->id}");
+        return $lancamento;
     }
 }

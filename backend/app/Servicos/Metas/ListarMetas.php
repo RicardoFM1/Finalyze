@@ -14,7 +14,7 @@ class ListarMetas
         $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
         $saldo = (float)($receita - $despesa);
 
-        $metas = $usuario->metas()->latest()->get();
+        $metas = $usuario->metas()->orderBy('created_at', 'desc')->get();
 
         $metas->map(function ($meta) use ($saldo) {
             if ($meta->tipo === 'financeira') {

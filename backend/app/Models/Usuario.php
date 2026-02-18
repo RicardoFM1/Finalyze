@@ -21,13 +21,17 @@ class Usuario extends Authenticatable
         'admin',
         'avatar',
         'cpf',
-        'data_nascimento'
+        'data_nascimento',
+        'codigo_verificacao',
+        'codigo_expira_em'
     ];
 
     protected $hidden = [
         'senha',
         'remember_token',
     ];
+
+    protected $appends = ['avatar_url'];
 
     public function getAuthPassword()
     {
@@ -41,6 +45,7 @@ class Usuario extends Authenticatable
             'senha' => 'hashed',
             'admin' => 'boolean',
             'data_nascimento' => 'date',
+            'codigo_expira_em' => 'datetime',
         ];
     }
 
@@ -52,6 +57,16 @@ class Usuario extends Authenticatable
     public function plano()
     {
         return $this->belongsTo(Plano::class, 'plano_id');
+    }
+
+    public function assinaturas()
+    {
+        return $this->hasMany(Assinatura::class, 'user_id');
+    }
+
+    public function historicosPagamento()
+    {
+        return $this->hasMany(HistoricoPagamento::class, 'user_id');
     }
 
     public function assinaturaAtiva()
@@ -67,5 +82,11 @@ class Usuario extends Authenticatable
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        // Avatar já está em base64 (data:image/png;base64,...)
+        return $this->avatar;
     }
 }

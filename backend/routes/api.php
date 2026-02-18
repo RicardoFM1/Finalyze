@@ -3,8 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => now()]);
+});
+
 Route::post('/auth/register', [App\Http\Controllers\AuthController::class, 'register']);
 Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login'])->name('login');
+Route::post('/auth/verificar', [App\Http\Controllers\AuthController::class, 'verificarCodigo']);
+Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reenviarCodigo']);
 
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
@@ -18,10 +24,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout/processar_pagamento', [App\Http\Controllers\CheckoutController::class, 'processarPagamento']);
     Route::get('/checkout/status/{id}', [App\Http\Controllers\CheckoutController::class, 'checarStatusPagamento']);
     Route::match(['put', 'post'], '/checkout/cancelar_pagamento', [App\Http\Controllers\CheckoutController::class, 'cancelarPagamento']);
+    Route::get('/checkout/check-upgrade', [App\Http\Controllers\CheckoutController::class, 'checkUpgrade']);
+    Route::post('/checkout/apply-free-upgrade', [App\Http\Controllers\CheckoutController::class, 'applyFreeUpgrade']);
 
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
+    Route::post('/assinaturas/auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'toggleAutoRenewal']);
 
 
 
@@ -42,11 +51,13 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
             Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
+            Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
 
             Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
             Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
             Route::put('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
             Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
+            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\AnotacaoController::class, 'reativar']);
         });
     });
 
@@ -62,6 +73,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/planos', [App\Http\Controllers\PlanController::class, 'criar']);
         Route::put('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'atualizar']);
         Route::delete('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'destruir']);
+    });
+
+    Route::middleware('check_resource:finn-ai')->group(function () {
+        Route::post('/chat/pergunta', [App\Http\Controllers\ChatIaController::class, 'perguntar']);
     });
 });
 

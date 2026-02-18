@@ -3,12 +3,13 @@
 namespace App\Servicos\Anotacoes;
 
 use App\Models\Anotacao;
+use Illuminate\Support\Facades\Auth;
 
 class ExcluirAnotacao
 {
     public function executar($id)
     {
-        $anotacao = Anotacao::findOrFail($id);
-        return $anotacao->delete();
+        $anotacao = Auth::user()->anotacoes()->findOrFail($id);
+        return $anotacao->update(['status' => 'inativo']);
     }
 }

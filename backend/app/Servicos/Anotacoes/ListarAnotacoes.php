@@ -8,7 +8,8 @@ class ListarAnotacoes
 {
     public function executar($usuarioId)
     {
-        return Anotacao::where('usuario_id', $usuarioId)
+        return Anotacao::withTrashed()
+            ->where('usuario_id', $usuarioId)
             ->orderBy('created_at', 'desc')
             ->get();
     }

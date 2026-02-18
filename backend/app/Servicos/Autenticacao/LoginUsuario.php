@@ -18,13 +18,22 @@ class LoginUsuario
             throw new \Exception('Credenciais inválidas. Verifique seu e-mail e senha.', 401);
         }
 
-        $usuario = Usuario::where('email', $credenciais['email'])->firstOrFail();
-        $token = $usuario->createToken('auth_token')->plainTextToken;
+        $usuario = Auth::user();
+
+        if ($usuario->admin) {
+            $token = $usuario->createToken('auth_token')->plainTextToken;
+            return [
+                'requer_verificacao' => false,
+                'access_token' => $token,
+                'usuario' => $usuario->load('plano.recursos')
+            ];
+        }
+
+        app(GerarCodigoVerificacao::class)->executar($usuario);
 
         return [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'usuario' => $usuario->load('plano.recursos')
+            'requer_verificacao' => true,
+            'email' => $usuario->email
         ];
     }
 }

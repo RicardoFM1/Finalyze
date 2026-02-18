@@ -8,16 +8,30 @@ class CancelarPagamentoCheckout
 {
     public function executar()
     {
-        $usuario = auth()->user();
+        $usuario = \Illuminate\Support\Facades\Auth::user();
         if (!$usuario) {
             throw new \Exception('Usuário não autenticado', 401);
         }
 
-        $affected = Assinatura::where('user_id', $usuario->id)
+        $pendenteIds = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
-            ->update(['status' => 'cancelled']);
+            ->pluck('id');
 
-        if ($affected > 0) {
+        if ($pendenteIds->isNotEmpty()) {
+            \Illuminate\Support\Facades\Log::info("Cancelando tentativas de pagamento pendentes para usuário #{$usuario->id}", ['ids' => $pendenteIds]);
+
+            Assinatura::whereIn('id', $pendenteIds)->update(['status' => 'cancelled']);
+
+            // Cancela históricos vinculados às assinaturas encontradas
+            \App\Models\HistoricoPagamento::whereIn('assinatura_id', $pendenteIds)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
+
+            // Garante que qualquer outro histórico pendente do usuário também seja cancelado
+            \App\Models\HistoricoPagamento::where('user_id', $usuario->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
+
             return true;
         }
 

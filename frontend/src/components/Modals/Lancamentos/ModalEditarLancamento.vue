@@ -12,7 +12,7 @@
           <v-text-field v-model="localForm.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="localForm.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required></v-text-field>
+          <DateInput v-model="localForm.data" :label="$t('modals.labels.date')" required />
         </v-col>
         <v-col cols="12">
                             <v-autocomplete
@@ -73,6 +73,7 @@ import { useAuthStore } from '../../../stores/auth'
 import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import DateInput from '../../Common/DateInput.vue'
 import { categorias } from '../../../constants/categorias'
 import { useI18n } from 'vue-i18n'
 

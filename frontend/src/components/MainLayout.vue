@@ -4,8 +4,8 @@
       <v-app-bar color="primary" elevation="2">
          <v-app-bar-nav-icon
       v-if="
-        authStore.isAuthenticated &&
-        !isAuthPage
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
       "
       @click="toggleDrawer"
       class="mr-2"
@@ -24,7 +24,20 @@
 
       <v-spacer />
 
-        <Coinselector />
+        <template v-if="isAuthPage">
+          <v-btn
+            prepend-icon="mdi-home"
+            variant="text"
+            color="white"
+            class="text-none font-weight-bold"
+            :to="{ name: 'Home' }"
+          >
+            {{ $t('login.btn_back_home') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <Coinselector />
+        </template>
 
         <v-btn
           icon
@@ -56,7 +69,7 @@
               color="white"
               class="ml-2 mr-4 font-weight-bold text-primary text-none"
             >
-              {{ $t('landing.btn_start') }}
+              {{ $t('landing.btn_create_account') }}
             </v-btn>
         </template>
       </v-app-bar>
@@ -64,8 +77,8 @@
 
       <v-navigation-drawer
       v-if="
-        authStore.isAuthenticated &&
-        !isAuthPage
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
       "
       v-model="drawer"
       :rail="isDesktop && rail"
@@ -80,8 +93,13 @@
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
-                            v-if="authStore.user.avatar"
-                            :src="getStorageUrl(authStore.user.avatar)"
+                            v-if="authStore.user.avatar_url"
+                            :src="authStore.user.avatar_url"
+                            cover
+                        ></v-img>
+                        <v-img
+                            v-else-if="authStore.user.avatar"
+                            :src="authStore.getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>
                         <span v-else class="text-caption font-weight-bold text-primary">
@@ -141,6 +159,7 @@
             </v-btn>
         </template>
     </ModalBase>
+    <FinnChat v-if="authStore.isAuthenticated" />
   </v-layout>
 </template>
 
@@ -153,6 +172,7 @@ import { useUiStore } from '../stores/ui'
 import logotipo from '../assets/logotipo.png'
 
 import ModalBase from '../components/Modals/modalBase.vue'
+import FinnChat from './IA/FinnChat.vue'
 
 import Coinselector from './Currency/Coinselector.vue'
 
@@ -200,11 +220,7 @@ const getInitials = (name) => {
 }
 
 
-const getStorageUrl = (path) => {
-  if (!path) return ''
-  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
-  return `${baseUrl}/storage/${path}`
-}
+// getStorageUrl removed as it is now in authStore
 
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {

@@ -103,6 +103,7 @@ const router = useRouter()
 const amount = ref(null)
 const preferenceId = ref(null)
 const planId = ref(null)
+const periodId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const brickMounted = ref(false)
@@ -224,7 +225,8 @@ const initMercadoPago = async () => {
           bankTransfer: 'all',
           creditCard: 'all',
           debitCard: 'all',
-          mercadoPago: 'all'
+          mercadoPago: 'all',
+          maxInstallments: 1
         }
       },
       callbacks: {
@@ -254,7 +256,7 @@ const initMercadoPago = async () => {
                 body: JSON.stringify({
                     ...formData,
                     plano_id: planId.value,
-                    periodo_id: props.periodId
+                    periodo_id: periodId.value || props.periodId
                 })
               })
 
@@ -315,13 +317,19 @@ const initMercadoPago = async () => {
 const props = defineProps({
   preferenceId: String,
   planId: [String, Number],
-  periodId: [String, Number]
+  periodId: [String, Number],
+  amount: [String, Number]
 })
 
 onMounted(async () => {
+  if (props.amount !== undefined && props.amount !== null) {
+    amount.value = Number(props.amount)
+  }
+
   if (props.preferenceId && props.planId) {
     preferenceId.value = props.preferenceId
     planId.value = props.planId
+    periodId.value = props.periodId
     
     try {
       const response = await authStore.apiFetch(`/planos`)
@@ -350,7 +358,10 @@ onMounted(async () => {
       if (!response.ok) throw new Error('Preferência não encontrada')
 
       const data = await response.json()
-      amount.value = data.valor_centavos / 100
+      const credits = data.creditos_prorrata || 0
+      const originalAmount = data.valor_centavos / 100
+      amount.value = Math.max(0, originalAmount - credits)
+      
       planId.value = data.plano.id
       periodId.value = data.periodo_id || (data.plano.periodos?.[0]?.id)
       preferenceId.value = data.id
@@ -377,8 +388,13 @@ onUnmounted(() => {
     if (countdownInterval) clearInterval(countdownInterval)
 })
 
-watch([() => preferenceId.value, () => amount.value], ([newPrefId, newAmount]) => {
-    if (newPrefId && newAmount && !brickMounted.value) {
+watch([() => preferenceId.value, () => amount.value], async ([newPrefId, newAmount]) => {
+    if (newPrefId && newAmount) {
+        if (brickController) {
+            await brickController.unmount()
+            brickMounted.value = false
+            brickController = null
+        }
         initMercadoPago()
     }
 })

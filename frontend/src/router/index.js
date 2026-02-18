@@ -1,28 +1,28 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { toast } from 'vue3-toastify'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
       name: 'Home',
       component: () => import('@/views/Home.vue'),
-      
+
     },
     {
       path: '/login',
       name: 'Login',
       component: () => import('@/views/Login.vue'),
-      meta: {RequiresNoAuth: true}
+      meta: { RequiresNoAuth: true }
     },
     {
       path: '/cadastro',
       name: 'Register',
       component: () => import('@/views/Register.vue'),
-      meta: {RequiresNoAuth: true}
+      meta: { RequiresNoAuth: true }
     },
     {
       path: '/planos',
@@ -32,7 +32,8 @@ const router = createRouter({
     {
       path: '/pagamento',
       name: 'Checkout',
-      component: () => import('@/views/Checkout.vue')
+      component: () => import('@/views/Checkout.vue'),
+      meta: { hideNavBar: true }
     },
 
     {
@@ -94,8 +95,8 @@ router.beforeEach(async (to) => {
     await auth.fetchUser();
   }
 
-  if(to.meta.RequiresNoAuth && auth.isAuthenticated) {
-    return {name: 'Home'}
+  if (to.meta.RequiresNoAuth && auth.isAuthenticated) {
+    return { name: 'Home' }
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {

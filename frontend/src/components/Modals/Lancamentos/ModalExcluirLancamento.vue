@@ -1,13 +1,13 @@
 <template>
-  <ModalBase :title="$t('admin.deleteTitle')" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="$t('transactions.delete_title')" v-model="internalValue" maxWidth="550px">
     <div class="text-center">
       <v-icon color="error" size="56" class="mb-4">
         mdi-alert-circle-outline
       </v-icon>
       <p class="text-body-2 text-grey-darken-1 mb-4">
-        {{ $t('admin.deleteConfirm') }}?
+        {{ $t('transactions.delete_confirm') }}
         <br />
-        <strong>{{ $t('profile.warnings.update_error') }}</strong>
+        <strong>{{ $t('transactions.delete_warning') }}</strong>
       </p>
     </div>
     <template #actions>

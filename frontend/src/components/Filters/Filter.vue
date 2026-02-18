@@ -82,14 +82,11 @@
         </v-col>
 
         <v-col cols="12" md="3">
-          <v-text-field
+          <DateInput
             v-model="localFilters.data"
             label="Data"
-            type="date"
-            density="comfortable"
-            variant="solo-filled"
-            flat
             hide-details
+            clearable
           />
         </v-col>
       </v-row>
@@ -102,6 +99,7 @@
 <script setup>
 import { computed, reactive, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import DateInput from '../Common/DateInput.vue'
 
 const { t } = useI18n()
 

@@ -29,6 +29,7 @@
     "hero_title_alt": "Master your Financial {destiny}",
     "destiny": "Destiny",
     "hero_subtitle_alt": "Track, analyze and achieve. Finalyze is the bridge between your dreams and your financial reality.",
+    "btn_create_account": "Create an account",
     "btn_start": "Start Now",
     "btn_my_dashboard": "My Dashboard",
     "power_title": "Power in your hands",
@@ -86,7 +87,8 @@
     "rules": {
       "email_required": "Email is required for access",
       "password_required": "Password is required for your security"
-    }
+    },
+    "login_footer": "Finalyze Finance. Premium Design & Bank-Level Security."
   },
   "plans": {
     "title": "Simple and Transparent Prices",
@@ -95,6 +97,8 @@
     "pending_desc": "You have already started payment for the {plan} plan. Do you want to continue where you left off or cancel this payment to choose a new plan?",
     "cancel_prev": "Cancel Previous",
     "continue": "Continue Payment",
+    "launch_limits": "{count} Transactions Limit",
+    "launch_unlimited": "Unlimited Transactions",
     "toast_cancel_success": "Previous subscription canceled.",
     "toast_cancel_error": "Error canceling subscription."
   },
@@ -106,7 +110,7 @@
     "goal_remaining": "{amount} remaining for your goal",
     "goal_reached": "Goal reached! Congratulations!",
     "edit": "Edit",
-    "delete": "Delete",
+    "delete": "Deactivate",
     "no_financial_goals": "No financial goals found.",
     "notepad_title": "Notepad",
     "notepad_tooltip": "Your personal notes and reminders.",
@@ -123,13 +127,17 @@
     "filter": {
       "active": "In Progress",
       "completed": "Completed",
+      "inactive": "Inactive",
       "all": "All"
     },
     "actions": {
       "complete": "Complete",
       "reopen": "Reopen",
-      "delete": "Delete",
-      "edit": "Edit"
+      "delete": "Deactivate",
+      "edit": "Edit",
+      "inactivate_title": "Deactivate Item",
+      "inactivate_confirm": "Are you sure you want to deactivate \"{title}\"?",
+      "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab."
     }
   },
   "transactions": {
@@ -149,7 +157,10 @@
     "type": {
       "income": "Income",
       "expense": "Expense"
-    }
+    },
+    "delete_title": "Confirm Deletion",
+    "delete_confirm": "Are you sure you want to delete this transaction?",
+    "delete_warning": "This action cannot be undone."
   },
   "profile": {
     "title": "Profile Details",
@@ -197,6 +208,7 @@
       "cancel": "Cancel Subscription",
       "recent_payments": "Recent Payments",
       "no_history": "No billing history found.",
+      "no_history_desc": "Your charges and receipts will appear here.",
       "expires_at": "Expires at",
       "days_remaining": "{count} days remaining",
       "days_remaining_singular": "1 day remaining",
@@ -318,7 +330,7 @@
       "pass_required": "Password is required",
       "confirm_required": "Confirmation is required"
     },
-    "toast_success": "Registration completed successfully! Please log in to continue."
+    "register_footer": "Finalyze Finance. Your journey to financial freedom."
   },
   "checkout": {
     "title": "Complete Your Subscription",
@@ -372,7 +384,8 @@
     "check_errors": "Check the fields in red.",
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
-    "success_delete": "Item deleted successfully!",
+    "success_delete": "Item removed successfully!",
+    "success_restore": "Item restored successfully!",
     "error_generic": "An error occurred. Please try again."
   },
   "modals": {
