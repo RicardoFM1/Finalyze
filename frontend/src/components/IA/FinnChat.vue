@@ -1,8 +1,18 @@
 <template>
   <div v-if="authStore.hasFeature('finn-ai') && authStore.isAuthenticated" class="finn-chat-wrapper">
+    <!-- Toggle Arrow (when hidden) -->
+    <v-btn
+      v-if="isHidden && !isOpen"
+      color="primary"
+      size="x-small"
+      icon="mdi-chevron-left"
+      class="finn-toggle-btn elevation-4"
+      @click="isHidden = false"
+    ></v-btn>
+
     <!-- Chat Button (FAB) -->
     <v-btn
-      v-if="!isOpen"
+      v-if="!isOpen && !isHidden"
       color="primary"
       size="x-large"
       icon
@@ -12,6 +22,15 @@
       <v-avatar size="45">
         <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
       </v-avatar>
+      <!-- Small hide button on top of FAB -->
+      <v-btn
+        icon="mdi-chevron-right"
+        size="x-small"
+        color="white"
+        variant="flat"
+        class="finn-mini-hide"
+        @click.stop="isHidden = true"
+      ></v-btn>
     </v-btn>
 
     <!-- Chat Window -->
@@ -91,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, computed } from 'vue'
+import { ref, nextTick, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDisplay } from 'vuetify'
 
@@ -99,6 +118,7 @@ const authStore = useAuthStore()
 const { mobile: isMobile } = useDisplay()
 
 const isOpen = ref(false)
+const isHidden = ref(false)
 const input = ref('')
 const loading = ref(false)
 const chatBox = ref(null)
@@ -260,13 +280,35 @@ const saveEdit = async () => {
 }
 
 .finn-chat-wrapper.is-hidden {
-  right: -8px;
+  right: -10px;
+}
+
+.finn-mini-hide {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  font-size: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .finn-toggle-btn {
-  transition: all 0.3s ease;
-  z-index: 10000;
-  margin-right: -4px;
+  position: fixed;
+  right: -10px;
+  bottom: 40px;
+  border-radius: 50% 0 0 50% !important;
+  width: 30px !important;
+  height: 40px !important;
+  min-width: 0 !important;
+  padding: 0 8px 0 0 !important;
+  transition: right 0.2s ease;
+}
+
+.finn-toggle-btn:hover {
+  right: 0px;
 }
 
 .draggable-header {

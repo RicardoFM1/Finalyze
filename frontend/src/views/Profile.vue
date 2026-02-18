@@ -30,12 +30,28 @@
       </v-tabs>
 
       <v-window v-model="activeTab">
-        <div v-if="loadingUser && activeTab === 'personal'" class="text-center py-10 d-flex flex-column align-center">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          {{ $t('profile.loading') }}
-        </div>
-          <v-window-item v-if="!loadingUser" value="personal">
-          <v-row class="pa-6 pa-md-10">
+        <v-window-item value="personal">
+          <div v-if="loadingUser" class="pa-6 pa-md-10">
+            <v-row>
+              <v-col cols="12" md="4" class="text-center">
+                <v-skeleton-loader type="avatar" class="mx-auto mb-6" height="160" width="160"></v-skeleton-loader>
+                <v-skeleton-loader type="chip" class="mx-auto" width="100"></v-skeleton-loader>
+              </v-col>
+              <v-col cols="12" md="8">
+                <v-row>
+                  <v-col cols="12"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12" md="6"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12" md="6"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                </v-row>
+                <div class="d-flex justify-end mt-4">
+                  <v-skeleton-loader type="button" width="150"></v-skeleton-loader>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+          <div v-else>
+            <v-row class="pa-6 pa-md-10">
             <v-col cols="12" md="4" class="text-center">
               <div class="avatar-wrapper mb-6">
                 <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
@@ -138,10 +154,16 @@
 
         <v-window-item value="assinatura">
           <v-container class="pa-6 pa-md-10">
-            <div v-if="loadingSub && activeTab === 'assinatura'" class="text-center py-10">
-              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div v-if="loadingSub" class="pt-2">
+              <v-row>
+                <v-col cols="12" md="5">
+                  <v-skeleton-loader type="image" class="rounded-xl" height="300"></v-skeleton-loader>
+                </v-col>
+                <v-col cols="12" md="7">
+                  <v-skeleton-loader type="article" class="rounded-xl" height="300"></v-skeleton-loader>
+                </v-col>
+              </v-row>
             </div>
-            
             <div v-else-if="!hasActiveOrValidSubscription && subscriptionData?.assinatura?.status !== 'pending'" class="text-center py-10 no-plan-empty">
               <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
               <h3 class="text-h5 mt-4">{{ $t('profile.subscription.no_active') }}</h3>
@@ -149,7 +171,7 @@
               <v-btn color="primary" :to="{ name: 'Plans' }" size="large" rounded="xl">{{ $t('profile.subscription.view_plans') }}</v-btn>
             </div>
 
-            <v-row v-else>
+            <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
                 <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
                    <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
                       O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.
@@ -249,10 +271,9 @@
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
             <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
-            <div v-if="loadingSub && activeTab === 'historico'" class="text-center py-10">
-              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <div v-if="loadingSub" class="pt-2">
+              <v-skeleton-loader type="table-row-divider@5"></v-skeleton-loader>
             </div>
-
             <v-table v-else-if="subscriptionData?.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
               <thead>
                 <tr>
