@@ -2,7 +2,7 @@
 
 namespace App\Servicos\IA;
 
-use Gemini\Client;
+use Gemini\Laravel\Facades\Gemini;
 use Gemini\Data\Content;
 use Gemini\Data\Part;
 use Gemini\Enums\Role;
@@ -73,12 +73,9 @@ class ChatFinanceiro
         }, $historicoInstrucoes);
 
         /*
-         * Client Gemini
+         * Chamada ao Gemini usando a Facade estável
          */
-        $client = new Client(env('GEMINI_API_KEY'));
-
-        $response = $client
-            ->generativeModel('gemini-1.5-flash-latest')
+        $response = Gemini::generativeModel(model: 'gemini-1.5-flash-latest')
             ->startChat(history: $chatHistory)
             ->sendMessage($mensagem);
 
