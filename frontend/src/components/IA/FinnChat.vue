@@ -105,24 +105,46 @@ const chatBox = ref(null)
 
 const messages = ref([])
 
+// Carregar mensagens do localStorage ao iniciar
 onMounted(async () => {
+  const savedMessages = localStorage.getItem(`finn_chat_${authStore.user?.id}`)
+  if (savedMessages) {
+    try {
+      messages.value = JSON.parse(savedMessages)
+    } catch (e) {
+      console.error('Erro ao ler mensagens salvas:', e)
+    }
+  }
+
   if (authStore.isAuthenticated) {
     await fetchHistory()
   }
 })
+
+// Salvar no localStorage sempre que as mensagens mudarem
+watch(messages, (newVal) => {
+  if (authStore.user?.id) {
+    localStorage.setItem(`finn_chat_${authStore.user.id}`, JSON.stringify(newVal))
+  }
+}, { deep: true })
 
 const fetchHistory = async () => {
   try {
     const response = await authStore.apiFetch('/chat')
     if (response.ok) {
       const data = await response.json()
-      messages.value = data.map(m => ({
+      const newMessages = data.map(m => ({
         id: m.id,
         role: m.role,
         text: m.texto
       }))
-      if (messages.value.length === 0) {
+      
+      // Se não houver nada no backend nem no local, bota a mensagem inicial
+      if (newMessages.length === 0 && messages.value.length === 0) {
         messages.value.push({ role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' })
+      } else if (newMessages.length > 0) {
+        // Atualiza apenas se o backend tiver mensagens (prioridade para o banco)
+        messages.value = newMessages
       }
       scrollToBottom()
     }
@@ -275,17 +297,21 @@ const saveEdit = async () => {
   right: 0;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
   z-index: 10001;
 }
 
 .chat-messages {
   flex-grow: 1;
-  height: 400px;
+  height: 440px;
   max-height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  scroll-behavior: smooth;
 }
 
 @media (max-width: 600px) {
@@ -293,28 +319,14 @@ const saveEdit = async () => {
     bottom: 0;
     right: 0;
   }
-  
-  /* Ensure chat container is always visible on mobile */
-  .finn-chat-container {
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: all !important;
-  }
-  
   .finn-window {
     width: 100vw !important;
     height: 100vh !important;
     bottom: 0 !important;
+    border-radius: 0 !important;
   }
   .chat-messages {
     height: calc(100vh - 140px) !important;
-  }
-}
-
-@media (min-width: 601px) and (max-width: 960px) {
-  .finn-window {
-    width: 400px !important;
-    right: 0;
   }
 }
 
@@ -333,16 +345,27 @@ const saveEdit = async () => {
 
 .message-card {
   position: relative;
+  transition: all 0.2s ease;
+  border-radius: 16px !important;
+}
+
+.message-card.user {
+  border-bottom-right-radius: 4px !important;
+}
+
+.message-card.bot {
+  border-bottom-left-radius: 4px !important;
 }
 
 .message-actions {
   position: absolute;
-  top: -10px;
+  top: -12px;
   right: 0;
   display: none;
-  background: rgba(var(--v-theme-primary), 0.9);
+  background: #1867c0;
   border-radius: 20px;
   padding: 2px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .message-card:hover .message-actions {
@@ -355,20 +378,29 @@ const saveEdit = async () => {
 
 .white-space-pre {
   white-space: pre-wrap;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
 }
 
 .typing-indicator {
   display: flex;
   align-items: center;
-  opacity: 0.7;
+  margin-top: 8px;
+  opacity: 0.8;
 }
 
 /* Custom scrollbar */
 .chat-messages::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
+}
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
 }
 .chat-messages::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
+  background: rgba(24, 103, 192, 0.2);
+  border-radius: 10px;
+}
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 103, 192, 0.4);
 }
 </style>

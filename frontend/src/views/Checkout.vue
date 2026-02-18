@@ -1,6 +1,12 @@
 <template>
   <v-container class="py-10">
-    <v-row justify="center">
+    <v-row v-if="pageLoading" justify="center" align="center" style="min-height: 50vh;">
+      <v-col cols="12" class="text-center">
+        <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+        <p class="mt-4 text-medium-emphasis">{{ $t('checkout.preparing_payment') }}</p>
+      </v-col>
+    </v-row>
+    <v-row v-else justify="center">
       <v-col cols="12" md="10" lg="8">
         <v-card class="rounded-xl overflow-hidden" elevation="12">
           <v-stepper v-model="step" :items="[$t('checkout.steps.identification'), 'Verificação', $t('checkout.steps.payment')]" hide-actions>
@@ -101,7 +107,7 @@
                     </div>
                   </v-alert>
 
-                  <v-card v-if="totalFinal === 0 && !uiStore.loading" class="rounded-xl pa-8 text-center border-2 border-primary" elevation="4">
+                  <v-card v-if="totalFinal === 0 && !loading" class="rounded-xl pa-8 text-center border-2 border-primary" elevation="4">
                     <v-icon color="primary" size="64" class="mb-4">mdi-check-decagram</v-icon>
                     <h2 class="text-h4 font-weight-bold mb-4">Ajuste de Plano</h2>
                     <p class="text-body-1 text-medium-emphasis mb-6">
@@ -113,7 +119,7 @@
                       block 
                       rounded="pill" 
                       class="font-weight-bold"
-                      :loading="upgrading"
+                      :loading="loadingFree"
                       @click="handleFreeUpgrade"
                     >
                       Finalizar Atualização
@@ -185,8 +191,10 @@ const planId = ref(route.query.plan)
 const periodId = ref(route.query.period)
 const planInfo = ref(null)
 const periodInfo = ref(null)
+const pageLoading = ref(true)
 const loadingFree = ref(false)
 const creditosRestantes = ref(0)
+
 const totalFinal = computed(() => {
     if (!periodInfo.value) return 0
     const original = periodInfo.value?.pivot?.valor_centavos / 100
@@ -242,8 +250,9 @@ const registerPasswordRules = [
 ]
 
 onMounted(async () => {
-    if (authStore.isAuthenticated) {
-        try {
+    pageLoading.value = true
+    try {
+        if (authStore.isAuthenticated) {
             const response = await authStore.apiFetch('/checkout/preferencia')
             if (response.ok) {
                 const data = await response.json()
@@ -272,13 +281,9 @@ onMounted(async () => {
                     step.value = 3
                 }
             }
-        } catch (e) {
-            console.warn('No pending preference found or error:', e)
         }
-    }
 
-    if (!preferenceId.value && planId.value) {
-        try {
+        if (!preferenceId.value && planId.value) {
             const response = await authStore.apiFetch(`/planos`)
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
@@ -294,13 +299,15 @@ onMounted(async () => {
                 step.value = 3
                 await initPayment()
             }
-        } catch (e) {
-            console.error('Error loading plan info:', e)
         }
-    }
 
-    if (!preferenceId.value && !planId.value) {
-        router.push({ name: 'Plans' })
+        if (!preferenceId.value && !planId.value) {
+            router.push({ name: 'Plans' })
+        }
+    } catch (e) {
+        console.error('Checkout initialization error:', e)
+    } finally {
+        pageLoading.value = false
     }
 })
 
@@ -321,6 +328,7 @@ watch(() => route.query, async (newQuery) => {
         
         // Recarrega informações do plano e inicia novo pagamento
         try {
+            pageLoading.value = true
             const response = await authStore.apiFetch(`/planos`)
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
@@ -337,6 +345,8 @@ watch(() => route.query, async (newQuery) => {
             }
         } catch (e) {
             console.error('Error reloading plan on query change:', e)
+        } finally {
+            pageLoading.value = false
         }
     }
 }, { deep: true })
@@ -447,7 +457,7 @@ const cancelling = ref(false)
 const cancelPendingPayment = async () => {
     cancelling.value = true
     try {
-        await authStore.apiFetch('/checkout/cancelar_pagamento', { method: 'PUT' })
+        await authStore.apiFetch('/checkout/cancelar_pagamento', { method: 'POST' })
         preferenceId.value = null
         toast.success(t('plans.toast_cancel_success'))
         router.push({ name: 'Plans' })

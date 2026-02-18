@@ -43,6 +43,7 @@ class ChatIaController extends Controller
                     'role' => $m->role === 'bot' ? 'model' : 'user',
                     'parts' => [['text' => $m->texto]]
                 ])
+                ->values()
                 ->toArray();
 
             $resposta = $servico->perguntar($request->mensagem, $historico);

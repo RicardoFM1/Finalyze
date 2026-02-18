@@ -45,7 +45,7 @@ class ChatFinanceiro
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
         // Injetando instruções do sistema no início do histórico para garantir compatibilidade
-        $historicoInstrucoes = array_merge([
+        $historicoInstrucoes = array_values(array_merge([
             [
                 'role' => 'user',
                 'parts' => [['text' => $systemPrompt]]
@@ -54,10 +54,14 @@ class ChatFinanceiro
                 'role' => 'model',
                 'parts' => [['text' => "Entendido! Serei o Finn, o assistente financeiro da Finalyze. Pode contar comigo."]]
             ]
-        ], $historico);
+        ], $historico));
+
+        $chatHistory = array_map(function ($item) {
+            return \Gemini\Data\Content::parse($item);
+        }, $historicoInstrucoes);
 
         $response = Gemini::geminiFlash()
-            ->startChat(history: $historicoInstrucoes)
+            ->startChat(history: $chatHistory)
             ->sendMessage($mensagem);
 
         return $response->text();
