@@ -317,10 +317,15 @@ const initMercadoPago = async () => {
 const props = defineProps({
   preferenceId: String,
   planId: [String, Number],
-  periodId: [String, Number]
+  periodId: [String, Number],
+  amount: [String, Number]
 })
 
 onMounted(async () => {
+  if (props.amount !== undefined && props.amount !== null) {
+    amount.value = Number(props.amount)
+  }
+
   if (props.preferenceId && props.planId) {
     preferenceId.value = props.preferenceId
     planId.value = props.planId
@@ -353,7 +358,10 @@ onMounted(async () => {
       if (!response.ok) throw new Error('Preferência não encontrada')
 
       const data = await response.json()
-      amount.value = data.valor_centavos / 100
+      const credits = data.creditos_prorrata || 0
+      const originalAmount = data.valor_centavos / 100
+      amount.value = Math.max(0, originalAmount - credits)
+      
       planId.value = data.plano.id
       periodId.value = data.periodo_id || (data.plano.periodos?.[0]?.id)
       preferenceId.value = data.id

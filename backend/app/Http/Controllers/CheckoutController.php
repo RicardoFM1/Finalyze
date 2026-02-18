@@ -20,8 +20,8 @@ class CheckoutController extends Controller
     public function criarPreferencia(CreatePreferenceRequest $request, CriarPreferenciaCheckout $servico)
     {
         try {
-            $id = $servico->executar($request->all());
-            return response()->json(['id' => $id]);
+            $data = $servico->executar($request->all());
+            return response()->json($data);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             Log::error('Mercado Pago API Error', [
                 'message' => $e->getMessage(),

@@ -76,8 +76,6 @@ class AtivarPlanoUsuario
                     Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
                 }
 
-                Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
-
                 $usuarioId = $assinatura->user_id;
                 $planoId = $assinatura->plano_id;
             }

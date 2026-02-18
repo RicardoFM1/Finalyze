@@ -41,7 +41,7 @@ class ChatIaController extends Controller
                 ->reverse()
                 ->map(fn($m) => [
                     'role' => $m->role === 'bot' ? 'model' : 'user',
-                    'content' => $m->texto
+                    'parts' => [['text' => $m->texto]]
                 ])
                 ->toArray();
 

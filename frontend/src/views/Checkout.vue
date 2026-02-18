@@ -101,11 +101,30 @@
                     </div>
                   </v-alert>
 
+                  <div v-if="totalFinal === 0 && preferenceId" class="text-center py-6">
+                    <v-icon color="success" size="48" icon="mdi-gift-outline" class="mb-4"></v-icon>
+                    <h4 class="text-h6 font-weight-bold mb-2">Upgrade Gratuito Disponível!</h4>
+                    <p class="text-body-2 text-medium-emphasis mb-6">
+                      Seu saldo de crédito do plano atual cobre integralmente o valor deste novo plano.
+                    </p>
+                    <v-btn 
+                      color="success" 
+                      size="large" 
+                      block 
+                      :loading="loadingFree"
+                      @click="handleFreeUpgrade"
+                      class="rounded-xl font-weight-bold py-6 px-4 h-auto elevation-4"
+                    >
+                      Confirmar Upgrade Grátis
+                    </v-btn>
+                  </div>
+
                   <PaymentBrick 
-                    v-if="preferenceId" 
+                    v-else-if="preferenceId && totalFinal > 0" 
                     :preferenceId="preferenceId" 
                     :plan-id="planId"
                     :period-id="periodId"
+                    :amount="totalFinal"
                   />
                   
                   <div v-if="preferenceId && totalFinal > 0" class="text-center mt-6">
@@ -120,11 +139,11 @@
                     </v-btn>
                   </div>
 
-                  <div v-else-if="!checkoutError" class="text-center py-10">
+                  <div v-else-if="!checkoutError && !preferenceId" class="text-center py-10">
                     <v-progress-circular indeterminate color="primary"></v-progress-circular>
                     <p class="mt-4">{{ $t('checkout.preparing_payment') }}</p>
                   </div>
-                  <v-alert v-else type="error" variant="tonal" class="mt-4">
+                  <v-alert v-if="checkoutError" type="error" variant="tonal" class="mt-4">
                     {{ checkoutError }}
                     <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">{{ $t('checkout.try_again') }}</v-btn>
                     <v-btn block variant="text" class="mt-2" @click="router.push({name: 'Plans'})">{{ $t('checkout.back_to_plans') }}</v-btn>
@@ -165,12 +184,41 @@ const planId = ref(route.query.plan)
 const periodId = ref(route.query.period)
 const planInfo = ref(null)
 const periodInfo = ref(null)
+const loadingFree = ref(false)
 const creditosRestantes = ref(0)
 const totalFinal = computed(() => {
     if (!periodInfo.value) return 0
     const original = periodInfo.value?.pivot?.valor_centavos / 100
-    return Math.max(0, original - creditosRestantes.value)
+    const final = Math.max(0, original - creditosRestantes.value)
+    return parseFloat(final.toFixed(2))
 })
+
+const handleFreeUpgrade = async () => {
+    loadingFree.value = true
+    try {
+        const response = await authStore.apiFetch('/checkout/apply-free-upgrade', {
+            method: 'POST',
+            body: JSON.stringify({
+                plano_id: planId.value,
+                periodo_id: periodId.value
+            })
+        })
+        
+        if (response.ok) {
+            toast.success('Upgrade realizado com sucesso!')
+            setTimeout(() => {
+                window.location.href = '/'
+            }, 2000)
+        } else {
+            const data = await response.json()
+            throw new Error(data.error || 'Erro ao processar upgrade gratuito')
+        }
+    } catch (e) {
+        toast.error(e.message)
+    } finally {
+        loadingFree.value = false
+    }
+}
 
 const loginForm = ref({ email: '', senha: '' })
 const registerForm = ref({ 

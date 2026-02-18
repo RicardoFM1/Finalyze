@@ -97,6 +97,9 @@ class CriarPreferenciaCheckout
             ->where('id', '!=', $assinatura->id)
             ->update(['status' => 'cancelled']);
 
-        return $preference->id;
+        return [
+            'id' => $preference->id,
+            'creditos_prorrata' => $creditos
+        ];
     }
 }

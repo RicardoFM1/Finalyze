@@ -56,7 +56,7 @@ class ChatFinanceiro
             ]
         ], $historico);
 
-        $response = Gemini::geminiFlash()
+        $response = Gemini::model('gemini-1.5-flash')
             ->startChat(history: $historicoInstrucoes)
             ->sendMessage($mensagem);
 
