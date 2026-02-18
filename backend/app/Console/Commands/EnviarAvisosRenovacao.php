@@ -3,14 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Models\Assinatura;
-use App\Models\LembreteEnviado;
-use App\Mail\LembreteRenovacao;
-use App\Mail\LembreteRenovacaoUrgente;
+use App\Models\AvisoEnviado;
+use App\Mail\AvisoRenovacao;
+use App\Mail\AvisoRenovacaoUrgente;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-class EnviarLembretesRenovacao extends Command
+class EnviarAvisosRenovacao extends Command
 {
     /**
      * The name and signature of the console command.
@@ -31,7 +31,7 @@ class EnviarLembretesRenovacao extends Command
      */
     public function handle()
     {
-        $this->info('Iniciando envio de lembretes de renovação...');
+        $this->info('Iniciando envio de avisos de renovação...');
 
         $totalEnviados = 0;
 
@@ -41,13 +41,13 @@ class EnviarLembretesRenovacao extends Command
         // Lembrete Urgente: 1 dia antes da expiração
         $totalEnviados += $this->enviarLembretesUrgentes();
 
-        $this->info("\n✓ Processo concluído: {$totalEnviados} lembrete(s) enviado(s).");
-        Log::info("Lembretes de renovação enviados: {$totalEnviados} total.");
+        $this->info("\n✓ Processo concluído: {$totalEnviados} aviso(s) enviado(s).");
+        Log::info("Avisos de renovação enviados: {$totalEnviados} total.");
 
         return 0;
     }
 
-    private function enviarLembretes3Dias()
+    private function enviarAvisos3Dias()
     {
         $this->line("\n📧 Verificando assinaturas que expiram em 3 dias...");
 
@@ -56,14 +56,14 @@ class EnviarLembretesRenovacao extends Command
 
         $assinaturas = Assinatura::where('status', 'active')
             ->whereBetween('termina_em', [$dataInicio, $dataLimite])
-            ->whereDoesntHave('lembretesEnviados', function ($query) {
+            ->whereDoesntHave('avisosEnviados', function ($query) {
                 $query->where('tipo', '3_dias');
             })
             ->with(['usuario', 'plano'])
             ->get();
 
         if ($assinaturas->isEmpty()) {
-            $this->line('  → Nenhum lembrete de 3 dias para enviar.');
+            $this->line('  → Nenhum aviso de 3 dias para enviar.');
             return 0;
         }
 
@@ -71,28 +71,28 @@ class EnviarLembretesRenovacao extends Command
         foreach ($assinaturas as $assinatura) {
             try {
                 Mail::to($assinatura->usuario->email)
-                    ->send(new LembreteRenovacao($assinatura));
+                    ->send(new AvisoRenovacao($assinatura));
 
-                LembreteEnviado::create([
+                AvisoEnviado::create([
                     'assinatura_id' => $assinatura->id,
                     'tipo' => '3_dias',
                     'enviado_em' => now()
                 ]);
 
                 $count++;
-                $this->line("  ✓ Lembrete enviado para {$assinatura->usuario->email}");
-                Log::info("Lembrete 3 dias enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
+                $this->line("  ✓ Aviso enviado para {$assinatura->usuario->email}");
+                Log::info("Aviso 3 dias enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
             } catch (\Exception $e) {
                 $this->error("  ✗ Erro ao enviar para {$assinatura->usuario->email}");
-                Log::error("Erro ao enviar lembrete 3 dias: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
+                Log::error("Erro ao enviar aviso 3 dias: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
             }
         }
 
-        $this->info("  → {$count} lembrete(s) de 3 dias enviado(s).");
+        $this->info("  → {$count} aviso(s) de 3 dias enviado(s).");
         return $count;
     }
 
-    private function enviarLembretesUrgentes()
+    private function enviarAvisosUrgentes()
     {
         $this->line("\n🚨 Verificando assinaturas que expiram em 1 dia...");
 
@@ -101,14 +101,14 @@ class EnviarLembretesRenovacao extends Command
 
         $assinaturas = Assinatura::where('status', 'active')
             ->whereBetween('termina_em', [$dataInicio, $dataLimite])
-            ->whereDoesntHave('lembretesEnviados', function ($query) {
+            ->whereDoesntHave('avisosEnviados', function ($query) {
                 $query->where('tipo', '1_dia');
             })
             ->with(['usuario', 'plano'])
             ->get();
 
         if ($assinaturas->isEmpty()) {
-            $this->line('  → Nenhum lembrete urgente para enviar.');
+            $this->line('  → Nenhum aviso urgente para enviar.');
             return 0;
         }
 
@@ -116,24 +116,24 @@ class EnviarLembretesRenovacao extends Command
         foreach ($assinaturas as $assinatura) {
             try {
                 Mail::to($assinatura->usuario->email)
-                    ->send(new LembreteRenovacaoUrgente($assinatura));
+                    ->send(new AvisoRenovacaoUrgente($assinatura));
 
-                LembreteEnviado::create([
+                AvisoEnviado::create([
                     'assinatura_id' => $assinatura->id,
                     'tipo' => '1_dia',
                     'enviado_em' => now()
                 ]);
 
                 $count++;
-                $this->line("  ✓ Lembrete URGENTE enviado para {$assinatura->usuario->email}");
-                Log::info("Lembrete urgente enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
+                $this->line("  ✓ Aviso URGENTE enviado para {$assinatura->usuario->email}");
+                Log::info("Aviso urgente enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
             } catch (\Exception $e) {
                 $this->error("  ✗ Erro ao enviar para {$assinatura->usuario->email}");
-                Log::error("Erro ao enviar lembrete urgente: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
+                Log::error("Erro ao enviar aviso urgente: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
             }
         }
 
-        $this->info("  → {$count} lembrete(s) urgente(s) enviado(s).");
+        $this->info("  → {$count} aviso(s) urgente(s) enviado(s).");
         return $count;
     }
 }

@@ -1,128 +1,86 @@
 <template>
-  <v-container class="fill-height" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
-    <v-row align="center" justify="center" class="h-100">
-      <v-col cols="12" md="8" lg="6" xl="4">
-        <v-card elevation="24" rounded="lg" class="overflow-hidden">
-          <v-row no-gutters>
-            <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
-              <div class="text-center">
-                <v-icon size="80" color="white" class="mb-6">mdi-finance</v-icon>
-                <h2 class="text-h4 font-weight-bold text-white mb-2">{{ $t('auth.join_us_title') }}</h2>
-                <p class="text-white text-opacity-75">{{ $t('auth.join_us_subtitle') }}</p>
+  <v-container class="fill-height pa-0 auth-wrapper" fluid>
+    <v-row no-gutters class="fill-height flex-row-reverse">
+
+      <v-col cols="12" md="6" lg="7" class="d-none d-md-flex flex-column justify-center align-center bg-primary relative overflow-hidden">
+        <div class="visual-bg-pattern"></div>
+        <div class="visual-content text-center animate-fade-in px-16">
+          <v-icon size="120" color="white" class="mb-8 floating-icon">mdi-account-plus-outline</v-icon>
+          <h1 class="text-h1 font-weight-black text-white mb-6">
+            {{ $t('auth.join_us_title') }}
+          </h1>
+          <p class="text-h6 text-white text-opacity-80 font-weight-light max-w-600 mx-auto">
+            {{ $t('auth.join_us_subtitle') }}
+          </p>
+          
+          <v-list bg-transparent class="mt-12 text-left mx-auto transparent-list" max-width="400">
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Gestão completa de despesas</v-list-item-title>
+            </v-list-item>
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Relatórios inteligentes em tempo real</v-list-item-title>
+            </v-list-item>
+            <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
+              <v-list-item-title class="text-white font-weight-medium">Definição e acompanhamento de metas</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </div>
+        
+        <div class="visual-footer absolute-bottom pr-3 text-white opacity-50 text-caption text-right">
+          &copy; {{ new Date().getFullYear() }} {{t("register.register_footer")}}
+        </div>
+      </v-col>
+
+    
+      <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
+        <v-btn
+          icon="mdi-arrow-left"
+          variant="text"
+          class="absolute-top-left ma-4 d-md-none"
+          @click="router.push({ name: 'Home' })"
+        ></v-btn>
+
+        <v-card flat max-width="500" width="100%" class="pa-8 pa-md-12 bg-transparent my-auto">
+          <template v-if="!showVerification">
+            <div class="text-center text-md-left mb-10">
+              <div class="d-flex align-center justify-center justify-md-start mb-4">
+
               </div>
-            </v-col>
-            <v-col cols="12" md="7" class="pa-8">
-              <div class="text-center mb-8">
-                <h2 class="text-h4 font-weight-bold text-primary">  {{ $t('register.title') }}</h2>
-                <p class="text-medium-emphasis">{{ $t('register.subtitle') }}</p>
+              <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
+              <div>
+                <p class="text-body-2 text-medium-emphasis">
+                  {{ $t('register.has_account_text') }} 
+                  <router-link to="/login" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                    {{ $t('register.login_link') }}
+                  </router-link>
+                </p>
               </div>
-              
-              <v-form @submit.prevent="handleRegister" v-model="isValid">
-                <v-text-field
-                  v-model="form.nome"
-                  :label="$t('register.name_label')"
-                  prepend-inner-icon="mdi-account"
-                  variant="outlined"
-                  color="primary"
-                  :rules="[v => !!v || $t('validation.required')]"
-                  :error-messages="errors.nome"
-                  @input="errors.nome = ''"
-                ></v-text-field>
+            </div>
 
-                <v-text-field
-                  v-model="form.email"
-                  :label="$t('register.email_label')"
-                  prepend-inner-icon="mdi-email"
-                  variant="outlined"
-                  color="primary"
-                  type="email"
-                  :rules="[v => !!v || $t('validation.required')]"
-                  :error-messages="errors.email"
-                  @input="errors.email = ''"
-                ></v-text-field>
+            <AuthForm 
+              v-model="form"
+              mode="register"
+              :loading="loading"
+              :error="error"
+              :errors="errors"
+              :validateAge="validateAge"
+              :validateCPF="validateCPF"
+              :passwordRules="passwordRules"
+              @submit="handleRegister"
+              @update:cpf="handleCpfInput"
+            />
+          </template>
 
-                <v-text-field
-                  v-model="form.senha"
-                  :label="$t('register.password_label')"
-                  prepend-inner-icon="mdi-lock"
-                  variant="outlined"
-                  color="primary"
-                  :type="showPass ? 'text' : 'password'"
-                  :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
-                  @click:append-inner="showPass = !showPass"
-                  :rules="passwordRules"
-                  :error-messages="errors.senha"
-                  @input="errors.senha = ''"
-                ></v-text-field>
-
-                  <v-text-field
-                    v-model="form.senha_confirmation"
-                    :label="$t('register.password_confirm_label')"
-                    prepend-inner-icon="mdi-lock-check"
-                    variant="outlined"
-                    color="primary"
-                    :type="showPass ? 'text' : 'password'"
-                    :rules="[v => !!v || $t('register.rules.confirm_required'), v => v === form.senha || $t('validation.match_password')]"
-                    :error-messages="errors.senha_confirmation"
-                    @input="errors.senha_confirmation = ''"
-                  ></v-text-field>
-
-                <v-text-field
-                  v-model="form.cpf"
-                  :label="$t('profile.labels.cpf')"
-                  prepend-inner-icon="mdi-card-account-details"
-                  variant="outlined"
-                  color="primary"
-                  @input="handleCpfInput"
-                  maxlength="14"
-                  :rules="[v => !!v || $t('validation.required'), validateCPF]"
-                  :error-messages="errors.cpf"
-                ></v-text-field>
-
-                <v-text-field
-                  v-model="form.data_nascimento"
-                  :label="$t('profile.labels.birthdate')"
-                  prepend-inner-icon="mdi-calendar"
-                  variant="outlined"
-                  color="primary"
-                  type="date"
-                  :rules="[v => !!v || $t('validation.required'), validateAge]"
-                  :error-messages="errors.data_nascimento"
-                  @input="errors.data_nascimento = ''"
-                ></v-text-field>
-
-                <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
-                
-                <v-btn
-                  block
-                  color="primary"
-                  size="x-large"
-                  type="submit"
-                  :loading="loading"
-                  class="mb-4 font-weight-bold"
-                  elevation="4"
-                  :disabled="buttonDesativado"
-                >
-                  {{ $t('register.btn_submit') }}
-                </v-btn>
-              </v-form>
-               <v-btn
-                  block
-                  color="green"
-                  size="x-large"
-                  type="button"
-                  class="mb-4 font-weight-bold"
-                  elevation="4"
-                  @click="router.push({ name: 'Home' })"
-                >
-                  {{ $t('register.btn_home') }}
-                </v-btn>
-              <div class="text-center">
-                <span class="text-body-2 text-medium-emphasis"> {{ $t('register.has_account_text') }} </span>
-                <router-link to="/login" class="text-primary font-weight-bold text-decoration-none">{{ $t('register.login_link') }}</router-link>
-              </div>
-            </v-col>
-          </v-row>
+          <EmailVerification 
+            v-else
+            :email="form.email"
+            :loading="loading"
+            :error="error"
+            @verify="handleVerify"
+            @resend="handleResend"
+            @back="showVerification = false"
+          />
+          
         </v-card>
       </v-col>
     </v-row>
@@ -130,11 +88,13 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
+import AuthForm from '../components/Auth/AuthForm.vue'
+import EmailVerification from '../components/Auth/EmailVerification.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -149,11 +109,10 @@ const form = ref({
   data_nascimento: ''
 })
 
-const showPass = ref(false)
 const loading = ref(false)
-const isValid = ref(false)
 const error = ref('')
 const errors = ref({})
+const showVerification = ref(false)
 
 const passwordRules = [
   v => !!v || t('register.rules.pass_required'),
@@ -210,11 +169,9 @@ const validateCPF = (v) => {
 }
 
 const handleRegister = async () => {
-  if (!isValid.value) return 
-  
   loading.value = true
   error.value = ''
-  
+  errors.value = {}
   try {
     console.log('Dados do formulário:', form.value)
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
@@ -226,8 +183,8 @@ const handleRegister = async () => {
       cleanCpf,
       form.value.data_nascimento
     )
-    toast.success(t('toasts.register_success'))
-    router.push({ name: 'Login' })
+    toast.success('Cadastro realizado! Por favor, verifique seu e-mail.')
+    showVerification.value = true
   } catch (err) {
     if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
         
@@ -245,23 +202,32 @@ const handleRegister = async () => {
   }
 }
 
-const buttonDesativado = computed(() => 
-form.value.nome === '' 
-|| form.value.email === '' 
-|| form.value.senha === '' 
-|| form.value.senha_confirmation === '' 
-|| form.value.cpf === ''
-|| form.value.data_nascimento === ''
-|| form.value.senha !== form.value.senha_confirmation
-|| !isValid.value
-)
+const handleVerify = async (code) => {
+  loading.value = true
+  error.value = ''
+  try {
+    await authStore.verifyCode(form.value.email, code)
+    toast.success(t('toasts.register_success'))
+    router.push({ name: 'Dashboard' })
+  } catch (err) {
+    error.value = err.message || 'Erro ao verificar código'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleResend = async () => {
+  try {
+    await authStore.resendCode(form.value.email)
+    toast.success('Novo código enviado com sucesso!')
+  } catch (err) {
+    toast.error(err.message || 'Erro ao reenviar código')
+  }
+}
 
 const handleCpfInput = (event) => {
   errors.value.cpf = ''
-  formatCPF(event)
-}
-
-const formatCPF = (event) => {
   let value = event.target.value.replace(/\D/g, '')
   if (value.length > 11) value = value.substring(0, 11)
   if (value.length > 9) {

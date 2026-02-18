@@ -21,7 +21,9 @@ class Usuario extends Authenticatable
         'admin',
         'avatar',
         'cpf',
-        'data_nascimento'
+        'data_nascimento',
+        'codigo_verificacao',
+        'codigo_expira_em'
     ];
 
     protected $hidden = [
@@ -46,6 +48,7 @@ class Usuario extends Authenticatable
             'senha' => 'hashed',
             'admin' => 'boolean',
             'data_nascimento' => 'date',
+            'codigo_expira_em' => 'datetime',
         ];
     }
 
@@ -71,7 +74,7 @@ class Usuario extends Authenticatable
 
     public function avisos()
     {
-        return $this->hasMany(Aviso::class, 'usuario_id');
+        return $this->hasMany(Lembrete::class, 'usuario_id');
     }
 
     public function convitesEnviados()

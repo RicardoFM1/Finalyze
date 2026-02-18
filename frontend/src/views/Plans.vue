@@ -3,6 +3,21 @@
     <div class="text-center mb-10">
       <h1 class="text-h3 font-weight-bold mb-2">{{ $t('plans.title') }}</h1>
       <p class="text-subtitle-1 text-medium-emphasis">{{ $t('plans.subtitle') }}</p>
+      
+      <v-row justify="center" class="mt-4">
+        <v-col cols="12" md="8">
+          <v-alert
+            color="info"
+            variant="tonal"
+            icon="mdi-swap-horizontal"
+            class="rounded-lg text-left"
+            density="comfortable"
+          >
+            <div class="text-subtitle-2 font-weight-bold mb-1">Dica de Upgrade</div>
+            Ao mudar de plano, o tempo restante do seu plano atual é convertido em crédito e descontado automaticamente no valor do novo plano.
+          </v-alert>
+        </v-col>
+      </v-row>
     </div>
 
     <v-row v-if="loading" justify="center" align="center" style="min-height: 40vh">
@@ -29,24 +44,89 @@
           {{ $t('plans.pending_desc', { plan: pendingPlanName }) }}
         </p>
         <template #actions>
-          <v-btn
-            variant="outlined"
-            color="error"
-            class="rounded-lg px-6"
-            :loading="cancelling"
-            @click="cancelarPagamento"
-          >
-            {{ $t('plans.cancel_prev') }}
-          </v-btn>
-          <v-btn
-            variant="flat"
-            color="primary"
-            class="rounded-lg px-6 ml-4"
-            @click="continuePayment"
-          >
-            {{ $t('plans.continue') }}
-          </v-btn>
+          <div class="d-flex w-100 flex-column flex-sm-row justify-end gap-2">
+            <v-btn
+                variant="outlined"
+                color="error"
+                class="mb-2 mb-sm-0"
+                :loading="cancelling"
+                :disabled="cancelling || continuing"
+                @click="cancelarPagamento"
+            >
+                {{ $t('plans.cancel_prev') }}
+            </v-btn>
+            <v-btn
+                variant="flat"
+                color="primary"
+                class="ml-0 ml-sm-4 px-6 py-2"
+                min-height="44"
+                :loading="continuing"
+                :disabled="cancelling || continuing"
+                @click="continuePayment"
+            >
+                {{ $t('plans.continue') }}
+            </v-btn>
+          </div>
         </template>
+    </ModalBase>
+
+    <!-- Modal para Upgrade Gratuito (Prorrata) -->
+    <ModalBase v-model="showFreeUpgradeModal" title="Alteração de Plano" maxWidth="500px">
+        <div class="text-center pa-4">
+            <v-icon color="primary" size="64" class="mb-4">mdi-swap-horizontal</v-icon>
+            <h3 class="text-h5 font-weight-bold mb-2">Confirmar Alteração</h3>
+            <p class="text-body-1 text-medium-emphasis mb-4">
+                <span v-if="selectedForUpgrade?.gratuito">
+                    Seu saldo de créditos cobre o valor deste novo plano. Deseja aplicar a mudança agora?
+                </span>
+                <span v-else>
+                    Você tem R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }} de crédito disponível para este upgrade.
+                </span>
+            </p>
+            
+            <v-card variant="tonal" color="primary" class="pa-3 rounded-lg mb-6">
+                <div class="d-flex justify-space-between align-center">
+                    <span class="text-subtitle-2">Novo Plano:</span>
+                    <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
+                </div>
+                <div class="d-flex justify-space-between align-center mt-1">
+                    <span class="text-subtitle-2">Valor Original:</span>
+                    <span>R$ {{ selectedForUpgrade?.valorPlano?.toFixed(2) }}</span>
+                </div>
+                <div class="d-flex justify-space-between align-center mt-1">
+                    <span class="text-subtitle-2">Crédito Aplicado:</span>
+                    <span class="text-success font-weight-bold">- R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }}</span>
+                </div>
+                <v-divider class="my-2"></v-divider>
+                <div class="d-flex justify-space-between align-center">
+                    <span class="text-subtitle-1 font-weight-bold">Total a Pagar:</span>
+                    <span class="text-h6 font-weight-bold text-primary">
+                        R$ {{ selectedForUpgrade?.valorFinal?.toFixed(2) }}
+                    </span>
+                </div>
+            </v-card>
+
+            <div class="d-flex flex-column gap-2">
+                <v-btn
+                    block
+                    color="primary"
+                    size="large"
+                    class="rounded-pill"
+                    :loading="upgrading"
+                    @click="applyFreeUpgrade"
+                >
+                    {{ selectedForUpgrade?.gratuito ? 'Aplicar Agora' : 'Continuar para Pagamento' }}
+                </v-btn>
+                <v-btn
+                    block
+                    variant="text"
+                    color="grey"
+                    @click="showFreeUpgradeModal = false"
+                >
+                    Talvez depois
+                </v-btn>
+            </div>
+        </div>
     </ModalBase>
   </v-container>
 </template>
@@ -69,6 +149,7 @@ const checkingPreference = ref(false)
 const showPendingDialog = ref(false)
 const pendingPlanName = ref('')
 const cancelling = ref(false)
+const continuing = ref(false)
 const currentSubscription = ref(null)
 
 onMounted(async () => {
@@ -104,14 +185,95 @@ onMounted(async () => {
 
 })
 
-const handleSelectPlan = ({ plan, period }) => {
+const handleSelectPlan = async ({ plan, period }) => {
+    // If not authenticated or same plan/period, just go to checkout (or let guard handle)
+    if (!authStore.isAuthenticated) {
+        router.push({ name: 'Checkout', query: { plan: plan.id, period: period.id } })
+        return
+    }
+
+    // Verificamos se é um plano diferente do atual para oferecer o upgrade grátis
+    const isDifferentPlan = authStore.user?.plano_id && authStore.user.plano_id != plan.id
+
+    if (isDifferentPlan) {
+        try {
+            checkingPreference.value = true
+            const response = await authStore.apiFetch(`/checkout/check-upgrade?plano_id=${plan.id}&periodo_id=${period.id}`)
+            if (response.ok) {
+                const data = await response.json()
+                if (data.creditos > 0) {
+                    selectedForUpgrade.value = { 
+                        plan, 
+                        period, 
+                        creditos: data.creditos, 
+                        valorPlano: data.valor_plano,
+                        valorFinal: data.valor_final,
+                        gratuito: data.gratuito 
+                    }
+                    showFreeUpgradeModal.value = true
+                    return
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao verificar upgrade:', e)
+        } finally {
+            checkingPreference.value = false
+        }
+    }
+
     router.push({ 
         name: 'Checkout', 
         query: { plan: plan.id, period: period.id } 
     })
 }
 
+const showFreeUpgradeModal = ref(false)
+const selectedForUpgrade = ref(null)
+const upgrading = ref(false)
+
+const applyFreeUpgrade = async () => {
+    if (!selectedForUpgrade.value) return
+    
+    // Se não for gratuito, redireciona para o checkout onde o desconto já é aplicado
+    if (!selectedForUpgrade.value.gratuito) {
+        router.push({ 
+            name: 'Checkout', 
+            query: { 
+                plan: selectedForUpgrade.value.plan.id, 
+                period: selectedForUpgrade.value.period.id 
+            } 
+        })
+        return
+    }
+
+    try {
+        upgrading.value = true
+        const response = await authStore.apiFetch('/checkout/apply-free-upgrade', {
+            method: 'POST',
+            body: JSON.stringify({
+                plano_id: selectedForUpgrade.value.plan.id,
+                periodo_id: selectedForUpgrade.value.period.id
+            })
+        })
+        
+        if (response.ok) {
+            toast.success('Upgrade realizado com sucesso! Aproveite seu novo plano.')
+            showFreeUpgradeModal.value = false
+            await authStore.fetchUser()
+            router.push({ name: 'Dashboard' })
+        } else {
+            const data = await response.json()
+            toast.error(data.error || 'Erro ao processar upgrade.')
+        }
+    } catch (e) {
+        toast.error('Erro de conexão.')
+    } finally {
+        upgrading.value = false
+    }
+}
+
 const continuePayment = () => {
+    continuing.value = true
     router.push({ name: 'Checkout' })
 }
 

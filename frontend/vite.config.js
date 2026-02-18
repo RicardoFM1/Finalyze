@@ -8,4 +8,14 @@ export default defineConfig({
     vue(),
     vuetify({ autoImport: true }),
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+  base: '/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
 })

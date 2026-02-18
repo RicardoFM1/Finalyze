@@ -8,7 +8,7 @@ class CancelarPagamentoCheckout
 {
     public function executar()
     {
-        $usuario = auth()->user();
+        $usuario = \Illuminate\Support\Facades\Auth::user();
         if (!$usuario) {
             throw new \Exception('Usuário não autenticado', 401);
         }

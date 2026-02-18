@@ -239,7 +239,7 @@ const savePlan = async () => {
         })
 
         if (response.ok) {
-            toast.success('Plano salvo com sucesso!')
+            toast.success(isEdit ? t('toasts.success_update') : 'Plano criado com sucesso!')
             internalValue.value = false
             emit('saved')
         } else {

@@ -35,71 +35,189 @@
 
       <!-- WINDOWS -->
       <v-window v-model="activeTab">
-
-        <!-- ================= PERFIL ================= -->
         <v-window-item value="personal">
-          <v-container>
+          <div v-if="loadingUser" class="pa-6 pa-md-10">
+            <v-row>
+              <v-col cols="12" md="4" class="text-center">
+                <v-skeleton-loader type="avatar" class="mx-auto mb-6" height="160" width="160"></v-skeleton-loader>
+                <v-skeleton-loader type="chip" class="mx-auto" width="100"></v-skeleton-loader>
+              </v-col>
+              <v-col cols="12" md="8">
+                <v-row>
+                  <v-col cols="12"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12" md="6"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                  <v-col cols="12" md="6"><v-skeleton-loader type="text" height="56"></v-skeleton-loader></v-col>
+                </v-row>
+                <div class="d-flex justify-end mt-4">
+                  <v-skeleton-loader type="button" width="150"></v-skeleton-loader>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+          <div v-else>
+            <v-row class="pa-6 pa-md-10">
+            <v-col cols="12" md="4" class="text-center">
+              <div class="avatar-wrapper mb-6">
+                <v-avatar size="160" color="primary-lighten-4" class="elevation-4 avatar-main">
+                  <v-img v-if="previewAvatar" :src="previewAvatar" cover></v-img>
+                  <v-img v-else-if="user.avatar_url" :src="user.avatar_url" cover></v-img>
+                  <v-img v-else-if="user.avatar" :src="authStore.getStorageUrl(user.avatar)" cover></v-img>
+                  <span v-else class="text-h2 font-weight-bold text-primary">{{ getInitials(user.nome) }}</span>
+                </v-avatar>
+                <v-btn
+                  icon="mdi-camera"
+                  color="primary"
+                  size="small"
+                  class="avatar-edit-btn"
+                  elevation="4"
+                  @click="triggerFileInput"
+                ></v-btn>
+                <v-btn
+                  v-if="user.avatar"
+                  icon="mdi-delete"
+                  color="error"
+                  size="x-small"
+                  class="avatar-delete-btn"
+                  elevation="4"
+                  @click="removeAvatar"
+                ></v-btn>
+                <input type="file" ref="fileInput" class="d-none" accept="image/*" @change="handleFileChange">
+              </div>
+              <v-chip
+                :color="user.admin ? 'deep-purple' : 'primary'"
+                variant="flat"
+                class="font-weight-bold"
+              >
+                {{ user.admin ? $t('profile.roles.admin') : $t('profile.roles.client') }}
+              </v-chip>
+            </v-col>
 
-            <!-- LOADING -->
-            <div
-              v-if="loadingUser"
-              class="text-center py-10 d-flex flex-column align-center"
-            >
-              <v-progress-circular indeterminate color="primary" />
-              {{ $t('profile.loading') }}
+            <v-col cols="12" md="8">
+              <v-form @submit.prevent="saveProfile">
+                <v-row>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="user.nome"
+                      :label="$t('profile.name_label')"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-account"
+                      :disabled="saving"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="user.email"
+                      :label="$t('profile.email_label')"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-email"
+                      :disabled="saving"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="user.cpf"
+                      :label="$t('profile.labels.cpf')"
+                      variant="outlined"
+                      rounded="lg"
+                      prepend-inner-icon="mdi-card-account-details"
+                      :rules="cpfRules"
+                      @input="formatCPF"
+                      maxlength="14"
+                      :disabled="saving"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <DateInput 
+                      v-model="user.data_nascimento" 
+                      :label="$t('profile.labels.birthdate')" 
+                      icon="mdi-calendar"
+                      :disabled="saving"
+                      :rules="ageRules"
+                    />
+                  </v-col>
+                </v-row>
+                <div class="d-flex justify-end mt-4">
+                  <v-btn
+                    type="submit"
+                    color="primary"
+                    size="large"
+                    rounded="lg"
+                    class="px-8 font-weight-bold"
+                    :loading="saving"
+                    :disabled="saving || uiStore.loading"
+                  >
+                    {{ $t('profile.btn_update') }}
+                  </v-btn>
+                </div>
+              </v-form>
+            </v-col>
+          </v-row>
+          </div>
+        </v-window-item>
+
+        <v-window-item value="assinatura">
+          <v-container class="pa-6 pa-md-10">
+            <div v-if="loadingSub" class="pt-2">
+              <v-row>
+                <v-col cols="12" md="5">
+                  <v-skeleton-loader type="image" class="rounded-xl" height="300"></v-skeleton-loader>
+                </v-col>
+                <v-col cols="12" md="7">
+                  <v-skeleton-loader type="article" class="rounded-xl" height="300"></v-skeleton-loader>
+                </v-col>
+              </v-row>
+            </div>
+            <div v-else-if="!hasActiveOrValidSubscription && subscriptionData?.assinatura?.status !== 'pending'" class="text-center py-10 no-plan-empty">
+              <v-icon icon="mdi-alert-circle-outline" size="64" color="grey"></v-icon>
+              <h3 class="text-h5 mt-4">{{ $t('profile.subscription.no_active') }}</h3>
+              <p class="text-medium-emphasis mb-6">{{ $t('profile.subscription.no_active_desc') }}</p>
+              <v-btn color="primary" :to="{ name: 'Plans' }" size="large" rounded="xl">{{ $t('profile.subscription.view_plans') }}</v-btn>
             </div>
 
-            <!-- CONTEÚDO -->
-            <template v-else>
+            <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
+                <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
+                   <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
+                      O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.
+                   </v-alert>
+                </v-col>
+                <v-col cols="12" md="5">
+                  <v-card class="plan-hero-card rounded-xl pa-6 text-white" elevation="6">
+                    <div class="text-overline mb-2 opacity-80">{{ $t('profile.subscription.current') }}</div>
+                    <div class="text-h4 font-weight-black mb-4">
+                        {{ user.plano?.nome }}
+                        <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData?.assinatura?.periodo">
+                            ({{ subscriptionData.assinatura.periodo.nome }})
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex align-center mb-6" v-if="subscriptionData?.assinatura">
+                      <v-badge
+                        :color="subscriptionData.assinatura.status === 'active' ? 'success' : 'warning'"
+                        :content="subscriptionData.assinatura.status === 'active' ? $t('profile.active') : $t('profile.inactive')"
+                        inline
+                      ></v-badge>
+                    </div>
 
-              <!-- PERFIL -->
-              <v-row class="pa-6 pa-md-10">
-                <v-col cols="12" md="4" class="text-center">
+                    <div class="subscription-timeline mb-6" v-if="subscriptionData?.assinatura">
+                      <div class="d-flex justify-space-between text-caption mb-1">
+                        <span>{{ $t('profile.subscription.expires_at') }}: {{ formatDate(subscriptionData.assinatura.termina_em) }}</span>
+                        <span>{{ daysRemaining === 1 ? $t('profile.subscription.days_remaining_singular') : $t('profile.subscription.days_remaining', { count: daysRemaining }) }}</span>
+                      </div>
+                      <v-progress-linear
+                        :model-value="progressPercentage"
+                        color="white"
+                        height="8"
+                        rounded
+                      ></v-progress-linear>
+                    </div>
 
-                  <div class="avatar-wrapper mb-6">
-                    <v-avatar size="160" color="primary-lighten-4" class="avatar-main">
-                      <v-img
-                        v-if="user.avatar || previewAvatar"
-                        :src="previewAvatar || `http://localhost:8000/storage/${user.avatar}`"
-                        cover
-                      />
-                      <span v-else class="text-h2 font-weight-bold text-primary">
-                        {{ getInitials(user.nome) }}
-                      </span>
-                    </v-avatar>
-
-                    <v-btn
-                      icon="mdi-camera"
-                      color="primary"
-                      size="small"
-                      class="avatar-edit-btn"
-                      @click="triggerFileInput"
-                    />
-
-                    <v-btn
-                      v-if="user.avatar"
-                      icon="mdi-delete"
-                      color="error"
-                      size="x-small"
-                      class="avatar-delete-btn"
-                      @click="removeAvatar"
-                    />
-
-                    <input
-                      type="file"
-                      ref="fileInput"
-                      class="d-none"
-                      accept="image/*"
-                      @change="handleFileChange"
-                    />
-                  </div>
-
-                  <v-chip
-                    :color="user.admin ? 'deep-purple' : 'primary'"
-                    class="font-weight-bold"
-                  >
-                    {{ user.admin ? $t('profile.roles.admin') : $t('profile.roles.client') }}
-                  </v-chip>
+                    <v-btn block color="white" variant="flat" class="text-primary font-weight-bold" :to="{ name: 'Plans' }" rounded="lg">
+                      {{ $t('profile.subscription.change') }}
+                    </v-btn>
+                  </v-card>
                 </v-col>
               </v-row>
 
@@ -152,24 +270,52 @@
         <!-- ================= HISTÓRICO ================= -->
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
-
-            <h3 class="text-h6 font-weight-bold mb-6">
-              {{ $t('profile.subscription.recent_payments') }}
-            </h3>
-
-            <div v-if="loadingSub" class="text-center py-10">
-              <v-progress-circular indeterminate color="primary" />
+            <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
+            <div v-if="loadingSub" class="pt-2">
+              <v-skeleton-loader type="table-row-divider@5"></v-skeleton-loader>
             </div>
-
-            <v-table
-              v-else-if="subscriptionData.historico?.length"
-              class="billing-table"
-            >
-              <!-- tabela mantida -->
+            <v-table v-else-if="subscriptionData?.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
+              <thead>
+                <tr>
+                  <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.item') || 'Item' }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.status') || 'Status' }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in subscriptionData.historico" :key="item.id">
+                  <td class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</td>
+                  <td>
+                    <div class="d-flex align-center">
+                      <v-icon icon="mdi-package-variant" size="small" class="mr-2" color="primary"></v-icon>
+                      <span class="text-body-2">
+                        {{ item.assinatura?.plano?.nome || item.item_nome || '-' }}
+                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70 ml-1">
+                          ({{ item.assinatura.periodo.nome }})
+                        </span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</td>
+                  <td>
+                    <v-chip
+                      :color="getStatusColor(item.status)"
+                      size="x-small"
+                      class="text-uppercase font-weight-bold"
+                      variant="tonal"
+                    >
+                      {{ getStatusText(item.status) }}
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody>
             </v-table>
-
-            <div v-else class="text-center py-10 text-medium-emphasis">
-              {{ $t('profile.subscription.no_history') }}
+            
+            <div v-else-if="!loadingSub" class="text-center py-12 billing-empty opacity-60">
+              <v-icon icon="mdi-receipt-text-minus-outline" size="64" class="mb-4"></v-icon>
+              <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.no_history') }}</h3>
+              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') }}</p>
             </div>
 
           </v-container>
@@ -177,6 +323,8 @@
 
       </v-window>
     </v-card>
+    <ModalCancelarAssinatura v-model="confirmCancel" @cancelled="fetchSubscription" />
+    <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null; user.avatar_url = null; authStore.user.avatar = null; authStore.user.avatar_url = null;" />
   </v-container>
 </template>
 
@@ -187,17 +335,9 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import Calendar from '../components/Calendar/Calendar.vue'
-import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
-import { startOfDay, isAfter } from 'date-fns'
-import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
-
-
-
-
-const showReminderModal = ref(false)
-const selectedDate = ref(null)
-
+import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
+import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
+import DateInput from '../components/Common/DateInput.vue'
 
 const { t } = useI18n()
 
@@ -311,9 +451,12 @@ const hasActiveOrValidSubscription = computed(() => {
     if (!subscriptionData.value.assinatura) return false
     const s = subscriptionData.value.assinatura
     
-    if (s.status === 'active') return true
+    // Consideramos ativa se o status for active ou authorized (MP)
+    if (s.status === 'active' || s.status === 'authorized') return true
     
- 
+    // Se estiver pendente, também queremos mostrar o card (embora com aviso)
+    if (s.status === 'pending') return true
+
     const end = new Date(s.termina_em).getTime()
     const now = new Date().getTime()
     return end > now
@@ -382,6 +525,7 @@ const saveProfile = async () => {
               user.value.data_nascimento = ''
             }
             
+            previewAvatar.value = null 
             selectedFile.value = null 
         } else {
              const errorData = await response.json().catch(() => ({}))
@@ -404,6 +548,8 @@ const getInitials = (name) => {
     if (!name) return ''
     return name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
 }
+
+// getStorageUrl removed as it is now in authStore
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
@@ -432,8 +578,9 @@ const validateCPF = (cpf) => {
 
 const ageRules = [
   v => {
-    if (!v) return true
-    const birth = new Date(v)
+    if (!v || typeof v !== 'string' || !v.includes('-')) return true
+    const [year, month, day] = v.split('-').map(Number)
+    const birth = new Date(year, month - 1, day)
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
     const m = today.getMonth() - birth.getMonth()

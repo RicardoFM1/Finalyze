@@ -9,6 +9,6 @@ class DeletarMeta
     public function executar(int $id)
     {
         $meta = Auth::user()->metas()->findOrFail($id);
-        $meta->delete();
+        $meta->update(['status' => 'inativo']);
     }
 }

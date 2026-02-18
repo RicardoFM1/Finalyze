@@ -16,5 +16,6 @@ class DeletarLancamento
         }
 
         $lancamento->delete();
+        cache()->forget("user_summary_{$usuario->id}");
     }
 }

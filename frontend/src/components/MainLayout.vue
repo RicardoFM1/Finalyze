@@ -1,59 +1,105 @@
 <template>
   <v-layout>
-    <v-app-bar color="primary" elevation="2">
-       <v-app-bar-nav-icon
-  v-if="authStore.isAuthenticated"
-  @click="toggleDrawer"
-  class="mr-2"
-  variant="text"
-/>
-  <v-toolbar-title
-    class="font-weight-bold app-title"
-    style="cursor: pointer"
-    @click="$router.push({ name: 'Home' })"
-  >
-    <v-icon icon="mdi-chart-pie" class="mr-2" />
-    Finalyze
-  </v-toolbar-title>
+    <template v-if="!uiAuthStore.loading">
+      <v-app-bar color="primary" elevation="2">
+         <v-app-bar-nav-icon
+      v-if="
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
+      "
+      @click="toggleDrawer"
+      class="mr-2"
+      variant="text"
+    />
 
-  <v-spacer />
+      <v-toolbar-title class="app-title pa-0">
+  <div class="brand-wrapper" @click="$router.push({ name: 'Home' })">
+    <img :src="logotipo" alt="Logo" class="logo" />
+    <span class="brand-name">Finalyze</span>
+  </div>
+</v-toolbar-title>
 
-    <Coinselector />
-    <LanguageSelector />
-    
-    <template v-if="!authStore.isAuthenticated">
-        <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium">
-          {{ $t('landing.btn_plans') }}
-        </v-btn>
+
+
+
+      <v-spacer />
+
+        <template v-if="isAuthPage">
+          <v-btn
+            prepend-icon="mdi-home"
+            variant="text"
+            color="white"
+            class="text-none font-weight-bold"
+            :to="{ name: 'Home' }"
+          >
+            {{ $t('login.btn_back_home') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <Coinselector />
+        </template>
 
         <v-btn
-          :to="{ name: 'Login' }"
-          variant="elevated"
+          icon
+          variant="text"
           color="white"
-          class="ml-2 mr-2 font-weight-bold text-primary text-none"
+          class="ml-2"
+          @click="uiAuthStore.toggleTheme"
         >
-          {{ $t('landing.btn_login') }}
+          <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
         </v-btn>
-    </template>
-</v-app-bar>
+
+        <template v-if="!authStore.isAuthenticated">
+            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium d-none d-sm-inline-flex">
+              {{ $t('landing.btn_plans') }}
+            </v-btn>
+            <v-btn
+              v-if="route.name === 'Register'"
+              :to="{ name: 'Login' }"
+              variant="elevated"
+              color="white"
+              class="ml-2 mr-4 font-weight-bold text-primary text-none"
+            >
+              {{ $t('landing.btn_login') }}
+            </v-btn>
+            <v-btn
+              v-else
+              :to="{ name: 'Register' }"
+              variant="elevated"
+              color="white"
+              class="ml-2 mr-4 font-weight-bold text-primary text-none"
+            >
+              {{ $t('landing.btn_create_account') }}
+            </v-btn>
+        </template>
+      </v-app-bar>
 
 
-    <v-navigation-drawer
-  v-if="authStore.isAuthenticated && uiAuthStore.loading === false"
-  v-model="drawer"
-  :rail="isDesktop && rail"
-  :permanent="isDesktop"
-  :temporary="!isDesktop"
-  class="animated-drawer"
-  elevation="6"
->
-        <v-list>
+      <v-navigation-drawer
+      v-if="
+        (authStore.isAuthenticated &&
+        !isAuthPage) && route.meta.hideNavBar !== true
+      "
+      v-model="drawer"
+      :rail="isDesktop && rail"
+      :permanent="isDesktop"
+      :temporary="!isDesktop"
+      class="animated-drawer "
+      elevation="6"
+    >
+
+            <v-list>
             <v-list-item v-if="authStore.user" :title="authStore.user.nome" :subtitle="authStore.user.email">
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
-                            v-if="authStore.user.avatar"
-                            :src="'http://localhost:8000/storage/' + authStore.user.avatar"
+                            v-if="authStore.user.avatar_url"
+                            :src="authStore.user.avatar_url"
+                            cover
+                        ></v-img>
+                        <v-img
+                            v-else-if="authStore.user.avatar"
+                            :src="authStore.getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>
                         <span v-else class="text-caption font-weight-bold text-primary">
@@ -108,20 +154,18 @@
             </v-btn>
         </template>
     </ModalBase>
-
-    <v-main>
-      <router-view></router-view>
-    </v-main>
+    <FinnChat v-if="authStore.isAuthenticated" />
   </v-layout>
 </template>
 
 <script setup>
 import { useAuthStore } from '../stores/auth'
-import { useRouter,useRoute } from 'vue-router'
-import { ref, computed, watch } from 'vue'
-import { useDisplay } from 'vuetify'
+import { useUiStore } from '../stores/ui'
+import logotipo from '../assets/logotipo.png'
+
 import ModalBase from '../components/Modals/modalBase.vue'
-import LanguageSelector from './Language/LanguageSelector.vue'
+import FinnChat from './IA/FinnChat.vue'
+
 import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
@@ -168,10 +212,15 @@ const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
 }
 
-onMounted(() => {
-  if (isDesktop.value) {
-    drawer.value = true
-    rail.value = false
+
+// getStorageUrl removed as it is now in authStore
+
+onMounted(async () => {
+  if (authStore.isAuthenticated && !authStore.user) {
+    await authStore.fetchUser();
+  }
+  if (isDesktop.value && authStore.isAuthenticated) {
+    drawer.value = true;
   }
 })
 
@@ -200,12 +249,32 @@ watch(isDesktop, (desktop) => {
   box-shadow: 0 0 0 rgba(0,0,0,0);
   background-color: rgba(24, 103, 192, 0.05);
 }
-
 .app-title {
-  max-width: none !important;
-  overflow: visible !important;
-  white-space: nowrap;
+  display: flex !important;
+  align-items: center;
 }
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.logo {
+  height: 64px; 
+  width: auto;
+  display: block;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.6rem; 
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+
 
 @media (max-width: 600px) {
   .app-title {

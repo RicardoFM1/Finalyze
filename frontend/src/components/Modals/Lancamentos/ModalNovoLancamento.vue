@@ -12,7 +12,11 @@
           <v-text-field v-model="form.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12" md="6">
+<<<<<<< HEAD
           <v-text-field v-model="form.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required></v-text-field>
+=======
+          <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
+>>>>>>> origin/Ricardo
         </v-col>
        <v-col cols="12">
                             <v-autocomplete
@@ -71,6 +75,7 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import DateInput from '../../Common/DateInput.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

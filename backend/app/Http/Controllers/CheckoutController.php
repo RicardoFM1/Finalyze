@@ -20,8 +20,8 @@ class CheckoutController extends Controller
     public function criarPreferencia(CreatePreferenceRequest $request, CriarPreferenciaCheckout $servico)
     {
         try {
-            $id = $servico->executar($request->all());
-            return response()->json(['id' => $id]);
+            $data = $servico->executar($request->all());
+            return response()->json($data);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             Log::error('Mercado Pago API Error', [
                 'message' => $e->getMessage(),
@@ -52,13 +52,18 @@ class CheckoutController extends Controller
         try {
             $payment = $servico->executar($request->all());
 
+            // Extrai dados do QR Code com segurança (pode não existir em cartão)
+            $qrCode = $payment->point_of_interaction?->transaction_data?->qr_code ?? null;
+            $qrCodeBase64 = $payment->point_of_interaction?->transaction_data?->qr_code_base64 ?? null;
+            $ticketUrl = $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url ?? null;
+
             return response()->json([
                 'status' => $payment->status,
                 'status_detail' => $payment->status_detail,
                 'id' => $payment->id,
-                'qr_code' => $payment->point_of_interaction?->transaction_data?->qr_code,
-                'qr_code_base64' => $payment->point_of_interaction?->transaction_data?->qr_code_base64,
-                'ticket_url' => $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url,
+                'qr_code' => $qrCode,
+                'qr_code_base64' => $qrCodeBase64,
+                'ticket_url' => $ticketUrl,
             ]);
         } catch (\MercadoPago\Exceptions\MPApiException $e) {
             Log::error('MPApiException', [
@@ -84,14 +89,107 @@ class CheckoutController extends Controller
     public function cancelarPagamento(Request $request, CancelarPagamentoCheckout $servico)
     {
         if ($servico->executar()) {
-            return response()->json(['message' => 'Assinatura cancelada com sucesso']);
+            return response()->json(['message' => 'Pagamento cancelado com sucesso']);
         }
-        return response()->json(['error' => 'Nenhuma assinatura pendente encontrada'], 404);
+        return response()->json(['error' => 'Nenhum pagamento pendente encontrado'], 404);
     }
 
     public function handleWebhook(HandleWebhookRequest $request, ProcessarWebhookCheckout $servico, AtivarPlanoUsuario $ativarPlanoServico)
     {
         $servico->executar($request->all(), $ativarPlanoServico);
         return response()->json(['status' => 'success'], 200);
+    }
+
+    public function checkUpgrade(Request $request)
+    {
+        $request->validate([
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id'
+        ]);
+
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+
+        if (!$assinaturaAtiva || ($assinaturaAtiva->plano_id == $request->plano_id && $assinaturaAtiva->periodo_id == $request->periodo_id)) {
+            return response()->json(['creditos' => 0, 'gratuito' => false]);
+        }
+
+        $calculadora = new \App\Servicos\Checkout\CalculadoraProrata();
+        $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+
+        $plano = \App\Models\Plano::findOrFail($request->plano_id);
+        $periodo = $plano->periodos()->findOrFail($request->periodo_id);
+        $valorPlano = $periodo->pivot->valor_centavos / 100;
+
+        \Log::info("Upgrade Check:", [
+            'user' => $usuario->id,
+            'current_sub' => $assinaturaAtiva->id,
+            'creditos' => $creditos,
+            'valor_plano' => $valorPlano,
+            'gratuito' => $creditos >= $valorPlano
+        ]);
+
+        return response()->json([
+            'creditos' => $creditos,
+            'valor_plano' => $valorPlano,
+            'valor_final' => max(0, $valorPlano - $creditos),
+            'gratuito' => $creditos >= $valorPlano
+        ]);
+    }
+
+    public function applyFreeUpgrade(Request $request, AtivarPlanoUsuario $servicoAtivacao)
+    {
+        $request->validate([
+            'plano_id' => 'required|exists:planos,id',
+            'periodo_id' => 'required|exists:periodos,id'
+        ]);
+
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+
+        if (!$assinaturaAtiva) {
+            return response()->json(['error' => 'Nenhuma assinatura ativa encontrada.'], 422);
+        }
+
+        $calculadora = new \App\Servicos\Checkout\CalculadoraProrata();
+        $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+
+        $plano = \App\Models\Plano::findOrFail($request->plano_id);
+        $periodo = $plano->periodos()->findOrFail($request->periodo_id);
+        $valorPlano = $periodo->pivot->valor_centavos / 100;
+
+        if ($creditos < $valorPlano) {
+            return response()->json(['error' => 'Saldo insuficiente para upgrade gratuito.'], 422);
+        }
+
+        // Criar a assinatura pendente se necessário (ou usar AtivarPlanoSubscriber logic)
+        // Para simplificar, vamos criar a assinatura e ativar
+        $assinatura = \App\Models\Assinatura::create([
+            'user_id' => $usuario->id,
+            'plano_id' => $plano->id,
+            'periodo_id' => $periodo->id,
+            'status' => 'pending',
+            'valor_original_centavos' => $periodo->pivot->valor_centavos,
+        ]);
+
+        // Mock payment object for AtivarPlanoUsuario
+        $mockPayment = (object)[
+            'id' => 'FREE-UP-' . time(),
+            'transaction_amount' => 0,
+            'payment_method_id' => 'prorrata_credit',
+            'status' => 'approved',
+            'status_detail' => 'accredited',
+            'metadata' => [
+                'user_id' => $usuario->id,
+                'plano_id' => $plano->id,
+                'assinatura_id' => $assinatura->id,
+                'quantidade_dias' => $periodo->pivot->dias,
+                'creditos_prorrata' => $creditos
+            ]
+        ];
+
+        $servicoAtivacao->executar($mockPayment);
+
+        return response()->json(['message' => 'Upgrade realizado com sucesso!']);
     }
 }

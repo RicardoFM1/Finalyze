@@ -35,7 +35,6 @@
             variant="outlined"
             filter
             class="ma-1 font-weight-bold"
-          
             size="small"
             style="border-color: rgba(var(--v-theme-primary), 0.2);"
           >
@@ -79,6 +78,18 @@
           </template>
           <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.nome }}</span>
         </v-list-item>
+        <v-list-item 
+          v-if="plan.limite_lancamentos"
+          class="px-0 py-1"
+          min-height="32"
+        >
+          <template v-slot:prepend>
+            <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
+          </template>
+          <span class="text-body-2 font-weight-medium feature-text">
+            {{ plan.limite_lancamentos >= 100000 ? $t('plans.launch_unlimited') : $t('plans.launch_limits', { count: plan.limite_lancamentos }) }}
+          </span>
+        </v-list-item>
       </v-list>
     </v-card-text>
 
@@ -89,8 +100,8 @@
         :color="isCurrentPlan ? 'success' : (isFeatured ? 'primary' : 'primary')"
         variant="flat"
         block
-        height="54"
-        class="action-btn text-none text-subtitle-1 font-weight-bold rounded-lg"
+        min-height="54"
+        class="action-btn text-none text-subtitle-1 font-weight-bold rounded-lg py-3"
         @click="clickEscolha"
       >
         <v-icon v-if="isCurrentPlan" start icon="mdi-refresh" class="mr-2"></v-icon>

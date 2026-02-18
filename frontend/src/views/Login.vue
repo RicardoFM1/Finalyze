@@ -1,84 +1,79 @@
 <template>
-  <v-container class="fill-height py-4 py-md-0" fluid style="background: linear-gradient(135deg, #1867C0 0%, #5CBBF6 100%);">
-    <v-row align="center" justify="center" class="h-100">
-      <v-col cols="12" md="8" lg="6" xl="4">
-        <v-card elevation="24" rounded="lg" class="overflow-hidden min-h-0">
-          <v-row no-gutters>
-             <v-col cols="12" md="7" class="pa-8">
-              <div class="text-center mb-8">
-                <h2 class="text-h4 font-weight-bold text-primary">{{ $t('auth.join_us_title') }}</h2>
-                <p class="text-medium-emphasis">{{ $t('auth.join_us_subtitle') }}</p>
+  <v-container class="fill-height pa-0 auth-wrapper" fluid>
+    <v-row no-gutters class="fill-height">
+      
+      <v-col cols="12" md="6" lg="7" class="d-none d-md-flex flex-column justify-center align-center bg-primary relative overflow-hidden">
+        <div class="visual-bg-pattern"></div>
+        <div class="visual-content text-center animate-fade-in px-16">
+          <v-icon size="120" color="white" class="mb-8 floating-icon">mdi-shield-lock-outline</v-icon>
+          <h1 class="text-h2 font-weight-black text-white mb-6">
+            {{ $t('landing.hero_title_alt') }}<br>
+            <span class="vibrant-secondary">{{ t('landing.destiny') }}</span>
+          </h1>
+          <p class="text-h6 text-white text-opacity-80 font-weight-light max-w-600 mx-auto">
+            {{ $t('landing.hero_subtitle_alt') }}
+          </p>
+          
+            <v-row class="mt-12 justify-center gap-4">
+              <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
+                <v-icon start icon="mdi-check-decagram" color="#5CBBF6"></v-icon>
+                <span class="font-weight-medium">Segurança Total</span>
+              </v-chip>
+              <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
+                <v-icon start icon="mdi-chart-areaspline" color="#5CBBF6"></v-icon>
+                <span class="font-weight-medium">Análise Inteligente</span>
+              </v-chip>
+            </v-row>
+        </div>
+        
+        <div class="visual-footer mt-12 pl-4 absolute-bottom  text-white opacity-50 text-caption">
+          &copy; {{ new Date().getFullYear() }} {{ t('login.login_footer') }}
+        </div>
+      </v-col>
+
+     
+      <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface">
+        <v-btn
+          icon="mdi-arrow-left"
+          variant="text"
+          class="absolute-top-left ma-4 d-md-none"
+          @click="router.push({ name: 'Home' })"
+        ></v-btn>
+
+        <v-card flat max-width="450" width="100%" class="pa-8 pa-md-12 bg-transparent">
+          <template v-if="!showVerification">
+            <div class="text-center text-md-left mb-10">
+              <div class="d-flex align-center justify-center justify-md-start mb-4">
               </div>
-              
-              <v-form @submit.prevent="handleLogin" v-model="isValid">
-                <v-text-field
-                  density="compact"
-                  v-model="form.email"
-                  :label="$t('login.email_label')"
-                  prepend-inner-icon="mdi-email"
-                  variant="outlined"
-                  color="primary"
-                  type="email"
-                  class="mb-2"
-                  :rules="[v => !!v || $t('login.rules.email_required')]"
-                ></v-text-field>
-
-                <v-text-field
-                class="mb-1 mb-md-2"
-                  density="compact"
-                  v-model="form.senha"
-                  :label="$t('login.password_label')"
-                  prepend-inner-icon="mdi-lock"
-                  variant="outlined"
-                  color="primary"
-                  :type="showPass ? 'text' : 'password'"
-                  :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
-                  @click:append-inner="showPass = !showPass"
-                  :rules="[v => !!v || $t('login.rules.password_required')]"
-                ></v-text-field>
-
-               
-
-                <v-alert v-if="error" type="error" variant="tonal" class="mb-4" closable>{{ error }}</v-alert>
-                
-                <v-btn
-                  
-                  color="primary"
-                  block
-                  size="default"
-                  class="py-2 py-md-4 text-body-2 text-md-body-1"
-                  type="submit"
-                  :loading="loading"
-                  elevation="4"
-                  :disabled="buttonDesativado"
-                >
-                  {{ $t('login.btn_login') }}
-                </v-btn>
-              </v-form>
-               <v-btn
-                  block
-                  color="green"
-                  type="button"
-                  class="mt-3 py-2 py-md-4 text-body-2 text-md-body-1"
-                  elevation="4"
-                  @click="router.push({ name: 'Home' })"
-                >
-                  {{ $t('login.btn_back_home') }}
-                </v-btn>
-
-              <div class="text-center">
-                <span class="text-body-2 text-medium-emphasis">{{ $t('login.has_account_text') }} </span>
-                <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none">{{ $t('login.login_link') }}</router-link>
+              <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
+              <div>
+                <p class="text-body-2 text-medium-emphasis">
+                  {{ $t('login.no_account') }} 
+                  <router-link to="/cadastro" class="text-primary font-weight-bold text-decoration-none ms-1 hover-underline">
+                    {{ $t('login.register_link') }}
+                  </router-link>
+                </p>
               </div>
-            </v-col>
-            <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center bg-primary pa-10">
-              <div class="text-center">
-                <v-icon size="80" color="white" class="mb-6">mdi-chart-pie</v-icon>
-                <h2 class="text-h4 font-weight-bold text-white mb-2">{{ $t('landing.hero_title') }}</h2>
-                <p class="text-white text-opacity-75">{{ $t('landing.hero_subtitle') }}</p>
-              </div>
-            </v-col>
-          </v-row>
+            </div>
+
+            <AuthForm 
+              v-model="form"
+              mode="login"
+              :loading="loading"
+              :error="error"
+              @submit="handleLogin"
+            />
+          </template>
+
+          <EmailVerification 
+            v-else
+            :email="form.email"
+            :loading="loading"
+            :error="error"
+            @verify="handleVerify"
+            @resend="handleResend"
+            @back="showVerification = false"
+          />
         </v-card>
       </v-col>
     </v-row>
@@ -86,15 +81,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
+import AuthForm from '../components/Auth/AuthForm.vue'
+import EmailVerification from '../components/Auth/EmailVerification.vue'
 
 const { t } = useI18n()
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
@@ -103,56 +99,131 @@ const form = ref({
 })
 
 const loading = ref(false)
-const isValid = ref(false)
-const showPass = ref(false)
 const error = ref('')
+const showVerification = ref(false)
 
 const handleLogin = async () => {
-  if (!isValid.value) return
-  
   loading.value = true
+  error.value = ''
   
   try {
-    await authStore.login(form.value.email, form.value.senha)
+    const result = await authStore.login(form.value.email, form.value.senha)
     
-      toast.success(t('toasts.login_success'))
-    
-    
-    const redirectName = route.query.redirect || 'Dashboard'
-    const planId = route.query.plan
-    
-    // If redirectName starts with /, remove it (legacy support if query comes from old code)
-    const finalName = typeof redirectName === 'string' && redirectName.startsWith('/') 
-        ? redirectName.substring(1).charAt(0).toUpperCase() + redirectName.substring(2)
-        : redirectName;
-
-    // Mapping common paths to names if they somehow end up in the query
-    const nameMap = {
-        'painel': 'Dashboard',
-        'planos': 'Plans',
-        'perfil': 'Profile',
-        'lancamentos': 'Lancamentos',
-        'relatorios': 'Reports'
-    };
-    
-    const targetName = nameMap[finalName.toLowerCase()] || finalName;
-    
-    if (planId) {
-        router.push({ name: targetName, query: { plan: planId } })
+    if (result && result.requer_verificacao) {
+      showVerification.value = true
     } else {
-        router.push({ name: targetName })
+      toast.success(t('toasts.login_success'))
+      router.push({ name: 'Dashboard' })
     }
-    
   } catch (err) {
-    toast.error(err.message || t('toasts.login_error'))
+    error.value = err.message || t('toasts.login_error')
+    toast.error(error.value)
   } finally {
     loading.value = false
   }
 }
-const buttonDesativado = computed(() => 
-  form.value.email === '' || 
-  form.value.senha === '' || 
-  !isValid.value
-)
+
+const handleVerify = async (code) => {
+  loading.value = true
+  error.value = ''
+  try {
+    await authStore.verifyCode(form.value.email, code)
+    toast.success(t('toasts.login_success'))
+    router.push({ name: 'Dashboard' })
+  } catch (err) {
+    error.value = err.message || 'Erro ao verificar código'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleResend = async () => {
+  try {
+    await authStore.resendCode(form.value.email)
+    toast.success('Novo código enviado com sucesso!')
+  } catch (err) {
+    toast.error(err.message || 'Erro ao reenviar código')
+  }
+}
 </script>
 
+<style scoped>
+.auth-wrapper {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.bg-primary {
+  background: linear-gradient(135deg, #1867C0 0%, #1A237E 100%) !important;
+}
+
+.visual-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+.floating-icon {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #1867C0, #1A237E);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-v-theme="dark"] .gradient-text {
+  background: linear-gradient(90deg, #5CBBF6, #A2D9FF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.max-w-600 {
+  max-width: 600px;
+}
+
+.absolute-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.absolute-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+.vibrant-secondary {
+  color: #5CBBF6 !important;
+}
+</style>

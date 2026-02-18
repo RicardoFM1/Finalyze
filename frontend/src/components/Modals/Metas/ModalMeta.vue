@@ -121,13 +121,11 @@
 
       <v-row dense>
         <v-col :cols="form.tipo === 'financeira' ? 6 : 12">
-          <v-text-field
+          <DateInput
             v-model="form.prazo"
             :label="form.tipo === 'financeira' ? 'Prazo' : 'Data Limite (Opcional)'"
-            type="date"
-            variant="outlined"
-            rounded="lg"
-          ></v-text-field>
+            clearable
+          />
         </v-col>
         <v-col v-if="form.tipo === 'financeira'" cols="6">
           <v-text-field
@@ -162,6 +160,7 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import DateInput from '../../Common/DateInput.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

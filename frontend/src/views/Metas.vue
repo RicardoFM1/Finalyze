@@ -66,62 +66,168 @@
           </v-card-actions>
         </v-card>
       </v-col>
-    </v-row>
-    <div v-else-if="!loading && !financialMetas.length" class="text-center py-8 text-medium-emphasis mb-12">
-      {{ $t('metas.no_financial_goals') }}
-    </div>
-
-    
-    <div v-if="!loading" class="d-flex align-center mb-8 pt-4">
-      <h1 class="text-h4 font-weight-bold d-flex align-center">
-        {{ $t('metas.notepad_title') }}
-        <v-tooltip :text="$t('metas.notepad_tooltip')">
-          <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" icon="mdi-information-outline" size="xs" color="medium-emphasis" class="ml-2"></v-icon>
-          </template>
-        </v-tooltip>
-      </h1>
-      <v-spacer></v-spacer>
-      <v-btn color="secondary" prepend-icon="mdi-note-plus-outline" rounded="lg" @click="openDialog('pessoal')" elevation="2">
-        {{ $t('metas.new_note') }}
-      </v-btn>
-    </div>
-
-    <v-row v-if="!loading">
-      <v-col v-for="meta in personalMetas" :key="meta.id" cols="12" sm="6" md="4" lg="3">
-        <v-card class="rounded-xl goal-card notepad-card overflow-hidden" elevation="3">
-          <div class="notepad-header" :style="`background: ${meta.cor || '#FFEB3B'}`"></div>
-          <v-card-text class="pa-5 notepad-content">
-            <div class="d-flex align-start mb-2">
-              <span v-if="meta.icone" class="mr-2 notepad-emoji">{{ meta.icone }}</span>
-              <span class="text-h6 font-weight-bold notepad-title text-truncate">{{ meta.titulo }}</span>
-            </div>
-
-            <div class="notepad-text mb-4">
-               {{ meta.descricao || $t('metas.no_notes_content') }}
-            </div>
-
-            <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-auto">
-               <span v-if="meta.prazo" class="d-flex align-center">
-                  <v-icon icon="mdi-calendar-clock" size="14" class="mr-1"></v-icon>
-                  {{ formatDate(meta.prazo) }}
-               </span>
-               <v-chip v-if="meta.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">{{ $t('metas.completed') }}</v-chip>
-            </div>
-          </v-card-text>
-
-          <v-divider></v-divider>
-          <v-card-actions class="pa-2 px-4 justify-end gap-1">
-            <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(meta)"></v-btn>
-            <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(meta)"></v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-      <v-col v-if="!personalMetas.length" cols="12" class="text-center py-8 text-medium-emphasis">
-        {{ $t('metas.no_notes_available') }}
+      <v-col cols="12" md="6" class="d-flex justify-md-end mt-4 mt-md-0">
+            <v-btn-toggle v-model="statusFilter" mandatory color="primary" rounded="xl" class="mr-4" density="comfortable" variant="tonal">
+              <v-btn value="andamento" class="px-4">{{ $t('metas.filter.active') }}</v-btn>
+              <v-btn value="concluido" class="px-4">{{ $t('metas.filter.completed') }}</v-btn>
+              <v-btn value="inativo" class="px-4">{{ $t('metas.filter.inactive') }}</v-btn>
+              <v-btn value="all" class="px-4">{{ $t('metas.filter.all') }}</v-btn>
+            </v-btn-toggle>
+        
+        <v-btn 
+          color="primary" 
+          :prepend-icon="activeTab === 'metas' ? 'mdi-plus' : 'mdi-note-plus-outline'" 
+          rounded="lg" 
+          class="ml-4"
+          @click="openDialog(activeTab === 'metas' ? 'financeira' : 'pessoal')"
+        >
+          {{ activeTab === 'metas' ? $t('metas.new_goal') : $t('metas.new_note') }}
+        </v-btn>
       </v-col>
     </v-row>
 
+    <v-window v-model="activeTab">
+      <v-window-item value="metas">
+        <div v-if="loading" class="d-flex flex-column align-center py-12">
+          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
+          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="180" />
+        </div>
+
+        <v-row v-else-if="filteredMetas.length">
+          <v-col v-for="meta in filteredMetas" :key="meta.id" cols="12" md="6" lg="4">
+            <v-card class="rounded-xl goal-card finance-card" :class="{ 'completed-meta': meta.status === 'concluido' }" elevation="2">
+              <v-card-text class="pa-6">
+                <div class="d-flex align-center mb-4">
+                  <v-avatar :color="meta.cor || 'primary-lighten-4'" size="36" class="mr-3">
+                    <v-icon :icon="meta.icone || 'mdi-cash-multiple'" :color="meta.cor ? 'white' : 'primary'" size="20"></v-icon>
+                  </v-avatar>
+                  <span class="text-h6 font-weight-bold text-truncate">{{ meta.titulo }}</span>
+                </div>
+
+                <div class="d-flex justify-space-between align-baseline mb-2">
+                  <div>
+                    <span class="text-h5 font-weight-bold">{{ formatPrice(meta.valor_atual) }}</span>
+                    <span class="text-medium-emphasis"> / {{ formatShortPrice(meta.valor_objetivo) }}</span>
+                  </div>
+                  <v-chip :color="getProgressColor(meta)" size="small" class="font-weight-bold">
+                    {{ calculatePercentage(meta.valor_atual, meta.valor_objetivo) }}%
+                  </v-chip>
+                </div>
+
+                <v-progress-linear
+                  :model-value="calculatePercentage(meta.valor_atual, meta.valor_objetivo)"
+                  height="8"
+                  rounded
+                  :color="getProgressColor(meta)"
+                  class="mb-4"
+                ></v-progress-linear>
+
+                <div class="d-flex align-center text-caption" :class="meta.status === 'atrasado' ? 'text-error' : 'text-medium-emphasis'">
+                  <v-icon v-if="meta.status === 'atrasado'" icon="mdi-alert" size="14" class="mr-1"></v-icon>
+                  <v-icon v-else-if="meta.status === 'concluido'" icon="mdi-check-circle" size="14" color="success" class="mr-1"></v-icon>
+                  <v-icon v-else icon="mdi-trending-up" size="14" color="success" class="mr-1"></v-icon>
+                  <span class="text-truncate">{{ meta.descricao || getMetaSubtitle(meta) }}</span>
+                </div>
+              </v-card-text>
+
+              <v-divider opacity="0.1"></v-divider>
+
+              <v-card-actions class="pa-4 justify-end gap-2">
+                <v-btn 
+                  variant="tonal" 
+                  size="small" 
+                  rounded="lg" 
+                  :color="meta.status === 'concluido' ? 'warning' : 'success'" 
+                  @click="toggleStatusConcluido(meta)"
+                  :prepend-icon="meta.status === 'concluido' ? 'mdi-refresh' : 'mdi-check'"
+                >
+                  {{ meta.status === 'concluido' ? $t('metas.actions.reopen') : $t('metas.actions.complete') }}
+                </v-btn>
+                <v-btn 
+                  v-if="meta.status === 'inativo'"
+                  variant="tonal" 
+                  size="small" 
+                  rounded="lg" 
+                  color="info" 
+                  @click="reativarItem(meta)"
+                  prepend-icon="mdi-restore"
+                >
+                  Reativar
+                </v-btn>
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+        <div v-else class="text-center py-12 text-medium-emphasis">
+          <v-icon icon="mdi-bullseye-arrow" size="64" class="mb-4 opacity-20"></v-icon>
+          <p>{{ statusFilter === 'concluido' ? 'Nenhuma meta concluída ainda.' : $t('metas.no_financial_goals') }}</p>
+        </div>
+      </v-window-item>
+
+      <v-window-item value="notepad">
+        <div v-if="loading" class="d-flex flex-column align-center py-12">
+          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="120" />
+          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="120" />
+        </div>
+
+        <v-row v-else-if="filteredNotes.length">
+          <v-col v-for="note in filteredNotes" :key="note.id" cols="12" sm="6" md="4" lg="3">
+            <v-card 
+              class="rounded-xl goal-card notepad-card overflow-hidden" 
+              :class="{ 'completed-note': note.status === 'concluido' }"
+              elevation="2"
+            >
+              <div class="notepad-header" :style="`background: ${note.cor || '#FFEB3B'}`"></div>
+              <v-card-text class="pa-5 notepad-content">
+                <div class="d-flex align-start mb-2">
+                  <span v-if="note.icone" class="mr-2 notepad-emoji">{{ note.icone }}</span>
+                  <span class="text-h6 font-weight-bold notepad-title text-truncate">{{ note.titulo }}</span>
+                </div>
+
+                <div class="notepad-text mb-4">
+                   {{ note.descricao || $t('metas.no_notes_content') }}
+                </div>
+
+                <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-auto">
+                   <span v-if="note.prazo" class="d-flex align-center">
+                      <v-icon icon="mdi-calendar-clock" size="14" class="mr-1"></v-icon>
+                      {{ formatDate(note.prazo) }}
+                   </span>
+                   <v-chip v-if="note.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">{{ $t('metas.completed') }}</v-chip>
+                </div>
+              </v-card-text>
+
+              <v-divider opacity="0.1"></v-divider>
+              <v-card-actions class="pa-2 px-4 justify-end gap-1">
+                <v-btn 
+                  :icon="note.status === 'concluido' ? 'mdi-refresh' : 'mdi-check'" 
+                  size="small" 
+                  variant="text" 
+                  :color="note.status === 'concluido' ? 'warning' : 'success'" 
+                  @click="toggleStatusConcluido(note)"
+                ></v-btn>
+                <v-btn 
+                  v-if="note.status === 'inativo'"
+                  variant="text" 
+                  size="small" 
+                  color="info" 
+                  @click="reativarItem(note)"
+                  icon="mdi-restore"
+                ></v-btn>
+                <v-btn v-if="note.status !== 'inativo'" icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(note)"></v-btn>
+                <v-btn v-if="note.status !== 'inativo'" icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(note)"></v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+        <div v-else class="text-center py-12 text-medium-emphasis">
+          <v-icon icon="mdi-notebook-outline" size="64" class="mb-4 opacity-20"></v-icon>
+          <p>{{ statusFilter === 'concluido' ? 'Sem anotações concluídas.' : $t('metas.no_notes_available') }}</p>
+        </div>
+      </v-window-item>
+    </v-window>
     
     <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="fetchMetas" />
     <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="fetchMetas" />
@@ -169,8 +275,21 @@ const fetchMetas = async () => {
   }
 }
 
-const financialMetas = computed(() => metas.value)
-const personalMetas = computed(() => anotacoes.value)
+const filteredMetas = computed(() => {
+  if (statusFilter.value === 'all') return metas.value
+  if (statusFilter.value === 'andamento') {
+    return metas.value.filter(m => (m.status === 'andamento' || m.status === 'atrasado') && m.status !== 'inativo')
+  }
+  return metas.value.filter(m => m.status === statusFilter.value)
+})
+
+const filteredNotes = computed(() => {
+  if (statusFilter.value === 'all') return anotacoes.value
+  if (statusFilter.value === 'andamento') {
+    return anotacoes.value.filter(n => (n.status === 'andamento' || n.status === 'atrasado') && n.status !== 'inativo')
+  }
+  return anotacoes.value.filter(n => n.status === statusFilter.value)
+})
 
 const openDialog = (tipo = 'financeira') => {
   initialTipo.value = tipo
@@ -191,6 +310,15 @@ const confirmDelete = (meta) => {
 
 const toggleStatusConcluido = async (item) => {
   const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  
+  if (!isAnotacao && item.status !== 'concluido') {
+    const p = calculatePercentage(item.valor_atual, item.valor_objetivo)
+    if (p < 100) {
+      toast.error('A meta só pode ser finalizada quando atingir 100% de progresso.')
+      return
+    }
+  }
+
   const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
   
@@ -200,6 +328,19 @@ const toggleStatusConcluido = async (item) => {
       body: JSON.stringify({ ...item, status: newStatus })
     })
     if (response.ok) fetchMetas()
+  } catch (e) { console.error(e) }
+}
+
+const reativarItem = async (item) => {
+  const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
+  
+  try {
+    const response = await authStore.apiFetch(endpoint, { method: 'POST' })
+    if (response.ok) {
+      toast.success('Item reativado com sucesso!')
+      fetchMetas()
+    }
   } catch (e) { console.error(e) }
 }
 

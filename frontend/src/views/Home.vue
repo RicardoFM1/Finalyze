@@ -6,23 +6,30 @@
       <v-container>
         <v-row align="center" justify="center">
           <v-col cols="12" md="7" class="text-center text-md-left hero-content">
-            <h1 class="text-h2 text-md-h1 font-weight-black mb-6 animate-fade-up">
-              Domine seu <span class="gradient-text">Destino</span> Financeiro
-            </h1>
-            <p class="text-h6 text-md-h5 text-medium-emphasis mb-8 animate-fade-up-delay">
-              Acompanhe, analise e alcance. Finalyze é a ponte entre seus sonhos e sua realidade financeira.
-            </p>
-            <div class="d-flex gap-4 justify-center justify-md-start animate-fade-up-delay-2">
-              <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn" :to="{ name: 'Plans' }" elevation="12">
-                Começar Agora
-              </v-btn>
-              <v-btn v-if="!authStore.isAuthenticated" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn" :to="{ name: 'Login' }">
-                Entrar
-              </v-btn>
-              <v-btn v-else variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn" :to="{ name: 'Dashboard' }">
-                Meu Painel
-              </v-btn>
-            </div>
+            <template v-if="loading">
+              <v-skeleton-loader type="heading" width="80%" class="mb-6 bg-transparent"></v-skeleton-loader>
+              <v-skeleton-loader type="paragraph" width="90%" class="mb-8 bg-transparent"></v-skeleton-loader>
+              <div class="d-flex gap-4">
+                <v-skeleton-loader type="button" width="150" class="bg-transparent"></v-skeleton-loader>
+                <v-skeleton-loader type="button" width="150" class="bg-transparent"></v-skeleton-loader>
+              </div>
+            </template>
+            <template v-else>
+              <h1 class="text-h3 text-md-h2 font-weight-black mb-6 animate-fade-up">
+                {{ $t('landing.hero_title_alt') }}<span class="gradient-text ml-4" > {{$t('landing.destiny') }}</span> 
+              </h1>
+              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-8 animate-fade-up-delay">
+                {{ $t('landing.hero_subtitle_alt') }}
+              </p>
+              <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
+                <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Plans' }" elevation="12">
+                  {{ $t('landing.btn_start') }}
+                </v-btn>
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
+                  {{ $t('landing.btn_my_dashboard') }}
+                </v-btn>
+              </div>
+            </template>
           </v-col>
           <v-col cols="12" md="5" class="d-none d-md-flex justify-center position-relative">
             <div class="hero-visual animate-float">
