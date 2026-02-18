@@ -71,28 +71,27 @@
     </ModalBase>
 
     <!-- Modal para Upgrade Gratuito (Prorrata) -->
-    <ModalBase v-model="showFreeUpgradeModal" title="Upgrade Especial!" maxWidth="500px">
+    <ModalBase v-model="showFreeUpgradeModal" title="Alteração de Plano" maxWidth="500px">
         <div class="text-center pa-4">
-            <v-icon color="success" size="64" class="mb-4">mdi-gift-outline</v-icon>
-            <h3 class="text-h5 font-weight-bold mb-2">Você ganhou um Upgrade!</h3>
+            <v-icon color="primary" size="64" class="mb-4">mdi-swap-horizontal</v-icon>
+            <h3 class="text-h5 font-weight-bold mb-2">Confirmar Alteração</h3>
             <p class="text-body-1 text-medium-emphasis mb-4">
                 <span v-if="selectedForUpgrade?.gratuito">
-                    Seus créditos (R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }}) cobrem totalmente o valor do novo plano!
+                    Seu saldo de créditos cobre o valor deste novo plano. Deseja aplicar a mudança agora?
                 </span>
                 <span v-else>
-                    Você tem R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }} de crédito do seu plano atual.
-                    Aproveite o desconto!
+                    Você tem R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }} de crédito disponível para este upgrade.
                 </span>
             </p>
             
-            <v-card variant="tonal" :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" class="pa-3 rounded-lg mb-6">
+            <v-card variant="tonal" color="primary" class="pa-3 rounded-lg mb-6">
                 <div class="d-flex justify-space-between align-center">
                     <span class="text-subtitle-2">Novo Plano:</span>
                     <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
                     <span class="text-subtitle-2">Valor Original:</span>
-                    <span :class="selectedForUpgrade?.gratuito ? 'text-decoration-line-through' : ''">R$ {{ selectedForUpgrade?.valorPlano?.toFixed(2) }}</span>
+                    <span>R$ {{ selectedForUpgrade?.valorPlano?.toFixed(2) }}</span>
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
                     <span class="text-subtitle-2">Crédito Aplicado:</span>
@@ -101,7 +100,7 @@
                 <v-divider class="my-2"></v-divider>
                 <div class="d-flex justify-space-between align-center">
                     <span class="text-subtitle-1 font-weight-bold">Total a Pagar:</span>
-                    <span class="text-h6 font-weight-bold" :class="selectedForUpgrade?.gratuito ? 'text-success' : 'text-primary'">
+                    <span class="text-h6 font-weight-bold text-primary">
                         R$ {{ selectedForUpgrade?.valorFinal?.toFixed(2) }}
                     </span>
                 </div>
@@ -110,13 +109,13 @@
             <div class="d-flex flex-column gap-2">
                 <v-btn
                     block
-                    :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'"
+                    color="primary"
                     size="large"
                     class="rounded-pill"
                     :loading="upgrading"
                     @click="applyFreeUpgrade"
                 >
-                    {{ selectedForUpgrade?.gratuito ? 'Confirmar Upgrade Grátis' : 'Continuar com Desconto' }}
+                    {{ selectedForUpgrade?.gratuito ? 'Aplicar Agora' : 'Continuar para Pagamento' }}
                 </v-btn>
                 <v-btn
                     block

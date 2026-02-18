@@ -89,9 +89,9 @@ class CheckoutController extends Controller
     public function cancelarPagamento(Request $request, CancelarPagamentoCheckout $servico)
     {
         if ($servico->executar()) {
-            return response()->json(['message' => 'Assinatura cancelada com sucesso']);
+            return response()->json(['message' => 'Pagamento cancelado com sucesso']);
         }
-        return response()->json(['error' => 'Nenhuma assinatura pendente encontrada'], 404);
+        return response()->json(['error' => 'Nenhum pagamento pendente encontrado'], 404);
     }
 
     public function handleWebhook(HandleWebhookRequest $request, ProcessarWebhookCheckout $servico, AtivarPlanoUsuario $ativarPlanoServico)

@@ -28,6 +28,9 @@ class UserController extends Controller
         $usuario->avatar = null;
         $usuario->save();
 
-        return response()->json(['message' => 'Avatar removido com sucesso']);
+        return response()->json([
+            'message' => 'Avatar removido com sucesso',
+            'usuario' => $usuario->load('plano.recursos')
+        ]);
     }
 }

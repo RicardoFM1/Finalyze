@@ -99,7 +99,7 @@
     "continue": "Continuar Pagamento",
     "launch_limits": "Limite de {count} Lançamentos",
     "launch_unlimited": "Lançamentos Ilimitados",
-    "toast_cancel_success": "Assinatura anterior cancelada.",
+    "toast_cancel_success": "Pagamento anterior cancelado.",
     "toast_cancel_error": "Erro ao cancelar assinatura."
   },
   "metas": {

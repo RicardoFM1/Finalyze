@@ -101,23 +101,24 @@
                     </div>
                   </v-alert>
 
-                  <div v-if="totalFinal === 0 && preferenceId" class="text-center py-6">
-                    <v-icon color="success" size="48" icon="mdi-gift-outline" class="mb-4"></v-icon>
-                    <h4 class="text-h6 font-weight-bold mb-2">Upgrade Gratuito Disponível!</h4>
-                    <p class="text-body-2 text-medium-emphasis mb-6">
-                      Seu saldo de crédito do plano atual cobre integralmente o valor deste novo plano.
+                  <v-card v-if="totalFinal === 0 && !uiStore.loading" class="rounded-xl pa-8 text-center border-2 border-primary" elevation="4">
+                    <v-icon color="primary" size="64" class="mb-4">mdi-check-decagram</v-icon>
+                    <h2 class="text-h4 font-weight-bold mb-4">Ajuste de Plano</h2>
+                    <p class="text-body-1 text-medium-emphasis mb-6">
+                      Seus créditos acumulados cobrem o valor integral desta alteração. Clique no botão abaixo para concluir a atualização do seu plano.
                     </p>
                     <v-btn 
-                      color="success" 
-                      size="large" 
+                      color="primary" 
+                      size="x-large" 
                       block 
-                      :loading="loadingFree"
+                      rounded="pill" 
+                      class="font-weight-bold"
+                      :loading="upgrading"
                       @click="handleFreeUpgrade"
-                      class="rounded-xl font-weight-bold py-6 px-4 h-auto elevation-4"
                     >
-                      Confirmar Upgrade Grátis
+                      Finalizar Atualização
                     </v-btn>
-                  </div>
+                  </v-card>
 
                   <PaymentBrick 
                     v-else-if="preferenceId && totalFinal > 0" 
