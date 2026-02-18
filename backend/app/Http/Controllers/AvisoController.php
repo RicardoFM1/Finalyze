@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Aviso;
+use App\Models\Lembrete;
 use Illuminate\Http\Request;
 
-class AvisoController extends Controller
+class LembreteController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Aviso::where('usuario_id', $request->user()->id);
+        $query = Lembrete::where('usuario_id', $request->user()->id);
 
         if ($request->filled('start')) {
             $query->where('data_aviso', '>=', $request->input('start'));
@@ -36,9 +37,9 @@ class AvisoController extends Controller
         $dados['usuario_id'] = $request->user()->id;
         $dados['status'] = $dados['status'] ?? 'pendente';
 
-        $aviso = Aviso::create($dados);
+        $lembrete = Lembrete::create($dados);
 
-        return response()->json($aviso, 201);
+        return response()->json($lembrete, 201);
     }
 
     public function update(Request $request, $id)
@@ -52,10 +53,10 @@ class AvisoController extends Controller
             'status' => 'required|in:pendente,concluido,cancelado',
         ]);
 
-        $aviso = Aviso::where('usuario_id', $request->user()->id)->findOrFail($id);
-        $aviso->update($dados);
+        $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $lembrete->update($dados);
 
-        return response()->json($aviso->fresh());
+        return response()->json($lembrete->fresh());
     }
 
     public function patch(Request $request, $id)
@@ -69,10 +70,10 @@ class AvisoController extends Controller
             'status' => 'sometimes|required|in:pendente,concluido,cancelado',
         ]);
 
-        $aviso = Aviso::where('usuario_id', $request->user()->id)->findOrFail($id);
-        $aviso->update($dados);
+        $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $lembrete->update($dados);
 
-        return response()->json($aviso->fresh());
+        return response()->json($lembrete->fresh());
     }
 
     public function patchStatus(Request $request, $id)
@@ -81,16 +82,16 @@ class AvisoController extends Controller
             'status' => 'required|in:pendente,concluido,cancelado',
         ]);
 
-        $aviso = Aviso::where('usuario_id', $request->user()->id)->findOrFail($id);
-        $aviso->update(['status' => $dados['status']]);
+        $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $lembrete->update(['status' => $dados['status']]);
 
-        return response()->json($aviso->fresh());
+        return response()->json($lembrete->fresh());
     }
 
     public function destroy(Request $request, $id)
     {
-        $aviso = Aviso::where('usuario_id', $request->user()->id)->findOrFail($id);
-        $aviso->delete();
+        $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
+        $lembrete->delete();
 
         return response()->json(null, 204);
     }

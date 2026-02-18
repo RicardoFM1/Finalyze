@@ -23,12 +23,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
 
-    Route::get('/avisos', [App\Http\Controllers\AvisoController::class, 'index']);
-    Route::post('/avisos', [App\Http\Controllers\AvisoController::class, 'store']);
-    Route::put('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'update']);
-    Route::patch('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'patch']);
-    Route::patch('/avisos/{id}/status', [App\Http\Controllers\AvisoController::class, 'patchStatus']);
-    Route::delete('/avisos/{id}', [App\Http\Controllers\AvisoController::class, 'destroy']);
+    Route::get('/lembretes', [App\Http\Controllers\LembreteController::class, 'index']);
+    Route::post('/lembretes', [App\Http\Controllers\LembreteController::class, 'store']);
+    Route::put('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
+    Route::patch('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'patch']);
+    Route::patch('/lembretes/{id}/status', [App\Http\Controllers\LembreteController::class, 'patchStatus']);
+    Route::delete('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
 
     Route::get('/convites/buscar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
     Route::post('/convites/enviar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
@@ -36,17 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/convites/atualizacao/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
     Route::delete('/convites/deletar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
 
-
-
     Route::middleware('has_plan')->group(function () {
         Route::get('/painel/resumo', [App\Http\Controllers\DashboardController::class, 'resumo']);
-
 
         Route::get('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'mostrar']);
         Route::post('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'criar']);
         Route::put('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'editar']);
         Route::delete('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'deletar']);
-
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);
 
@@ -77,7 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/planos/{plano}', [App\Http\Controllers\PlanController::class, 'destruir']);
     });
 });
-
 
 Route::any('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
 
