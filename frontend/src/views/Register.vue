@@ -26,7 +26,7 @@
           </v-list>
         </div>
         
-        <div class="visual-footer absolute-bottom pa-8 text-white opacity-50 text-caption text-right">
+        <div class="visual-footer absolute-bottom pr-3 text-white opacity-50 text-caption text-right">
           &copy; {{ new Date().getFullYear() }} {{t("register.register_footer")}}
         </div>
       </v-col>
@@ -44,10 +44,7 @@
           <template v-if="!showVerification">
             <div class="text-center text-md-left mb-10">
               <div class="d-flex align-center justify-center justify-md-start mb-4">
-                <v-avatar color="primary" size="48" class="mr-3 elevation-4">
-                  <v-icon icon="mdi-finance" color="white"></v-icon>
-                </v-avatar>
-                <span class="text-h5 font-weight-black gradient-text">Finalyze</span>
+
               </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
               <div>
