@@ -65,7 +65,7 @@ class ChatFinanceiro
             );
         }, $historicoInstrucoes);
 
-        $response = Gemini::geminiFlash()
+        $response = Gemini::model(model: 'gemini-1.5-flash-latest')
             ->startChat(history: $chatHistory)
             ->sendMessage($mensagem);
 

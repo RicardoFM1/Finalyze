@@ -336,7 +336,7 @@ const saveEdit = async () => {
 
 .finn-window {
   position: absolute;
-  bottom: 80px;
+  bottom: 68px;
   right: 0;
   display: flex;
   flex-direction: column;
