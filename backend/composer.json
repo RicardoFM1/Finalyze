@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.2",
         "google-gemini-php/client": "^2.0",
-        "google-gemini-php/laravel": "^2.0",
+        "google-gemini-php/laravel": "*",
         "google/apiclient": "*",
         "guzzlehttp/guzzle": "*",
         "laravel/framework": "^12.0",

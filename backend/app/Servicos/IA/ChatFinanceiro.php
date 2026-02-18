@@ -2,8 +2,10 @@
 
 namespace App\Servicos\IA;
 
-use Gemini\Laravel\Facades\Gemini;
+use Gemini\Client;
 use Gemini\Data\Content;
+use Gemini\Data\Part;
+use Gemini\Enums\Role;
 use Illuminate\Support\Facades\Auth;
 
 class ChatFinanceiro
@@ -44,7 +46,9 @@ class ChatFinanceiro
         6. Se o saldo for negativo, seja empático e sugira cortes de gastos.
         7. Não use Markdown complexo como tabelas grandes, prefira listas e negrito.";
 
-        // Injetando instruções do sistema no início do histórico para garantir compatibilidade
+        /*
+         * Injetamos contexto como primeira mensagem
+         */
         $historicoInstrucoes = array_values(array_merge([
             [
                 'role' => 'user',
@@ -52,20 +56,29 @@ class ChatFinanceiro
             ],
             [
                 'role' => 'model',
-                'parts' => [['text' => "Entendido! Serei o Finn, o assistente financeiro da Finalyze. Pode contar comigo."]]
+                'parts' => [['text' => "Entendido! Serei o Finn, o assistente financeiro da Finalyze."]]
             ]
         ], $historico));
 
+        /*
+         * Converter histórico → objetos Gemini
+         */
         $chatHistory = array_map(function ($item) {
-            return new \Gemini\Data\Content(
-                role: \Gemini\Enums\Role::from($item['role']),
+            return new Content(
+                role: Role::from($item['role']),
                 parts: [
-                    new \Gemini\Data\Part(text: $item['parts'][0]['text'])
+                    new Part(text: $item['parts'][0]['text'])
                 ]
             );
         }, $historicoInstrucoes);
 
-        $response = Gemini::model(model: 'gemini-1.5-flash-latest')
+        /*
+         * Client Gemini
+         */
+        $client = new Client(env('GEMINI_API_KEY'));
+
+        $response = $client
+            ->generativeModel('gemini-1.5-flash-latest')
             ->startChat(history: $chatHistory)
             ->sendMessage($mensagem);
 
@@ -90,8 +103,13 @@ class ChatFinanceiro
             ->whereYear('data', $anoAtual)
             ->sum('valor');
 
-        $totalReceitas = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
-        $totalDespesas = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
+        $totalReceitas = $usuario->lancamentos()
+            ->where('tipo', 'receita')
+            ->sum('valor');
+
+        $totalDespesas = $usuario->lancamentos()
+            ->where('tipo', 'despesa')
+            ->sum('valor');
 
         return [
             'receitas' => $receitas,
@@ -103,22 +121,35 @@ class ChatFinanceiro
     protected function getMetasContexto($usuario)
     {
         $metas = $usuario->metas()->where('status', 'ativo')->get();
-        if ($metas->isEmpty()) return "Nenhuma meta ativa";
+
+        if ($metas->isEmpty()) {
+            return "Nenhuma meta ativa";
+        }
 
         return $metas->map(function ($m) {
-            $percent = $m->valor_objetivo > 0 ? round(($m->valor_atual / $m->valor_objetivo) * 100) : 0;
-            return "- {$m->nome}: R$ " . number_format($m->valor_atual, 2, ',', '.') .
-                " / R$ " . number_format($m->valor_objetivo, 2, ',', '.') . " ({$percent}%)";
+            $percent = $m->valor_objetivo > 0
+                ? round(($m->valor_atual / $m->valor_objetivo) * 100)
+                : 0;
+
+            return "- {$m->nome}: R$ " .
+                number_format($m->valor_atual, 2, ',', '.') .
+                " / R$ " .
+                number_format($m->valor_objetivo, 2, ',', '.') .
+                " ({$percent}%)";
         })->implode("\n");
     }
 
     protected function getAssinaturaContexto($usuario)
     {
         $assinatura = $usuario->assinaturaAtiva();
-        if (!$assinatura) return "Plano Free (sem assinatura premium)";
+
+        if (!$assinatura) {
+            return "Plano Free";
+        }
 
         $nomePlano = $assinatura->plano->nome;
         $vencimento = $assinatura->termina_em->format('d/m/Y');
+
         return "Plano {$nomePlano}, vence em {$vencimento}";
     }
 
@@ -130,11 +161,17 @@ class ChatFinanceiro
             ->take(3)
             ->get();
 
-        if ($historico->isEmpty()) return "Nenhum pagamento registrado";
+        if ($historico->isEmpty()) {
+            return "Nenhum pagamento registrado";
+        }
 
         return $historico->map(function ($h) {
             $valor = number_format($h->valor_centavos / 100, 2, ',', '.');
-            $data = $h->pago_em ? $h->pago_em->format('d/m/Y') : $h->created_at->format('d/m/Y');
+
+            $data = $h->pago_em
+                ? $h->pago_em->format('d/m/Y')
+                : $h->created_at->format('d/m/Y');
+
             return "- R$ {$valor} em {$data}";
         })->implode("\n");
     }
