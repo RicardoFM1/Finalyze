@@ -150,6 +150,7 @@
               </v-form>
             </v-col>
           </v-row>
+          </div>
         </v-window-item>
 
         <v-window-item value="assinatura">
