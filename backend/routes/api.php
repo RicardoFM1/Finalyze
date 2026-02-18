@@ -76,10 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('check_resource:finn-ai')->group(function () {
-        Route::get('/chat', [App\Http\Controllers\ChatIaController::class, 'index']);
         Route::post('/chat/pergunta', [App\Http\Controllers\ChatIaController::class, 'perguntar']);
-        Route::patch('/chat/{id}', [App\Http\Controllers\ChatIaController::class, 'update']);
-        Route::delete('/chat/{id}', [App\Http\Controllers\ChatIaController::class, 'destroy']);
     });
 });
 

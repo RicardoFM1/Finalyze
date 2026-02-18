@@ -127,7 +127,7 @@ const chatBox = ref(null)
 const messages = ref([])
 
 // Carregar mensagens do localStorage ao iniciar
-onMounted(async () => {
+onMounted(() => {
   const savedMessages = localStorage.getItem(`finn_chat_${authStore.user?.id}`)
   if (savedMessages) {
     try {
@@ -137,9 +137,12 @@ onMounted(async () => {
     }
   }
 
-  if (authStore.isAuthenticated) {
-    await fetchHistory()
+  // Se estiver vazio, bota a mensagem inicial
+  if (messages.value.length === 0) {
+    messages.value.push({ role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' })
   }
+  
+  scrollToBottom()
 })
 
 // Salvar no localStorage sempre que as mensagens mudarem
@@ -149,30 +152,7 @@ watch(messages, (newVal) => {
   }
 }, { deep: true })
 
-const fetchHistory = async () => {
-  try {
-    const response = await authStore.apiFetch('/chat')
-    if (response.ok) {
-      const data = await response.json()
-      const newMessages = data.map(m => ({
-        id: m.id,
-        role: m.role,
-        text: m.texto
-      }))
-      
-      // Se não houver nada no backend nem no local, bota a mensagem inicial
-      if (newMessages.length === 0 && messages.value.length === 0) {
-        messages.value.push({ role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' })
-      } else if (newMessages.length > 0) {
-        // Atualiza apenas se o backend tiver mensagens (prioridade para o banco)
-        messages.value = newMessages
-      }
-      scrollToBottom()
-    }
-  } catch (e) {
-    console.error('Erro ao buscar histórico:', e)
-  }
-}
+// fetchHistory removido conforme solicitado para usar apenas localStorage
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value
@@ -194,22 +174,31 @@ const sendMessage = async () => {
   if (!input.value.trim() || loading.value) return
 
   const userMsg = input.value
-  messages.value.push({ role: 'user', text: userMsg })
+  messages.value.push({ role: 'user', text: userMsg, id: Date.now() })
   
   input.value = ''
   loading.value = true
   scrollToBottom()
 
   try {
+    // Pegar as últimas 10 mensagens para contexto e formatar para a API Gemini
+    const context = messages.value.slice(-11, -1).map(m => ({
+      role: m.role === 'bot' ? 'model' : 'user',
+      parts: [{ text: m.text }]
+    }))
+
     const response = await authStore.apiFetch('/chat/pergunta', {
       method: 'POST',
-      body: JSON.stringify({ mensagem: userMsg })
+      body: JSON.stringify({ 
+        mensagem: userMsg,
+        historico: context
+      })
     })
     
     const data = await response.json()
     
     if (data.resposta) {
-      await fetchHistory() // Refresh to get IDs
+      messages.value.push({ role: 'bot', text: data.resposta, id: Date.now() + 1 })
     } else {
       messages.value.push({ role: 'bot', text: data.error || 'Tive um probleminha. Pode repetir?' })
     }
@@ -221,26 +210,10 @@ const sendMessage = async () => {
   }
 }
 
-const deleteMessage = async (id) => {
+const deleteMessage = (id) => {
   if (!id) return
   if (!confirm('Deseja remover esta mensagem?')) return
-
-  const originalMessages = [...messages.value]
   messages.value = messages.value.filter(m => m.id !== id)
-
-  try {
-    const response = await authStore.apiFetch(`/chat/${id}`, {
-      method: 'DELETE'
-    })
-    if (!response.ok) {
-      messages.value = originalMessages
-      const data = await response.json()
-      console.error('Erro ao deletar:', data.error || response.statusText)
-    }
-  } catch (e) {
-    messages.value = originalMessages
-    console.error('Erro ao deletar:', e)
-  }
 }
 
 const editingId = ref(null)
@@ -251,22 +224,11 @@ const startEdit = (msg) => {
   editText.value = msg.text
 }
 
-const saveEdit = async () => {
+const saveEdit = () => {
   if (!editText.value.trim()) return
-  
-  try {
-    const response = await authStore.apiFetch(`/chat/${editingId.value}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ texto: editText.value })
-    })
-    if (response.ok) {
-      const msg = messages.value.find(m => m.id === editingId.value)
-      if (msg) msg.text = editText.value
-      editingId.value = null
-    }
-  } catch (e) {
-    console.error('Erro ao editar:', e)
-  }
+  const msg = messages.value.find(m => m.id === editingId.value)
+  if (msg) msg.text = editText.value
+  editingId.value = null
 }
 </script>
 <style>
