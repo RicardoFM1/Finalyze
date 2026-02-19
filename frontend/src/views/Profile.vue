@@ -615,7 +615,8 @@ const formatCPF = (event) => {
 }
 
 function sendInvite(payload) {
-  console.log('Teste Email enviado', payload.email)
+  const emailEnviado = payload?.email_destino || payload?.email || '(email nao informado)'
+  console.log('Teste Email enviado', emailEnviado)
 }
 
 

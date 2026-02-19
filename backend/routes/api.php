@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/convites/buscar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
     Route::post('/convites/enviar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
+    Route::post('/convites/aceitar-token', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'aceitarToken']);
     Route::put('/convites/atualizar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
     Route::patch('/convites/atualizacao/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
     Route::delete('/convites/deletar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);

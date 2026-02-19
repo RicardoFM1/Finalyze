@@ -74,10 +74,14 @@ async function submitInvite() {
 
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
-      throw new Error(data.message || 'Nao foi possivel enviar o convite.')
+      const validationMessage = data?.errors?.email_destino?.[0]
+      throw new Error(validationMessage || data.message || 'Nao foi possivel enviar o convite.')
     }
 
-    emit('invite', data)
+    emit('invite', {
+      ...data,
+      email_destino: data?.email_destino || form.email
+    })
     form.email = ''
     dialog.value = false
   } catch (err) {

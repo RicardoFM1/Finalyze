@@ -16,7 +16,18 @@ class ConviteEnviado extends Model
         'email_destino',
         'mensagem',
         'status',
+        'token_hash',
+        'expira_em',
+        'aceito_em',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'expira_em' => 'datetime',
+            'aceito_em' => 'datetime',
+        ];
+    }
 
     public function usuario()
     {
