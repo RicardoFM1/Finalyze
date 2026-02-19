@@ -2,7 +2,7 @@
 
 namespace App\Servicos\IA;
 
-use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 
 class ChatFinanceiro
@@ -68,7 +68,7 @@ Instruções de Comportamento:
                 continue;
             }
 
-            $role = ($item['role'] === 'model' || $item['role'] === 'bot')
+            $role = ($item['role'] === 'model' || $item['role'] === 'bot' || $item['role'] === 'assistant')
                 ? 'assistant'
                 : 'user';
 
@@ -95,16 +95,25 @@ Instruções de Comportamento:
         ];
 
         /*
-         * Chamada OpenAI
+         * Chamada MistralAI
          */
-        $result = OpenAI::chat()->create([
-            'model' => 'gpt-5-mini',
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('services.mistral.key'),
+            'Content-Type' => 'application/json',
+        ])->post('https://api.mistral.ai/v1/chat/completions', [
+            'model' => 'mistral-large-latest',
             'messages' => $messages,
             'temperature' => 0.7,
-            'max_tokens' => 1000,
+            'max_tokens' => 150,
         ]);
 
-        return $result->choices[0]->message->content ?? "Não consegui gerar uma resposta.";
+        if ($response->failed()) {
+            return "Não consegui gerar uma resposta. (Erro na API do Mistral)";
+        }
+
+        $result = $response->json();
+
+        return $result['choices'][0]['message']['content'] ?? "Não consegui gerar uma resposta.";
     }
 
     protected function getResumoFinanceiro($usuario)
@@ -161,7 +170,6 @@ Instruções de Comportamento:
                 . " / R$ "
                 . number_format($m->valor_objetivo, 2, ',', '.')
                 . " ({$percent}%)";
-
         })->implode("\n");
     }
 
@@ -202,7 +210,6 @@ Instruções de Comportamento:
                 : $h->created_at->format('d/m/Y');
 
             return "- R$ {$valor} em {$data}";
-
         })->implode("\n");
     }
 }

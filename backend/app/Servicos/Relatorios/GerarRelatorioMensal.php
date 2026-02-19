@@ -8,12 +8,13 @@ use Carbon\Carbon;
 
 class GerarRelatorioMensal
 {
-    public function executar()
+    public function executar(int $mesesCount = 6)
     {
         $user = Auth::user();
 
         $months = [];
-        for ($i = 5; $i >= 0; $i--) {
+        $mesesCount = max(1, min(24, $mesesCount)); // Entre 1 e 24 meses
+        for ($i = $mesesCount - 1; $i >= 0; $i--) {
             $months[] = Carbon::now()->subMonths($i)->format('Y-m');
         }
 

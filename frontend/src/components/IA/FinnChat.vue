@@ -1,5 +1,5 @@
 <template>
-  <div v-if="authStore.isAuthenticated" class="finn-chat-wrapper">
+  <div v-if="authStore.isAuthenticated && hasAiAccess" class="finn-chat-wrapper">
     <!-- Toggle Arrow (when hidden) -->
     <v-btn
       v-if="isHidden && !isOpen"
@@ -37,9 +37,13 @@
     <v-card
       v-if="isOpen"
       class="finn-window rounded-xl elevation-12 overflow-hidden"
-      :width="display.xs ? '100%' : '380'"
-      :style="display.xs ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100vh; max-height: 100vh; border-radius: 0 !important;' : ''"
-      max-height="650"
+      :class="{ 
+        'mobile-chat': display.xs,
+        'sm-chat': display.sm,
+        'md-chat': display.mdAndUp
+      }"
+      :width="display.xs ? '100%' : (display.sm ? '350' : '400')"
+      :max-height="display.xs ? '100vh' : '650'"
     >
     <!-- Header -->
       <v-card-title class="d-flex align-center py-2 px-4 bg-primary text-white">
@@ -118,6 +122,10 @@ const authStore = useAuthStore()
 const display = useDisplay()
 const { mobile: isMobile } = display
 
+const hasAiAccess = computed(() => {
+  return authStore.user?.admin || authStore.hasFeature('Chat IA')
+})
+
 const isOpen = ref(false)
 const isHidden = ref(false)
 const input = ref('')
@@ -181,10 +189,10 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    // Pegar as últimas 10 mensagens para contexto e formatar para a API Gemini
+    // Pegar as últimas 10 mensagens para contexto e formatar para a API Mistral
     const context = messages.value.slice(-11, -1).map(m => ({
-      role: m.role === 'bot' ? 'model' : 'user',
-      parts: [{ text: m.text }]
+      role: m.role === 'bot' ? 'assistant' : 'user',
+      content: m.text
     }))
 
     const response = await authStore.apiFetch('/chat/pergunta', {
@@ -298,15 +306,38 @@ const saveEdit = () => {
 
 .finn-window {
   position: absolute;
-  bottom: 68px;
+  bottom: 80px;
   right: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 12px 40px rgba(0,0,0,0.15) !important;
   z-index: 10001;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-chat {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  border-radius: 0 !important;
+}
+
+.sm-chat {
+  width: 350px !important;
+  max-height: 500px !important;
+}
+
+.md-chat {
+  width: 400px !important;
+  max-height: 650px !important;
 }
 
 .chat-messages {

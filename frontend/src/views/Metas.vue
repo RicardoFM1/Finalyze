@@ -275,10 +275,14 @@ const toggleStatusConcluido = async (item) => {
   
   try {
     const response = await authStore.apiFetch(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify({ ...item, status: newStatus })
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'andamento' })
     })
-    if (response.ok) fetchMetas()
+    if (response.ok) {
+      toast.success(t('toasts.success_restore'))
+      fetchMetas()
+      fetchAnotacoes()
+    }
   } catch (e) { console.error(e) }
 }
 

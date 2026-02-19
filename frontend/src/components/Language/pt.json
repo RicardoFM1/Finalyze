@@ -385,6 +385,7 @@
     "success_add": "Item adicionado com sucesso!",
     "success_update": "Item atualizado com sucesso!",
     "success_delete": "Item removido com sucesso!",
+    "success_inactivate": "Item desativado com sucesso!",
     "success_restore": "Item reativado com sucesso!",
     "error_generic": "Ocorreu um erro. Tente novamente."
   },

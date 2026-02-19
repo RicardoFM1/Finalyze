@@ -10,9 +10,10 @@
       <v-text-field
         v-model="formattedDate"
         :label="label"
-        :prepend-inner-icon="icon || 'mdi-calendar'"
+        :prepend-inner-icon="icon ? icon : (mode === 'range' ? 'mdi-calendar-range' : 'mdi-calendar')"
         readonly
-        variant="outlined"
+        :variant="variant"
+        :density="density"
         rounded="lg"
         v-bind="props"
         :required="required"
@@ -21,7 +22,7 @@
         :rules="rules"
         class="date-input-field"
       >
-        <template v-if="modelValue" v-slot:append-inner>
+        <template v-if="internalDate" v-slot:append-inner>
           <v-btn
             v-if="clearable"
             icon="mdi-close-circle"
@@ -36,7 +37,8 @@
     <v-card class="date-picker-card rounded-xl border-none" elevation="12">
       <VDatePicker
         v-model="internalDate"
-        :mode="mode"
+        :mode="mode === 'range' ? 'date' : mode"
+        :is-range="mode === 'range'"
         :is-dark="isDark"
         :color="color"
         @update:modelValue="onDateChange"
@@ -56,7 +58,7 @@ import { useUiStore } from '../../stores/ui'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
-  modelValue: [String, Date],
+  modelValue: [String, Date, Object],
   label: String,
   icon: String,
   required: Boolean,
@@ -74,6 +76,14 @@ const props = defineProps({
   rules: {
     type: Array,
     default: () => []
+  },
+  variant: {
+    type: String,
+    default: 'outlined'
+  },
+  density: {
+    type: String,
+    default: 'default'
   }
 })
 
@@ -84,38 +94,88 @@ const { t } = useI18n()
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
 
-const internalDate = ref(props.modelValue ? new Date(props.modelValue) : null)
+const internalDate = ref(null)
+
+const parseValue = (val) => {
+    if (!val) return null
+    if (props.mode === 'range') {
+        if (typeof val === 'string' && val.includes(' to ')) {
+            const [s, e] = val.split(' to ')
+            return { start: new Date(s), end: new Date(e || s) }
+        }
+        return val // Assume already an object {start, end}
+    }
+    return new Date(val)
+}
+
+internalDate.value = parseValue(props.modelValue)
 
 watch(() => props.modelValue, (newVal) => {
-  if (newVal) {
-    internalDate.value = new Date(newVal)
-  } else {
-    internalDate.value = null
-  }
+  internalDate.value = parseValue(newVal)
 })
 
 const formattedDate = computed(() => {
   if (!internalDate.value) return ''
   const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-  return new Intl.DateTimeFormat(locale).format(new Date(internalDate.value))
+  const formatter = new Intl.DateTimeFormat(locale)
+  const separator = locale === 'pt-BR' ? ' até ' : ' to '
+
+  if (props.mode === 'range' ) {
+      const startObj = internalDate.value.start || internalDate.value
+      const endObj = internalDate.value.end
+      
+      if (!startObj || isNaN(new Date(startObj).getTime())) return ''
+      
+      const start = formatter.format(new Date(startObj))
+      if (!endObj) {
+          const endLabel = locale === 'pt-BR' ? 'Selecionar fim' : 'Select end'
+          return `${start}${separator}${endLabel}`
+      }
+      
+      const end = formatter.format(new Date(endObj))
+      return `${start}${separator}${end}`
+  }
+  
+  const d = new Date(internalDate.value)
+  return isNaN(d.getTime()) ? '' : formatter.format(d)
 })
 
-const onDateChange = (date) => {
-  if (date) {
-    // We want to store as YYYY-MM-DD for consistency with backend
-    const offset = date.getTimezoneOffset()
-    const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000))
-    const isoString = adjustedDate.toISOString().split('T')[0]
-    emit('update:modelValue', isoString)
-  } else {
-    emit('update:modelValue', null)
+const formatDateISO = (date) => {
+    if (!date) return ''
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return ''
+    
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+}
+
+const onDateChange = (val) => {
+  if (!val) {
+      emit('update:modelValue', null)
+      return
   }
-  menu.value = false
+
+  if (props.mode === 'range') {
+      if (val && val.start && val.end) {
+          const start = formatDateISO(val.start)
+          const end = formatDateISO(val.end)
+          emit('update:modelValue', `${start} to ${end}`)
+          menu.value = false
+      } else if (val && val.start) {
+          internalDate.value = val
+      }
+  } else {
+      emit('update:modelValue', formatDateISO(val))
+      menu.value = false
+  }
 }
 
 const clearDate = () => {
   emit('update:modelValue', null)
   internalDate.value = null
+  menu.value = false
 }
 </script>
 
@@ -127,6 +187,9 @@ const clearDate = () => {
 
 .date-input-field :deep(.v-field__input) {
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .custom-v-date-picker {
