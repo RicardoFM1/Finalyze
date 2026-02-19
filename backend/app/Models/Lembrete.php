@@ -18,11 +18,13 @@ class Lembrete extends Model
         'categoria',
         'cor',
         'data_aviso',
+        'data_lembrete',
         'status',
     ];
 
     protected $casts = [
         'data_aviso' => 'datetime',
+        'data_lembrete' => 'datetime',
     ];
 
     public function usuario()

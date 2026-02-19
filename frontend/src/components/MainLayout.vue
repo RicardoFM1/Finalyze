@@ -155,10 +155,17 @@
         </template>
     </ModalBase>
     <FinnChat v-if="authStore.isAuthenticated" />
+    <v-main>
+      <router-view />
+    </v-main>
+    </template>
   </v-layout>
 </template>
 
 <script setup>
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 import logotipo from '../assets/logotipo.png'
@@ -170,6 +177,7 @@ import Coinselector from './Currency/Coinselector.vue'
 
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
+const route = useRoute()
 const router = useRouter()
 const confirmLogout = ref(false)
 
@@ -191,10 +199,6 @@ const toggleDrawer = () => {
 const isAuthPage = computed(() => {
   return route.name === 'Login' || route.name === 'Register'
 })
-
-
-import { onMounted } from 'vue'
-import { useUiStore } from '../stores/ui'
 onMounted(async () => {
     if (authStore.isAuthenticated) {
         await authStore.fetchUser()

@@ -108,13 +108,15 @@ export const useAuthStore = defineStore('auth', () => {
         if (!token.value) return;
         try {
             const response = await apiFetch('/usuario');
-            if (response.ok) {
-                const data = await response.json();
-                user.value = data;
-
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Falha ao carregar usuário (${response.status})`);
             }
+            const data = await response.json();
+            user.value = data;
         } catch (e) {
             console.error(e);
+            throw e;
         }
     }
 
@@ -181,5 +183,5 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
+    return { user, token, isAuthenticated, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
 });

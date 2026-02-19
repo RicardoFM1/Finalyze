@@ -31,9 +31,11 @@ class LembreteController extends Controller
             'categoria' => 'nullable|string|max:80',
             'cor' => 'nullable|string|max:20',
             'data_aviso' => 'required|date',
+            'data_lembrete' => 'nullable|date',
             'status' => 'nullable|in:pendente,concluido,cancelado',
         ]);
 
+        $dados['data_lembrete'] = $dados['data_aviso'];
         $dados['usuario_id'] = $request->user()->id;
         $dados['status'] = $dados['status'] ?? 'pendente';
 
@@ -50,9 +52,11 @@ class LembreteController extends Controller
             'categoria' => 'nullable|string|max:80',
             'cor' => 'nullable|string|max:20',
             'data_aviso' => 'required|date',
+            'data_lembrete' => 'nullable|date',
             'status' => 'required|in:pendente,concluido,cancelado',
         ]);
 
+        $dados['data_lembrete'] = $dados['data_aviso'];
         $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
         $lembrete->update($dados);
 
@@ -67,9 +71,13 @@ class LembreteController extends Controller
             'categoria' => 'sometimes|nullable|string|max:80',
             'cor' => 'sometimes|nullable|string|max:20',
             'data_aviso' => 'sometimes|required|date',
+            'data_lembrete' => 'sometimes|nullable|date',
             'status' => 'sometimes|required|in:pendente,concluido,cancelado',
         ]);
 
+        if (array_key_exists('data_aviso', $dados)) {
+            $dados['data_lembrete'] = $dados['data_aviso'];
+        }
         $lembrete = Lembrete::where('usuario_id', $request->user()->id)->findOrFail($id);
         $lembrete->update($dados);
 

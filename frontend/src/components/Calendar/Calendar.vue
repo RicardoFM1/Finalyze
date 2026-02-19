@@ -12,17 +12,17 @@ import { useAuthStore } from '../../stores/auth'
 
 const emit = defineEmits(['select', 'loaded'])
 const authStore = useAuthStore()
-const avisos = ref([])
+const lembretes = ref([])
 
 const calendarAttributes = computed(() =>
-  avisos.value.map(aviso => ({
-    key: `aviso-${aviso.id}`,
-    dates: new Date(aviso.data_aviso),
+  lembretes.value.map(lembrete => ({
+    key: `lembrete-${lembrete.id}`,
+    dates: new Date(lembrete.data_aviso || lembrete.data_lembrete),
     dot: {
-      color: aviso.cor || '#1867c0'
+      color: lembrete.cor || '#1867c0'
     },
     popover: {
-      label: aviso.titulo
+      label: lembrete.titulo
     }
   }))
 )
@@ -33,10 +33,10 @@ onMounted(() => {
 
 async function loadAvisos() {
   try {
-    const response = await authStore.apiFetch('/avisos')
+    const response = await authStore.apiFetch('/lembretes')
     if (!response.ok) return
-    avisos.value = await response.json()
-    emit('loaded', avisos.value)
+    lembretes.value = await response.json()
+    emit('loaded', lembretes.value)
   } catch (error) {
     console.error(error)
   }

@@ -263,8 +263,7 @@
                 <!-- cards de assinatura (mantém os seus) -->
               </v-row>
 
-            </template>
-          </v-container>
+            </v-container>
         </v-window-item>
 
         <!-- ================= HISTÓRICO ================= -->
@@ -332,18 +331,25 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
+import Calendar from '../components/Calendar/Calendar.vue'
+import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
+import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
 
 const { t } = useI18n()
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const router = useRouter()
 const activeTab = ref('personal')
+const showReminderModal = ref(false)
+const selectedDate = ref('')
 const user = ref({
     nome: '',
     email: '',
@@ -575,6 +581,10 @@ const validateCPF = (cpf) => {
   if (rev === 10 || rev === 11) rev = 0
   return rev === parseInt(cpf.charAt(10))
 }
+
+const cpfRules = [
+  v => !v || validateCPF(v) || t('profile.warnings.invalid_cpf')
+]
 
 const ageRules = [
   v => {

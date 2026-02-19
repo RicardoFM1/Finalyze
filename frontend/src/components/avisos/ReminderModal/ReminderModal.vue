@@ -110,7 +110,7 @@ watch(
     if (!props.modelValue) return
 
     if (props.reminder) {
-      const avisoDate = new Date(props.reminder.data_aviso || props.reminder.date)
+      const avisoDate = new Date(props.reminder.data_aviso || props.reminder.data_lembrete || props.reminder.date)
       form.title = props.reminder.titulo || props.reminder.title || ''
       form.description = props.reminder.descricao || props.reminder.description || ''
       form.category = props.reminder.categoria || props.reminder.category || null
@@ -129,8 +129,8 @@ watch(
 )
 
 function toApiDatetime() {
-  const selectedDate = isEdit.value && props.reminder?.data_aviso
-    ? new Date(props.reminder.data_aviso)
+  const selectedDate = isEdit.value && (props.reminder?.data_aviso || props.reminder?.data_lembrete)
+    ? new Date(props.reminder.data_aviso || props.reminder.data_lembrete)
     : props.date
 
   if (!selectedDate) return null
@@ -160,7 +160,7 @@ async function save() {
       status: props.reminder?.status || 'pendente'
     }
 
-    const endpoint = isEdit.value ? `/avisos/${props.reminder.id}` : '/avisos'
+    const endpoint = isEdit.value ? `/lembretes/${props.reminder.id}` : '/lembretes'
     const method = isEdit.value ? 'PUT' : 'POST'
 
     const response = await authStore.apiFetch(endpoint, {

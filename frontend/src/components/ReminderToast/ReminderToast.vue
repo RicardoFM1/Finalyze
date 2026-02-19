@@ -56,7 +56,7 @@ const authStore = useAuthStore()
 const updating = ref(false)
 const deleting = ref(false)
 
-const avisoDate = computed(() => props.reminder.data_aviso || props.reminder.date)
+const avisoDate = computed(() => props.reminder.data_lembrete || props.reminder.date)
 const currentStatus = computed(() => props.reminder.status || 'pendente')
 
 const formattedDate = computed(() => {
