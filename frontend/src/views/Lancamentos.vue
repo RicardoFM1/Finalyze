@@ -18,7 +18,7 @@
         </v-btn>
       </v-col>
     </v-row>
-
+    <Planilhas :dados="serverItems" @exportar="exportarExcel" />
     <FilterLancamentos
   v-model="filters"
   :categorias="categorias"
@@ -92,6 +92,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
 import { categorias as categoriasConstantes } from '../constants/categorias'
+import * as XLSX from "xlsx"
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -99,7 +100,17 @@ import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLanca
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
+import Planilhas from '../components/Exportacoes/planilhas.vue'
 
+const exportarExcel = () => {
+const worksheet = XLSX.utils.json_to_sheet([{ nome: "Ricardo", valor: 1500 },
+    { nome: "João", valor: 2300 },])
+const workbook = XLSX.utils.book_new()
+
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Dados')
+
+XLSX.writeFile(workbook, 'tabela.xlsx')
+}
 
 const loading = ref(false)
 const search = ref('')
