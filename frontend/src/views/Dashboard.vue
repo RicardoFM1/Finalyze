@@ -14,7 +14,13 @@
     </v-col>
     </v-row>
 
- 
+    <FilterLancamentos
+      v-model="filters"
+      :categorias="categorias"
+      @apply="aplicarFiltros"
+      @clear="limparFiltros"
+    />
+
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -214,6 +220,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
+import FilterLancamentos from '../components/Filters/Filter.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 
@@ -222,12 +229,30 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 
-import { categorias } from '../constants/categorias'
+import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const authStore = useAuthStore()
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
+
+const filters = ref({
+  data: '',
+  descricao: '',
+  categoria: '',
+  tipo: 'todos',
+  valor: ''
+})
+
+const categorias = computed(() => {
+  try {
+    return categoriasConstantes.map(c => c.title)
+  } catch (e) {
+    const set = new Set()
+    resumo.value.atividades_recentes?.forEach(l => l.categoria && set.add(l.categoria))
+    return Array.from(set)
+  }
+})
 
 const getGreeting = computed(() => {
     const hour = new Date().getHours()
@@ -283,7 +308,15 @@ onMounted(async () => {
 const fetchSummary = async () => {
     loading.value = true
     try {
-        const response = await authStore.apiFetch('/painel/resumo')
+        const params = new URLSearchParams()
+        if (filters.value.data) params.append('data', filters.value.data)
+        if (filters.value.categoria) params.append('categoria', filters.value.categoria)
+        if (filters.value.tipo && filters.value.tipo !== 'todos') params.append('tipo', filters.value.tipo)
+        if (filters.value.valor) params.append('valor', filters.value.valor)
+        if (filters.value.descricao) params.append('descricao', filters.value.descricao)
+
+        const url = params.toString() ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        const response = await authStore.apiFetch(url)
         if (response.ok) {
             resumo.value = await response.json()
         }
@@ -312,6 +345,21 @@ const calculatePercentage = (meta) => {
     }
     if (!meta.meta_quantidade) return 0
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
+}
+
+const aplicarFiltros = () => {
+    fetchSummary()
+}
+
+const limparFiltros = () => {
+    filters.value = {
+        data: '',
+        descricao: '',
+        categoria: '',
+        tipo: 'todos',
+        valor: ''
+    }
+    fetchSummary()
 }
 
 const saving = ref(false)
