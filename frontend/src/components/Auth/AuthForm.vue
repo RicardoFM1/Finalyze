@@ -106,19 +106,15 @@
 
         <v-col cols="12" md="6" class="mt-4">
           <label class="text-caption font-weight-bold text-medium-emphasis mb-2 d-block ms-1">{{ $t('profile.labels.birthdate') }}</label>
-          <v-text-field
+          <DateInput
             v-model="modelValue.data_nascimento"
-            prepend-inner-icon="mdi-calendar-outline"
-            variant="outlined"
-            color="primary"
-            type="date"
-            density="comfortable"
-            class="rounded-lg"
+            icon="mdi-calendar-outline"
             :disabled="loading"
+            class="rounded-lg"
             :rules="[v => !!v || $t('validation.required'), validateAge]"
-            :error-messages="errors.data_nascimento"
             hide-details="auto"
-          ></v-text-field>
+          />
+          <div v-if="errors.data_nascimento" class="v-messages text-error text-caption mt-1">{{ errors.data_nascimento }}</div>
         </v-col>
       </template>
     </v-row>
@@ -155,6 +151,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import DateInput from '../Common/DateInput.vue'
 
 const { t } = useI18n()
 

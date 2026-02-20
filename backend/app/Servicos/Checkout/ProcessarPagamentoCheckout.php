@@ -17,11 +17,12 @@ class ProcessarPagamentoCheckout
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function executar(array $dados)
     {
+        /** @var \App\Models\Usuario $usuario */
         $usuario = auth()->user();
         if (!$usuario) {
             throw new \Exception('Usuário não autenticado', 401);
@@ -35,24 +36,60 @@ class ProcessarPagamentoCheckout
 
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
+
+        // Cálculo de Prorrata
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+        $creditos = 0;
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
-        
+
+        if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
+            $calculadora = new CalculadoraProrata();
+            $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+            $transactionAmount = max(0, $transactionAmount - $creditos);
+        }
+
         Assinatura::where('user_id', $usuario->id)
-    ->where('status', 'pending')
-    ->update(['status' => 'cancelled']);
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
 
 
         $assinatura = Assinatura::create([
-    'user_id'    => $usuario->id,
-    'plano_id'   => (int) $plano_id,
-    'periodo_id' => (int) $periodo_id,
-    'status'     => 'pending',
-    'inicia_em'  => now(),
-]);
+            'user_id'    => $usuario->id,
+            'plano_id'   => (int) $plano_id,
+            'periodo_id' => (int) $periodo_id,
+            'status'     => 'pending',
+            'inicia_em'  => now(),
+        ]);
+
+        // Se o valor for zero, ativamos direto (Simulando aprovação)
+        if ($transactionAmount <= 0) {
+            $ativarServico = new AtivarPlanoUsuario();
+            $ativarServico->executar((object)[
+                'id' => 'CREDITO-' . time(),
+                'transaction_amount' => 0,
+                'payment_method_id' => 'credits',
+                'status' => 'approved',
+                'status_detail' => 'accredited',
+                'metadata' => [
+                    'user_id' => $usuario->id,
+                    'plano_id' => $plano_id,
+                    'periodo_id' => $periodo_id,
+                    'assinatura_id' => $assinatura->id,
+                    'quantidade_dias' => $periodo->quantidade_dias,
+                    'creditos_prorrata' => $creditos
+                ]
+            ]);
+
+            return (object)[
+                'status' => 'approved',
+                'status_detail' => 'accredited',
+                'id' => 'CREDITO-' . time()
+            ];
+        }
 
 
         $payer = $dados['payer'] ?? [];
-        $payerIdNumber = $payer['identification']['number'] ?? $usuario->cpf;
+        $payerIdNumber = ($payer['identification']['number'] ?? null) ?: $usuario->cpf;
 
         if (!$payerIdNumber && config('app.env') !== 'production') {
             $payerIdNumber = '19119119100';
@@ -60,25 +97,24 @@ class ProcessarPagamentoCheckout
         }
 
         $paymentData = [
-            "transaction_amount" => $transactionAmount,
+            "transaction_amount" => (float)$transactionAmount,
             "payment_method_id" => $dados['payment_method_id'],
-            "description" => ($dados['description'] ?? "Assinatura") . " - " . $plano->nome . " (" . $periodo->nome . ")",
+            "description" => $plano->nome . " - " . $periodo->nome,
             "payer" => [
                 "email" => $usuario->email,
-                "first_name" => explode(' ', $usuario->nome)[0] ?? 'Usuario',
-                "last_name" => implode(' ', array_slice(explode(' ', $usuario->nome), 1)) ?? 'Usuario',
                 "identification" => [
-                    "type" => $payer['identification']['type'] ?? 'CPF',
+                    "type" => "CPF",
                     "number" => $payerIdNumber
                 ]
             ],
             "external_reference" => (string)$assinatura->id,
             "metadata" => [
-                "user_id" => (string)$usuario->id,
-                "plano_id" => (string)$plano_id,
-                "periodo_id" => (string)$periodo_id,
-                "assinatura_id" => (string)$assinatura->id,
-                "quantidade_dias" => (string)$periodo->quantidade_dias
+                "user_id" => $usuario->id,
+                "plano_id" => $plano_id,
+                "periodo_id" => $periodo_id,
+                "assinatura_id" => $assinatura->id,
+                "quantidade_dias" => $periodo->quantidade_dias,
+                "creditos_prorrata" => $creditos
             ]
         ];
 
@@ -86,10 +122,39 @@ class ProcessarPagamentoCheckout
             $paymentData["date_of_expiration"] = now()->addMinutes(10)->format('Y-m-d\TH:i:s.000O');
         } else {
             $paymentData["token"] = $dados['token'];
-            $paymentData["issuer_id"] = (int)$dados['issuer_id'];
-            $paymentData["installments"] = (int)$dados['installments'];
+            $paymentData["installments"] = (int)($dados['installments'] ?? 1);
+            if (isset($dados['issuer_id'])) {
+                $paymentData["issuer_id"] = $dados['issuer_id'];
+            }
         }
 
-        return $client->create($paymentData);
+        $response = $client->create($paymentData);
+
+        // Ativação automática se for aprovado (comum em cartão)
+        if (isset($response->status) && $response->status === 'approved') {
+            try {
+                $ativarServico = new AtivarPlanoUsuario();
+                $ativarServico->executar($response);
+            } catch (\Exception $e) {
+                Log::error("Erro ao ativar plano após aprovação: " . $e->getMessage());
+            }
+        } else if ($dados['payment_method_id'] === 'pix') {
+            // Registrar no histórico para Pix pendente
+            try {
+                \App\Models\HistoricoPagamento::create([
+                    'user_id' => $usuario->id,
+                    'assinatura_id' => $assinatura->id,
+                    'valor_centavos' => (int)($transactionAmount * 100),
+                    'status' => $response->status ?? 'pending',
+                    'metodo_pagamento' => 'pix',
+                    'mercado_pago_id' => (string)($response->id ?? null),
+                    'pago_em' => ($response->status === 'approved') ? now() : null
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Erro ao salvar histórico de Pix: " . $e->getMessage());
+            }
+        }
+
+        return $response;
     }
 }

@@ -12,18 +12,32 @@
       variant="text"
     />
 
-      <v-toolbar-title
-        class="font-weight-bold app-title"
-        style="cursor: pointer"
-        @click="$router.push({ name: 'Home' })"
-      >
-        <v-icon icon="mdi-chart-pie" class="mr-2" />
-        Finalyze
-      </v-toolbar-title>
+      <v-toolbar-title class="app-title pa-0">
+  <div class="brand-wrapper" @click="$router.push({ name: 'Home' })">
+    <img :src="logotipo" alt="Logo" class="logo" />
+    <span class="brand-name">Finalyze</span>
+  </div>
+</v-toolbar-title>
+
+
+
 
       <v-spacer />
 
-        <Coinselector />
+        <template v-if="isAuthPage">
+          <v-btn
+            prepend-icon="mdi-home"
+            variant="text"
+            color="white"
+            class="text-none font-weight-bold"
+            :to="{ name: 'Home' }"
+          >
+            {{ $t('login.btn_back_home') }}
+          </v-btn>
+        </template>
+        <template v-else>
+          <Coinselector />
+        </template>
 
         <v-btn
           icon
@@ -55,7 +69,7 @@
               color="white"
               class="ml-2 mr-4 font-weight-bold text-primary text-none"
             >
-              {{ $t('landing.btn_start') }}
+              {{ $t('landing.btn_create_account') }}
             </v-btn>
         </template>
       </v-app-bar>
@@ -70,7 +84,7 @@
       :rail="isDesktop && rail"
       :permanent="isDesktop"
       :temporary="!isDesktop"
-      class="animated-drawer"
+      class="animated-drawer "
       elevation="6"
     >
 
@@ -79,8 +93,13 @@
                 <template v-slot:prepend>
                     <v-avatar color="primary-lighten-4" size="40">
                         <v-img
-                            v-if="authStore.user.avatar"
-                            :src="getStorageUrl(authStore.user.avatar)"
+                            v-if="authStore.user.avatar_url"
+                            :src="authStore.user.avatar_url"
+                            cover
+                        ></v-img>
+                        <v-img
+                            v-else-if="authStore.user.avatar"
+                            :src="authStore.getStorageUrl(authStore.user.avatar)"
                             cover
                         ></v-img>
                         <span v-else class="text-caption font-weight-bold text-primary">
@@ -140,6 +159,7 @@
             </v-btn>
         </template>
     </ModalBase>
+    <FinnChat v-if="authStore.isAuthenticated" />
   </v-layout>
 </template>
 
@@ -149,8 +169,10 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
+import logotipo from '../assets/logotipo.png'
 
 import ModalBase from '../components/Modals/modalBase.vue'
+import FinnChat from './IA/FinnChat.vue'
 
 import Coinselector from './Currency/Coinselector.vue'
 
@@ -198,11 +220,7 @@ const getInitials = (name) => {
 }
 
 
-const getStorageUrl = (path) => {
-  if (!path) return ''
-  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000'
-  return `${baseUrl}/storage/${path}`
-}
+// getStorageUrl removed as it is now in authStore
 
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {
@@ -234,12 +252,32 @@ watch(isDesktop, (desktop) => {
   box-shadow: 0 0 0 rgba(0,0,0,0);
   background-color: rgb(var(--v-theme-surface));
 }
-
 .app-title {
-  max-width: none !important;
-  overflow: visible !important;
-  white-space: nowrap;
+  display: flex !important;
+  align-items: center;
 }
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.logo {
+  height: 64px; 
+  width: auto;
+  display: block;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.6rem; 
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+
 
 @media (max-width: 600px) {
   .app-title {

@@ -46,6 +46,30 @@ class AtivarAssinaturaManual
             'plano_id' => $planoId
         ]);
 
+        // Criar histórico de pagamento "CORTESIA" ou "MANUAL" para permitir prorrata depois
+        $valor = 0;
+        if ($periodoId) {
+            $periodo = Periodo::find($periodoId);
+            if ($periodo) {
+                // Tenta pegar o valor do pivot plano_periodo
+                $pivot = \DB::table('plano_periodo')
+                    ->where('plano_id', $planoId)
+                    ->where('periodo_id', $periodoId)
+                    ->first();
+                $valor = $pivot ? $pivot->valor_centavos : 0;
+            }
+        }
+
+        \App\Models\HistoricoPagamento::create([
+            'user_id' => $usuarioId,
+            'assinatura_id' => $assinatura->id,
+            'valor_centavos' => $valor,
+            'status' => 'paid',
+            'metodo_pagamento' => 'manual_system',
+            'mercado_pago_id' => (string)$assinatura->mercado_pago_id,
+            'pago_em' => now()
+        ]);
+
         return $assinatura;
     }
 }

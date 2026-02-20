@@ -14,12 +14,37 @@
         </v-tabs>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-md-end mt-4 mt-md-0">
-            <v-btn-toggle v-model="statusFilter" mandatory color="primary" rounded="xl" class="mr-4" density="comfortable" variant="tonal">
-              <v-btn value="andamento" class="px-4">{{ $t('metas.filter.active') }}</v-btn>
-              <v-btn value="concluido" class="px-4">{{ $t('metas.filter.completed') }}</v-btn>
-              <v-btn value="inativo" class="px-4">{{ $t('metas.filter.inactive') }}</v-btn>
-              <v-btn value="all" class="px-4">{{ $t('metas.filter.all') }}</v-btn>
-            </v-btn-toggle>
+            <v-tabs
+  v-model="statusFilter"
+  class="status-tabs mr-4"
+  color="primary"
+  density="comfortable"
+  show-arrows
+  direction="horizontal"
+  slider-color="primary"
+>
+  <v-tab value="andamento">
+    <v-icon start size="16">mdi-progress-clock</v-icon>
+    Em andamento
+  </v-tab>
+
+  <v-tab value="concluido">
+    <v-icon start size="16">mdi-check-circle</v-icon>
+    Concluídas
+  </v-tab>
+
+  <v-tab value="inativo">
+    <v-icon start size="16">mdi-pause-circle</v-icon>
+    Inativas
+  </v-tab>
+
+  <v-tab value="all">
+    <v-icon start size="16">mdi-format-list-bulleted</v-icon>
+    Todas
+  </v-tab>
+</v-tabs>
+
+
         
         <v-btn 
           color="primary" 
@@ -227,17 +252,17 @@ const fetchMetas = async () => {
 }
 
 const filteredMetas = computed(() => {
-  if (statusFilter.value === 'all') return metas.value.filter(m => m.status !== 'inativo')
+  if (statusFilter.value === 'all') return metas.value
   if (statusFilter.value === 'andamento') {
-    return metas.value.filter(m => m.status === 'andamento' || m.status === 'atrasado')
+    return metas.value.filter(m => (m.status === 'andamento' || m.status === 'atrasado') && m.status !== 'inativo')
   }
   return metas.value.filter(m => m.status === statusFilter.value)
 })
 
 const filteredNotes = computed(() => {
-  if (statusFilter.value === 'all') return anotacoes.value.filter(n => n.status !== 'inativo')
+  if (statusFilter.value === 'all') return anotacoes.value
   if (statusFilter.value === 'andamento') {
-    return anotacoes.value.filter(n => n.status === 'andamento' || n.status === 'atrasado')
+    return anotacoes.value.filter(n => (n.status === 'andamento' || n.status === 'atrasado') && n.status !== 'inativo')
   }
   return anotacoes.value.filter(n => n.status === statusFilter.value)
 })
@@ -405,4 +430,27 @@ const getMetaSubtitle = (meta) => {
 .gap-1 {
   gap: 8px;
 }
+.status-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.status-tabs .v-tab {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  min-width: auto;
+  padding: 0 18px;
+}
+
+.status-tabs .v-tab:hover {
+  background: rgba(var(--v-theme-primary), 0.06);
+  border-radius: 10px;
+}
+
+.status-tabs .v-tab--selected {
+  font-weight: 600;
+}
+
 </style>

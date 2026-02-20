@@ -187,5 +187,13 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature };
+    const getStorageUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('data:')) return path; // Base64
+        const baseUrl = API_URL.replace('/api', '');
+        return `${baseUrl}/storage/${path}`;
+    }
+
+    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
 });

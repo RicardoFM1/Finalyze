@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LembreteEnviado extends Model
+class AvisoEnviado extends Model
 {
     use HasFactory;
 
-    protected $table = 'lembretes_enviados';
+    protected $table = 'avisos_enviados';
 
     protected $fillable = [
         'assinatura_id',

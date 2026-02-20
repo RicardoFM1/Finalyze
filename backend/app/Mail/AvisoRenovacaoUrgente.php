@@ -9,34 +9,34 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class LembreteRenovacao extends Mailable
+class AvisoRenovacaoUrgente extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $assinatura;
     public $usuario;
     public $plano;
-    public $diasRestantes;
+    public $horasRestantes;
 
     public function __construct(Assinatura $assinatura)
     {
         $this->assinatura = $assinatura;
         $this->usuario = $assinatura->usuario;
         $this->plano = $assinatura->plano;
-        $this->diasRestantes = now()->diffInDays($assinatura->termina_em);
+        $this->horasRestantes = now()->diffInHours($assinatura->termina_em);
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '⏰ Sua assinatura do Finalyze expira em breve',
+            subject: '🚨 URGENTE: Sua assinatura do Finalyze expira amanhã!',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.lembrete-renovacao',
+            view: 'emails.lembrete-renovacao-urgente',
         );
     }
 

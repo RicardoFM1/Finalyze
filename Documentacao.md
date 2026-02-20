@@ -15,6 +15,27 @@
 - Metas e Anotações agora são "Desativadas" em vez de excluídas.
 - Itens inativos podem ser consultados na aba dedicada e reativados a qualquer momento.
 
+### 4. Gestão Avançada de Assinaturas (Prorrata e Upgrades)
+- **Cálculo de Prorrata**: Ao mudar de plano, o tempo restante do plano atual é convertido em crédito monetário.
+- **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente via modal na página de Planos, sem necessidade de ir ao checkout.
+- **Acúmulo de Dias**: Renovação do mesmo plano soma os dias à data de expiração atual; mudança de plano (upgrade) reseta o ciclo usando o desconto calculado.
+
+### 5. Finn AI - Assistente Financeiro com Memória
+- **Inteligência Artificial**: Utiliza o modelo **Gemini 1.5 Flash** do Google para respostas ultrarrápidas e precisas.
+- **Persistência**: Histórico de chat completo salvo no banco de dados (`mensagens_chat`).
+- **Interatividade**: Edição e exclusão de mensagens do usuário integradas.
+- **Contexto Financeiro Inteligente**: Em cada interação, o Finn recebe automaticamente:
+    - **Saldo e Resumo**: Receitas e despesas do mês atual.
+    - **Metas**: Títulos e valores das metas ativas do usuário.
+    - **Assinatura**: Detalhes do plano atual e data de renovação.
+    - **Pagamentos**: Resumo dos últimos 3 pagamentos realizados.
+    - **Upgrades**: Opções de planos disponíveis para facilitar a decisão do usuário.
+    - **Histórico**: As últimas 15 mensagens formatadas para manter o contexto da conversa.
+- **Cloud Storage**: Integração com **Supabase Storage** para persistência de avatares.
+
+> [!NOTE]
+> Para detalhes técnicos de implementação da prorrata e endpoints financeiros, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
+
 ---
 
 ## Comandos Administrativos (CLI)
@@ -63,9 +84,9 @@ O backend é uma API RESTful construída com Laravel, focada em segurança, proc
         - Email urgente 1 dia antes com contador de horas restantes.
         - Templates profissionais e responsivos com links diretos para renovação.
         - Sistema anti-duplicação para evitar múltiplos envios.
-- **Manutenção de Assinaturas**:
-    - Lógica de ativação/atualização de plano do usuário no banco de dados.
-    - Endpoint para cancelamento de assinaturas pendentes, permitindo que o usuário mude de plano antes de concluir um pagamento aberto.
+    - **Manutenção de Assinaturas**:
+        - Lógica de ativação/atualização de plano do usuário no banco de dados.
+        - **Limpeza de Pendências**: Endpoint para cancelamento de assinaturas pendentes que realiza um "wipeout" em qualquer `HistoricoPagamento` órfão para garantir que o usuário não tenha cobranças duplicadas ou estados inconsistentes.
 
 ### Frontend (Vue 3 + Vuetify)
 Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para gerenciamento de estado e Vuetify como framework de UI.
@@ -83,15 +104,18 @@ Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para 
 - **Dashboard (Painel)**: 
     - Acesso centralizado às métricas financeiras.
     - Protegido por guardas de rota que verificam a autenticação e o plano ativo.
-- **Perfil**: Área para o usuário gerenciar seus dados pessoais e ver o status do seu plano atual.
+- **UX - Skeleton Loading**: Implementado sistema de carregamento estruturado na **Home** e **Perfil**, eliminando transições bruscas e melhorando a percepção de performance.
+- **Perfil**: Área para o usuário gerenciar seus dados pessoais e ver o status do seu plano atual com indicadores de progresso de vigência.
+- **Checkout State Management**: Controle global de carregamento (`pageLoading`) que garante que o usuário só veja o formulário de pagamento após todos os dados de prorrata e preferências estarem totalmente sincronizados.
 
 ## Tecnologias Utilizadas
 
-- **Backend**: Laravel 11, PHP 8.2+, MySQL, Mercado Pago SDK.
+- **Backend**: Laravel 11, PHP 8.2+, PostgreSQL, Mercado Pago SDK.
 - **Frontend**: Vue.js 3 (Composition API), Vite, Vuetify 3, Pinia, Vue Router, Vue3-Toastify.
 - **DevOps/Ferramentas**: Axios para requisições, NGROK (para testes de Webhook locais).
-
----
+- **RocketLog**: Análise e controle de logs.
+- **Supabase**: Banco de dados e armazenamento de avatares.
+- **Google Cloud**: Gerenciador de emails.
 
 ## Como Rodar o Projeto
 

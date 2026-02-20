@@ -17,7 +17,7 @@ class CriarPreferenciaCheckout
             throw new \Exception('Mercado Pago Token missing');
         }
         MercadoPagoConfig::setAccessToken($token);
-        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
+        MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
     }
 
     public function executar(array $dados)
@@ -31,21 +31,52 @@ class CriarPreferenciaCheckout
         $plano = Plano::findOrFail($planoId);
         $periodo = $plano->periodos()->where('periodos.id', $periodoId)->firstOrFail();
 
+        // Cálculo de Prorrata
+        /** @var \App\Models\Usuario $usuario */
+        $usuario = auth()->user();
+        $assinaturaAtiva = $usuario->assinaturaAtiva();
+        $creditos = 0;
+        $totalPagar = $periodo->pivot->valor_centavos / 100;
+
+        if ($assinaturaAtiva && ($assinaturaAtiva->plano_id != $plano->id || $assinaturaAtiva->periodo_id != $periodo->id)) {
+            $calculadora = new CalculadoraProrata();
+            $creditos = $calculadora->calcularCredito($assinaturaAtiva);
+            $totalPagar = max(0, $totalPagar - $creditos);
+        }
+
         $items = [[
             "title" => $plano->nome . " (" . $periodo->nome . ")",
             "quantity" => 1,
-            "unit_price" => $periodo->pivot->valor_centavos / 100
+            "unit_price" => (float)$totalPagar
         ]];
 
-        $baseUrl = 'https://roentgenographic-unsensuous-shizue.ngrok-free.dev';
+        $baseUrl = config('app.url');
 
         Log::info('Creating Mercado Pago Preference', [
             'baseUrl' => $baseUrl,
-            'items' => $items
+            'items' => $items,
+            'user_id' => $usuario->id,
+            'creditos_aplicados' => $creditos
         ]);
 
-        $preference = $client->create([
+        // Criamos uma assinatura pendente primeiro para ter o ID
+        $assinatura = Assinatura::create([
+            'user_id' => $usuario->id,
+            'plano_id' => $plano->id,
+            'periodo_id' => $periodo->id,
+            'status' => 'pending'
+        ]);
+
+        $preferenceData = [
             "items" => $items,
+            "external_reference" => (string)$assinatura->id,
+            "metadata" => [
+                "user_id" => $usuario->id,
+                "plano_id" => $plano->id,
+                "assinatura_id" => $assinatura->id,
+                "quantidade_dias" => $periodo->quantidade_dias,
+                "creditos_prorrata" => $creditos
+            ],
             "back_urls" => [
                 "success" => $baseUrl . "/?status=success",
                 "failure" => $baseUrl . "/?status=failure",
@@ -53,17 +84,22 @@ class CriarPreferenciaCheckout
             ],
             "auto_return" => "approved",
             "notification_url" => $baseUrl . "/api/webhook/mercadopago"
-        ]);
+        ];
 
-        Assinatura::updateOrCreate(
-            ['user_id' => auth()->id(), 'status' => 'pending'],
-            [
-                'plano_id' => $plano->id,
-                'periodo_id' => $periodo->id,
-                'mercado_pago_id' => $preference->id,
-            ]
-        );
+        $preference = $client->create($preferenceData);
 
-        return $preference->id;
+        // Atualizamos a assinatura com o ID da preferência
+        $assinatura->update(['mercado_pago_id' => $preference->id]);
+
+        // Cancelamos outras assinaturas pendentes para evitar duplicidade
+        Assinatura::where('user_id', $usuario->id)
+            ->where('status', 'pending')
+            ->where('id', '!=', $assinatura->id)
+            ->update(['status' => 'cancelled']);
+
+        return [
+            'id' => $preference->id,
+            'creditos_prorrata' => $creditos
+        ];
     }
 }

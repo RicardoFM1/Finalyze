@@ -31,6 +31,8 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = ['avatar_url'];
+
     public function getAuthPassword()
     {
         return $this->senha;
@@ -57,6 +59,16 @@ class Usuario extends Authenticatable
         return $this->belongsTo(Plano::class, 'plano_id');
     }
 
+    public function assinaturas()
+    {
+        return $this->hasMany(Assinatura::class, 'user_id');
+    }
+
+    public function historicosPagamento()
+    {
+        return $this->hasMany(HistoricoPagamento::class, 'user_id');
+    }
+
     public function assinaturaAtiva()
     {
         return $this->assinaturas()
@@ -70,5 +82,11 @@ class Usuario extends Authenticatable
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        // Avatar já está em base64 (data:image/png;base64,...)
+        return $this->avatar;
     }
 }

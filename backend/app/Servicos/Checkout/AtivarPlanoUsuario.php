@@ -15,7 +15,7 @@ class AtivarPlanoUsuario
 
         Log::info("Plan Activation Tracking: Processing Payment {$payment->id}", [
             'metadata' => (array)$metadata,
-            'external_reference' => $payment->external_reference
+            'external_reference' => $payment->external_reference ?? null
         ]);
 
         $usuarioId = $metadata->user_id ?? null;
@@ -25,37 +25,60 @@ class AtivarPlanoUsuario
         if ($assinaturaId) {
             $assinatura = Assinatura::find($assinaturaId);
             if ($assinatura) {
-                $quantidadeDias = $metadata->quantidade_dias ?? 30;
-                $newEndsAt = now()->addDays((int)$quantidadeDias);
+                // Verifica se este pagamento já foi processado como PAGO
+                $historicoPago = HistoricoPagamento::where('mercado_pago_id', (string)$payment->id)
+                    ->where('status', 'paid')
+                    ->exists();
 
-                $activeSub = Assinatura::where('user_id', $assinatura->user_id)
-                    ->where('status', 'active')
-                    ->where('id', '!=', $assinatura->id)
-                    ->first();
+                if ($historicoPago) {
+                    Log::info("Pagamento {$payment->id} já foi ativado anteriormente.");
+                } else {
+                    $quantidadeDias = $metadata->quantidade_dias ?? 30;
+                    $creditosProrrata = $metadata->creditos_prorrata ?? 0;
 
-                if ($activeSub && $activeSub->termina_em && $activeSub->termina_em->isFuture()) {
-                    $newEndsAt = $activeSub->termina_em->addDays((int)$quantidadeDias);
-                    $activeSub->update(['status' => 'cancelled']);
+                    $activeSub = Assinatura::where('user_id', $assinatura->user_id)
+                        ->where('status', 'active')
+                        ->where('termina_em', '>', now())
+                        ->orderBy('termina_em', 'desc')
+                        ->first();
+
+                    $isSamePlan = $activeSub && $activeSub->plano_id == $assinatura->plano_id;
+                    $baseDate = ($isSamePlan && $activeSub->termina_em) ? $activeSub->termina_em : now();
+                    $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
+
+                    if ($activeSub && $activeSub->id !== $assinatura->id) {
+                        $activeSub->update(['status' => 'cancelled']);
+                        Log::info("Assinatura antiga #{$activeSub->id} substituída pela nova #{$assinatura->id}.");
+                    }
+
+                    // Cancelar qualquer outra tentativa pendente para este usuário
+                    Assinatura::where('user_id', $assinatura->user_id)
+                        ->where('status', 'pending')
+                        ->where('id', '!=', $assinatura->id)
+                        ->update(['status' => 'cancelled']);
+
+                    $assinatura->update([
+                        'mercado_pago_id' => $payment->id,
+                        'status' => 'active',
+                        'inicia_em' => now(),
+                        'termina_em' => $newEndsAt
+                    ]);
+
+                    // Busca se já existe um registro pendente para atualizar, ou cria um novo
+                    HistoricoPagamento::updateOrCreate(
+                        ['mercado_pago_id' => (string)$payment->id],
+                        [
+                            'user_id' => $assinatura->user_id,
+                            'assinatura_id' => $assinatura->id,
+                            'valor_centavos' => (int)($payment->transaction_amount * 100),
+                            'status' => 'paid',
+                            'metodo_pagamento' => $payment->payment_method_id,
+                            'pago_em' => now()
+                        ]
+                    );
+
+                    Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
                 }
-
-                $assinatura->update([
-                    'mercado_pago_id' => $payment->id,
-                    'status' => 'active',
-                    'inicia_em' => now(),
-                    'termina_em' => $newEndsAt
-                ]);
-
-                HistoricoPagamento::create([
-                    'user_id' => $assinatura->user_id,
-                    'assinatura_id' => $assinatura->id,
-                    'valor_centavos' => (int)($payment->transaction_amount * 100),
-                    'status' => 'paid',
-                    'metodo_pagamento' => $payment->payment_method_id,
-                    'mercado_pago_id' => (string)$payment->id,
-                    'pago_em' => now()
-                ]);
-
-                Log::info("Assinatura {$assinaturaId} activated. Ends at: " . $newEndsAt);
 
                 $usuarioId = $assinatura->user_id;
                 $planoId = $assinatura->plano_id;

@@ -18,7 +18,16 @@ class LoginUsuario
             throw new \Exception('Credenciais inválidas. Verifique seu e-mail e senha.', 401);
         }
 
-        $usuario = Usuario::where('email', $credenciais['email'])->firstOrFail();
+        $usuario = Auth::user();
+
+        if ($usuario->admin) {
+            $token = $usuario->createToken('auth_token')->plainTextToken;
+            return [
+                'requer_verificacao' => false,
+                'access_token' => $token,
+                'usuario' => $usuario->load('plano.recursos')
+            ];
+        }
 
         app(GerarCodigoVerificacao::class)->executar($usuario);
 
