@@ -128,6 +128,13 @@ class ProcessarPagamentoCheckout
             }
         }
 
+        Log::info('ProcessarPagamento Payroll:', [
+            'amount' => $paymentData['transaction_amount'],
+            'payer_email' => $paymentData['payer']['email'],
+            'doc_number' => $paymentData['payer']['identification']['number'],
+            'method' => $dados['payment_method_id']
+        ]);
+
         $response = $client->create($paymentData);
 
         // Ativação automática se for aprovado (comum em cartão)

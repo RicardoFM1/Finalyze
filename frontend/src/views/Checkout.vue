@@ -107,27 +107,8 @@
                     </div>
                   </v-alert>
 
-                  <v-card v-if="totalFinal === 0 && !loading" class="rounded-xl pa-8 text-center border-2 border-primary" elevation="4">
-                    <v-icon color="primary" size="64" class="mb-4">mdi-check-decagram</v-icon>
-                    <h2 class="text-h4 font-weight-bold mb-4">Ajuste de Plano</h2>
-                    <p class="text-body-1 text-medium-emphasis mb-6">
-                      Seus créditos acumulados cobrem o valor integral desta alteração. Clique no botão abaixo para concluir a atualização do seu plano.
-                    </p>
-                    <v-btn 
-                      color="primary" 
-                      size="x-large" 
-                      block 
-                      rounded="pill" 
-                      class="font-weight-bold"
-                      :loading="loadingFree"
-                      @click="handleFreeUpgrade"
-                    >
-                      Finalizar Atualização
-                    </v-btn>
-                  </v-card>
-
                   <PaymentBrick 
-                    v-else-if="preferenceId && totalFinal > 0" 
+                    v-if="preferenceId && totalFinal > 0" 
                     :preferenceId="preferenceId" 
                     :plan-id="planId"
                     :period-id="periodId"
