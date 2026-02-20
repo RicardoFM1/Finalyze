@@ -50,10 +50,12 @@ class CriarPreferenciaCheckout
             "unit_price" => (float)$totalPagar
         ]];
 
-        $baseUrl = config('app.url');
+        $backendUrl = rtrim(config('app.url'), '/');
+        $frontendUrl = rtrim(config('app.frontend_url') ?: config('app.url'), '/');
 
         Log::info('Creating Mercado Pago Preference', [
-            'baseUrl' => $baseUrl,
+            'frontendUrl' => $frontendUrl,
+            'backendUrl' => $backendUrl,
             'items' => $items,
             'user_id' => $usuario->id,
             'creditos_aplicados' => $creditos
@@ -77,13 +79,9 @@ class CriarPreferenciaCheckout
                 "quantidade_dias" => $periodo->quantidade_dias,
                 "creditos_prorrata" => $creditos
             ],
-            "back_urls" => [
-                "success" => $baseUrl . "/?status=success",
-                "failure" => $baseUrl . "/?status=failure",
-                "pending" => $baseUrl . "/?status=pending"
-            ],
-            "auto_return" => "approved",
-            "notification_url" => $baseUrl . "/api/webhook/mercadopago"
+            // auto_return e back_urls removidos: só funcionam com URLs públicas (não localhost)
+            // O redirecionamento pós-pagamento é feito pelo frontend via PaymentBrick callbacks
+            "notification_url" => $backendUrl . "/api/webhook/mercadopago"
         ];
 
         $preference = $client->create($preferenceData);
