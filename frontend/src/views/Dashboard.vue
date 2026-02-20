@@ -45,7 +45,7 @@
         </v-col>
 
         <template v-else>
-          <v-col cols="12" sm="6" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card receita-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -63,7 +63,7 @@
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" sm="6" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card despesa-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -81,7 +81,7 @@
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" sm="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card saldo-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -292,10 +292,10 @@ const dynamicFontSize = (val) => {
     const strVal = formatNumber(val)
     const len = strVal.length
     
-    // Break line logic is handled in CSS/HTML structure, here we just adjust size
-    if (len > 15) return '1.75rem'
-    if (len > 12) return '2.25rem'
-    return '3rem'
+    // Mais inteligente: reduz mais cedo se estiver apertado
+    if (len > 15) return '1.5rem'
+    if (len > 10) return '2rem'
+    return '2.5rem'
 }
 
 const getMarginPercentage = computed(() => {
@@ -589,7 +589,10 @@ const formatCurrency = (value) => {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    line-height: 1;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .currency-symbol {
