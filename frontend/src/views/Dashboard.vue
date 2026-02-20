@@ -1,19 +1,19 @@
 <template>
   <v-container class="dashboard-wrapper">
      <v-row class="mb-4 pt-4" align="center">
-      <v-col cols="12" md="7">
+      <v-col cols="12" md="6" lg="7">
         <div class="d-flex align-center">
-            <v-avatar color="primary" size="64" class="mr-4 elevation-4">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4 d-none d-sm-flex">
                 <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
             </v-avatar>
-            <div>
-                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
-                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
+            <div class="w-100">
+                <h1 class="text-h4 text-sm-h4 text-md-h3 font-weight-bold mb-1 gradient-text text-truncate">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
+                <p class="text-subtitle-1 text-md-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
             </div>
         </div>
       </v-col>
-      <v-col cols="12" lg="5" class="d-flex flex-column flex-sm-row justify-md-end align-sm-center gap-3">
-          <div class="d-flex align-center bg-surface-variant-lighten-2 rounded-xl px-4 py-1 elevation-1 flex-grow-1" style="min-width: 280px;">
+      <v-col cols="12" md="6" lg="5" class="d-flex flex-column flex-sm-row justify-md-end align-sm-center gap-3">
+          <div class="d-flex align-center bg-surface-variant-lighten-2 rounded-xl px-4 py-1 elevation-1 flex-grow-1 flex-sm-grow-0" style="min-width: 280px; width: 100%;">
              <DateInput 
                 v-model="filtroPeriodo" 
                 label="Período Personalizado" 
@@ -26,10 +26,31 @@
                 mode="range"
              />
           </div>
-          <v-chip v-if="filtroPeriodo" closable color="primary" variant="flat" @click:close="filtroPeriodo = null" class="font-weight-bold">
-            <v-icon start icon="mdi-filter-check" size="14"></v-icon>
-            Filtrado
-          </v-chip>
+          <div class="d-flex gap-2 w-100 w-sm-auto">
+            <v-btn 
+              variant="elevated" 
+              color="primary" 
+              class="rounded-lg font-weight-bold flex-grow-1 flex-sm-grow-0"
+              @click="aplicarFiltro"
+              :disabled="loading"
+              size="small"
+              height="40"
+            >
+              Aplicar
+            </v-btn>
+            <v-btn 
+              v-if="filtroPeriodo"
+              variant="tonal" 
+              color="error" 
+              class="rounded-lg font-weight-bold"
+              @click="limparFiltro"
+              :disabled="loading"
+              size="small"
+              height="40"
+              icon="mdi-close"
+            >
+            </v-btn>
+          </div>
       </v-col>
      </v-row>
 
@@ -267,18 +288,23 @@ const dataInicio = ref('')
 const dataFim = ref('')
 const filtroPeriodo = ref(null)
 
-watch(filtroPeriodo, (newVal) => {
-    if (newVal && typeof newVal === 'string' && newVal.includes(' to ')) {
-        const parts = newVal.split(' to ')
+const aplicarFiltro = () => {
+    if (filtroPeriodo.value && typeof filtroPeriodo.value === 'string' && filtroPeriodo.value.includes(' to ')) {
+        const parts = filtroPeriodo.value.split(' to ')
         dataInicio.value = parts[0]
         dataFim.value = parts[1] || parts[0]
         fetchSummary()
-    } else if (!newVal) {
-        dataInicio.value = ''
-        dataFim.value = ''
-        fetchSummary()
+    } else if (!filtroPeriodo.value) {
+        limparFiltro()
     }
-})
+}
+
+const limparFiltro = () => {
+    filtroPeriodo.value = null
+    dataInicio.value = ''
+    dataFim.value = ''
+    fetchSummary()
+}
 
 const getGreeting = computed(() => {
     const hour = new Date().getHours()
