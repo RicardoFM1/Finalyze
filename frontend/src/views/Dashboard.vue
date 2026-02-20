@@ -144,7 +144,7 @@
         <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
            <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
                <v-toolbar-title class="font-weight-bold">
-                    {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? 'Movimentações no Período' : $t('features.recent_transactions') }}
+                    {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? $t('filters.movement_period') : $t('features.recent_transactions') }}
                 </v-toolbar-title>
                <v-spacer></v-spacer>
                <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
@@ -152,8 +152,8 @@
            <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
                 class="rounded-xl mb-3 hover-item border-item"
-                :title="item.descricao || item.categoria" 
-                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${item.categoria}`" 
+                :title="item.descricao || $t('categories.' + item.categoria)" 
+                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)}`" 
               >
                 <template v-slot:prepend>
                     <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">

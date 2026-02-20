@@ -15,7 +15,7 @@
       <v-col cols="12" md="6">
         <div class="d-flex flex-wrap justify-md-end align-center gap-4">
           <v-btn variant="flat" color="secondary" size="large" class="rounded-xl px-6 flex-grow-1 flex-sm-grow-0" prepend-icon="mdi-file-import" @click="$refs.fileInput.click()" elevation="2" :disabled="loading">
-            Importar Excel
+            {{ $t('actions.import_excel') }}
           </v-btn>
           <v-btn color="primary" size="large" class="rounded-xl px-8 flex-grow-1 flex-sm-grow-0" prepend-icon="mdi-plus" @click="abrirNovo" elevation="4" :disabled="loading">
             {{ $t('transactions.new') }}
@@ -26,7 +26,7 @@
     </v-row>
     
     <div class="d-flex flex-wrap align-center gap-3 mb-8 pa-4 rounded-xl export-area shadow-sm">
-      <span class="text-caption font-weight-black opacity-60 w-100 mb-n1 ml-2 text-uppercase letter-spacing-1">Exportar página atual</span>
+      <span class="text-caption font-weight-black opacity-60 w-100 mb-n1 ml-2 text-uppercase letter-spacing-1">{{ $t('actions.export_page') }}</span>
       <Planilhas :dados="serverItems" :disabled="loading" @exportar="exportarExcel" />
       <PdfExport :dados="serverItems" :disabled="loading" @exportar="exportarPdf" />
     </div>
@@ -74,6 +74,10 @@
           >
             {{ item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense') }}
           </v-chip>
+        </template>
+
+        <template v-slot:item.categoria="{ item }">
+          {{ $t('categories.' + item.categoria) }}
         </template>
 
         <template v-slot:item.valor="{ item }">
@@ -177,18 +181,18 @@ const exportarExcel = () => {
     loading.value = true
     try {
         const dataToExport = serverItems.value.map(item => ({
-            Data: formatDate(item.data),
-            Descrição: item.descricao,
-            Categoria: item.categoria,
-            Tipo: item.tipo === 'receita' ? 'Receita' : 'Despesa',
-            Valor: item.valor
+            [t('transactions.table.date')]: formatDate(item.data),
+            [t('transactions.table.description')]: item.descricao,
+            [t('transactions.table.category')]: t('categories.' + item.categoria),
+            [t('transactions.table.type')]: item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+            [t('transactions.table.amount')]: item.valor
         }))
         const worksheet = XLSX.utils.json_to_sheet(dataToExport)
         const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Lançamentos')
-        XLSX.writeFile(workbook, 'lancamentos_finalyze.xlsx')
+        XLSX.utils.book_append_sheet(workbook, worksheet, t('sidebar.transactions'))
+        XLSX.writeFile(workbook, `finalyze_${t('sidebar.transactions').toLowerCase()}.xlsx`)
     } catch (e) {
-        toast.error('Erro ao exportar Excel')
+        toast.error(t('toasts.error_generic'))
     } finally {
         loading.value = false
     }
@@ -196,7 +200,7 @@ const exportarExcel = () => {
 
 const exportarPdf = () => {
     if (!serverItems.value || serverItems.value.length === 0) {
-        toast.info('Nenhum dado filtrado para exportar na página atual.')
+        toast.info(t('transactions.no_data'))
         return
     }
 
@@ -204,16 +208,22 @@ const exportarPdf = () => {
     setTimeout(() => {
         try {
             const doc = new jsPDF()
-            const head = [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']]
+            const head = [[
+                t('transactions.table.date'), 
+                t('transactions.table.description'), 
+                t('transactions.table.category'), 
+                t('transactions.type.type') || t('transactions.table.type'), 
+                t('transactions.table.amount')
+            ]]
             const data = serverItems.value.map(item => [
                 formatDate(item.data),
                 item.descricao || '',
-                item.categoria || '',
-                item.tipo === 'receita' ? 'Receita' : 'Despesa',
+                t('categories.' + item.categoria) || item.categoria || '',
+                item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
                 formatNumber(item.valor)
             ])
 
-            doc.text('Relatório de Lançamentos - Finalyze', 14, 15)
+            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
             autoTable(doc, {
                 head: head,
                 body: data,
@@ -222,9 +232,9 @@ const exportarPdf = () => {
                 headStyles: { fillColor: [24, 103, 192] },
                 styles: { font: 'Inter' }
             })
-            doc.save('lancamentos_finalyze.pdf')
+            doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
         } catch (e) {
-            toast.error('Erro ao gerar PDF')
+            toast.error(t('toasts.error_generic'))
         } finally {
             loading.value = false
         }

@@ -17,9 +17,9 @@
        <v-col cols="12">
                             <v-autocomplete
                                 v-model="form.categoria"
-                                :items="categorias"
-                                item-title="title"
-                                item-value="title"
+                                :items="categoriasTraduzidas"
+                                item-title="displayTitle"
+                                item-value="originalValue"
                                 :label="$t('modals.labels.category')"
                                 variant="outlined"
                                 rounded="lg"
@@ -32,14 +32,14 @@
                                     <v-list-item 
                                         v-bind="props" 
                                         :prepend-icon="item.raw.icon"
-                                        :title="item.raw.title"
+                                        :title="item.raw.displayTitle"
                                     ></v-list-item>
                                 </template>
 
                                 <template v-slot:prepend-inner>
                                     <v-icon 
                                         v-if="form.categoria" 
-                                        :icon="categorias.find(c => c.title === form.categoria)?.icon || 'mdi-tag'" 
+                                        :icon="categoriasTraduzidas.find(c => c.originalValue === form.categoria)?.icon || 'mdi-tag'" 
                                         class="mr-2 text-medium-emphasis"
                                     ></v-icon>
                                 </template>
@@ -94,7 +94,13 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
-import { categorias } from '../../../constants/categorias'
+const categoriasTraduzidas = computed(() => {
+  return categorias.map(c => ({
+    displayTitle: t('categories.' + c.title),
+    originalValue: c.title,
+    icon: c.icon
+  }))
+})
 
 const form = ref({
   tipo: 'despesa',

@@ -9,7 +9,7 @@
         <v-select
           v-model="mesesRange"
           :items="rangeOptions"
-          label="Período de visualização"
+          :label="$t('reports.view_period')"
           variant="solo-filled"
           density="comfortable"
           rounded="xl"
@@ -26,37 +26,38 @@
         </v-card-text>
         <v-card-text v-else class="h-100 d-flex flex-column align-center justify-center py-12" style="min-height: 400px;">
              <v-progress-circular indeterminate size="64" width="6" color="primary" class="mb-4"></v-progress-circular>
-             <div class="text-h6 text-medium-emphasis">Carregando dados...</div>
+             <div class="text-h6 text-medium-emphasis">{{ $t('reports.loading') }}</div>
         </v-card-text>
     </v-card>
   </v-container>
   <v-container v-else class="text-center py-12">
     <v-icon icon="mdi-lock" size="64" color="medium-emphasis" class="mb-4"></v-icon>
-    <h2 class="text-h4 font-weight-bold mb-2">Acesso Restrito</h2>
-    <p class="text-h6 text-medium-emphasis mb-6">Seu plano atual não inclui relatórios avançados.</p>
-    <v-btn color="primary" size="large" rounded="xl" :to="{ name: 'Plans' }">Ver Planos</v-btn>
+    <h2 class="text-h4 font-weight-bold mb-2">{{ $t('reports.restricted_access') }}</h2>
+    <p class="text-h6 text-medium-emphasis mb-6">{{ $t('reports.restricted_subtitle') }}</p>
+    <v-btn color="primary" size="large" rounded="xl" :to="{ name: 'Plans' }">{{ $t('reports.view_plans') }}</v-btn>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { useAuthStore } from '../stores/auth'
+import { useI18n } from 'vue-i18n'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const loaded = ref(false)
 const mesesRange = ref(6)
-const chartData = ref({ labels: [], datasets: [] })
 
-const rangeOptions = [
-  { title: 'Últimos 3 meses', value: 3 },
-  { title: 'Últimos 6 meses', value: 6 },
-  { title: 'Últimos 12 meses', value: 12 },
-  { title: 'Últimos 24 meses', value: 24 },
-]
+const rangeOptions = computed(() => [
+  { title: t('reports.last_3'), value: 3 },
+  { title: t('reports.last_6'), value: 6 },
+  { title: t('reports.last_12'), value: 12 },
+  { title: t('reports.last_24'), value: 24 },
+])
 
 const chartOptions = ref({
     responsive: true,
@@ -91,6 +92,19 @@ const chartOptions = ref({
     }
 })
 
+const rawData = ref({ labels: [], datasets: [] })
+
+const chartData = computed(() => {
+    if (!rawData.value.datasets) return { labels: [], datasets: [] }
+    return {
+        ...rawData.value,
+        datasets: rawData.value.datasets.map(dataset => ({
+            ...dataset,
+            label: dataset.label === 'Receitas' ? t('transactions.type.income') : (dataset.label === 'Despesas' ? t('transactions.type.expense') : dataset.label)
+        }))
+    }
+})
+
 const fetchData = async () => {
     if (!authStore.hasFeature('Relatórios')) return
     loaded.value = false
@@ -98,7 +112,7 @@ const fetchData = async () => {
         const response = await authStore.apiFetch(`/relatorios/mensal?meses=${mesesRange.value}`)
         const data = await response.json()
         
-        chartData.value = data
+        rawData.value = data
         loaded.value = true
     } catch (e) {
         console.error(e)

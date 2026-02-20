@@ -17,9 +17,9 @@
         <v-col cols="12">
                             <v-autocomplete
                                 v-model="localForm.categoria"
-                                :items="categorias"
-                                item-title="title"
-                                item-value="title"
+                                :items="categoriasTraduzidas"
+                                item-title="displayTitle"
+                                item-value="originalValue"
                                 :label="$t('modals.labels.category')"
                                 variant="outlined"
                                 rounded="lg"
@@ -31,14 +31,14 @@
                                     <v-list-item 
                                         v-bind="props" 
                                         :prepend-icon="item.raw.icon"
-                                        :title="item.raw.title"
+                                        :title="item.raw.displayTitle"
                                     ></v-list-item>
                                 </template>
 
                                 <template v-slot:prepend-inner>
                                     <v-icon 
                                         v-if="localForm.categoria" 
-                                        :icon="categorias.find(c => c.title === localForm.categoria)?.icon || 'mdi-tag'" 
+                                        :icon="categoriasTraduzidas.find(c => c.originalValue === localForm.categoria)?.icon || 'mdi-tag'" 
                                         class="mr-2 text-medium-emphasis"
                                     ></v-icon>
                                 </template>
@@ -93,6 +93,14 @@ const loading = ref(false)
 const internalValue = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
+})
+
+const categoriasTraduzidas = computed(() => {
+  return categorias.map(c => ({
+    displayTitle: t('categories.' + c.title),
+    originalValue: c.title,
+    icon: c.icon
+  }))
 })
 
 const localForm = ref({
