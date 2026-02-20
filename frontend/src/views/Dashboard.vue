@@ -166,8 +166,8 @@
                             {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
                         </span>
                         <div class="d-flex gap-1">
-                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click.stop="abrirEditar(item)"></v-btn>
-                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="abrirExcluir(item)"></v-btn>
+                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click="abrirEditar(item)"></v-btn>
+                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click="abrirExcluir(item)"></v-btn>
                         </div>
                     </div>
                 </template>
@@ -308,7 +308,16 @@ const getMarginPercentage = computed(() => {
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
 
-const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatNumber = (val) => {
+    const num = Number(val)
+
+    if (!isFinite(num)) return '0,00'
+
+    return num.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })
+}
 
 const chartData = computed(() => ({
     labels: [t('features.incomes'), t('features.expenses'), t('features.net')],
@@ -340,6 +349,7 @@ const resumo = ref({
     saldo: 0,
     atividades_recentes: []
 })
+
 
 onMounted(async () => {
     fetchSummary()
@@ -408,6 +418,10 @@ const formatCurrency = (value) => {
     maximumFractionDigits: 2
   }).format(Number(value))
 }
+
+
+const abrirEditar = (item) => { itemAEditar.value = item; dialogEditar.value = true }
+const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
 
 </script>
 
