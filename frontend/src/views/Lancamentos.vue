@@ -34,11 +34,11 @@
 
 
     <FilterLancamentos
-  v-model="filters"
-  :categorias="categorias"
-  @apply="aplicarFiltros"
-  @clear="limparFiltros"
-/>
+      v-model="filterStore.filters"
+      :categorias="categorias"
+      @apply="aplicarFiltros"
+      @clear="limparFiltros"
+    />
 
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
@@ -104,12 +104,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useFilterStore } from '../stores/filters'
 import { useI18n } from 'vue-i18n'
 import { categorias as categoriasConstantes } from '../constants/categorias'
 import * as XLSX from "xlsx"
 
 const { t } = useI18n()
 const authStore = useAuthStore()
+const filterStore = useFilterStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
@@ -241,14 +243,6 @@ const dialogNovo = ref(false)
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
 
-const filters = ref({
-  data: '',
-  descricao: '',
-  categoria: '',
-  tipo: 'todos',
-  valor: ''
-})
-
 
 
 
@@ -297,20 +291,21 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
 
     if (tableSearch) params.append('search', tableSearch)
     
-    if (filters.value.data) {
-        if (filters.value.data.includes(' to ')) {
-            const [inicio, fim] = filters.value.data.split(' to ')
+    const f = filterStore.filters
+    if (f.data) {
+        if (f.data.includes(' to ')) {
+            const [inicio, fim] = f.data.split(' to ')
             params.append('data_inicio', inicio)
             params.append('data_fim', fim)
         } else {
-            params.append('data', filters.value.data)
+            params.append('data', f.data)
         }
     }
     
-    if (filters.value.categoria) params.append('categoria', filters.value.categoria)
-    if (filters.value.tipo && filters.value.tipo !== 'todos') params.append('tipo', filters.value.tipo)
-    if (filters.value.valor) params.append('valor', filters.value.valor)
-    if (filters.value.descricao) params.append('descricao', filters.value.descricao)
+    if (f.categoria) params.append('categoria', f.categoria)
+    if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
+    if (f.valor) params.append('valor', f.valor)
+    if (f.descricao) params.append('descricao', f.descricao)
 
     const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)
     if (response.ok) {
@@ -338,13 +333,7 @@ const aplicarFiltros = () => {
 
 
 const limparFiltros = () => {
-  filters.value = {
-    data: '',
-    descricao: '',
-    categoria: '',
-    tipo: 'todos',
-    valor: ''
-  }
+    filterStore.clearFilters()
 
   loadItems({
     page: 1,

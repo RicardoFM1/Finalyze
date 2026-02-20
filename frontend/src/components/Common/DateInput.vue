@@ -7,6 +7,7 @@
       :locale="dpLocale"
       auto-apply
       :enable-time-picker="false"
+      :time-picker="false"
       :enable-seconds="false"
       :teleport="true"
       @update:model-value="onDateChange"
@@ -99,40 +100,50 @@ const internalDate = ref(null)
 const parseValue = (val) => {
   if (!val) return null
   
+  // Para evitar problemas de fuso horário (T00:00:00 força o parse local)
+  const toLocalDate = (dateStr) => {
+    if (!dateStr) return null
+    // Se já for uma string YYYY-MM-DD, adiciona o componente de tempo local
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return new Date(dateStr + 'T00:00:00')
+    }
+    return new Date(dateStr)
+  }
+
   if (props.mode === 'range') {
     if (typeof val === 'string' && val.includes(' to ')) {
       const [s, e] = val.split(' to ')
-      const start = new Date(s)
-      const end = e ? new Date(e) : null
+      const start = toLocalDate(s)
+      const end = e ? toLocalDate(e) : null
       return [isValidDate(start) ? start : null, isValidDate(end) ? end : null]
     }
-    if (Array.isArray(val)) return val
+    if (Array.isArray(val)) return val.map(v => v instanceof Date ? v : toLocalDate(v))
     return null
   }
   
-  const d = new Date(val)
+  const d = toLocalDate(val)
   return isValidDate(d) ? d : null
 }
 
 const formattedDisplayDate = computed(() => {
   if (!internalDate.value) return ''
   
-  const formatter = new Intl.DateTimeFormat(locale.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const localeStr = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+  const formatter = new Intl.DateTimeFormat(localeStr, { day: '2-digit', month: '2-digit', year: 'numeric' })
   
   if (props.mode === 'range' && Array.isArray(internalDate.value)) {
     const [start, end] = internalDate.value
-    if (!start) return ''
+    if (!start || !isValidDate(start)) return ''
     const s = formatter.format(start)
-    return end ? `${s} -> ${formatter.format(end)}` : `${s} -> ...`
+    return end && isValidDate(end) ? `${s} -> ${formatter.format(end)}` : `${s} -> ...`
   }
   
   return isValidDate(internalDate.value) ? formatter.format(internalDate.value) : ''
 })
 
 const formatDateISO = (date) => {
-  if (!date) return ''
+  if (!date || !isValidDate(date)) return ''
   const d = new Date(date)
-  if (isNaN(d.getTime())) return ''
   
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -261,5 +272,12 @@ watch(() => props.modelValue, (newVal) => {
 
 :deep(.dp__today) {
   border: 1px solid var(--dp-primary-color);
+}
+
+/* Fallback para garantir que o seletor de tempo nunca apareça */
+:deep(.dp__action_row),
+:deep(.dp__time_picker),
+:deep(.dp__time_input) {
+  display: none !important;
 }
 </style>

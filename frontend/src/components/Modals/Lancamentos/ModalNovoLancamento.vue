@@ -100,7 +100,7 @@ const form = ref({
   tipo: 'despesa',
   valor: '',
   categoria: '',
-  data: new Date().toISOString().substr(0, 10),
+  data: new Date().toLocaleDateString('en-CA'),
   descricao: ''
 })
 
@@ -111,7 +111,7 @@ watch(() => props.modelValue, (newVal) => {
       tipo: 'despesa',
       valor: '',
       categoria: '',
-      data: new Date().toISOString().substr(0, 10),
+      data: new Date().toLocaleDateString('en-CA'),
       descricao: ''
     }
   }

@@ -1,60 +1,60 @@
 <template>
   <v-container>
-    <v-row align="center" no-gutters class="mb-6">
-      <v-col cols="12" md="6">
-        <v-tabs v-model="activeTab" color="primary" align-tabs="start">
-          <v-tab value="metas">
-            <v-icon start icon="mdi-bullseye-arrow"></v-icon>
-            {{ $t('metas.tabs.metas') }}
-          </v-tab>
-          <v-tab value="notepad">
-            <v-icon start icon="mdi-notebook-outline"></v-icon>
-            {{ $t('metas.tabs.notepad') }}
-          </v-tab>
-        </v-tabs>
-      </v-col>
-      <v-col cols="12" md="6" class="d-flex justify-md-end mt-4 mt-md-0">
+    <v-row align="center" class="mb-8 pt-4">
+      <v-col cols="12">
+        <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
+          <div class="tabs-container rounded-xl pa-1 elevation-1 glass-card d-flex">
+            <v-tabs v-model="activeTab" color="primary" hide-slider class="pill-tabs" density="comfortable">
+              <v-tab value="metas" rounded="lg" class="mr-1">
+                <v-icon start icon="mdi-bullseye-arrow"></v-icon>
+                {{ $t('metas.tabs.metas') }}
+              </v-tab>
+              <v-tab value="notepad" rounded="lg">
+                <v-icon start icon="mdi-notebook-outline"></v-icon>
+                {{ $t('metas.tabs.notepad') }}
+              </v-tab>
+            </v-tabs>
+          </div>
+
+          <div class="d-flex flex-column flex-sm-row align-center gap-4">
             <v-tabs
-  v-model="statusFilter"
-  class="status-tabs mr-4"
-  color="primary"
-  density="comfortable"
-  show-arrows
-  direction="horizontal"
-  slider-color="primary"
->
-  <v-tab value="andamento">
-    <v-icon start size="16">mdi-progress-clock</v-icon>
-    Em andamento
-  </v-tab>
+              v-model="statusFilter"
+              class="status-pill-tabs rounded-xl pa-1 glass-card"
+              color="primary"
+              density="compact"
+              hide-slider
+              show-arrows
+            >
+              <v-tab value="andamento" size="small" rounded="lg">
+                <v-icon start size="16">mdi-progress-clock</v-icon>
+                Em andamento
+              </v-tab>
+              <v-tab value="concluido" size="small" rounded="lg">
+                <v-icon start size="16">mdi-check-circle</v-icon>
+                Concluídas
+              </v-tab>
+              <v-tab value="inativo" size="small" rounded="lg">
+                <v-icon start size="16">mdi-pause-circle</v-icon>
+                Inativas
+              </v-tab>
+              <v-tab value="all" size="small" rounded="lg">
+                <v-icon start size="16">mdi-format-list-bulleted</v-icon>
+                Todas
+              </v-tab>
+            </v-tabs>
 
-  <v-tab value="concluido">
-    <v-icon start size="16">mdi-check-circle</v-icon>
-    Concluídas
-  </v-tab>
-
-  <v-tab value="inativo">
-    <v-icon start size="16">mdi-pause-circle</v-icon>
-    Inativas
-  </v-tab>
-
-  <v-tab value="all">
-    <v-icon start size="16">mdi-format-list-bulleted</v-icon>
-    Todas
-  </v-tab>
-</v-tabs>
-
-
-        
-        <v-btn 
-          color="primary" 
-          :prepend-icon="activeTab === 'metas' ? 'mdi-plus' : 'mdi-note-plus-outline'" 
-          rounded="lg" 
-          class="ml-4"
-          @click="openDialog(activeTab === 'metas' ? 'financeira' : 'pessoal')"
-        >
-          {{ activeTab === 'metas' ? $t('metas.new_goal') : $t('metas.new_note') }}
-        </v-btn>
+            <v-btn 
+              color="primary" 
+              :prepend-icon="activeTab === 'metas' ? 'mdi-plus' : 'mdi-note-plus-outline'" 
+              rounded="xl" 
+              size="large"
+              class="font-weight-bold px-6 elevation-3 w-100 w-sm-auto"
+              @click="openDialog(activeTab === 'metas' ? 'financeira' : 'pessoal')"
+            >
+              {{ activeTab === 'metas' ? $t('metas.new_goal') : $t('metas.new_note') }}
+            </v-btn>
+          </div>
+        </div>
       </v-col>
     </v-row>
 
@@ -434,27 +434,29 @@ const getMetaSubtitle = (meta) => {
 .gap-1 {
   gap: 8px;
 }
-.status-tabs {
-  max-width: 100%;
-  overflow-x: auto;
-  white-space: nowrap;
+.pill-tabs :deep(.v-tab--selected), 
+.status-pill-tabs :deep(.v-tab--selected) {
+  background: rgb(var(--v-theme-primary)) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.3);
 }
 
-.status-tabs .v-tab {
+.pill-tabs :deep(.v-tab), 
+.status-pill-tabs :deep(.v-tab) {
   text-transform: none;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  min-width: auto;
-  padding: 0 18px;
-}
-
-.status-tabs .v-tab:hover {
-  background: rgba(var(--v-theme-primary), 0.06);
-  border-radius: 10px;
-}
-
-.status-tabs .v-tab--selected {
   font-weight: 600;
+  letter-spacing: 0;
+  transition: all 0.3s ease;
+}
+
+.glass-card {
+  background: rgba(var(--v-theme-surface), 0.7) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+}
+
+.gap-4 {
+  gap: 16px;
 }
 
 </style>

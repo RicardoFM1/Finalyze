@@ -1,7 +1,7 @@
 <template>
   <v-container class="dashboard-wrapper">
-     <v-row class="mb-4 pt-4" align="center">
-      <v-col cols="12" md="6" lg="7">
+    <v-row class="mb-4 pt-4" align="center">
+      <v-col cols="12">
         <div class="d-flex align-center">
             <v-avatar color="primary" size="64" class="mr-4 elevation-4 d-none d-sm-flex">
                 <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
@@ -12,54 +12,15 @@
             </div>
         </div>
       </v-col>
-      <v-col cols="12" md="6" lg="5" class="d-flex flex-column flex-sm-row justify-md-end align-sm-center gap-3">
-          <div class="d-flex align-center bg-surface-variant-lighten-2 rounded-xl px-4 py-1 elevation-1 flex-grow-1 flex-sm-grow-0" style="min-width: 280px; width: 100%;">
-             <DateInput 
-                v-model="filtroPeriodo" 
-                label="Período Personalizado" 
-                icon=""
-                hide-details 
-                clearable 
-                class="dashboard-date-filter flex-grow-1"
-                density="compact"
-                variant="plain"
-                mode="range"
-             />
-          </div>
-          <div class="d-flex gap-2 w-100 w-sm-auto">
-            <v-btn 
-              variant="elevated" 
-              color="primary" 
-              class="rounded-lg font-weight-bold flex-grow-1 flex-sm-grow-0"
-              @click="aplicarFiltro"
-              :disabled="loading"
-              size="small"
-              height="40"
-            >
-              Aplicar
-            </v-btn>
-            <v-btn 
-              v-if="filtroPeriodo"
-              variant="tonal" 
-              color="error" 
-              class="rounded-lg font-weight-bold"
-              @click="limparFiltro"
-              :disabled="loading"
-              size="small"
-              height="40"
-              icon="mdi-close"
-            >
-            </v-btn>
-          </div>
-      </v-col>
-     </v-row>
-
+    </v-row>
 
     <FilterLancamentos
-      v-model="filters"
+      v-model="filterStore.filters"
       :categorias="categorias"
-      @apply="aplicarFiltros"
-      @clear="limparFiltros"
+      @apply="fetchSummary"
+      @clear="limparFiltro"
+      class="mb-8"
+      macro
     />
 
     <v-row class="mb-8 px-2">
@@ -182,7 +143,9 @@
 
         <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
            <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
-               <v-toolbar-title class="font-weight-bold">{{ $t('features.recent_transactions') }}</v-toolbar-title>
+               <v-toolbar-title class="font-weight-bold">
+                    {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? 'Movimentações no Período' : $t('features.recent_transactions') }}
+                </v-toolbar-title>
                <v-spacer></v-spacer>
                <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
            </v-toolbar>
@@ -198,9 +161,15 @@
                     </v-avatar>
                 </template>
                 <template v-slot:append>
-                    <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
-                        {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
-                    </span>
+                    <div class="d-flex align-center">
+                        <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold mr-4">
+                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
+                        </span>
+                        <div class="d-flex gap-1">
+                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click.stop="abrirEditar(item)"></v-btn>
+                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="abrirExcluir(item)"></v-btn>
+                        </div>
+                    </div>
                 </template>
               </v-list-item>
               <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-10 text-medium-emphasis">
@@ -266,14 +235,19 @@
     </v-row>
 
     <ModalNovoLancamento v-model="dialog" @saved="fetchSummary" />
+    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="fetchSummary" />
+    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="fetchSummary" />
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useFilterStore } from '../stores/filters'
 import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
+import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
+import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import DateInput from '../components/Common/DateInput.vue'
 import { Doughnut } from 'vue-chartjs'
@@ -288,48 +262,28 @@ const { t } = useI18n()
 import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const authStore = useAuthStore()
+const filterStore = useFilterStore()
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
-const dataInicio = ref('')
-const dataFim = ref('')
-const filtroPeriodo = ref(null)
-
-const aplicarFiltro = () => {
-    if (filtroPeriodo.value && typeof filtroPeriodo.value === 'string' && filtroPeriodo.value.includes(' to ')) {
-        const parts = filtroPeriodo.value.split(' to ')
-        dataInicio.value = parts[0]
-        dataFim.value = parts[1] || parts[0]
-        fetchSummary()
-    } else if (!filtroPeriodo.value) {
-        limparFiltro()
-    }
-}
-
-const limparFiltro = () => {
-    filtroPeriodo.value = null
-    dataInicio.value = ''
-    dataFim.value = ''
-    fetchSummary()
-}
-
-const filters = ref({
-  data: '',
-  descricao: '',
-  categoria: '',
-  tipo: 'todos',
-  valor: ''
-})
 
 const categorias = computed(() => {
   try {
     return categoriasConstantes.map(c => c.title)
   } catch (e) {
-    const set = new Set()
-    resumo.value.atividades_recentes?.forEach(l => l.categoria && set.add(l.categoria))
-    return Array.from(set)
+    return []
   }
 })
+
+const itemAEditar = ref(null)
+const lancamentoIdExcluir = ref(null)
+const dialogEditar = ref(false)
+const dialogExcluir = ref(false)
+
+const limparFiltro = () => {
+    filterStore.clearFilters()
+    fetchSummary()
+}
 
 const getGreeting = computed(() => {
     const hour = new Date().getHours()
@@ -387,42 +341,10 @@ const resumo = ref({
     atividades_recentes: []
 })
 
-
 onMounted(async () => {
     fetchSummary()
     fetchMetas()
 })
-
-const fetchSummary = async () => {
-    loading.value = true
-    try {
-        const params = new URLSearchParams()
-        if (filters.value.data) params.append('data', filters.value.data)
-        if (filters.value.categoria) params.append('categoria', filters.value.categoria)
-        if (filters.value.tipo && filters.value.tipo !== 'todos') params.append('tipo', filters.value.tipo)
-        if (filters.value.valor) params.append('valor', filters.value.valor)
-        if (filters.value.descricao) params.append('descricao', filters.value.descricao)
-
-        const url = params.toString() ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
-        let url = '/painel/resumo'
-        const params = new URLSearchParams()
-        
-        if (dataInicio.value) params.append('data_inicio', dataInicio.value)
-        if (dataFim.value) params.append('data_fim', dataFim.value)
-
-        if (Array.from(params).length > 0) {
-            url += `?${params.toString()}`
-        }
-        const response = await authStore.apiFetch(url)
-        if (response.ok) {
-            resumo.value = await response.json()
-        }
-    } catch (e) {
-        console.error(e)
-    } finally {
-        loading.value = false
-    }
-}
 
 const fetchMetas = async () => {
     if (!authStore.hasFeature('Metas')) return
@@ -446,72 +368,37 @@ const calculatePercentage = (meta) => {
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
 }
 
-const aplicarFiltros = () => {
-    fetchSummary()
-}
 
-const limparFiltros = () => {
-    filters.value = {
-        data: '',
-        descricao: '',
-        categoria: '',
-        tipo: 'todos',
-        valor: ''
-    }
-    fetchSummary()
-}
-
-const saving = ref(false)
-const form = ref({
-    tipo: 'despesa',
-    valor: '',
-    categoria: '',
-    data: new Date().toISOString().substr(0, 10),
-    descricao: ''
-})
-
-const salvarLancamento = async () => {
-    saving.value = true
+const fetchSummary = async () => {
+    loading.value = true
     try {
-        const valor = Number(form.value.valor)
-        if (isNaN(valor) || valor <= 0) {
-            toast.warning(t('validation.invalid_value'))
-            saving.value = false
-            return
-        }
-
-        const response = await authStore.apiFetch('/lancamentos', {
-            method: 'POST',
-            body: JSON.stringify({
-                ...form.value,
-                valor: valor 
-            })
-        })
-
-        if (response.ok) {
-            toast.success(t('toasts.success_add'))
-            dialog.value = false
-            fetchSummary()
-           
-            form.value = {
-                tipo: 'despesa',
-                valor: '',
-                categoria: '',
-                data: new Date().toISOString().substr(0, 10),
-                descricao: ''
+        const params = new URLSearchParams()
+        const f = filterStore.filters
+        if (f.data) {
+            if (f.data.includes(' to ')) {
+                const [inicio, fim] = f.data.split(' to ')
+                params.append('data_inicio', inicio)
+                params.append('data_fim', fim)
+            } else {
+                params.append('data', f.data)
             }
-        } else {
-            const data = await response.json().catch(() => ({}))
-            toast.error(data.message || t('toasts.error_generic'))
+        }
+        if (f.descricao) params.append('descricao', f.descricao)
+        if (f.categoria) params.append('categoria', f.categoria)
+        if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
+        if (f.valor) params.append('valor', f.valor)
+
+        const url = Array.from(params).length > 0 ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        const response = await authStore.apiFetch(url)
+        if (response.ok) {
+            resumo.value = await response.json()
         }
     } catch (e) {
-        toast.error(t('toasts.error_generic'))
+        console.error(e)
     } finally {
-        saving.value = false
+        loading.value = false
     }
 }
-
-
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '0,00'
@@ -677,6 +564,17 @@ const formatCurrency = (value) => {
 
 .amount-value {
     word-break: break-all;
+}
+
+.filter-card {
+  background: rgba(var(--v-theme-surface), 0.7) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+:deep(.v-field) {
+  border-radius: 12px !important;
 }
 
 .dashboard-date-filter {

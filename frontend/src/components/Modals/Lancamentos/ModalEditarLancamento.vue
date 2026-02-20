@@ -109,7 +109,7 @@ watch(() => props.lancamento, (newVal) => {
       tipo: newVal.tipo,
       valor: newVal.valor,
       categoria: newVal.categoria,
-      data: newVal.data ? new Date(newVal.data).toISOString().slice(0, 10) : '',
+      data: newVal.data ? new Date(newVal.data).toLocaleDateString('en-CA') : '',
       descricao: newVal.descricao
     }
   }
