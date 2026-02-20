@@ -4,7 +4,7 @@
     <p class="text-caption text-medium-emphasis mt-2">{{ $t('metas.actions.inactivate_desc') }}</p>
     <template #actions>
       <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
-      <v-btn color="warning" variant="elevated" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('metas.actions.delete') }}</v-btn>
+      <v-btn color="error" variant="flat" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">Desativar</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -45,7 +45,7 @@ const confirmDelete = async () => {
       method: 'DELETE'
     })
     if (response.ok) {
-      toast.success(isAnotacao ? t('toasts.success_delete') : t('toasts.success_delete'))
+      toast.success(t('toasts.success_inactivate'))
       internalValue.value = false
       emit('deleted')
     }

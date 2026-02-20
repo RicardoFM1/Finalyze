@@ -1,18 +1,59 @@
 <template>
   <v-container class="dashboard-wrapper">
-    <v-row class="mb-8 pt-4">
-      <v-col cols="12">
+     <v-row class="mb-4 pt-4" align="center">
+      <v-col cols="12" md="6" lg="7">
         <div class="d-flex align-center">
-            <v-avatar color="primary" size="64" class="mr-4 elevation-4">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4 d-none d-sm-flex">
                 <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
             </v-avatar>
-            <div>
-                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
-                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
+            <div class="w-100">
+                <h1 class="text-h4 text-sm-h4 text-md-h3 font-weight-bold mb-1 gradient-text text-truncate">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
+                <p class="text-subtitle-1 text-md-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
             </div>
         </div>
-    </v-col>
-    </v-row>
+      </v-col>
+      <v-col cols="12" md="6" lg="5" class="d-flex flex-column flex-sm-row justify-md-end align-sm-center gap-3">
+          <div class="d-flex align-center bg-surface-variant-lighten-2 rounded-xl px-4 py-1 elevation-1 flex-grow-1 flex-sm-grow-0" style="min-width: 280px; width: 100%;">
+             <DateInput 
+                v-model="filtroPeriodo" 
+                label="Período Personalizado" 
+                icon=""
+                hide-details 
+                clearable 
+                class="dashboard-date-filter flex-grow-1"
+                density="compact"
+                variant="plain"
+                mode="range"
+             />
+          </div>
+          <div class="d-flex gap-2 w-100 w-sm-auto">
+            <v-btn 
+              variant="elevated" 
+              color="primary" 
+              class="rounded-lg font-weight-bold flex-grow-1 flex-sm-grow-0"
+              @click="aplicarFiltro"
+              :disabled="loading"
+              size="small"
+              height="40"
+            >
+              Aplicar
+            </v-btn>
+            <v-btn 
+              v-if="filtroPeriodo"
+              variant="tonal" 
+              color="error" 
+              class="rounded-lg font-weight-bold"
+              @click="limparFiltro"
+              :disabled="loading"
+              size="small"
+              height="40"
+              icon="mdi-close"
+            >
+            </v-btn>
+          </div>
+      </v-col>
+     </v-row>
+
 
     <FilterLancamentos
       v-model="filters"
@@ -31,7 +72,7 @@
         </v-col>
 
         <template v-else>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card receita-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -40,13 +81,16 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.receita) }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.total_income_month') }}</div>
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.receita) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.receita) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_income_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card despesa-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -55,13 +99,16 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.despesa) }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.total_expense_month') }}</div>
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.despesa) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.despesa) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_expense_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card saldo-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -70,8 +117,11 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">{{ $t('common.currency') }} {{ formatNumber(resumo.saldo) }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.net_worth_today') }}</div>
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.saldo) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.saldo) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.net_worth_today') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
@@ -165,21 +215,24 @@
         <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 text-white">{{ $t('features.quick_access') }}</v-card-title>
             <v-card-text class="pa-6 pt-2">
-                <v-btn block color="white" min-height="56" class="mb-4 rounded-xl text-primary font-weight-bold py-3" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
+                <v-btn v-if="authStore.hasFeature('Lançamentos')" block color="white" min-height="56" class="mb-4 rounded-xl text-primary font-weight-bold py-3" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
                   {{ $t('features.launch_now') }}
                 </v-btn>
                 <v-row dense>
-                    <v-col cols="12" sm="6">
-                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold mb-2 mb-sm-0 py-2" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">{{ $t('features.reports') }}</v-btn>
+                    <v-col cols="12" sm="12" lg="6" v-if="authStore.hasFeature('Relatórios')">
+                        <v-btn block min-height="48" variant="tonal" color="white" class="rounded-xl font-weight-bold mb-2 py-2" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">Relatórios</v-btn>
                     </v-col>
-                    <v-col cols="12" sm="6">
-                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold py-2" prepend-icon="mdi-target" :to="{ name: 'Metas' }">{{ $t('features.my_goals') }}</v-btn>
+                    <v-col cols="12" sm="12" lg="6" v-if="authStore.hasFeature('Metas')">
+                        <v-btn block min-height="48" variant="tonal" color="white" class="rounded-xl font-weight-bold py-2" prepend-icon="mdi-target" :to="{ name: 'Metas' }">Metas</v-btn>
                     </v-col>
                 </v-row>
+                <div v-if="!authStore.hasFeature('Lançamentos') && !authStore.hasFeature('Relatórios') && !authStore.hasFeature('Metas')" class="text-white opacity-70 text-center py-4">
+                  Seu plano não possui acesso rápido disponível.
+                </div>
             </v-card-text>
         </v-card>
 
-        <v-card v-if="metasSummary.length" class="rounded-xl glass-card border-card metas-preview" elevation="4">
+        <v-card v-if="authStore.hasFeature('Metas') && metasSummary.length" class="rounded-xl glass-card border-card metas-preview" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 d-flex align-center">
                 <v-icon icon="mdi-target" color="primary" class="mr-2"></v-icon>
                 {{ $t('features.goals_progress') }}
@@ -187,12 +240,13 @@
             <v-card-text class="pa-6 pt-2">
                 <div v-for="meta in metasSummary" :key="meta.id" class="mb-6">
                     <div class="d-flex justify-space-between text-body-2 mb-2 font-weight-medium">
-                        <span>{{ meta.titulo }}</span>
-                        <span class="text-primary">{{ calculatePercentage(meta) }}%</span>
+                        <span class="text-truncate mr-2">{{ meta.titulo }}</span>
+                        <span v-if="meta.status === 'concluido'" class="text-success font-weight-bold">Concluído!</span>
+                        <span v-else class="text-primary">{{ calculatePercentage(meta) }}%</span>
                     </div>
                     <v-progress-linear
                         :model-value="calculatePercentage(meta)"
-                        :color="meta.cor || 'primary'"
+                        :color="meta.status === 'concluido' ? 'success' : (meta.cor || 'primary')"
                         height="10"
                         rounded
                         striped
@@ -202,7 +256,7 @@
             </v-card-text>
         </v-card>
 
-        <v-card v-else class="rounded-xl glass-card border-card pa-6 text-center" elevation="4">
+        <v-card v-else-if="authStore.hasFeature('Metas')" class="rounded-xl glass-card border-card pa-6 text-center" elevation="4">
           <v-icon icon="mdi-flag-plus-outline" size="48" color="primary" class="mb-4 opacity-30"></v-icon>
           <div class="text-h6 font-weight-bold mb-2">{{ $t('features.define_goals') }}</div>
           <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('features.goals_subtitle') }}</p>
@@ -221,11 +275,13 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
+import DateInput from '../components/Common/DateInput.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 import { useI18n } from 'vue-i18n'
+import { watch } from 'vue'
 const { t } = useI18n()
 
 
@@ -235,6 +291,27 @@ const authStore = useAuthStore()
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
+const dataInicio = ref('')
+const dataFim = ref('')
+const filtroPeriodo = ref(null)
+
+const aplicarFiltro = () => {
+    if (filtroPeriodo.value && typeof filtroPeriodo.value === 'string' && filtroPeriodo.value.includes(' to ')) {
+        const parts = filtroPeriodo.value.split(' to ')
+        dataInicio.value = parts[0]
+        dataFim.value = parts[1] || parts[0]
+        fetchSummary()
+    } else if (!filtroPeriodo.value) {
+        limparFiltro()
+    }
+}
+
+const limparFiltro = () => {
+    filtroPeriodo.value = null
+    dataInicio.value = ''
+    dataFim.value = ''
+    fetchSummary()
+}
 
 const filters = ref({
   data: '',
@@ -260,6 +337,17 @@ const getGreeting = computed(() => {
     if (hour >= 12 && hour < 18) return 'Boa tarde'
     return 'Boa noite'
 })
+
+const dynamicFontSize = (val) => {
+    if (val === undefined || val === null) return '2rem'
+    const strVal = formatNumber(val)
+    const len = strVal.length
+    
+    // Mais inteligente: reduz mais cedo se estiver apertado
+    if (len > 15) return '1.5rem'
+    if (len > 10) return '2rem'
+    return '2.5rem'
+}
 
 const getMarginPercentage = computed(() => {
     if (resumo.value.receita === 0) return 0
@@ -316,6 +404,15 @@ const fetchSummary = async () => {
         if (filters.value.descricao) params.append('descricao', filters.value.descricao)
 
         const url = params.toString() ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        let url = '/painel/resumo'
+        const params = new URLSearchParams()
+        
+        if (dataInicio.value) params.append('data_inicio', dataInicio.value)
+        if (dataFim.value) params.append('data_fim', dataFim.value)
+
+        if (Array.from(params).length > 0) {
+            url += `?${params.toString()}`
+        }
         const response = await authStore.apiFetch(url)
         if (response.ok) {
             resumo.value = await response.json()
@@ -333,7 +430,9 @@ const fetchMetas = async () => {
         const response = await authStore.apiFetch('/metas')
         if (response.ok) {
             const data = await response.json()
-            metasSummary.value = data.slice(0, 3)
+            metasSummary.value = data
+                .filter(m => m.status !== 'inativo')
+                .slice(0, 3)
         }
     } catch (e) { console.error(e) }
 }
@@ -559,4 +658,28 @@ const formatCurrency = (value) => {
 .opacity-80 { opacity: 0.8; }
 .opacity-10 { opacity: 0.1; }
 .opacity-30 { opacity: 0.3; }
+
+.value-container {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.currency-symbol {
+    font-size: 0.5em;
+    margin-right: 4px;
+    opacity: 0.85;
+}
+
+.amount-value {
+    word-break: break-all;
+}
+
+.dashboard-date-filter {
+    max-width: none;
+}
 </style>

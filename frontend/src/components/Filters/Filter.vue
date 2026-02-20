@@ -32,8 +32,8 @@
     <v-divider class="my-3" />
 
     <div class="px-6 pb-6">
-      <v-row>
-        <v-col cols="12" md="3">
+      <v-row dense>
+        <v-col cols="12" sm="6" md="4" lg="3">
           <v-text-field
             v-model="localFilters.descricao"
             label="Descrição"
@@ -44,7 +44,7 @@
           />
         </v-col>
 
-        <v-col cols="12" md="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-select
             v-model="localFilters.categoria"
             :items="formatCategorias"
@@ -57,7 +57,7 @@
           />
         </v-col>
 
-        <v-col cols="12" md="2">
+        <v-col cols="12" sm="6" md="4" lg="2">
           <v-select
             v-model="localFilters.tipo"
             :items="tipos"
@@ -69,7 +69,7 @@
           />
         </v-col>
 
-        <v-col cols="12" md="2">
+        <v-col cols="12" sm="6" md="3" lg="2">
           <v-text-field
             v-model="localFilters.valor"
             label="Valor"
@@ -81,12 +81,13 @@
           />
         </v-col>
 
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="12" lg="3">
           <DateInput
             v-model="localFilters.data"
-            label="Data"
+            label="Período"
             hide-details
             clearable
+            mode="range"
           />
         </v-col>
       </v-row>

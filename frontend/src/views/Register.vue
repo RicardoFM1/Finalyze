@@ -34,17 +34,18 @@
     
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
         <v-btn
-          icon="mdi-arrow-left"
+          icon="mdi-tag-multiple-outline"
           variant="text"
           class="absolute-top-left ma-4 d-md-none"
-          @click="router.push({ name: 'Home' })"
+          @click="router.push({ name: 'Plans' })"
         ></v-btn>
 
-        <v-card flat max-width="500" width="100%" class="pa-8 pa-md-12 bg-transparent my-auto">
+        <v-card flat max-width="500" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent my-auto">
           <template v-if="!showVerification">
             <div class="text-center text-md-left mb-10">
-              <div class="d-flex align-center justify-center justify-md-start mb-4">
-
+              <div class="d-flex align-center justify-center justify-md-start mb-6 d-md-none">
+                <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
+                <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
               </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
               <div>
@@ -95,6 +96,7 @@ import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
+import logotipo from '../assets/logotipo.png'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -306,5 +308,10 @@ const handleCpfInput = (event) => {
 
 .transparent-list, .transparent-list :deep(.v-list-item) {
   background: transparent !important;
+}
+
+.logo-mobile {
+  height: 48px;
+  width: auto;
 }
 </style>
