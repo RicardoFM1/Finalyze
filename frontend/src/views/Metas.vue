@@ -241,8 +241,10 @@ import { toast } from 'vue3-toastify'
 import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
 import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 import { useI18n } from 'vue-i18n'
+import { useCurrency } from '../composables/useCurrency'
 
 const { t } = useI18n()
+const { formatCurrency, convert, currency } = useCurrency()
 
 const authStore = useAuthStore()
 const metas = ref([])
@@ -345,10 +347,11 @@ const reativarItem = async (item) => {
 }
 
 // Helpers
-const formatPrice = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+const formatPrice = (value) => formatCurrency(value, 'BRL')
 const formatShortPrice = (value) => {
-  if (value >= 1000) return (value / 1000) + 'k'
-  return value
+  const converted = convert(value, 'BRL', currency.value)
+  if (converted >= 1000) return `${(converted / 1000).toFixed(1)}k`
+  return formatPrice(value)
 }
 const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR')
 const calculatePercentage = (current, total) => {

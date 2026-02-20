@@ -80,7 +80,7 @@
                     Seu saldo de créditos cobre o valor deste novo plano. Deseja aplicar a mudança agora?
                 </span>
                 <span v-else>
-                    Você tem R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }} de crédito disponível para este upgrade.
+                    Você tem {{ formatPrice(selectedForUpgrade?.creditos) }} de crédito disponível para este upgrade.
                 </span>
             </p>
             
@@ -91,17 +91,17 @@
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
                     <span class="text-subtitle-2">Valor Original:</span>
-                    <span>R$ {{ selectedForUpgrade?.valorPlano?.toFixed(2) }}</span>
+                    <span>{{ formatPrice(selectedForUpgrade?.valorPlano) }}</span>
                 </div>
                 <div class="d-flex justify-space-between align-center mt-1">
                     <span class="text-subtitle-2">Crédito Aplicado:</span>
-                    <span class="text-success font-weight-bold">- R$ {{ selectedForUpgrade?.creditos?.toFixed(2) }}</span>
+                    <span class="text-success font-weight-bold">- {{ formatPrice(selectedForUpgrade?.creditos) }}</span>
                 </div>
                 <v-divider class="my-2"></v-divider>
                 <div class="d-flex justify-space-between align-center">
                     <span class="text-subtitle-1 font-weight-bold">Total a Pagar:</span>
                     <span class="text-h6 font-weight-bold text-primary">
-                        R$ {{ selectedForUpgrade?.valorFinal?.toFixed(2) }}
+                        {{ formatPrice(selectedForUpgrade?.valorFinal) }}
                     </span>
                 </div>
             </v-card>
@@ -139,8 +139,10 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../components/Modals/modalBase.vue'
 import { useI18n } from 'vue-i18n'
+import { useCurrency } from '../composables/useCurrency'
 
 const { t } = useI18n()
+const { formatCurrency } = useCurrency()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
@@ -294,6 +296,8 @@ const cancelarPagamento = async () => {
         cancelling.value = false
     }
 }
+
+const formatPrice = (value) => formatCurrency(Number(value) || 0, 'BRL')
 </script>
 
 

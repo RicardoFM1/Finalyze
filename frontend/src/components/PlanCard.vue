@@ -44,9 +44,9 @@
       </div>
 
       <div class="price-container my-4">
-        <span class="currency">R$</span>
-        <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
-        <span class="price-decimal">,{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+        <span class="currency">{{ priceParts.symbol }}</span>
+        <span class="price-integer">{{ priceParts.integer }}</span>
+        <span class="price-decimal">{{ priceParts.decimalSeparator }}{{ priceParts.decimal }}</span>
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -115,8 +115,10 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { useCurrency } from '../composables/useCurrency'
 const router = useRouter()
 const authStore = useAuthStore()
+const { currency, locale, convert } = useCurrency()
 const props = defineProps({
   plan: {
     type: Object,
@@ -138,6 +140,23 @@ const selectedPeriod = computed(() => {
 
 const currentPrice = computed(() => {
     return selectedPeriod.value?.pivot?.valor_centavos || 0
+})
+
+const convertedPrice = computed(() => {
+    return convert(currentPrice.value / 100, 'BRL', currency.value)
+})
+
+const priceParts = computed(() => {
+    const formatter = new Intl.NumberFormat(locale.value, {
+        style: 'currency',
+        currency: currency.value
+    })
+    const parts = formatter.formatToParts(convertedPrice.value)
+    const symbol = parts.find((part) => part.type === 'currency')?.value || currency.value
+    const integer = parts.filter((part) => part.type === 'integer' || part.type === 'group').map((part) => part.value).join('')
+    const decimalSeparator = parts.find((part) => part.type === 'decimal')?.value || ','
+    const decimal = parts.find((part) => part.type === 'fraction')?.value || '00'
+    return { symbol, integer, decimalSeparator, decimal }
 })
 
 const selectedPeriodSlug = computed(() => {
@@ -172,11 +191,6 @@ const clickEscolha = () => {
         plan: props.plan, 
         period: selectedPeriod.value 
     })
-}
-
-const formatPrice = (value) => {
-    if (!value && value !== 0) return 'R$ 0,00';
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 </script>
 

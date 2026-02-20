@@ -79,7 +79,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const uiStore = useUiStore()
-const { t } = useI18n()
+const { locale } = useI18n()
 
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
@@ -96,8 +96,8 @@ watch(() => props.modelValue, (newVal) => {
 
 const formattedDate = computed(() => {
   if (!internalDate.value) return ''
-  const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-  return new Intl.DateTimeFormat(locale).format(new Date(internalDate.value))
+  const dateLocale = locale.value === 'en' ? 'en-US' : 'pt-BR'
+  return new Intl.DateTimeFormat(dateLocale).format(new Date(internalDate.value))
 })
 
 const onDateChange = (date) => {

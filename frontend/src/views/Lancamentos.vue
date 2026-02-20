@@ -85,7 +85,7 @@
       <v-text-field
         v-model="filters.valor"
         :label="$t('transactions.table.amount')"
-        prefix="R$"
+        :prefix="currencyPrefix"
         type="number"
         variant="underlined"
         density="compact"
@@ -158,7 +158,7 @@
 
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
-            {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
+            {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
           </span>
         </template>
 
@@ -187,8 +187,10 @@ import { useAuthStore } from '../stores/auth'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
+import { useCurrency } from '../composables/useCurrency'
 
 const authStore = useAuthStore()
+const { formatCurrency, currencyPrefix, currency, convert } = useCurrency()
 const loading = ref(false)
 const search = ref('')
 const serverItems = ref([])
@@ -220,7 +222,6 @@ const headers = [
   { title: 'Ações', key: 'acoes', align: 'end', sortable: false },
 ]
 
-const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 
 
@@ -243,7 +244,10 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
     if (filters.value.data) params.append('data', filters.value.data)
     if (filters.value.categoria) params.append('categoria', filters.value.categoria)
     if (filters.value.tipo && filters.value.tipo !== 'todos') params.append('tipo', filters.value.tipo)
-    if (filters.value.valor) params.append('valor', filters.value.valor)
+    if (filters.value.valor) {
+      const valorEmBRL = convert(filters.value.valor, currency.value, 'BRL')
+      params.append('valor', valorEmBRL)
+    }
     if (filters.value.descricao) params.append('descricao', filters.value.descricao)
 
     const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)

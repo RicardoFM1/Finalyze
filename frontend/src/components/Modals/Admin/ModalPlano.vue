@@ -111,6 +111,9 @@ import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -253,3 +256,5 @@ const savePlan = async () => {
     }
 }
 </script>
+
+

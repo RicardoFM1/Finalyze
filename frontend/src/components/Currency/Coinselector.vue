@@ -20,7 +20,9 @@ const currencyStore = useCurrencyStore()
 
 const coins = [
   { label: 'Real Brasileiro (BRL)', value: 'BRL' },
-  { label: 'Dólar Americano (USD)', value: 'USD' },
+  { label: 'Dolar Americano (USD)', value: 'USD' },
+  { label: 'Euro (EUR)', value: 'EUR' },
+  { label: 'Libra Esterlina (GBP)', value: 'GBP' }
 ]
 
 const selectedCoin = ref(currencyStore.currency)

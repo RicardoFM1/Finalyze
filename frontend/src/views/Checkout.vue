@@ -172,8 +172,10 @@ import PaymentBrick from '../components/PaymentBrick.vue'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
 import { useI18n } from 'vue-i18n'
+import { useCurrency } from '../composables/useCurrency'
 
 const { t } = useI18n()
+const { formatCurrency } = useCurrency()
 
 const route = useRoute()
 const router = useRouter()
@@ -478,7 +480,7 @@ const cancelPendingPayment = async () => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    return formatCurrency(value, 'BRL')
 }
 
 const handleCpfInput = (event) => {

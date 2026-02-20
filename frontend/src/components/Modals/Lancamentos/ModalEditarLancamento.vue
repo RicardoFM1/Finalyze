@@ -9,7 +9,7 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="localForm.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field v-model="localForm.valor" :label="$t('modals.labels.value')" :prefix="currencyPrefix" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
         </v-col>
         <v-col cols="12" md="6">
           <DateInput v-model="localForm.data" :label="$t('modals.labels.date')" required />
@@ -74,8 +74,10 @@ import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
 import { categorias } from '../../../constants/categorias'
 import { useI18n } from 'vue-i18n'
+import { useCurrency } from '../../../composables/useCurrency'
 
 const { t } = useI18n()
+const { currencyPrefix, currency, convert } = useCurrency()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -104,7 +106,7 @@ watch(() => props.lancamento, (newVal) => {
   if (newVal) {
     localForm.value = {
       tipo: newVal.tipo,
-      valor: newVal.valor,
+      valor: convert(newVal.valor, 'BRL', currency.value),
       categoria: newVal.categoria,
       data: newVal.data ? new Date(newVal.data).toISOString().slice(0, 10) : '',
       descricao: newVal.descricao
@@ -124,11 +126,13 @@ const editar = async () => {
       return
     }
 
+    const valorEmBRL = convert(valor, currency.value, 'BRL')
+
     const response = await authStore.apiFetch(`/lancamentos/${props.lancamento.id}`, {
       method: 'PUT',
       body: JSON.stringify({
         ...localForm.value,
-        valor: valor
+        valor: valorEmBRL
       })
     })
 

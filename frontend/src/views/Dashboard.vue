@@ -35,7 +35,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.receita) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.receita, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_income_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -50,7 +50,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.despesa) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.despesa, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_expense_month') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -65,7 +65,7 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
-                <div class="text-h3 font-weight-bold mb-1">R$ {{ formatNumber(resumo.saldo) }}</div>
+                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.saldo, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.net_worth_today') }}</div>
               </v-card-item>
               <div class="card-blur-bg"></div>
@@ -101,7 +101,7 @@
                     <div class="dot receita-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.incomes') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.receita) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ formatCurrency(resumo.receita, 'BRL') }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="mb-4 d-flex align-center justify-space-between">
@@ -109,7 +109,7 @@
                     <div class="dot despesa-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.expenses') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">R$ {{ formatNumber(resumo.despesa) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ formatCurrency(resumo.despesa, 'BRL') }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="d-flex align-center justify-space-between">
@@ -118,7 +118,7 @@
                     <span class="text-body-2">{{ $t('features.net') }}</span>
                   </div>
                   <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
-                    R$ {{ formatNumber(resumo.saldo) }}
+                    {{ formatCurrency(resumo.saldo, 'BRL') }}
                   </span>
                 </div>
               </v-col>
@@ -145,7 +145,7 @@
                 </template>
                 <template v-slot:append>
                     <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
-                        {{ item.tipo === 'receita' ? '+' : '-' }} R$ {{ formatNumber(item.valor) }}
+                        {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
                     </span>
                 </template>
               </v-list-item>
@@ -219,6 +219,7 @@ import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { useCurrency } from '../composables/useCurrency'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -226,6 +227,7 @@ ChartJS.register(ArcElement, Tooltip, Legend)
 import { categorias } from '../constants/categorias'
 
 const authStore = useAuthStore()
+const { formatCurrency } = useCurrency()
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
@@ -241,8 +243,6 @@ const getMarginPercentage = computed(() => {
     if (resumo.value.receita === 0) return 0
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
-
-const formatNumber = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const chartData = computed(() => ({
     labels: ['Receitas', 'Despesas', 'Líquido'],
@@ -261,7 +261,7 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
-                label: (context) => ` R$ ${formatNumber(context.raw)}`
+                label: (context) => ` ${formatCurrency(context.raw, 'BRL')}`
             }
         }
     },
@@ -354,17 +354,6 @@ const salvarLancamento = async () => {
     } finally {
         saving.value = false
     }
-}
-
-
-
-const formatCurrency = (value) => {
-  if (value === null || value === undefined) return '0,00'
-
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(Number(value))
 }
 
 </script>
@@ -503,3 +492,4 @@ const formatCurrency = (value) => {
 .opacity-10 { opacity: 0.1; }
 .opacity-30 { opacity: 0.3; }
 </style>
+

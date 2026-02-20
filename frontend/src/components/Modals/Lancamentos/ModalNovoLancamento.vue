@@ -9,58 +9,63 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="form.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
+          <v-text-field
+            v-model="form.valor"
+            :label="$t('modals.labels.value')"
+            :prefix="currencyPrefix"
+            type="number"
+            step="0.01"
+            variant="outlined"
+            rounded="lg"
+            required
+          />
         </v-col>
         <v-col cols="12" md="6">
-<<<<<<< HEAD
-          <v-text-field v-model="form.data" :label="$t('modals.labels.date')" type="date" variant="outlined" rounded="lg" required></v-text-field>
-=======
           <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
->>>>>>> origin/Ricardo
         </v-col>
-       <v-col cols="12">
-                            <v-autocomplete
-                                v-model="form.categoria"
-                                :items="categorias"
-                                item-title="title"
-                                item-value="title"
-                                :label="$t('modals.labels.category')"
-                                variant="outlined"
-                                rounded="lg"
-                                required
-                                :placeholder="$t('modals.placeholders.select_category')"
-                                :no-data-text="$t('transactions.no_data')"
-                            >
-                                <template v-slot:item="{ props, item }">
-                                    <v-list-item 
-                                        v-bind="props" 
-                                        :prepend-icon="item.raw.icon"
-                                        :title="item.raw.title"
-                                    ></v-list-item>
-                                </template>
-
-                                <template v-slot:prepend-inner>
-                                    <v-icon 
-                                        v-if="form.categoria" 
-                                        :icon="categorias.find(c => c.title === form.categoria)?.icon || 'mdi-tag'" 
-                                        class="mr-2 text-medium-emphasis"
-                                    ></v-icon>
-                                </template>
-                            </v-autocomplete>
-                        </v-col>
         <v-col cols="12">
-          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2"></v-textarea>
+          <v-autocomplete
+            v-model="form.categoria"
+            :items="categorias"
+            item-title="title"
+            item-value="title"
+            :label="$t('modals.labels.category')"
+            variant="outlined"
+            rounded="lg"
+            required
+            :placeholder="$t('modals.placeholders.select_category')"
+            :no-data-text="$t('transactions.no_data')"
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item
+                v-bind="props"
+                :prepend-icon="item.raw.icon"
+                :title="item.raw.title"
+              />
+            </template>
+
+            <template v-slot:prepend-inner>
+              <v-icon
+                v-if="form.categoria"
+                :icon="categorias.find((c) => c.title === form.categoria)?.icon || 'mdi-tag'"
+                class="mr-2 text-medium-emphasis"
+              />
+            </template>
+          </v-autocomplete>
+        </v-col>
+        <v-col cols="12">
+          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" />
         </v-col>
       </v-row>
     </v-form>
     <template #actions>
-      <v-btn 
-        color="primary" 
-        block 
-        variant="flat" 
-        size="large" 
-        rounded="lg" 
-        :loading="loading" 
+      <v-btn
+        color="primary"
+        block
+        variant="flat"
+        size="large"
+        rounded="lg"
+        :loading="loading"
         elevation="3"
         @click="salvarLancamento"
       >
@@ -77,8 +82,11 @@ import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
 import { useI18n } from 'vue-i18n'
+import { categorias } from '../../../constants/categorias'
+import { useCurrency } from '../../../composables/useCurrency'
 
 const { t } = useI18n()
+const { currencyPrefix, currency, convert } = useCurrency()
 
 const props = defineProps({
   modelValue: Boolean
@@ -94,8 +102,6 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
-import { categorias } from '../../../constants/categorias'
-
 const form = ref({
   tipo: 'despesa',
   valor: '',
@@ -103,7 +109,6 @@ const form = ref({
   data: new Date().toISOString().substr(0, 10),
   descricao: ''
 })
-
 
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
@@ -127,11 +132,13 @@ const salvarLancamento = async () => {
       return
     }
 
+    const valorEmBRL = convert(valor, currency.value, 'BRL')
+
     const response = await authStore.apiFetch('/lancamentos', {
       method: 'POST',
       body: JSON.stringify({
         ...form.value,
-        valor: valor
+        valor: valorEmBRL
       })
     })
 

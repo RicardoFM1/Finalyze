@@ -90,8 +90,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import ModalPlano from '../components/Modals/Admin/ModalPlano.vue'
 import ModalExcluirPlano from '../components/Modals/Admin/ModalExcluirPlano.vue'
+import { useCurrency } from '../composables/useCurrency'
 
 const authStore = useAuthStore()
+const { formatCurrency } = useCurrency()
 
 
 const plans = ref([])
@@ -145,7 +147,7 @@ const confirmDelete = (item) => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    return formatCurrency(value, 'BRL')
 }
 
 </script>
