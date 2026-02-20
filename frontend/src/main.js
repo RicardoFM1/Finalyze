@@ -14,8 +14,8 @@ import { createI18n } from 'vue-i18n'
 import pt from './components/Language/pt.json'
 import en from './components/Language/en.json'
 
-import VCalendar from 'v-calendar'
-import 'v-calendar/style.css'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
 // plugins
 const pinia = createPinia()
@@ -37,6 +37,6 @@ app.use(router)
 app.use(vuetify)
 app.use(i18n)
 app.use(Vue3Toastify, { autoClose: 3000 })
-app.use(VCalendar, {})
+app.component('VueDatePicker', VueDatePicker)
 
 app.mount('#app')

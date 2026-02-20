@@ -179,17 +179,17 @@
 
             <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
                 <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
-                   <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
-                      O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.
-                   </v-alert>
+                    <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
+                       {{ $t('profile.subscription.pending_payment') }}
+                    </v-alert>
                 </v-col>
                 <v-col cols="12" md="5">
                   <v-card class="plan-hero-card rounded-xl pa-6 text-white" elevation="6">
                     <div class="text-overline mb-2 opacity-80">{{ $t('profile.subscription.current') }}</div>
                     <div class="text-h4 font-weight-black mb-4">
-                        {{ user.plano?.nome }}
+                        {{ $t('plans.plan_names.' + user.plano?.nome, user.plano?.nome) }}
                         <span class="text-subtitle-1 font-weight-bold ml-2 opacity-80" v-if="subscriptionData?.assinatura?.periodo">
-                            ({{ subscriptionData.assinatura.periodo.nome }})
+                            ({{ subscriptionData.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (subscriptionData.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : subscriptionData.assinatura.periodo.nome) }})
                         </span>
                     </div>
                     
@@ -277,9 +277,9 @@
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.item') || 'Item' }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.item') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.status') || 'Status' }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -289,9 +289,9 @@
                     <div class="d-flex align-center">
                       <v-icon icon="mdi-package-variant" size="small" class="mr-2" color="primary"></v-icon>
                       <span class="text-body-2">
-                        {{ item.assinatura?.plano?.nome || item.item_nome || '-' }}
+                        {{ $t('plans.plan_names.' + (item.assinatura?.plano?.nome || item.item_nome), item.assinatura?.plano?.nome || item.item_nome) }}
                         <span v-if="item.assinatura?.periodo" class="text-caption opacity-70 ml-1">
-                          ({{ item.assinatura.periodo.nome }})
+                          ({{ item.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (item.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : item.assinatura.periodo.nome) }})
                         </span>
                       </span>
                     </div>
@@ -417,6 +417,38 @@ const fetchSubscription = async () => {
     }
 }
 
+<<<<<<< HEAD
+=======
+const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+        case 'paid':
+        case 'pago':
+        case 'approved':
+        case 'active':
+            return 'success'
+        case 'pending':
+        case 'pendente':
+            return 'warning'
+        case 'failed':
+        case 'falhou':
+        case 'cancelled':
+        case 'cancelado':
+            return 'error'
+        default:
+            return 'grey'
+    }
+}
+
+const getStatusText = (status) => {
+    if (!status) return '-'
+    const s = status.toLowerCase()
+    if (s === 'paid' || s === 'pago' || s === 'approved') return t('profile.subscription.paid')
+    if (s === 'pending' || s === 'pendente') return t('profile.subscription.pending')
+    if (s === 'failed' || s === 'falhou') return t('profile.subscription.failed')
+    return status.toUpperCase()
+}
+
+>>>>>>> origin/Ricardo
 const ativarAutoRenovacao = async () => {
     try {
         const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { method: 'POST' })
@@ -597,7 +629,7 @@ const ageRules = [
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
       age--
     }
-    return age >= 18 || 'Você deve ter pelo menos 18 anos.'
+    return age >= 18 || t('validation.min_age')
   }
 ]
 

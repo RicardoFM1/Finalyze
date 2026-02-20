@@ -13,8 +13,8 @@
             class="rounded-lg text-left"
             density="comfortable"
           >
-            <div class="text-subtitle-2 font-weight-bold mb-1">Dica de Upgrade</div>
-            Ao mudar de plano, o tempo restante do seu plano atual é convertido em crédito e descontado automaticamente no valor do novo plano.
+            <div class="text-subtitle-2 font-weight-bold mb-1">{{ $t('plans.upgrade_tip.title') }}</div>
+            {{ $t('plans.upgrade_tip.desc') }}
           </v-alert>
         </v-col>
       </v-row>
@@ -41,7 +41,7 @@
 
     <ModalBase v-model="showPendingDialog" :title="$t('plans.pending_title')" maxWidth="500px" persistent>
         <p class="text-body-1 text-center mb-4">
-          {{ $t('plans.pending_desc', { plan: pendingPlanName }) }}
+          {{ $t('plans.pending_desc', { plan: $t('plans.plan_names.' + pendingPlanName, pendingPlanName) }) }}
         </p>
         <template #actions>
           <div class="d-flex w-100 flex-column flex-sm-row justify-end gap-2">
@@ -71,21 +71,56 @@
     </ModalBase>
 
     <!-- Modal para Upgrade Gratuito (Prorrata) -->
-    <ModalBase v-model="showFreeUpgradeModal" title="Alteração de Plano" maxWidth="500px">
+    <ModalBase v-model="showFreeUpgradeModal" :title="selectedForUpgrade?.gratuito ? $t('common.gift') || 'Presente Pra Você!' : $t('plans.change_modal.title')" maxWidth="500px">
         <div class="text-center pa-4">
-            <v-icon color="primary" size="64" class="mb-4">mdi-swap-horizontal</v-icon>
-            <h3 class="text-h5 font-weight-bold mb-2">Confirmar Alteração</h3>
-            <p class="text-body-1 text-medium-emphasis mb-4">
-                <span v-if="selectedForUpgrade?.gratuito">
-                    Seu saldo de créditos cobre o valor deste novo plano. Deseja aplicar a mudança agora?
+            <template v-if="selectedForUpgrade?.gratuito">
+                <div class="gift-animation mb-4">
+                    <v-icon color="warning" size="80" class="animate-bounce">mdi-gift</v-icon>
+                </div>
+                <h3 class="text-h4 font-weight-black mb-2 gradient-text">{{ $t('plans.change_modal.confirm') }}</h3>
+            </template>
+            <template v-else>
+                <v-icon color="primary" size="64" class="mb-4">mdi-swap-horizontal</v-icon>
+                <h3 class="text-h5 font-weight-bold mb-2">{{ $t('plans.change_modal.confirm') }}</h3>
+            </template>
+
+            <p class="text-body-1 text-medium-emphasis mb-6">
+                <span v-if="selectedForUpgrade?.gratuito" class="font-weight-medium">
+                    {{ $t('plans.change_modal.credit_covered') }}
                 </span>
                 <span v-else>
+<<<<<<< HEAD
                     Você tem {{ formatPrice(selectedForUpgrade?.creditos) }} de crédito disponível para este upgrade.
+=======
+                    {{ $t('plans.change_modal.credit_available', { amount: formatPrice(selectedForUpgrade?.creditos) }) }}
+>>>>>>> origin/Ricardo
                 </span>
             </p>
             
-            <v-card variant="tonal" color="primary" class="pa-3 rounded-lg mb-6">
+            <v-card :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" variant="tonal" class="pa-4 rounded-xl mb-8 border-dashed">
+                <div class="d-flex justify-space-between align-center mb-3">
+                    <span class="text-subtitle-2 opacity-70">{{ $t('plans.change_modal.new_plan') }}:</span>
+                    <v-chip size="small" :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" class="font-weight-black">
+                        {{ $t('plans.plan_names.' + selectedForUpgrade?.plan.nome, selectedForUpgrade?.plan.nome) }} 
+                        ({{ selectedForUpgrade?.period.slug === 'mensal' ? $t('admin.intervals.month') : (selectedForUpgrade?.period.slug === 'anual' ? $t('admin.intervals.year') : selectedForUpgrade?.period.nome) }})
+                    </v-chip>
+                </div>
+                
+                <div class="price-breakdown space-y-2">
+                    <div class="d-flex justify-space-between align-center text-body-2">
+                        <span>{{ $t('plans.change_modal.original_value') }}:</span>
+                        <span class="text-decoration-line-through opacity-60">{{ formatPrice(selectedForUpgrade?.valorPlano) }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center text-body-2">
+                        <span>{{ $t('plans.change_modal.applied_credit') }}:</span>
+                        <span class="text-success font-weight-bold">- {{ formatPrice(selectedForUpgrade?.creditos) }}</span>
+                    </div>
+                </div>
+
+                <v-divider class="my-4 opacity-20"></v-divider>
+                
                 <div class="d-flex justify-space-between align-center">
+<<<<<<< HEAD
                     <span class="text-subtitle-2">Novo Plano:</span>
                     <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
                 </div>
@@ -103,27 +138,39 @@
                     <span class="text-h6 font-weight-bold text-primary">
                         {{ formatPrice(selectedForUpgrade?.valorFinal) }}
                     </span>
+=======
+                    <span class="text-h6 font-weight-bold">{{ $t('plans.change_modal.total_to_pay') }}:</span>
+                    <div class="text-right">
+                        <div v-if="selectedForUpgrade?.gratuito" class="text-h5 font-weight-black text-success">
+                            {{ $t('common.free') || 'GRÁTIS' }}
+                        </div>
+                        <div v-else class="text-h5 font-weight-black text-primary">
+                            {{ formatPrice(selectedForUpgrade?.valorFinal) }}
+                        </div>
+                    </div>
+>>>>>>> origin/Ricardo
                 </div>
             </v-card>
 
-            <div class="d-flex flex-column gap-2">
+            <div class="d-flex flex-column gap-3">
                 <v-btn
                     block
-                    color="primary"
-                    size="large"
-                    class="rounded-pill"
+                    :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'"
+                    size="x-large"
+                    class="rounded-xl font-weight-black elevation-4 shadow-btn"
                     :loading="upgrading"
                     @click="applyFreeUpgrade"
                 >
-                    {{ selectedForUpgrade?.gratuito ? 'Aplicar Agora' : 'Continuar para Pagamento' }}
+                    {{ selectedForUpgrade?.gratuito ? $t('plans.change_modal.apply_now') : $t('plans.change_modal.continue_payment') }}
                 </v-btn>
                 <v-btn
                     block
                     variant="text"
-                    color="grey"
+                    color="medium-emphasis"
+                    class="text-none font-weight-bold"
                     @click="showFreeUpgradeModal = false"
                 >
-                    Talvez depois
+                    {{ $t('plans.change_modal.maybe_later') }}
                 </v-btn>
             </div>
         </div>
@@ -259,19 +306,26 @@ const applyFreeUpgrade = async () => {
         })
         
         if (response.ok) {
-            toast.success('Upgrade realizado com sucesso! Aproveite seu novo plano.')
+            toast.success(t('plans.toast_upgrade_success'))
             showFreeUpgradeModal.value = false
             await authStore.fetchUser()
             router.push({ name: 'Dashboard' })
         } else {
             const data = await response.json()
-            toast.error(data.error || 'Erro ao processar upgrade.')
+            toast.error(data.error || t('plans.toast_upgrade_error'))
         }
     } catch (e) {
-        toast.error('Erro de conexão.')
+        toast.error(t('plans.toast_connection_error'))
     } finally {
         upgrading.value = false
     }
+}
+
+const formatPrice = (value) => {
+    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', {
+        style: 'currency',
+        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD'
+    }).format(value || 0)
 }
 
 const continuePayment = () => {
@@ -359,4 +413,38 @@ const formatPrice = (value) => formatCurrency(Number(value) || 0, 'BRL')
     transform: translateY(0);
   }
 }
+<<<<<<< HEAD
+=======
+
+.gradient-text {
+  background: linear-gradient(135deg, #1867C0 30%, #5CBBF6 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gift-animation {
+    display: inline-flex;
+    background: radial-gradient(circle, rgba(234, 184, 0, 0.1) 0%, transparent 70%);
+    padding: 20px;
+    border-radius: 50%;
+}
+
+.animate-bounce {
+    animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-10px) scale(1.05); }
+}
+
+.border-dashed {
+    border: 2px dashed rgba(var(--v-border-color), 0.3) !important;
+}
+
+.shadow-btn {
+    box-shadow: 0 8px 16px rgba(var(--v-theme-primary), 0.25) !important;
+}
+>>>>>>> origin/Ricardo
 </style>

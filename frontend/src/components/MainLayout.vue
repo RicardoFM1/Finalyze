@@ -2,57 +2,114 @@
   <v-layout>
     <template v-if="!uiAuthStore.loading">
       <v-app-bar color="primary" elevation="2">
-         <v-app-bar-nav-icon
-      v-if="
-        (authStore.isAuthenticated &&
-        !isAuthPage) && route.meta.hideNavBar !== true
-      "
-      @click="toggleDrawer"
-      class="mr-2"
-      variant="text"
-    />
+        <!-- LAYOUT MOBILE: Centralizado e Compacto -->
+        <div v-if="!mdAndUp" class="d-flex align-center justify-center w-100 px-2 h-100">
+            <!-- Botão do Menu (Absoluto à Esquerda) -->
+            <v-app-bar-nav-icon
+                v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
+                @click="toggleDrawer"
+                class="position-absolute left-0 ml-1"
+                variant="text"
+                size="small"
+            />
 
-      <v-toolbar-title class="app-title pa-0">
-  <div class="brand-wrapper" @click="$router.push({ name: 'Home' })">
-    <img :src="logotipo" alt="Logo" class="logo" />
-    <span class="brand-name">Finalyze</span>
-  </div>
-</v-toolbar-title>
+            <!-- Grupo Central de Ações -->
+            <div class="d-flex align-center">
+                <!-- Se Logado: Logo + Nome Pequeno (Home já está no menu lateral) -->
+                <div v-if="authStore.isAuthenticated" class="brand-wrapper-mobile mx-1" @click="$router.push({ name: 'Home' })">
+                    <img :src="logotipo" alt="Logo" class="logo-mini" />
+                    <span class="brand-name-mini">Finalyze</span>
+                </div>
+                
+                <!-- Se Não Logado: Botão Home -->
+                <v-btn v-else icon="mdi-home-outline" variant="text" color="white" :to="{ name: 'Home' }" size="small"></v-btn>
 
+                <v-btn icon="mdi-tag-multiple-outline" variant="text" color="white" :to="{ name: 'Plans' }" size="small" class="mx-n1"></v-btn>
+                
+                <template v-if="authStore.isAuthenticated">
+                    <Coinselector />
+                </template>
 
+                <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="small">
+                    <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
+                </v-btn>
 
+                <template v-if="!authStore.isAuthenticated">
+                    <v-btn
+                        v-if="route.name === 'Register'"
+                        :to="{ name: 'Login' }"
+                        variant="elevated"
+                        color="white"
+                        class="ml-2 font-weight-bold text-primary text-none px-3"
+                        size="small"
+                        rounded="lg"
+                    >
+                        {{ $t('landing.btn_login') }}
+                    </v-btn>
+                    <v-btn
+                        v-else
+                        :to="{ name: 'Register' }"
+                        variant="elevated"
+                        color="white"
+                        class="ml-2 font-weight-bold text-primary text-none px-3"
+                        size="small"
+                        rounded="lg"
+                    >
+                        {{ $t('landing.btn_create_account') }}
+                    </v-btn>
+                </template>
+            </div>
+        </div>
 
-      <v-spacer />
-
-        <template v-if="isAuthPage">
-          <v-btn
-            prepend-icon="mdi-home"
-            variant="text"
-            color="white"
-            class="text-none font-weight-bold"
-            :to="{ name: 'Home' }"
-          >
-            {{ $t('login.btn_back_home') }}
-          </v-btn>
-        </template>
+        <!-- LAYOUT DESKTOP -->
         <template v-else>
-          <Coinselector />
-        </template>
+          <v-app-bar-nav-icon
+            v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
+            @click="toggleDrawer"
+            class="mr-2"
+            variant="text"
+          />
 
-        <v-btn
-          icon
-          variant="text"
-          color="white"
-          class="ml-2"
-          @click="uiAuthStore.toggleTheme"
-        >
-          <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
-        </v-btn>
+          <v-toolbar-title class="app-title pa-0" v-if="authStore.isAuthenticated || route.name !== 'Home'">
+            <div class="brand-wrapper" @click="$router.push({ name: 'Home' })">
+              <img :src="logotipo" alt="Logo" class="logo" />
+              <span class="brand-name">Finalyze</span>
+            </div>
+          </v-toolbar-title>
 
-        <template v-if="!authStore.isAuthenticated">
-            <v-btn :to="{ name: 'Plans' }" variant="text" color="white" class="mx-1 text-none font-weight-medium d-none d-sm-inline-flex">
-              {{ $t('landing.btn_plans') }}
+          <v-spacer />
+
+          <template v-if="isAuthPage">
+            <v-btn
+              prepend-icon="mdi-tag-multiple-outline"
+              variant="text"
+              color="white"
+              class="text-none font-weight-bold"
+              :to="{ name: 'Plans' }"
+            >
+              <span class="d-none d-sm-inline">{{ $t('landing.btn_plans') }}</span>
             </v-btn>
+            
+            <v-btn
+              prepend-icon="mdi-home-outline"
+              variant="text"
+              color="white"
+              class="text-none font-weight-bold ml-2"
+              :to="{ name: 'Home' }"
+            >
+              <span>Home</span>
+            </v-btn>
+          </template>
+
+          <template v-else>
+            <Coinselector />
+          </template>
+
+          <v-btn icon variant="text" color="white" class="ml-2" @click="uiAuthStore.toggleTheme">
+            <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
+          </v-btn>
+
+          <template v-if="!authStore.isAuthenticated">
             <v-btn
               v-if="route.name === 'Register'"
               :to="{ name: 'Login' }"
@@ -71,9 +128,9 @@
             >
               {{ $t('landing.btn_create_account') }}
             </v-btn>
+          </template>
         </template>
       </v-app-bar>
-
 
       <v-navigation-drawer
       v-if="
@@ -282,7 +339,34 @@ watch(isDesktop, (desktop) => {
 
 @media (max-width: 600px) {
   .app-title {
-    font-size: 1rem;
+    font-size: 0.8rem;
+    overflow: visible !important;
+  }
+  .brand-name {
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+  }
+  .logo {
+    height: 34px;
+  }
+
+  .brand-wrapper-mobile {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .logo-mini {
+    height: 24px;
+    width: auto;
+  }
+
+  .brand-name-mini {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: white;
   }
 }
 

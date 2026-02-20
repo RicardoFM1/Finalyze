@@ -1,5 +1,6 @@
 <template>
   <v-container class="dashboard-wrapper">
+<<<<<<< HEAD
     <!-- Header Modernizado -->
     <v-row class="mb-8 pt-4">
       <v-col cols="12">
@@ -10,12 +11,35 @@
             <div>
                 <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('home_welcome') }}, {{ authStore.user?.nome || 'bem-vindo' }}!</h1>
                 <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('home_subtitle') }}</p>
+=======
+    <v-row class="mb-4 pt-4" align="center">
+      <v-col cols="12">
+        <div class="d-flex align-center">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4 d-none d-sm-flex">
+                <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
+            </v-avatar>
+            <div class="w-100">
+                <h1 class="text-h4 text-sm-h4 text-md-h3 font-weight-bold mb-1 gradient-text text-truncate">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
+                <p class="text-subtitle-1 text-md-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
+>>>>>>> origin/Ricardo
             </div>
         </div>
-    </v-col>
+      </v-col>
     </v-row>
 
+<<<<<<< HEAD
    
+=======
+    <FilterLancamentos
+      v-model="filterStore.filters"
+      :categorias="categorias"
+      @apply="fetchSummary"
+      @clear="limparFiltro"
+      class="mb-8"
+      macro
+    />
+
+>>>>>>> origin/Ricardo
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -26,7 +50,7 @@
         </v-col>
 
         <template v-else>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card receita-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -35,13 +59,21 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
+<<<<<<< HEAD
                 <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.receita, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_income_month') }}</div>
+=======
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.receita) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.receita) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_income_month') }}</div>
+>>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card despesa-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -50,13 +82,21 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
+<<<<<<< HEAD
                 <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.despesa, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.total_expense_month') }}</div>
+=======
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.despesa) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.despesa) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_expense_month') }}</div>
+>>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="12" md="12" lg="4">
             <v-card class="summary-card glass-card saldo-gradient rounded-xl overflow-hidden" elevation="0">
               <v-card-item class="pa-6">
                 <div class="d-flex justify-space-between align-center mb-6">
@@ -65,8 +105,16 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
+<<<<<<< HEAD
                 <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.saldo, 'BRL') }}</div>
                 <div class="text-subtitle-2 opacity-80">{{ $t('features.net_worth_today') }}</div>
+=======
+                <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.saldo) }">
+                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="amount-value">{{ formatNumber(resumo.saldo) }}</span>
+                </div>
+                <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.net_worth_today') }}</div>
+>>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
@@ -128,15 +176,17 @@
 
         <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
            <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
-               <v-toolbar-title class="font-weight-bold">{{ $t('features.recent_transactions') }}</v-toolbar-title>
+               <v-toolbar-title class="font-weight-bold">
+                    {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? $t('filters.movement_period') : $t('features.recent_transactions') }}
+                </v-toolbar-title>
                <v-spacer></v-spacer>
                <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
            </v-toolbar>
            <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
                 class="rounded-xl mb-3 hover-item border-item"
-                :title="item.descricao || item.categoria" 
-                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${item.categoria}`" 
+                :title="item.descricao || $t('categories.' + item.categoria)" 
+                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)}`" 
               >
                 <template v-slot:prepend>
                     <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">
@@ -144,9 +194,21 @@
                     </v-avatar>
                 </template>
                 <template v-slot:append>
+<<<<<<< HEAD
                     <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
                         {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
                     </span>
+=======
+                    <div class="d-flex align-center">
+                        <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold mr-4">
+                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
+                        </span>
+                        <div class="d-flex gap-1">
+                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click.stop="abrirEditar(item)"></v-btn>
+                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="abrirExcluir(item)"></v-btn>
+                        </div>
+                    </div>
+>>>>>>> origin/Ricardo
                 </template>
               </v-list-item>
               <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-10 text-medium-emphasis">
@@ -162,21 +224,24 @@
         <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 text-white">{{ $t('features.quick_access') }}</v-card-title>
             <v-card-text class="pa-6 pt-2">
-                <v-btn block color="white" min-height="56" class="mb-4 rounded-xl text-primary font-weight-bold py-3" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
+                <v-btn v-if="authStore.hasFeature('Lançamentos')" block color="white" min-height="56" class="mb-4 rounded-xl text-primary font-weight-bold py-3" prepend-icon="mdi-plus-circle" @click="dialog = true" elevation="2">
                   {{ $t('features.launch_now') }}
                 </v-btn>
                 <v-row dense>
-                    <v-col cols="12" sm="6">
-                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold mb-2 mb-sm-0 py-2" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">{{ $t('features.reports') }}</v-btn>
+                    <v-col cols="12" sm="12" lg="6" v-if="authStore.hasFeature('Relatórios')">
+                        <v-btn block min-height="48" variant="tonal" color="white" class="rounded-xl font-weight-bold mb-2 py-2" prepend-icon="mdi-poll" :to="{ name: 'Reports' }">Relatórios</v-btn>
                     </v-col>
-                    <v-col cols="12" sm="6">
-                        <v-btn block min-height="48" variant="outlined" color="white" class="rounded-xl font-weight-bold py-2" prepend-icon="mdi-target" :to="{ name: 'Metas' }">{{ $t('features.my_goals') }}</v-btn>
+                    <v-col cols="12" sm="12" lg="6" v-if="authStore.hasFeature('Metas')">
+                        <v-btn block min-height="48" variant="tonal" color="white" class="rounded-xl font-weight-bold py-2" prepend-icon="mdi-target" :to="{ name: 'Metas' }">Metas</v-btn>
                     </v-col>
                 </v-row>
+                <div v-if="!authStore.hasFeature('Lançamentos') && !authStore.hasFeature('Relatórios') && !authStore.hasFeature('Metas')" class="text-white opacity-70 text-center py-4">
+                  Seu plano não possui acesso rápido disponível.
+                </div>
             </v-card-text>
         </v-card>
 
-        <v-card v-if="metasSummary.length" class="rounded-xl glass-card border-card metas-preview" elevation="4">
+        <v-card v-if="authStore.hasFeature('Metas') && metasSummary.length" class="rounded-xl glass-card border-card metas-preview" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 d-flex align-center">
                 <v-icon icon="mdi-target" color="primary" class="mr-2"></v-icon>
                 {{ $t('features.goals_progress') }}
@@ -184,12 +249,13 @@
             <v-card-text class="pa-6 pt-2">
                 <div v-for="meta in metasSummary" :key="meta.id" class="mb-6">
                     <div class="d-flex justify-space-between text-body-2 mb-2 font-weight-medium">
-                        <span>{{ meta.titulo }}</span>
-                        <span class="text-primary">{{ calculatePercentage(meta) }}%</span>
+                        <span class="text-truncate mr-2">{{ meta.titulo }}</span>
+                        <span v-if="meta.status === 'concluido'" class="text-success font-weight-bold">Concluído!</span>
+                        <span v-else class="text-primary">{{ calculatePercentage(meta) }}%</span>
                     </div>
                     <v-progress-linear
                         :model-value="calculatePercentage(meta)"
-                        :color="meta.cor || 'primary'"
+                        :color="meta.status === 'concluido' ? 'success' : (meta.cor || 'primary')"
                         height="10"
                         rounded
                         striped
@@ -199,7 +265,7 @@
             </v-card-text>
         </v-card>
 
-        <v-card v-else class="rounded-xl glass-card border-card pa-6 text-center" elevation="4">
+        <v-card v-else-if="authStore.hasFeature('Metas')" class="rounded-xl glass-card border-card pa-6 text-center" elevation="4">
           <v-icon icon="mdi-flag-plus-outline" size="48" color="primary" class="mb-4 opacity-30"></v-icon>
           <div class="text-h6 font-weight-bold mb-2">{{ $t('features.define_goals') }}</div>
           <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('features.goals_subtitle') }}</p>
@@ -209,28 +275,63 @@
     </v-row>
 
     <ModalNovoLancamento v-model="dialog" @saved="fetchSummary" />
+    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="fetchSummary" />
+    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="fetchSummary" />
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useFilterStore } from '../stores/filters'
 import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
+import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
+import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
+import FilterLancamentos from '../components/Filters/Filter.vue'
+import DateInput from '../components/Common/DateInput.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { useCurrency } from '../composables/useCurrency'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
+<<<<<<< HEAD
+=======
+import { useI18n } from 'vue-i18n'
+import { watch } from 'vue'
+const { t } = useI18n()
+>>>>>>> origin/Ricardo
 
 
-import { categorias } from '../constants/categorias'
+import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const authStore = useAuthStore()
+<<<<<<< HEAD
 const { formatCurrency } = useCurrency()
+=======
+const filterStore = useFilterStore()
+>>>>>>> origin/Ricardo
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
+
+const categorias = computed(() => {
+  try {
+    return categoriasConstantes.map(c => c.title)
+  } catch (e) {
+    return []
+  }
+})
+
+const itemAEditar = ref(null)
+const lancamentoIdExcluir = ref(null)
+const dialogEditar = ref(false)
+const dialogExcluir = ref(false)
+
+const limparFiltro = () => {
+    filterStore.clearFilters()
+    fetchSummary()
+}
 
 const getGreeting = computed(() => {
     const hour = new Date().getHours()
@@ -238,6 +339,17 @@ const getGreeting = computed(() => {
     if (hour >= 12 && hour < 18) return 'Boa tarde'
     return 'Boa noite'
 })
+
+const dynamicFontSize = (val) => {
+    if (val === undefined || val === null) return '2rem'
+    const strVal = formatNumber(val)
+    const len = strVal.length
+    
+    // Mais inteligente: reduz mais cedo se estiver apertado
+    if (len > 15) return '1.5rem'
+    if (len > 10) return '2rem'
+    return '2.5rem'
+}
 
 const getMarginPercentage = computed(() => {
     if (resumo.value.receita === 0) return 0
@@ -275,25 +387,10 @@ const resumo = ref({
     atividades_recentes: []
 })
 
-
 onMounted(async () => {
     fetchSummary()
     fetchMetas()
 })
-
-const fetchSummary = async () => {
-    loading.value = true
-    try {
-        const response = await authStore.apiFetch('/painel/resumo')
-        if (response.ok) {
-            resumo.value = await response.json()
-        }
-    } catch (e) {
-        console.error(e)
-    } finally {
-        loading.value = false
-    }
-}
 
 const fetchMetas = async () => {
     if (!authStore.hasFeature('Metas')) return
@@ -301,7 +398,13 @@ const fetchMetas = async () => {
         const response = await authStore.apiFetch('/metas')
         if (response.ok) {
             const data = await response.json()
+<<<<<<< HEAD
             metasSummary.value = data.slice(0, 3) // Pega as 3 primeiras
+=======
+            metasSummary.value = data
+                .filter(m => m.status !== 'inativo')
+                .slice(0, 3)
+>>>>>>> origin/Ricardo
         }
     } catch (e) { console.error(e) }
 }
@@ -315,6 +418,7 @@ const calculatePercentage = (meta) => {
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
 }
 
+<<<<<<< HEAD
 const salvarLancamento = async () => {
     saving.value = true
     try {
@@ -351,11 +455,52 @@ const salvarLancamento = async () => {
         }
     } catch (e) {
         toast.error('Erro de conexão')
+=======
+
+const fetchSummary = async () => {
+    loading.value = true
+    try {
+        const params = new URLSearchParams()
+        const f = filterStore.filters
+        if (f.data) {
+            if (f.data.includes(' to ')) {
+                const [inicio, fim] = f.data.split(' to ')
+                params.append('data_inicio', inicio)
+                params.append('data_fim', fim)
+            } else {
+                params.append('data', f.data)
+            }
+        }
+        if (f.descricao) params.append('descricao', f.descricao)
+        if (f.categoria) params.append('categoria', f.categoria)
+        if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
+        if (f.valor) params.append('valor', f.valor)
+
+        const url = Array.from(params).length > 0 ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        const response = await authStore.apiFetch(url)
+        if (response.ok) {
+            resumo.value = await response.json()
+        }
+    } catch (e) {
+        console.error(e)
+>>>>>>> origin/Ricardo
     } finally {
-        saving.value = false
+        loading.value = false
     }
 }
 
+<<<<<<< HEAD
+=======
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return '0,00'
+
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number(value))
+}
+
+>>>>>>> origin/Ricardo
 </script>
 
 <style scoped>
@@ -491,5 +636,40 @@ const salvarLancamento = async () => {
 .opacity-80 { opacity: 0.8; }
 .opacity-10 { opacity: 0.1; }
 .opacity-30 { opacity: 0.3; }
+
+.value-container {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.currency-symbol {
+    font-size: 0.5em;
+    margin-right: 4px;
+    opacity: 0.85;
+}
+
+.amount-value {
+    word-break: break-all;
+}
+
+.filter-card {
+  background: rgba(var(--v-theme-surface), 0.7) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+:deep(.v-field) {
+  border-radius: 12px !important;
+}
+
+.dashboard-date-filter {
+    max-width: none;
+}
 </style>
 

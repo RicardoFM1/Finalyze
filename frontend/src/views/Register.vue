@@ -34,17 +34,18 @@
     
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
         <v-btn
-          icon="mdi-arrow-left"
+          icon="mdi-tag-multiple-outline"
           variant="text"
           class="absolute-top-left ma-4 d-md-none"
-          @click="router.push({ name: 'Home' })"
+          @click="router.push({ name: 'Plans' })"
         ></v-btn>
 
-        <v-card flat max-width="500" width="100%" class="pa-8 pa-md-12 bg-transparent my-auto">
+        <v-card flat max-width="500" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent my-auto">
           <template v-if="!showVerification">
             <div class="text-center text-md-left mb-10">
-              <div class="d-flex align-center justify-center justify-md-start mb-4">
-
+              <div class="d-flex align-center justify-center justify-md-start mb-6 d-md-none">
+                <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
+                <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
               </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
               <div>
@@ -95,6 +96,7 @@ import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
+import logotipo from '../assets/logotipo.png'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -240,3 +242,95 @@ const handleCpfInput = (event) => {
   form.value.cpf = value
 }
 </script>
+<<<<<<< HEAD
+=======
+
+<style scoped>
+.auth-wrapper {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.bg-primary {
+  background: linear-gradient(135deg, #1867C0 0%, #1A237E 100%) !important;
+}
+
+.visual-bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+.floating-icon {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #1867C0, #1A237E);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-v-theme="dark"] .gradient-text {
+  background: linear-gradient(90deg, #5CBBF6, #A2D9FF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.max-w-600 {
+  max-width: 600px;
+}
+
+.absolute-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.absolute-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.scroll-y {
+  overflow-y: auto !important;
+}
+
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+.transparent-list, .transparent-list :deep(.v-list-item) {
+  background: transparent !important;
+}
+
+.logo-mobile {
+  height: 48px;
+  width: auto;
+}
+</style>
+>>>>>>> origin/Ricardo

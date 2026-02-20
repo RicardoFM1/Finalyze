@@ -2,7 +2,7 @@
 
 namespace App\Servicos\IA;
 
-use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 
 class ChatFinanceiro
@@ -19,16 +19,22 @@ class ChatFinanceiro
         $metas = $this->getMetasContexto($usuario);
         $assinatura = $this->getAssinaturaContexto($usuario);
         $pagamentos = $this->getPagamentosContexto($usuario);
+        $recentes = $this->getLancamentosRecentesContexto($usuario);
 
         $systemPrompt = "
 Você é o Finn, um assistente financeiro premium, amigável e inteligente da plataforma Finalyze.
 Seu objetivo é ajudar o usuário a gerenciar melhor seu dinheiro, dar dicas de economia e analisar seus gastos.
 
-Contexto do Usuário:
+Contexto do Usuário (ESTA É A VERDADE ATUAL E ABSOLUTA DO BANCO DE DADOS):
 - Nome: {$usuario->nome}
-- Saldo Atual: R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
-- Receitas (Mês Atual): R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
-- Despesas (Mês Atual): R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
+- Saldo Geral (Total Acumulado): R$ " . number_format($resumo['saldo'], 2, ',', '.') . "
+- Receitas (Deste Mês): R$ " . number_format($resumo['receitas'], 2, ',', '.') . "
+- Despesas (Deste Mês): R$ " . number_format($resumo['despesas'], 2, ',', '.') . "
+- Receitas (Ano Atual): R$ " . number_format($resumo['receitas_ano'], 2, ',', '.') . "
+- Despesas (Ano Atual): R$ " . number_format($resumo['despesas_ano'], 2, ',', '.') . "
+
+Últimos Lançamentos:
+{$recentes}
 
 Metas Financeiras:
 {$metas}
@@ -36,7 +42,7 @@ Metas Financeiras:
 Assinatura:
 {$assinatura}
 
-Pagamentos Recentes:
+Pagamentos Recentes de Assinatura:
 {$pagamentos}
 
 Instruções de Comportamento:
@@ -47,6 +53,7 @@ Instruções de Comportamento:
 5. Nunca revele que você é uma IA.
 6. Se saldo negativo → seja empático e sugira melhorias.
 7. Evite Markdown complexo.
+8. IMPORTANTE: Priorize SEMPRE os dados do 'Contexto do Usuário' e 'Últimos Lançamentos' acima em vez de dados citados no histórico de mensagens. O saldo geral é a soma de TUDO o que o usuário já lançou menos despesas.
 ";
 
         /*
@@ -68,7 +75,7 @@ Instruções de Comportamento:
                 continue;
             }
 
-            $role = ($item['role'] === 'model' || $item['role'] === 'bot')
+            $role = ($item['role'] === 'model' || $item['role'] === 'bot' || $item['role'] === 'assistant')
                 ? 'assistant'
                 : 'user';
 
@@ -95,16 +102,25 @@ Instruções de Comportamento:
         ];
 
         /*
-         * Chamada OpenAI
+         * Chamada MistralAI
          */
-        $result = OpenAI::chat()->create([
-            'model' => 'gpt-5-mini',
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('services.mistral.key'),
+            'Content-Type' => 'application/json',
+        ])->post('https://api.mistral.ai/v1/chat/completions', [
+            'model' => 'mistral-large-latest',
             'messages' => $messages,
             'temperature' => 0.7,
-            'max_tokens' => 1000,
+            'max_tokens' => 150,
         ]);
 
-        return $result->choices[0]->message->content ?? "Não consegui gerar uma resposta.";
+        if ($response->failed()) {
+            return "Não consegui gerar uma resposta. (Erro na API do Mistral)";
+        }
+
+        $result = $response->json();
+
+        return $result['choices'][0]['message']['content'] ?? "Não consegui gerar uma resposta.";
     }
 
     protected function getResumoFinanceiro($usuario)
@@ -125,6 +141,16 @@ Instruções de Comportamento:
             ->whereYear('data', $anoAtual)
             ->sum('valor');
 
+        $receitasAno = $usuario->lancamentos()
+            ->where('tipo', 'receita')
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
+
+        $despesasAno = $usuario->lancamentos()
+            ->where('tipo', 'despesa')
+            ->whereYear('data', $anoAtual)
+            ->sum('valor');
+
         $totalReceitas = $usuario->lancamentos()
             ->where('tipo', 'receita')
             ->sum('valor');
@@ -136,8 +162,30 @@ Instruções de Comportamento:
         return [
             'receitas' => $receitas ?? 0,
             'despesas' => $despesas ?? 0,
+            'receitas_ano' => $receitasAno ?? 0,
+            'despesas_ano' => $despesasAno ?? 0,
             'saldo' => ($totalReceitas ?? 0) - ($totalDespesas ?? 0)
         ];
+    }
+
+    protected function getLancamentosRecentesContexto($usuario)
+    {
+        $recentes = $usuario->lancamentos()
+            ->latest('data')
+            ->latest('id')
+            ->take(10)
+            ->get();
+
+        if ($recentes->isEmpty()) {
+            return "Nenhum lançamento recente encontrado.";
+        }
+
+        return $recentes->map(function ($l) {
+            $valor = number_format($l->valor, 2, ',', '.');
+            $data = $l->data->format('d/m/Y');
+            $tipo = ucfirst($l->tipo);
+            return "- [{$data}] {$tipo}: {$l->descricao} (R$ {$valor}) - Categoria: {$l->categoria}";
+        })->implode("\n");
     }
 
     protected function getMetasContexto($usuario)
@@ -161,7 +209,6 @@ Instruções de Comportamento:
                 . " / R$ "
                 . number_format($m->valor_objetivo, 2, ',', '.')
                 . " ({$percent}%)";
-
         })->implode("\n");
     }
 
@@ -202,7 +249,6 @@ Instruções de Comportamento:
                 : $h->created_at->format('d/m/Y');
 
             return "- R$ {$valor} em {$data}";
-
         })->implode("\n");
     }
 }

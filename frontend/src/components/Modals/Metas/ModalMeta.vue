@@ -230,7 +230,7 @@ watch(() => props.modelValue, (newVal) => {
     if (props.meta) {
       form.value = { 
         ...props.meta,
-        prazo: props.meta.prazo ? new Date(props.meta.prazo).toISOString().substr(0, 10) : null
+        prazo: props.meta.prazo ? new Date(props.meta.prazo).toLocaleDateString('en-CA') : null
       }
     } else {
       form.value = {

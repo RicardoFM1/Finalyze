@@ -9,6 +9,6 @@ class DashboardController extends Controller
 {
     public function resumo(Request $request, \App\Servicos\Painel\GerarResumoPainel $servico)
     {
-        return response()->json($servico->executar());
+        return response()->json($servico->executar($request->all()));
     }
 }

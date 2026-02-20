@@ -23,6 +23,40 @@
         <v-col cols="12" md="6">
           <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
         </v-col>
+<<<<<<< HEAD
+=======
+       <v-col cols="12">
+                            <v-autocomplete
+                                v-model="form.categoria"
+                                :items="categoriasTraduzidas"
+                                item-title="displayTitle"
+                                item-value="originalValue"
+                                :label="$t('modals.labels.category')"
+                                variant="outlined"
+                                rounded="lg"
+                                required
+                                :disabled="loading"
+                                :placeholder="$t('modals.placeholders.select_category')"
+                                :no-data-text="$t('transactions.no_data')"
+                            >
+                                <template v-slot:item="{ props, item }">
+                                    <v-list-item 
+                                        v-bind="props" 
+                                        :prepend-icon="item.raw.icon"
+                                        :title="item.raw.displayTitle"
+                                    ></v-list-item>
+                                </template>
+
+                                <template v-slot:prepend-inner>
+                                    <v-icon 
+                                        v-if="form.categoria" 
+                                        :icon="categoriasTraduzidas.find(c => c.originalValue === form.categoria)?.icon || 'mdi-tag'" 
+                                        class="mr-2 text-medium-emphasis"
+                                    ></v-icon>
+                                </template>
+                            </v-autocomplete>
+                        </v-col>
+>>>>>>> origin/Ricardo
         <v-col cols="12">
           <v-autocomplete
             v-model="form.categoria"
@@ -102,11 +136,22 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+<<<<<<< HEAD
+=======
+const categoriasTraduzidas = computed(() => {
+  return categorias.map(c => ({
+    displayTitle: t('categories.' + c.title),
+    originalValue: c.title,
+    icon: c.icon
+  }))
+})
+
+>>>>>>> origin/Ricardo
 const form = ref({
   tipo: 'despesa',
   valor: '',
   categoria: '',
-  data: new Date().toISOString().substr(0, 10),
+  data: new Date().toLocaleDateString('en-CA'),
   descricao: ''
 })
 
@@ -116,7 +161,7 @@ watch(() => props.modelValue, (newVal) => {
       tipo: 'despesa',
       valor: '',
       categoria: '',
-      data: new Date().toISOString().substr(0, 10),
+      data: new Date().toLocaleDateString('en-CA'),
       descricao: ''
     }
   }
