@@ -100,7 +100,52 @@
     "launch_limits": "{count} Transactions Limit",
     "launch_unlimited": "Unlimited Transactions",
     "toast_cancel_success": "Previous subscription canceled.",
-    "toast_cancel_error": "Error canceling subscription."
+    "toast_cancel_error": "Error canceling subscription.",
+    "upgrade_tip": {
+      "title": "Upgrade Tip",
+      "desc": "When changing plans, the remaining time of your current plan is converted into credit and automatically deducted from the price of the new plan."
+    },
+    "change_modal": {
+      "title": "Plan Change",
+      "confirm": "Confirm Change",
+      "credit_covered": "Your credit balance covers the cost of this new plan. Do you want to apply the change now?",
+      "credit_available": "You have {amount} of credit available for this upgrade.",
+      "new_plan": "New Plan",
+      "original_value": "Original Value",
+      "applied_credit": "Applied Credit",
+      "total_to_pay": "Total to Pay",
+      "apply_now": "Apply Now",
+      "continue_payment": "Continue to Payment",
+      "maybe_later": "Maybe later"
+    },
+    "popular": "MOST POPULAR",
+    "period": "Period",
+    "discount_label": "{amount}% off",
+    "renew_extend": "Renew / Extend",
+    "change_to": "Change to {plan}",
+    "choose": "Choose {plan}",
+    "periods": {
+      "sem": "wk",
+      "mês": "mo",
+      "tri": "tri",
+      "ano": "yr"
+    },
+    "toast_upgrade_success": "Upgrade successful! Enjoy your new plan.",
+    "toast_upgrade_error": "Error processing upgrade.",
+    "toast_connection_error": "Connection error.",
+    "plan_names": {
+      "Básico": "Basic",
+      "Pro": "Pro",
+      "Premium": "Premium"
+    },
+    "feature_names": {
+      "Painel Financeiro": "Financial Dashboard",
+      "Lançamentos": "Transactions",
+      "Metas": "Goals",
+      "Relatórios Gráficos": "Graphical Reports",
+      "Chat de suporte IA": "AI Support Chat",
+      "Exportação CSV": "CSV Export"
+    }
   },
   "metas": {
     "financial_title": "Financial Goals",
@@ -137,8 +182,12 @@
       "edit": "Edit",
       "inactivate_title": "Deactivate Item",
       "inactivate_confirm": "Are you sure you want to deactivate \"{title}\"?",
-      "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab."
-    }
+      "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab.",
+      "reactivate": "Reactivate",
+      "reactivate_success": "Item reactivated successfully!"
+    },
+    "no_goals_completed": "No goals completed yet.",
+    "no_notes_completed": "No notes completed yet."
   },
   "transactions": {
     "title": "Transactions",
@@ -152,7 +201,28 @@
       "description": "Description",
       "category": "Category",
       "type": "Type",
-      "amount": "Amount"
+      "amount": "Amount",
+      "payment_method": "Payment Method"
+    },
+    "payment_methods": {
+      "title": "Payment Method",
+      "money": "Cash",
+      "credit_card": "Credit Card",
+      "debit_card": "Debit Card",
+      "pix": "PIX",
+      "transfer": "Transfer",
+      "bank_transfer": "Bank Transfer",
+      "boleto": "Boleto",
+      "ticket": "Boleto/Ticket",
+      "visa": "Visa",
+      "master": "Mastercard",
+      "amex": "Amex",
+      "elo": "Elo",
+      "hipercard": "Hipercard",
+      "account_money": "Mercado Pago Account",
+      "credits": "Financial Credits",
+      "prorrata_credit": "Prorata Credit",
+      "other": "Other"
     },
     "type": {
       "income": "Income",
@@ -178,6 +248,8 @@
     "free": "Free",
     "active": "Active",
     "inactive": "Inactive",
+    "on": "Enabled",
+    "off": "Disabled",
     "toast_success": "Profile updated!",
     "toast_error": "Error updating profile",
     "toast_connection_error": "Connection error",
@@ -213,7 +285,10 @@
       "days_remaining": "{count} days remaining",
       "days_remaining_singular": "1 day remaining",
       "paid": "PAID",
-      "failed": "FAILED"
+      "failed": "FAILED",
+      "pending": "PENDING",
+      "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically.",
+      "manual_payment_only": "Manual Payment (e.g., Pix/Invoice)"
     },
     "warnings": {
       "image_size": "Image must be at most 10MB.",
@@ -223,7 +298,16 @@
   },
   "reports": {
     "title": "Financial Reports",
-    "subtitle": "Income vs Expenses (Last 6 months)"
+    "subtitle": "Income vs Expenses (Last 6 months)",
+    "view_period": "Viewing Period",
+    "last_3": "Last 3 months",
+    "last_6": "Last 6 months",
+    "last_12": "Last 12 months",
+    "last_24": "Last 24 months",
+    "loading": "Loading data...",
+    "restricted_access": "Restricted Access",
+    "restricted_subtitle": "Your current plan does not include advanced reports.",
+    "view_plans": "View Plans"
   },
   "admin": {
     "title": "Plans",
@@ -274,6 +358,7 @@
     "financial_health": "Financial Health",
     "resource_distribution": "Resource Distribution",
     "margin": "Margin",
+    "margin_explanation": "Represents the percentage of revenue that remains after paying all expenses (Net Profit Margin).",
     "incomes": "Income",
     "expenses": "Expenses",
     "net": "Net",
@@ -341,8 +426,14 @@
     "unit_price": "Unit Price",
     "total": "Total",
     "price_per_period": "{period}: {price}",
+    "subtotal": "Subtotal",
+    "current_credit": "Current plan credit (-)",
+    "plan_adjustment": "Plan Adjustment",
+    "credit_covered_desc": "Your accumulated credits cover the full value of this change. Click the button below to complete your plan update.",
+    "finish_update": "Finish Update",
     "steps": {
       "identification": "Identification",
+      "verification": "Verification",
       "payment": "Payment"
     },
     "auth_tabs": {
@@ -359,7 +450,16 @@
     "cancel_pending": "Cancel Pending Order / Choose Another Plan",
     "preparing_payment": "Preparing payment environment...",
     "try_again": "Try Again",
-    "back_to_plans": "Back to Plans"
+    "back_to_plans": "Back to Plans",
+    "toasts": {
+      "upgrade_success": "Upgrade successful!",
+      "upgrade_error": "Error processing free upgrade",
+      "verify_success": "Account verified successfully!",
+      "verify_error": "Error verifying code",
+      "resend_success": "New code sent successfully!",
+      "resend_error": "Error resending code",
+      "register_success": "Registration completed! Please check your email."
+    }
   },
   "NotFound": {
     "title": "404",
@@ -374,7 +474,8 @@
     "age_restriction": "You must be at least 18 years old.",
     "match_password": "Passwords do not match",
     "invalid_value": "Invalid value",
-    "description_too_long": "The description cannot be longer than 255 characters."
+    "description_too_long": "The description cannot be longer than 255 characters.",
+    "min_age": "You must be at least 18 years old."
   },
   "toasts": {
     "login_success": "Login successful!",
@@ -436,5 +537,82 @@
       "emoji": "Select an emoji",
       "search_emoji": "Search emoji..."
     }
+  },
+  "filters": {
+    "dashboard_title": "Overview",
+    "search_title": "Search Filters",
+    "period": "Period",
+    "description": "Description",
+    "category": "Category",
+    "type": "Type",
+    "value": "Value",
+    "clear": "Clear",
+    "apply": "Apply",
+    "movement_period": "Movements in the Period"
+  },
+  "categories": {
+    "Salário": "Salary",
+    "Investimentos": "Investments",
+    "Renda Extra": "Extra Income",
+    "Vendas": "Sales",
+    "Aluguel": "Rent",
+    "Condomínio": "Condo Fee",
+    "Energia": "Electricity",
+    "Água": "Water",
+    "Internet": "Internet",
+    "Gás": "Gas",
+    "Manutenção Casa": "Home Maintenance",
+    "Móveis/Decoração": "Furniture/Decor",
+    "Mercado": "Groceries",
+    "Restaurante": "Restaurant",
+    "Lanches/Delivery": "Snacks/Delivery",
+    "Bar/Happy Hour": "Bar/Happy Hour",
+    "Combustível": "Fuel",
+    "Uber/Táxi": "Uber/Taxi",
+    "Transporte Público": "Public Transport",
+    "Estacionamento": "Parking",
+    "Manutenção Veículo": "Vehicle Maintenance",
+    "Seguro Auto": "Car Insurance",
+    "Saúde": "Health",
+    "Farmácia": "Pharmacy",
+    "Médico/Dentista": "Doctor/Dentist",
+    "Academia/Esportes": "Gym/Sports",
+    "Cuidados Pessoais": "Personal Care",
+    "Educação": "Education",
+    "Cursos": "Courses",
+    "Livros": "Books",
+    "Lazer": "Leisure",
+    "Viagem": "Travel",
+    "Streaming/Assinaturas": "Streaming/Subscriptions",
+    "Jogos": "Games",
+    "Cinema/Teatro": "Cinema/Theater",
+    "Roupas": "Clothes",
+    "Eletrônicos": "Electronics",
+    "Presentes": "Gifts",
+    "Cartão de Crédito": "Credit Card",
+    "Impostos": "Taxes",
+    "Empréstimos": "Loans",
+    "Taxas Bancárias": "Bank Fees",
+    "Seguros (Vida/Resid)": "Insurance (Life/Home)",
+    "Pets": "Pets",
+    "Doações": "Donations",
+    "Crianças": "Kids",
+    "Outros": "Others"
+  },
+  "actions": {
+    "import_excel": "Import Excel",
+    "export_page": "Export current page",
+    "export_excel": "Export to Excel",
+    "export_pdf": "Export to PDF"
+  },
+  "finn": {
+    "placeholder": "Ask about your spending...",
+    "thinking": "Finn is thinking...",
+    "greeting": "Hello! I'm Finn. How can I help with your finances today?",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete_confirm": "Do you want to remove this message?",
+    "error_connection": "Sorry, I lost connection with my AI brain. Try again in a moment!",
+    "error_generic": "I had a little issue. Can you repeat that?"
   }
 }

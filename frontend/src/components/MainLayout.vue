@@ -2,8 +2,8 @@
   <v-layout>
     <template v-if="!uiAuthStore.loading">
       <v-app-bar color="primary" elevation="2">
-        <!-- LAYOUT MOBILE: Centralizado e Compacto -->
-        <div v-if="!mdAndUp" class="d-flex align-center justify-center w-100 px-2 h-100">
+        <!-- LAYOUT MOBILE/TABLET: Centralizado e Compacto -->
+        <div v-if="!lgAndUp" class="d-flex align-center justify-center w-100 px-2 h-100">
             <!-- Botão do Menu (Absoluto à Esquerda) -->
             <v-app-bar-nav-icon
                 v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
@@ -242,8 +242,8 @@ const confirmLogout = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
 
-const { mdAndUp } = useDisplay()
-const isDesktop = computed(() => mdAndUp.value)
+const { mdAndUp, lgAndUp } = useDisplay()
+const isDesktop = computed(() => lgAndUp.value)
 
 const isAuthPage = computed(() =>
   ['Login', 'Register'].includes(route.name)
@@ -312,53 +312,71 @@ watch(isDesktop, (desktop) => {
 .app-title {
   display: flex !important;
   align-items: center;
+  max-width: 250px; /* Limita a largura do título */
 }
 
 .brand-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
+  height: 48px; /* Altura fixa para alinhar */
+  overflow: hidden;
 }
 
 .logo {
-  height: 64px; 
-  width: auto;
+  height: 40px !important; /* Reduzido de 48px para ter margem */
+  width: auto !important;
+  max-width: 120px;
+  object-fit: contain;
   display: block;
+  flex-shrink: 0;
 }
 
 .brand-name {
   font-weight: 800;
-  font-size: 1.6rem; 
+  font-size: 1.4rem !important; /* Ligeiramente menor para caber melhor */
   letter-spacing: 0.5px;
   color: white;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-
+@media (max-width: 960px) {
+  .logo {
+    height: 32px !important;
+  }
+  .brand-name {
+    font-size: 1.2rem !important;
+  }
+  .app-title {
+    max-width: 180px;
+  }
+}
 
 @media (max-width: 600px) {
   .app-title {
-    font-size: 0.8rem;
-    overflow: visible !important;
+    max-width: 140px;
   }
   .brand-name {
-    font-size: 1.1rem;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
+    display: none; /* Esconde nome no mobile para sobrar espaço pros ícones */
   }
   .logo {
-    height: 34px;
+    height: 28px !important;
   }
+}
 
   .brand-wrapper-mobile {
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
   }
 
   .logo-mini {
     height: 24px;
     width: auto;
+    flex-shrink: 0;
   }
 
   .brand-name-mini {
@@ -366,8 +384,8 @@ watch(isDesktop, (desktop) => {
     font-weight: 800;
     letter-spacing: -0.5px;
     color: white;
+    white-space: nowrap;
   }
-}
 
 
 </style>

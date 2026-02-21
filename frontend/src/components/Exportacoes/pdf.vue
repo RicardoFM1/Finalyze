@@ -1,7 +1,7 @@
 <template>
   <v-btn @click="exportarPdf" color="error" variant="outlined" class="ml-2 mt-4" :disabled="loading">
     <v-icon left>mdi-file-pdf-box</v-icon>
-    Exportar para PDF
+    {{ $t('actions.export_pdf') }}
   </v-btn>
 </template>
 

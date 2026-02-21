@@ -1,58 +1,61 @@
 <template>
   <v-container>
-    <v-row align="center" class="mb-8 pt-4">
+    <v-row align="center" class="mb-6 pt-4">
       <v-col cols="12">
-        <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
-          <div class="tabs-container rounded-xl pa-1 elevation-1 glass-card d-flex">
-            <v-tabs v-model="activeTab" color="primary" hide-slider class="pill-tabs" density="comfortable">
-              <v-tab value="metas" rounded="lg" class="mr-1">
-                <v-icon start icon="mdi-bullseye-arrow"></v-icon>
-                {{ $t('metas.tabs.metas') }}
-              </v-tab>
-              <v-tab value="notepad" rounded="lg">
-                <v-icon start icon="mdi-notebook-outline"></v-icon>
-                {{ $t('metas.tabs.notepad') }}
-              </v-tab>
-            </v-tabs>
-          </div>
-
-          <div class="d-flex flex-column flex-sm-row align-center gap-4">
-            <v-tabs
-              v-model="statusFilter"
-              class="status-pill-tabs rounded-xl pa-1 glass-card"
-              color="primary"
-              density="compact"
-              hide-slider
-              show-arrows
-            >
-              <v-tab value="andamento" size="small" rounded="lg">
-                <v-icon start size="16">mdi-progress-clock</v-icon>
-                Em andamento
-              </v-tab>
-              <v-tab value="concluido" size="small" rounded="lg">
-                <v-icon start size="16">mdi-check-circle</v-icon>
-                Concluídas
-              </v-tab>
-              <v-tab value="inativo" size="small" rounded="lg">
-                <v-icon start size="16">mdi-pause-circle</v-icon>
-                Inativas
-              </v-tab>
-              <v-tab value="all" size="small" rounded="lg">
-                <v-icon start size="16">mdi-format-list-bulleted</v-icon>
-                Todas
-              </v-tab>
-            </v-tabs>
+        <div class="d-flex flex-column gap-6">
+          <!-- Top Row: Main View Tabs & New Button -->
+          <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
+            <div class="tabs-container rounded-xl pa-1 elevation-1 glass-card d-inline-flex">
+              <v-tabs v-model="activeTab" color="primary" hide-slider class="pill-tabs" density="comfortable">
+                <v-tab value="metas" rounded="lg" class="px-6">
+                  <v-icon start icon="mdi-bullseye-arrow" class="mr-2"></v-icon>
+                  {{ $t('metas.tabs.metas') }}
+                </v-tab>
+                <v-tab value="notepad" rounded="lg" class="px-6">
+                  <v-icon start icon="mdi-notebook-outline" class="mr-2"></v-icon>
+                  {{ $t('metas.tabs.notepad') }}
+                </v-tab>
+              </v-tabs>
+            </div>
 
             <v-btn 
               color="primary" 
               :prepend-icon="activeTab === 'metas' ? 'mdi-plus' : 'mdi-note-plus-outline'" 
               rounded="xl" 
               size="large"
-              class="font-weight-bold px-6 elevation-3 w-100 w-sm-auto"
+              class="font-weight-bold px-8 elevation-3 shadow-primary w-100 w-sm-auto"
               @click="openDialog(activeTab === 'metas' ? 'financeira' : 'pessoal')"
             >
               {{ activeTab === 'metas' ? $t('metas.new_goal') : $t('metas.new_note') }}
             </v-btn>
+          </div>
+
+          <!-- Bottom Row: Status Filters -->
+          <div class="filter-wrapper d-flex justify-center justify-md-start">
+            <v-btn-toggle
+              v-model="statusFilter"
+              mandatory
+              color="primary"
+              variant="text"
+              class="status-toggle-group gap-2 flex-wrap justify-center justify-md-start"
+            >
+              <v-btn value="andamento" class="rounded-pill filter-pill" size="small">
+                <v-icon start size="18">mdi-progress-clock</v-icon>
+                {{ $t('metas.filter.active') }}
+              </v-btn>
+              <v-btn value="concluido" class="rounded-pill filter-pill" size="small">
+                <v-icon start size="18">mdi-check-circle</v-icon>
+                {{ $t('metas.filter.completed') }}
+              </v-btn>
+              <v-btn value="inativo" class="rounded-pill filter-pill" size="small">
+                <v-icon start size="18">mdi-pause-circle</v-icon>
+                {{ $t('metas.filter.inactive') }}
+              </v-btn>
+              <v-btn value="all" class="rounded-pill filter-pill" size="small">
+                <v-icon start size="18">mdi-format-list-bulleted</v-icon>
+                {{ $t('metas.filter.all') }}
+              </v-btn>
+            </v-btn-toggle>
           </div>
         </div>
       </v-col>
@@ -124,7 +127,7 @@
                   @click="reativarItem(meta)"
                   prepend-icon="mdi-restore"
                 >
-                  Reativar
+                  {{ $t('metas.actions.reactivate') }}
                 </v-btn>
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
@@ -134,7 +137,7 @@
         </v-row>
         <div v-else class="text-center py-12 text-medium-emphasis">
           <v-icon icon="mdi-bullseye-arrow" size="64" class="mb-4 opacity-20"></v-icon>
-          <p>{{ statusFilter === 'concluido' ? 'Nenhuma meta concluída ainda.' : $t('metas.no_financial_goals') }}</p>
+          <p>{{ statusFilter === 'concluido' ? $t('metas.no_goals_completed') : $t('metas.no_financial_goals') }}</p>
         </div>
       </v-window-item>
 
@@ -196,13 +199,13 @@
         </v-row>
         <div v-else class="text-center py-12 text-medium-emphasis">
           <v-icon icon="mdi-notebook-outline" size="64" class="mb-4 opacity-20"></v-icon>
-          <p>{{ statusFilter === 'concluido' ? 'Sem anotações concluídas.' : $t('metas.no_notes_available') }}</p>
+          <p>{{ statusFilter === 'concluido' ? $t('metas.no_notes_completed') : $t('metas.no_notes_available') }}</p>
         </div>
       </v-window-item>
     </v-window>
     
-    <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="fetchMetas" />
-    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="fetchMetas" />
+    <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="onMetaSalva" />
+    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="onMetaExcluida" />
   </v-container>
 </template>
 
@@ -234,8 +237,51 @@ onMounted(() => {
   fetchMetas()
 })
 
-const fetchMetas = async () => {
-  loading.value = true
+const onMetaSalva = (optimisticItem, isAnotacao) => {
+    if (optimisticItem) {
+        // Se for uma edição (tem ID real), atualizamos o item existente
+        const isEdit = optimisticItem.id && !String(optimisticItem.id).startsWith('opt-')
+        
+        if (isEdit) {
+            const list = isAnotacao ? anotacoes : metas
+            const index = list.value.findIndex(m => m.id === optimisticItem.id)
+            if (index !== -1) {
+                list.value[index] = { ...list.value[index], ...optimisticItem }
+            }
+        } else {
+            // Se for novo, adicionamos no topo
+            const matchesFilter = statusFilter.value === 'all' || 
+                                  (statusFilter.value === 'andamento' && optimisticItem.status === 'andamento')
+            
+            if (matchesFilter) {
+                if (isAnotacao) {
+                    anotacoes.value.unshift(optimisticItem)
+                } else {
+                    metas.value.unshift(optimisticItem)
+                }
+            }
+        }
+    }
+    
+    // Sincronização em background - com delay para garantir que o backend commitou
+    setTimeout(() => {
+        fetchMetas(true)
+    }, 800)
+}
+
+const onMetaExcluida = ({ id, isAnotacao }) => {
+    if (isAnotacao) {
+        anotacoes.value = anotacoes.value.filter(a => a.id !== id)
+    } else {
+        metas.value = metas.value.filter(m => m.id !== id)
+    }
+    setTimeout(() => {
+        fetchMetas(true)
+    }, 800)
+}
+
+const fetchMetas = async (isSilent = false) => {
+  if (!isSilent) loading.value = true
   try {
     const [resMetas, resAnotacoes] = await Promise.all([
       authStore.apiFetch('/metas'),
@@ -247,7 +293,7 @@ const fetchMetas = async () => {
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
+    if (!isSilent) loading.value = false
   }
 }
 
@@ -296,32 +342,50 @@ const toggleStatusConcluido = async (item) => {
   }
 
   const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
+  const oldStatus = item.status
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
   
+  // Optimistic update
+  item.status = newStatus
+  toast.success(newStatus === 'concluido' ? t('toasts.success_update') : t('toasts.success_restore'))
+
   try {
     const response = await authStore.apiFetch(endpoint, {
       method: 'PATCH',
-      body: JSON.stringify({ status: 'andamento' })
+      body: JSON.stringify({ status: newStatus })
     })
-    if (response.ok) {
-      toast.success(t('toasts.success_restore'))
-      fetchMetas()
-      fetchAnotacoes()
+    if (!response.ok) {
+        throw new Error('Erro ao atualizar status')
     }
-  } catch (e) { console.error(e) }
+  } catch (e) { 
+      // Rollback
+      item.status = oldStatus
+      console.error(e) 
+  } finally {
+      setTimeout(() => { fetchMetas(true) }, 800)
+  }
 }
 
 const reativarItem = async (item) => {
   const isAnotacao = !item.tipo || item.tipo === 'pessoal'
   const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
+  const oldStatus = item.status
+
+  // Optimistic update
+  item.status = 'andamento'
+  toast.success(t('metas.actions.reactivate_success'))
   
   try {
     const response = await authStore.apiFetch(endpoint, { method: 'POST' })
-    if (response.ok) {
-      toast.success('Item reativado com sucesso!')
-      fetchMetas()
+    if (!response.ok) {
+        throw new Error('Erro ao reativar')
     }
-  } catch (e) { console.error(e) }
+  } catch (e) { 
+      item.status = oldStatus
+      console.error(e) 
+  } finally {
+      setTimeout(() => { fetchMetas(true) }, 800)
+  }
 }
 
 // Helpers
@@ -383,6 +447,14 @@ const getMetaSubtitle = (meta) => {
 
 .finance-card {
   background: linear-gradient(135deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-surface), 0.8) 100%);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(var(--v-border-color), 0.05);
+}
+
+.finance-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(var(--v-theme-primary), 0.2);
 }
 
 .notepad-card {
@@ -391,6 +463,13 @@ const getMetaSubtitle = (meta) => {
   min-height: 200px;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.notepad-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
 :root[data-v-theme="dark"] .notepad-card,
@@ -434,19 +513,60 @@ const getMetaSubtitle = (meta) => {
 .gap-1 {
   gap: 8px;
 }
-.pill-tabs :deep(.v-tab--selected), 
-.status-pill-tabs :deep(.v-tab--selected) {
-  background: rgb(var(--v-theme-primary)) !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(var(--v-theme-primary), 0.3);
+.pill-tabs :deep(.v-tab--selected) {
+  background: white !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.pill-tabs :deep(.v-tab), 
-.status-pill-tabs :deep(.v-tab) {
+.v-theme--dark .pill-tabs :deep(.v-tab--selected) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.pill-tabs :deep(.v-tab) {
   text-transform: none;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px !important;
+  opacity: 0.7;
+}
+
+.pill-tabs :deep(.v-tab--selected) {
+    opacity: 1;
+}
+
+.status-toggle-group {
+    background: transparent !important;
+}
+
+.filter-pill {
+    background: rgba(var(--v-theme-surface), 0.5) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    transition: all 0.2s ease;
+    opacity: 0.8;
+}
+
+.filter-pill.v-btn--active {
+    background: rgb(var(--v-theme-primary)) !important;
+    color: white !important;
+    opacity: 1;
+    border-color: transparent !important;
+    box-shadow: 0 4px 10px rgba(var(--v-theme-primary), 0.3) !important;
+}
+
+.filter-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-scroll-wrapper {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .glass-card {
@@ -455,8 +575,19 @@ const getMetaSubtitle = (meta) => {
   border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
-.gap-4 {
-  gap: 16px;
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+
+.shadow-primary {
+  box-shadow: 0 8px 20px rgba(var(--v-theme-primary), 0.3) !important;
 }
 
+@media (max-width: 600px) {
+  .pill-tabs :deep(.v-tab) {
+    min-width: 100px !important;
+    padding: 0 12px !important;
+    font-size: 0.85rem !important;
+  }
+}
 </style>

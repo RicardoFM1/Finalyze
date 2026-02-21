@@ -8,17 +8,19 @@
   >
     <div v-if="isFeatured" class="popular-badge">
       <v-chip color="white" text-color="primary" size="small" variant="flat" class="font-weight-bold px-4">
-        MAIS POPULAR
+        {{ $t('plans.popular') }}
       </v-chip>
     </div>
 
     <v-card-item class="pt-8 pb-4 text-center">
-      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">{{ plan.nome }}</v-card-title>
+      <v-card-title class="text-h5 font-weight-black mb-2 plan-name">
+        {{ $t('plans.plan_names.' + plan.nome, plan.nome) }}
+      </v-card-title>
       
    
       <div v-if="plan.periodos.length" class="text-center my-3">
         <div class="text-caption text-medium-emphasis mb-2 font-weight-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem !important;">
-          Período
+          {{ $t('plans.period') }}
         </div>
         
         <v-chip-group
@@ -38,15 +40,15 @@
             size="small"
             style="border-color: rgba(var(--v-theme-primary), 0.2);"
           >
-            {{ periodo.nome }}
+            {{ periodo.slug === 'mensal' ? $t('admin.intervals.month') : (periodo.slug === 'anual' ? $t('admin.intervals.year') : periodo.nome) }}
           </v-chip>
         </v-chip-group>
       </div>
 
       <div class="price-container my-4">
-        <span class="currency">R$</span>
+        <span class="currency">{{ $t('common.currency') }}</span>
         <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
-        <span class="price-decimal">,{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+        <span class="price-decimal">{{ $t('common.currency') === 'R$' ? ',' : '.' }}{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -58,7 +60,7 @@
         class="mb-3 font-weight-bold"
       >
         <v-icon start size="small">mdi-tag</v-icon>
-        {{ currentDiscount }}% de desconto
+        {{ $t('plans.discount_label', { amount: currentDiscount }) }}
       </v-chip>
       
       <v-card-subtitle class="description-text px-4" v-html="plan.descricao"></v-card-subtitle>
@@ -76,7 +78,9 @@
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium feature-text">{{ feature.nome }}</span>
+          <span class="text-body-2 font-weight-medium feature-text">
+            {{ $t('plans.feature_names.' + feature.nome, feature.nome) }}
+          </span>
         </v-list-item>
         <v-list-item 
           v-if="plan.limite_lancamentos"
@@ -115,6 +119,9 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const props = defineProps({
@@ -141,14 +148,14 @@ const currentPrice = computed(() => {
 })
 
 const selectedPeriodSlug = computed(() => {
-    const slug = selectedPeriod.value?.slug || 'mensal' || 'weekly'
+    const slug = selectedPeriod.value?.slug || 'mensal'
     const periodText = {
-        'semanal': 'sem',
-        'mensal': 'mês',
-        'trimestral': 'tri',
-        'anual': 'ano'
+        'semanal': t('plans.periods.sem'),
+        'mensal': t('plans.periods.mês'),
+        'trimestral': t('plans.periods.tri'),
+        'anual': t('plans.periods.ano')
     }
-    return periodText[slug] || 'mês'
+    return periodText[slug] || t('plans.periods.mês')
 })
 
 const currentDiscount = computed(() => {
@@ -160,9 +167,9 @@ const isCurrentPlan = computed(() => {
 })
 
 const buttonText = computed(() => {
-    if (isCurrentPlan.value) return 'Renovar / Estender'
-    if (authStore.user?.plano_id) return 'Mudar para ' + props.plan.nome
-    return 'Escolher ' + props.plan.nome
+    if (isCurrentPlan.value) return t('plans.renew_extend')
+    if (authStore.user?.plano_id) return t('plans.change_to', { plan: t('plans.plan_names.' + props.plan.nome, props.plan.nome) })
+    return t('plans.choose', { plan: t('plans.plan_names.' + props.plan.nome, props.plan.nome) })
 })
 
 const emit = defineEmits(['select'])
@@ -175,8 +182,11 @@ const clickEscolha = () => {
 }
 
 const formatPrice = (value) => {
-    if (!value && value !== 0) return 'R$ 0,00';
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+    if (!value && value !== 0) return t('common.currency') + ' 0,00';
+    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', { 
+        style: 'currency', 
+        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD' 
+    }).format(value)
 }
 </script>
 

@@ -3,7 +3,7 @@ html {
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -11,6 +11,33 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.text-h1,
+.text-h2,
+.text-h3,
+.text-h4,
+.text-h5,
+.text-h6 {
+  font-family: 'Outfit', sans-serif !important;
+}
+
+/* Fix Global para imagens de Logo */
+.v-app-bar img.logo,
+.v-app-bar img.logo-mini {
+  max-height: 40px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+.brand-name {
+  font-family: 'Outfit', sans-serif !important;
 }
 
 .auth-wrapper {

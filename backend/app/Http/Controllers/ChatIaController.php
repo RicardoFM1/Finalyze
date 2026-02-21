@@ -17,10 +17,11 @@ class ChatIaController extends Controller
         $usuario = $request->user();
 
         try {
-            // Pegamos o histórico enviado pelo frontend
+            // Pegamos o histórico e o locale enviados pelo frontend
             $historico = $request->historico ?? [];
+            $locale = $request->locale ?? 'pt-BR';
 
-            $resposta = $servico->perguntar($request->mensagem, $historico);
+            $resposta = $servico->perguntar($request->mensagem, $historico, $locale);
 
             return response()->json([
                 'resposta' => $resposta

@@ -100,7 +100,52 @@
     "launch_limits": "Limite de {count} Lançamentos",
     "launch_unlimited": "Lançamentos Ilimitados",
     "toast_cancel_success": "Pagamento anterior cancelado.",
-    "toast_cancel_error": "Erro ao cancelar assinatura."
+    "toast_cancel_error": "Erro ao cancelar assinatura.",
+    "upgrade_tip": {
+      "title": "Dica de Upgrade",
+      "desc": "Ao mudar de plano, o tempo restante do seu plano atual é convertido em crédito e descontado automaticamente no valor do novo plano."
+    },
+    "change_modal": {
+      "title": "Alteração de Plano",
+      "confirm": "Confirmar Alteração",
+      "credit_covered": "Seu saldo de créditos cobre o valor deste novo plano. Deseja aplicar a mudança agora?",
+      "credit_available": "Você tem {amount} de crédito disponível para este upgrade.",
+      "new_plan": "Novo Plano",
+      "original_value": "Valor Original",
+      "applied_credit": "Crédito Aplicado",
+      "total_to_pay": "Total a Pagar",
+      "apply_now": "Aplicar Agora",
+      "continue_payment": "Continuar para Pagamento",
+      "maybe_later": "Talvez depois"
+    },
+    "popular": "MAIS POPULAR",
+    "period": "Período",
+    "discount_label": "{amount}% de desconto",
+    "renew_extend": "Renovar / Estender",
+    "change_to": "Mudar para {plan}",
+    "choose": "Escolher {plan}",
+    "periods": {
+      "sem": "sem",
+      "mês": "mês",
+      "tri": "tri",
+      "ano": "ano"
+    },
+    "toast_upgrade_success": "Upgrade realizado com sucesso! Aproveite seu novo plano.",
+    "toast_upgrade_error": "Erro ao processar upgrade.",
+    "toast_connection_error": "Erro de conexão.",
+    "plan_names": {
+      "Básico": "Básico",
+      "Pro": "Pro",
+      "Premium": "Premium"
+    },
+    "feature_names": {
+      "Painel Financeiro": "Painel Financeiro",
+      "Lançamentos": "Lançamentos",
+      "Metas": "Metas",
+      "Relatórios Gráficos": "Relatórios Gráficos",
+      "Chat de suporte IA": "Chat de suporte IA",
+      "Exportação CSV": "Exportação CSV"
+    }
   },
   "metas": {
     "financial_title": "Metas Financeiras",
@@ -125,7 +170,7 @@
       "notepad": "Bloco de Notas"
     },
     "filter": {
-      "active": "Em Andamento",
+      "active": "Em andamento",
       "completed": "Concluídas",
       "inactive": "Inativas",
       "all": "Todas"
@@ -137,8 +182,12 @@
       "edit": "Editar",
       "inactivate_title": "Desativar Item",
       "inactivate_confirm": "Você tem certeza que deseja desativar \"{title}\"?",
-      "inactivate_desc": "O item sairá da sua lista atual, mas poderá ser recuperado na aba de itens inativos."
-    }
+      "inactivate_desc": "O item será removido da sua lista atual, mas poderá ser recuperado na aba de itens inativos.",
+      "reactivate": "Reativar",
+      "reactivate_success": "Item reativado com sucesso!"
+    },
+    "no_goals_completed": "Nenhuma meta concluída ainda.",
+    "no_notes_completed": "Sem anotações concluídas."
   },
   "transactions": {
     "title": "Lançamentos",
@@ -152,7 +201,28 @@
       "description": "Descrição",
       "category": "Categoria",
       "type": "Tipo",
-      "amount": "Valor"
+      "amount": "Valor",
+      "payment_method": "Forma de Pagamento"
+    },
+    "payment_methods": {
+      "title": "Forma de Pagamento",
+      "money": "Dinheiro",
+      "credit_card": "Cartão de Crédito",
+      "debit_card": "Cartão de Débito",
+      "pix": "PIX",
+      "transfer": "Transferência",
+      "bank_transfer": "Transferência Bancária",
+      "boleto": "Boleto",
+      "ticket": "Boleto",
+      "visa": "Visa",
+      "master": "Mastercard",
+      "amex": "Amex",
+      "elo": "Elo",
+      "hipercard": "Hipercard",
+      "account_money": "Saldo Mercado Pago",
+      "credits": "Crédito Financeiro",
+      "prorrata_credit": "Crédito de Prorrata",
+      "other": "Outros"
     },
     "type": {
       "income": "Receita",
@@ -178,6 +248,8 @@
     "free": "Gratuito",
     "active": "Ativo",
     "inactive": "Inativo",
+    "on": "Ativado",
+    "off": "Desativado",
     "toast_success": "Perfil atualizado!",
     "toast_error": "Erro ao atualizar",
     "toast_connection_error": "Erro de conexão",
@@ -213,7 +285,10 @@
       "days_remaining": "{count} dias restantes",
       "days_remaining_singular": "1 dia restante",
       "paid": "PAGO",
-      "failed": "FALHOU"
+      "failed": "FALHOU",
+      "pending": "PENDENTE",
+      "pending_payment": "O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.",
+      "manual_payment_only": "Pagamento Manual (Ex: Pix/Boleto)"
     },
     "warnings": {
       "image_size": "A imagem deve ter no máximo 10MB.",
@@ -223,18 +298,28 @@
   },
   "reports": {
     "title": "Relatórios Financeiros",
-    "subtitle": "Receitas vs Despesas (Últimos 6 meses)"
+    "subtitle": "Receitas vs Despesas (Últimos 6 meses)",
+    "view_period": "Período de visualização",
+    "last_3": "Últimos 3 meses",
+    "last_6": "Últimos 6 meses",
+    "last_12": "Últimos 12 meses",
+    "last_24": "Últimos 24 meses",
+    "loading": "Carregando dados...",
+    "restricted_access": "Acesso Restrito",
+    "restricted_subtitle": "Seu plano atual não inclui relatórios avançados.",
+    "view_plans": "Ver Planos"
   },
   "checkout": {
-    "title": "Complete sua Assinatura",
-    "subtitle": "Você está assinando o plano {planName}",
-    "Gen_pagament": "Gerando pagamento...",
-    "title_assinatura": "Assinatura Plano ${planName}",
-    "quantity": "Quantidade",
-    "unit_price": "Preço Unitário",
+    "price_per_period": "{period}: {price}",
     "total": "Total",
+    "subtotal": "Subtotal",
+    "current_credit": "Crédito do plano atual (-)",
+    "plan_adjustment": "Ajuste de Plano",
+    "credit_covered_desc": "Seus créditos acumulados cobrem o valor integral desta alteração. Clique no botão abaixo para concluir a atualização do seu plano.",
+    "finish_update": "Finalizar Atualização",
     "steps": {
       "identification": "Identificação",
+      "verification": "Verificação",
       "payment": "Pagamento"
     },
     "auth_tabs": {
@@ -252,7 +337,15 @@
     "preparing_payment": "Preparando ambiente de pagamento...",
     "try_again": "Tentar Novamente",
     "back_to_plans": "Voltar para Planos",
-    "price_per_period": "{period}: {price}"
+    "toasts": {
+      "upgrade_success": "Upgrade realizado com sucesso!",
+      "upgrade_error": "Erro ao processar upgrade gratuito",
+      "verify_success": "Conta verificada com sucesso!",
+      "verify_error": "Erro ao verificar código",
+      "resend_success": "Novo código enviado com sucesso!",
+      "resend_error": "Erro ao reenviar código",
+      "register_success": "Cadastro realizado! Por favor, verifique seu e-mail."
+    }
   },
   "admin": {
     "title": "Planos",
@@ -303,6 +396,7 @@
     "financial_health": "Saúde Financeira",
     "resource_distribution": "Distribuição de Recursos",
     "margin": "Margem",
+    "margin_explanation": "Representa a porcentagem da receita que sobra após o pagamento de todas as despesas (Margem de Lucro Líquida).",
     "incomes": "Receitas",
     "expenses": "Despesas",
     "net": "Líquido",
@@ -374,7 +468,8 @@
     "age_restriction": "Você deve ter pelo menos 18 anos.",
     "match_password": "As senhas não coincidem",
     "invalid_value": "Valor inválido",
-    "description_too_long": "A descrição não pode ter mais que 255 caracteres."
+    "description_too_long": "A descrição não pode ter mais que 255 caracteres.",
+    "min_age": "Você deve ter pelo menos 18 anos."
   },
   "toasts": {
     "login_success": "Login realizado com sucesso!",
@@ -437,5 +532,82 @@
       "emoji": "Selecione um emoji",
       "search_emoji": "Pesquisar emoji..."
     }
+  },
+  "filters": {
+    "dashboard_title": "Visão Geral",
+    "search_title": "Filtros de Busca",
+    "period": "Período",
+    "description": "Descrição",
+    "category": "Categoria",
+    "type": "Tipo",
+    "value": "Valor",
+    "clear": "Limpar",
+    "apply": "Aplicar",
+    "movement_period": "Movimentações no Período"
+  },
+  "categories": {
+    "Salário": "Salário",
+    "Investimentos": "Investimentos",
+    "Renda Extra": "Renda Extra",
+    "Vendas": "Vendas",
+    "Aluguel": "Aluguel",
+    "Condomínio": "Condomínio",
+    "Energia": "Energia",
+    "Água": "Água",
+    "Internet": "Internet",
+    "Gás": "Gás",
+    "Manutenção Casa": "Manutenção Casa",
+    "Móveis/Decoração": "Móveis/Decoração",
+    "Mercado": "Mercado",
+    "Restaurante": "Restaurante",
+    "Lanches/Delivery": "Lanches/Delivery",
+    "Bar/Happy Hour": "Bar/Happy Hour",
+    "Combustível": "Combustível",
+    "Uber/Táxi": "Uber/Táxi",
+    "Transporte Público": "Transporte Público",
+    "Estacionamento": "Estacionamento",
+    "Manutenção Veículo": "Manutenção Veículo",
+    "Seguro Auto": "Seguro Auto",
+    "Saúde": "Saúde",
+    "Farmácia": "Farmácia",
+    "Médico/Dentista": "Médico/Dentista",
+    "Academia/Esportes": "Academia/Esportes",
+    "Cuidados Pessoais": "Cuidados Pessoais",
+    "Educação": "Educação",
+    "Cursos": "Cursos",
+    "Livros": "Livros",
+    "Lazer": "Lazer",
+    "Viagem": "Viagem",
+    "Streaming/Assinaturas": "Streaming/Assinaturas",
+    "Jogos": "Jogos",
+    "Cinema/Teatro": "Cinema/Teatro",
+    "Roupas": "Roupas",
+    "Eletrônicos": "Eletrônicos",
+    "Presentes": "Presentes",
+    "Cartão de Crédito": "Cartão de Crédito",
+    "Impostos": "Impostos",
+    "Empréstimos": "Empréstimos",
+    "Taxas Bancárias": "Taxas Bancárias",
+    "Seguros (Vida/Resid)": "Seguros (Vida/Resid)",
+    "Pets": "Pets",
+    "Doações": "Doações",
+    "Crianças": "Crianças",
+    "Outros": "Outros"
+  },
+  "actions": {
+    "import_excel": "Importar Excel",
+    "export_page": "Exportar página atual",
+    "export_excel": "Exportar para Excel",
+    "export_pdf": "Exportar para PDF"
+  },
+  "finn": {
+    "placeholder": "Pergunte sobre seus gastos...",
+    "thinking": "Finn está pensando...",
+    "greeting": "Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete_confirm": "Deseja remover esta mensagem?",
+    "error_connection": "Desculpe, perdi a conexão com meu cérebro IA. Tente em instantes!",
+    "error_generic": "Tive um probleminha. Pode repetir?"
   }
 }

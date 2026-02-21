@@ -38,7 +38,8 @@ class CriarPreferenciaCheckout
         $creditos = 0;
         $totalPagar = $periodo->pivot->valor_centavos / 100;
 
-        if ($assinaturaAtiva && ($assinaturaAtiva->plano_id != $plano->id || $assinaturaAtiva->periodo_id != $periodo->id)) {
+        // Cálculo de Prorrata - SÓ APLICA SE ESTIVER MUDANDO DE PLANO (ID DIFERENTE)
+        if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
             $calculadora = new CalculadoraProrata();
             $creditos = $calculadora->calcularCredito($assinaturaAtiva);
             $totalPagar = max(0, $totalPagar - $creditos);

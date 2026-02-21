@@ -4,7 +4,7 @@
     <div class="filter-header px-6 pt-5 pb-2">
       <div class="d-flex align-center">
         <v-icon icon="mdi-tune-variant" color="primary" size="20" class="mr-2" />
-        <span class="filter-title">{{ macro ? 'Visão Geral' : 'Filtros de Busca' }}</span>
+        <span class="filter-title">{{ macro ? $t('filters.dashboard_title') : $t('filters.search_title') }}</span>
       </div>
 
       <div class="d-flex align-center">
@@ -15,7 +15,7 @@
           @click="limpar"
           class="mr-2"
         >
-          Limpar
+          {{ $t('filters.clear') }}
         </v-btn>
 
         <v-btn
@@ -24,7 +24,7 @@
           rounded="lg"
           @click="aplicar"
         >
-          Aplicar
+          {{ $t('filters.apply') }}
         </v-btn>
       </div>
     </div>
@@ -37,7 +37,7 @@
         <v-col cols="12" :md="macro ? 8 : 12" :lg="macro ? 6 : 3">
           <DateInput
             v-model="localFilters.data"
-            label="Período"
+            :label="$t('filters.period')"
             hide-details
             clearable
             mode="range"
@@ -49,7 +49,7 @@
         <v-col v-if="!macro" cols="12" sm="6" md="4" lg="3">
           <v-text-field
             v-model="localFilters.descricao"
-            label="Descrição"
+            :label="$t('filters.description')"
             density="comfortable"
             variant="solo-filled"
             flat
@@ -62,7 +62,7 @@
           <v-select
             v-model="localFilters.categoria"
             :items="formatCategorias"
-            label="Categoria"
+            :label="$t('filters.category')"
             density="comfortable"
             variant="solo-filled"
             flat
@@ -76,7 +76,7 @@
           <v-select
             v-model="localFilters.tipo"
             :items="tipos"
-            label="Tipo"
+            :label="$t('filters.type')"
             density="comfortable"
             variant="solo-filled"
             flat
@@ -88,7 +88,7 @@
         <v-col v-if="!macro" cols="12" sm="6" md="4" lg="2">
           <v-text-field
             v-model="localFilters.valor"
-            label="Valor"
+            :label="$t('filters.value')"
             type="number"
             density="comfortable"
             variant="solo-filled"
@@ -150,7 +150,7 @@ const tipos = computed(() => [
 const formatCategorias = computed(() => {
   if (!props.categorias) return []
   return props.categorias.map(cat => ({
-    title: cat,
+    title: t('categories.' + cat),
     value: cat
   }))
 })

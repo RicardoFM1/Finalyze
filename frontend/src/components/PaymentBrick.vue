@@ -5,10 +5,6 @@
       <span class="mt-4 text-subtitle-1">Iniciando checkout seguro...</span>
     </div>
 
-    <v-alert icon="mdi-information" type="info" variant="tonal" class="mb-4 text-body-2" density="compact">
-      Se escolher <strong>Pix</strong>, o código e o QR Code aparecerão nesta tela após clicar em Pagar.
-    </v-alert>
-
     <div id="paymentBrick_container" :style="{ visibility: loading ? 'hidden' : 'visible', minHeight: '300px' }"></div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mt-4">
@@ -20,7 +16,7 @@
         <div class="text-center">
           <div class="d-flex justify-center mb-6">
              <div class="rounded-lg border pa-2 bg-white elevation-2" v-if="qrCodeBase64">
-                <img :src="'data:image/png;base64,' + qrCodeBase64" style="max-width: 100%; width: 200px; height: auto; display: block;" />
+                <img :src="'data:image/png;base64,' + qrCodeBase64" style="width: 200px; height: 200px; display: block;" />
              </div>
           </div>
 
@@ -41,7 +37,7 @@
              <div class="text-caption font-weight-bold text-grey-darken-1 mb-2">Pix Copia e Cola</div>
              
              <div class="d-flex align-center bg-white rounded border pa-2 pr-1">
-                <div class="text-caption text-truncate flex-grow-1 text-grey-darken-3 px-2" style="min-width: 0;">
+                <div class="text-caption text-truncate flex-grow-1 text-grey-darken-3 px-2" style="max-width: 250px;">
                     {{ qrCodeCopy }}
                 </div>
                 <v-btn 
@@ -76,17 +72,6 @@
     <div v-if="!loading && !error && !brickMounted" class="mt-4 text-center">
       <v-btn color="primary" @click="initMercadoPago">Tentar Carregar Novamente</v-btn>
     </div>
-
-    <div v-if="qrCodeBase64 && !showQrDialog" class="mt-4 text-center">
-        <v-btn 
-            color="primary" 
-            variant="tonal" 
-            prepend-icon="mdi-qrcode"
-            @click="showQrDialog = true"
-        >
-            Ver QR Code Pix
-        </v-btn>
-    </div>
   </div>
 </template>
 
@@ -116,7 +101,7 @@ const qrCodeCopy = ref(null)
 const paymentId = ref(null)
 let pollInterval = null
 
-const countdownPercentage = ref(600)
+const countdownPercentage = ref(600) // 10 minutes
 let countdownInterval = null
 
 const startCountdown = () => {
@@ -189,8 +174,8 @@ const initMercadoPago = async () => {
 
   try {
     let attempts = 0
-    while (!window.MercadoPago && attempts < 50) { 
-      await new Promise(resolve => setTimeout(resolve, 200))
+    while (!window.MercadoPago && attempts < 20) {
+      await new Promise(resolve => setTimeout(resolve, 500))
       attempts++
     }
     if (!window.MercadoPago) {
@@ -200,10 +185,9 @@ const initMercadoPago = async () => {
     }
 
     let publicKey = import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY
-    if (!publicKey) {
-      error.value = "Chave Pública do Mercado Pago não configurada no frontend."
-      loading.value = false
-      return
+    if (!publicKey || publicKey.length > 50) {
+      console.warn('[Brick] Public Key inválida ou não configurada. Usando fallback de teste.')
+      publicKey = 'APP_USR-5a0a3834-8c4c-47ea-a49d-3ee5f0d2ced8'
     }
 
     const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' })
@@ -331,6 +315,7 @@ onMounted(async () => {
     planId.value = props.planId
     periodId.value = props.periodId
     
+    // Fetch plan details to get the price
     try {
       const response = await authStore.apiFetch(`/planos`)
       if (response.ok) {
@@ -341,9 +326,11 @@ onMounted(async () => {
           if (period) {
             amount.value = period.pivot.valor_centavos / 100
           } else {
+             // Fallback: use first period if the specified one isn't found
              const fallback = plan.periodos?.[0]
              if (fallback) {
                 amount.value = fallback.pivot.valor_centavos / 100
+                console.warn('[PaymentBrick] Period not found, using fallback:', fallback.id)
              }
           }
         }
@@ -353,6 +340,7 @@ onMounted(async () => {
       error.value = 'Erro ao carregar informações do plano'
     }
   } else {
+    // Fallback: fetch preference if no props provided
     try {
       const response = await authStore.apiFetch('/checkout/preferencia')
       if (!response.ok) throw new Error('Preferência não encontrada')
@@ -372,7 +360,11 @@ onMounted(async () => {
     }
   }
 
+  // Final check: if we have required info but amount is still null, try fallback
   if (preferenceId.value && !amount.value) {
+      // Last resort: if we have planId but amount is still null, try to reload/retry
+       console.warn('[PaymentBrick] preferenceId exists but amount is null. Retrying fetch...')
+       // Potentially reload plan details here if needed, but for now just stop loading if it's stuck
        setTimeout(() => {
            if (!amount.value && loading.value) {
                loading.value = false

@@ -15,7 +15,7 @@
       <v-col cols="12" md="6">
         <div class="d-flex flex-wrap justify-md-end align-center gap-4">
           <v-btn variant="flat" color="secondary" size="large" class="rounded-xl px-6 flex-grow-1 flex-sm-grow-0" prepend-icon="mdi-file-import" @click="$refs.fileInput.click()" elevation="2" :disabled="loading">
-            Importar Excel
+            {{ $t('actions.import_excel') }}
           </v-btn>
           <v-btn color="primary" size="large" class="rounded-xl px-8 flex-grow-1 flex-sm-grow-0" prepend-icon="mdi-plus" @click="abrirNovo" elevation="4" :disabled="loading">
             {{ $t('transactions.new') }}
@@ -26,7 +26,7 @@
     </v-row>
     
     <div class="d-flex flex-wrap align-center gap-3 mb-8 pa-4 rounded-xl export-area shadow-sm">
-      <span class="text-caption font-weight-black opacity-60 w-100 mb-n1 ml-2 text-uppercase letter-spacing-1">Exportar página atual</span>
+      <span class="text-caption font-weight-black opacity-60 w-100 mb-n1 ml-2 text-uppercase letter-spacing-1">{{ $t('actions.export_page') }}</span>
       <Planilhas :dados="serverItems" :disabled="loading" @exportar="exportarExcel" />
       <PdfExport :dados="serverItems" :disabled="loading" @exportar="exportarPdf" />
     </div>
@@ -50,6 +50,7 @@
       <v-divider></v-divider>
 
       <v-data-table-server
+        v-model:options="options"
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
         :items="serverItems"
@@ -76,6 +77,19 @@
           </v-chip>
         </template>
 
+        <template v-slot:item.forma_pagamento="{ item }">
+          <div class="d-flex align-center justify-center gap-1 opacity-80">
+            <v-icon size="16" :icon="getPaymentMethodIcon(item.forma_pagamento)"></v-icon>
+            <span class="text-caption font-weight-medium">
+              {{ $t('transactions.payment_methods.' + (item.forma_pagamento || 'other')) }}
+            </span>
+          </div>
+        </template>
+
+        <template v-slot:item.categoria="{ item }">
+          {{ $t('categories.' + item.categoria) }}
+        </template>
+
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
             {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
@@ -96,9 +110,9 @@
     </v-card>
   </v-container>
 
-  <ModalNovoLancamento v-model="dialogNovo" @saved="buscarLancamentos" />
-  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="buscarLancamentos" />
-  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="buscarLancamentos" />
+  <ModalNovoLancamento v-model="dialogNovo" @saved="onLancamentoSalvo" />
+  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="onLancamentoEditado" />
+  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="onLancamentoExcluido" />
 </template>
 
 <script setup>
@@ -143,13 +157,28 @@ const handleImport = async (event) => {
         loading.value = true
         let count = 0
         for (const row of json) {
-            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo
+            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo, forma_pagamento
+            const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
+            const formaMap = {
+                'dinheiro': 'money', 'money': 'money', 'cash': 'money',
+                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card',
+                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card',
+                'pix': 'pix',
+                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer',
+                'boleto': 'boleto',
+                'outros': 'other', 'other': 'other'
+            }
+            
+            const normalizedForma = rawForma.toString().toLowerCase().trim()
+            const finalForma = formaMap[normalizedForma] || 'other'
+
             const payload = {
                 descricao: row.Descrição || row.descricao || row.Description || 'Importado',
                 valor: row.Valor || row.valor || row.Value || 0,
                 categoria: row.Categoria || row.categoria || row.Category || 'Importado',
                 data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
-                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa'
+                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa',
+                forma_pagamento: finalForma
             }
 
             try {
@@ -177,18 +206,19 @@ const exportarExcel = () => {
     loading.value = true
     try {
         const dataToExport = serverItems.value.map(item => ({
-            Data: formatDate(item.data),
-            Descrição: item.descricao,
-            Categoria: item.categoria,
-            Tipo: item.tipo === 'receita' ? 'Receita' : 'Despesa',
-            Valor: item.valor
+            [t('transactions.table.date')]: formatDate(item.data),
+            [t('transactions.table.description')]: item.descricao,
+            [t('transactions.table.category')]: t('categories.' + item.categoria),
+            [t('transactions.table.type')]: item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+            [t('transactions.payment_methods.title')]: t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
+            [t('transactions.table.amount')]: item.valor
         }))
         const worksheet = XLSX.utils.json_to_sheet(dataToExport)
         const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Lançamentos')
-        XLSX.writeFile(workbook, 'lancamentos_finalyze.xlsx')
+        XLSX.utils.book_append_sheet(workbook, worksheet, t('sidebar.transactions'))
+        XLSX.writeFile(workbook, `finalyze_${t('sidebar.transactions').toLowerCase()}.xlsx`)
     } catch (e) {
-        toast.error('Erro ao exportar Excel')
+        toast.error(t('toasts.error_generic'))
     } finally {
         loading.value = false
     }
@@ -196,7 +226,7 @@ const exportarExcel = () => {
 
 const exportarPdf = () => {
     if (!serverItems.value || serverItems.value.length === 0) {
-        toast.info('Nenhum dado filtrado para exportar na página atual.')
+        toast.info(t('transactions.no_data'))
         return
     }
 
@@ -204,16 +234,24 @@ const exportarPdf = () => {
     setTimeout(() => {
         try {
             const doc = new jsPDF()
-            const head = [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']]
+            const head = [[
+                t('transactions.table.date'), 
+                t('transactions.table.description'), 
+                t('transactions.table.category'), 
+                t('transactions.type.type') || t('transactions.table.type'), 
+                t('transactions.payment_methods.title'),
+                t('transactions.table.amount')
+            ]]
             const data = serverItems.value.map(item => [
                 formatDate(item.data),
                 item.descricao || '',
-                item.categoria || '',
-                item.tipo === 'receita' ? 'Receita' : 'Despesa',
+                t('categories.' + item.categoria) || item.categoria || '',
+                item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+                t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
                 formatNumber(item.valor)
             ])
 
-            doc.text('Relatório de Lançamentos - Finalyze', 14, 15)
+            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
             autoTable(doc, {
                 head: head,
                 body: data,
@@ -222,9 +260,9 @@ const exportarPdf = () => {
                 headStyles: { fillColor: [24, 103, 192] },
                 styles: { font: 'Inter' }
             })
-            doc.save('lancamentos_finalyze.pdf')
+            doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
         } catch (e) {
-            toast.error('Erro ao gerar PDF')
+            toast.error(t('toasts.error_generic'))
         } finally {
             loading.value = false
         }
@@ -251,6 +289,7 @@ const headers = computed(() => [
   { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
   { title: t('transactions.table.category'), key: 'categoria', align: 'start', sortable: true },
   { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
+  { title: t('transactions.table.payment_method'), key: 'forma_pagamento', align: 'center', sortable: true },
   { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
 ])
@@ -262,6 +301,19 @@ const formatNumber = (val) => {
 const formatDate = (date) => {
     const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
     return new Date(date).toLocaleDateString(locale, { timeZone: 'UTC' })
+}
+
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method] || icons.other
 }
 
 
@@ -276,8 +328,8 @@ const categorias = computed(() => {
   }
 })
 
-const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) => {
-  loading.value = true
+const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSilent = false }) => {
+  if (!isSilent) loading.value = true
   try {
     const params = new URLSearchParams({
       page,
@@ -319,7 +371,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
+    if (!isSilent) loading.value = false
   }
 }
 
@@ -345,9 +397,81 @@ const limparFiltros = () => {
 
 
 
-const buscarLancamentos = () => {
-    search.value = (search.value || '') + ' '
-    setTimeout(() => { search.value = search.value.trim() }, 10)
+const buscarLancamentos = (isSilent = false) => {
+    // Refresh manual mantendo página e filtros
+    loadItems({
+        page: Math.ceil((totalItems.value || 0) / itemsPerPage.value) > 0 ? 1 : 1, // Reset para o caso de novos
+        itemsPerPage: itemsPerPage.value,
+        sortBy: [],
+        search: search.value,
+        isSilent: isSilent
+    })
+}
+
+const options = ref({ page: 1, itemsPerPage: 10, sortBy: [] })
+
+const onLancamentoSalvo = (optimisticItem) => {
+    if (optimisticItem) {
+        // Só adicionamos na lista local se estivermos na página 1 e sem filtros restritivos (ou filtros que batam com o item)
+        const f = filterStore.filters
+        const isPage1 = options.value.page === 1
+        const matchesFilter = (!f.descricao || optimisticItem.descricao.toLowerCase().includes(f.descricao.toLowerCase())) &&
+                              (!f.categoria || optimisticItem.categoria === f.categoria) &&
+                              (!f.tipo || f.tipo === 'todos' || optimisticItem.tipo === f.tipo)
+
+        if (isPage1 && matchesFilter) {
+            const exists = serverItems.value.some(i => i.id === optimisticItem.id)
+            if (!exists) {
+                serverItems.value.unshift(optimisticItem)
+                totalItems.value++
+                
+                if (serverItems.value.length > itemsPerPage.value) {
+                    serverItems.value.pop()
+                }
+            }
+        }
+    }
+    // Sincronização silenciosa em background
+    buscarLancamentos(true)
+}
+
+const onLancamentoEditado = (updatedItem) => {
+    if (updatedItem && serverItems.value) {
+        const index = serverItems.value.findIndex(i => i.id === updatedItem.id)
+        if (index !== -1) {
+            const oldItem = serverItems.value[index]
+            
+            // Reverter valor antigo nos totais
+            if (oldItem.tipo === 'receita') totais.value.receita -= Number(oldItem.valor)
+            else totais.value.despesa -= Number(oldItem.valor)
+            
+            // Aplicar valor novo nos totais
+            if (updatedItem.tipo === 'receita') totais.value.receita += Number(updatedItem.valor)
+            else totais.value.despesa += Number(updatedItem.valor)
+            
+            // Atualizar o item na lista
+            serverItems.value[index] = { ...updatedItem }
+        }
+    }
+    buscarLancamentos(true)
+}
+
+const onLancamentoExcluido = (deletedId) => {
+    if (deletedId && serverItems.value) {
+        // Encontrar item para atualizar totais locais
+        const item = serverItems.value.find(i => i.id === deletedId)
+        if (item) {
+            if (item.tipo === 'receita') {
+                totais.value.receita -= Number(item.valor)
+            } else {
+                totais.value.despesa -= Number(item.valor)
+            }
+        }
+        
+        serverItems.value = serverItems.value.filter(i => i.id !== deletedId)
+        totalItems.value = Math.max(0, totalItems.value - 1)
+    }
+    buscarLancamentos(true)
 }
 
 const abrirNovo = () => { dialogNovo.value = true }

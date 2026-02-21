@@ -2,7 +2,7 @@
 
 <v-btn @click="exportarExcel" class="mt-4" color="success" variant="outlined" :disabled="loading">
     <v-icon left>mdi-file-excel</v-icon>
-    Exportar para Excel
+    {{ $t('actions.export_excel') }}
 </v-btn>
 
 </template>

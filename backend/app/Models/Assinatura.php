@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection ALL */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +21,8 @@ class Assinatura extends Model
         'status',
         'inicia_em',
         'termina_em',
-        'renovacao_automatica'
+        'renovacao_automatica',
+        'preapproval_id'
     ];
 
     protected $casts = [

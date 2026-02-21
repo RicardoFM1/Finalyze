@@ -37,11 +37,12 @@ class ProcessarPagamentoCheckout
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
 
-        // Cálculo de Prorrata
+        // Cálculo de Prorrata - SÓ APLICA SE ESTIVER MUDANDO DE PLANO (ID DIFERENTE)
         $assinaturaAtiva = $usuario->assinaturaAtiva();
         $creditos = 0;
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
 
+        // Regra do usuário: "só deve aparecer o desconto quando está mudando de plano"
         if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
             $calculadora = new CalculadoraProrata();
             $creditos = $calculadora->calcularCredito($assinaturaAtiva);
@@ -94,6 +95,59 @@ class ProcessarPagamentoCheckout
         if (!$payerIdNumber && config('app.env') !== 'production') {
             $payerIdNumber = '19119119100';
             $payer['identification']['type'] = 'CPF';
+        }
+
+        // --- LÓGICA DE AUTO-RENOVAÇÃO (ASSINATURA MP) ---
+        // Se for cartão de crédito/débito, usamos o SubscriptionService para criar uma renovação automática
+        $isCard = in_array($dados['payment_method_id'], ['credit_card', 'debit_card', 'visa', 'master', 'amex', 'elo', 'hipercard']);
+
+        if ($isCard && isset($dados['token'])) {
+            try {
+                $subscriptionService = new SubscriptionService();
+                $mpSubscription = $subscriptionService->createSubscription(
+                    $usuario,
+                    $plano,
+                    $periodo,
+                    $dados['token'],
+                    (float)$creditos,
+                    $assinatura->id
+                );
+
+                if (isset($mpSubscription->id)) {
+                    // Vinculamos o preapproval_id à assinatura
+                    $assinatura->update([
+                        'preapproval_id' => $mpSubscription->id,
+                        'renovacao_automatica' => true
+                    ]);
+
+                    // Ativamos o plano imediatamente
+                    $ativarServico = new AtivarPlanoUsuario();
+                    $ativarServico->executar((object)[
+                        'id' => $mpSubscription->id,
+                        'transaction_amount' => (float)$transactionAmount,
+                        'payment_method_id' => $dados['payment_method_id'],
+                        'status' => 'approved',
+                        'status_detail' => 'accredited',
+                        'metadata' => [
+                            'user_id' => $usuario->id,
+                            'plano_id' => $plano_id,
+                            'periodo_id' => $periodo_id,
+                            'assinatura_id' => $assinatura->id,
+                            'quantidade_dias' => $periodo->quantidade_dias,
+                            'creditos_prorrata' => $creditos
+                        ]
+                    ]);
+
+                    return (object)[
+                        'status' => 'approved',
+                        'status_detail' => 'accredited',
+                        'id' => $mpSubscription->id
+                    ];
+                }
+            } catch (\Exception $e) {
+                Log::error("Erro ao criar assinatura no Mercado Pago: " . $e->getMessage());
+                // Se falhar a assinatura, tentamos como pagamento normal abaixo (fallback)
+            }
         }
 
         $paymentData = [

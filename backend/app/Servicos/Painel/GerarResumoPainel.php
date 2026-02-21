@@ -6,6 +6,19 @@ use Illuminate\Support\Facades\Auth;
 
 class GerarResumoPainel
 {
+    /**
+     * Remove todos os caches de resumo do usuário (qualquer combinação de filtros).
+     */
+    public static function limparCacheUsuario(int $userId): void
+    {
+        $metaKey = "user_summary_keys_{$userId}";
+        $keys = cache()->get($metaKey, []);
+        foreach ($keys as $key) {
+            cache()->forget($key);
+        }
+        cache()->forget($metaKey);
+    }
+
     public function executar(array $filtros = [])
     {
         $usuario = Auth::user();
@@ -75,6 +88,14 @@ class GerarResumoPainel
 
         if (!empty($filtros)) {
             return $calc();
+        }
+
+        // Registra a chave na lista de chaves do usuário para limpeza futura
+        $metaKey = "user_summary_keys_{$usuario->id}";
+        $existingKeys = cache()->get($metaKey, []);
+        if (!in_array($cacheKey, $existingKeys)) {
+            $existingKeys[] = $cacheKey;
+            cache()->put($metaKey, $existingKeys, now()->addHours(2));
         }
 
         return cache()->remember($cacheKey, now()->addMinutes(10), $calc);

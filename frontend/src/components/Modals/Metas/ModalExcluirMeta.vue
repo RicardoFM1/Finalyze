@@ -36,23 +36,25 @@ const internalValue = computed({
 const confirmDelete = async () => {
   if (!props.meta?.id) return
 
-  loading.value = true
+  const id = props.meta.id
+  const isAnotacao = !props.meta.tipo || props.meta.tipo === 'pessoal'
+  
+  // Close immediately for perceived speed
+  internalValue.value = false
+  toast.success(t('toasts.success_inactivate'))
+  emit('deleted', { id, isAnotacao })
+
   try {
-    const isAnotacao = !props.meta.tipo || props.meta.tipo === 'pessoal'
-    const endpoint = isAnotacao ? `/anotacoes/${props.meta.id}` : `/metas/${props.meta.id}`
-    
+    const endpoint = isAnotacao ? `/anotacoes/${id}` : `/metas/${id}`
     const response = await authStore.apiFetch(endpoint, {
       method: 'DELETE'
     })
-    if (response.ok) {
-      toast.success(t('toasts.success_inactivate'))
-      internalValue.value = false
-      emit('deleted')
+    if (!response.ok) {
+        throw new Error('Erro ao desativar')
     }
   } catch (e) {
+    console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
   }
 }
 </script>

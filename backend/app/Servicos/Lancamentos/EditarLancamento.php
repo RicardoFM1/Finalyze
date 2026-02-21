@@ -16,7 +16,7 @@ class EditarLancamento
         }
 
         $lancamento->update($dados);
-        cache()->forget("user_summary_{$usuario->id}");
+        \App\Servicos\Painel\GerarResumoPainel::limparCacheUsuario($usuario->id);
         return $lancamento;
     }
 }

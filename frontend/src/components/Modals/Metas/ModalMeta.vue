@@ -27,18 +27,16 @@
 
       <template v-if="form.tipo === 'financeira'">
         <v-row dense>
-
-          <v-col cols="6">
-            <v-text-field
+          <v-col cols="12">
+            <CurrencyInput
               v-model="form.valor_objetivo"
               :label="$t('modals.labels.goal_value')"
               :prefix="$t('common.currency')"
-              type="number"
               variant="outlined"
               rounded="lg"
               required
               :disabled="loading"
-            ></v-text-field>
+            />
           </v-col>
         </v-row>
       </template>
@@ -141,7 +139,6 @@
         rounded="lg" 
         class="mt-4" 
         variant="flat"
-        :loading="loading || uiStore.loading" 
         :disabled="loading || uiStore.loading"
         elevation="2"
       >
@@ -158,6 +155,7 @@ import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
+import CurrencyInput from '../../Common/CurrencyInput.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -214,7 +212,6 @@ const form = ref({
   titulo: '',
   descricao: '',
   valor_objetivo: null,
-
   meta_quantidade: null,
   atual_quantidade: 0,
   unidade: '',
@@ -236,7 +233,7 @@ watch(() => props.modelValue, (newVal) => {
         tipo: props.initialTipo,
         titulo: '',
         descricao: '',
-        objetivo: null,
+        valor_objetivo: null,
         meta_quantidade: null,
         atual_quantidade: 0,
         unidade: props.initialTipo === 'financeira' ? 'BRL' : '',
@@ -249,36 +246,36 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 const saveMeta = async () => {
-  loading.value = true
+  const isEdit = !!form.value.id
+  const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
+  const isAnotacao = currentTipo === 'pessoal'
+  
+  // Perceived speed: Close and tell parent to refresh
+  const optimisticItem = {
+    ...form.value,
+    id: isEdit ? form.value.id : 'opt-' + Date.now(),
+    status: form.value.status || 'andamento'
+  }
+  
+  internalValue.value = false
+  toast.success(t('toasts.success_add'))
+  emit('saved', optimisticItem, isAnotacao) 
+
   try {
-    const isEdit = !!form.value.id
-    const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
-    const isAnotacao = currentTipo === 'pessoal' || (!form.value.tipo && !props.meta?.tipo && props.initialTipo === 'pessoal')
-    
     const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
     const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
     
-    if (!isAnotacao && !form.value.tipo) {
-      form.value.tipo = 'financeira'
-    }
-
     const response = await authStore.apiFetch(endpoint, {
       method: isEdit ? 'PUT' : 'POST',
       body: JSON.stringify(form.value)
     })
 
-    if (response.ok) {
-      toast.success(isEdit ? (isAnotacao ? t('toasts.success_update') : t('toasts.success_update')) : (isAnotacao ? t('toasts.success_add') : t('toasts.success_add')))
-      internalValue.value = false
-      emit('saved')
-    } else {
-      const data = await response.json()
-      toast.error(data.message || t('toasts.error_generic'))
+    if (!response.ok) {
+        throw new Error('Erro ao salvar')
     }
   } catch (e) {
+    console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
   }
 }
 </script>
