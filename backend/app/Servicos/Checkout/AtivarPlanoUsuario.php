@@ -33,25 +33,38 @@ class AtivarPlanoUsuario
                 if ($historicoPago) {
                     Log::info("Pagamento {$payment->id} já foi ativado anteriormente.");
                 } else {
-                    $quantidadeDias = $metadata->quantidade_dias ?? 30;
+                    // Se o metadata estiver vazio (comum em renovações automáticas do MP), 
+                    // buscamos a duração correta no periodo relacionado à assinatura
+                    $quantidadeDias = $metadata->quantidade_dias ?? $assinatura->periodo->quantidade_dias ?? 30;
                     $creditosProrrata = $metadata->creditos_prorrata ?? 0;
 
+                    // Busca assinatura ATIVA atual (pode ser a própria $assinatura se estiver sendo renovada)
                     $activeSub = Assinatura::where('user_id', $assinatura->user_id)
                         ->where('status', 'active')
                         ->where('termina_em', '>', now())
                         ->orderBy('termina_em', 'desc')
                         ->first();
 
+                    // Se renovação (mesmo plano), soma a partir do término atual. 
+                    // Se mudança ou nova, inicia agora.
                     $isSamePlan = $activeSub && $activeSub->plano_id == $assinatura->plano_id;
-                    $baseDate = ($isSamePlan && $activeSub->termina_em) ? $activeSub->termina_em : now();
+
+                    // Se for a mesma assinatura (renovação da mesma assinatura recorrente):
+                    if ($activeSub && $activeSub->id === $assinatura->id) {
+                        $baseDate = $activeSub->termina_em->isFuture() ? $activeSub->termina_em : now();
+                    } else {
+                        $baseDate = ($isSamePlan && $activeSub->termina_em) ? $activeSub->termina_em : now();
+                    }
+
                     $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
 
+                    // Se for uma assinatura DIFERENTE da ativa (upgrade/mudança), cancela a antiga
                     if ($activeSub && $activeSub->id !== $assinatura->id) {
                         $activeSub->update(['status' => 'cancelled']);
                         Log::info("Assinatura antiga #{$activeSub->id} substituída pela nova #{$assinatura->id}.");
                     }
 
-                    // Cancelar qualquer outra tentativa pendente para este usuário
+                    // Cancelar qualquer outra tentativa pendente para este usuário (limpeza)
                     Assinatura::where('user_id', $assinatura->user_id)
                         ->where('status', 'pending')
                         ->where('id', '!=', $assinatura->id)
@@ -60,7 +73,7 @@ class AtivarPlanoUsuario
                     $assinatura->update([
                         'mercado_pago_id' => $payment->id,
                         'status' => 'active',
-                        'inicia_em' => now(),
+                        'inicia_em' => $assinatura->inicia_em ?? now(),
                         'termina_em' => $newEndsAt
                     ]);
 

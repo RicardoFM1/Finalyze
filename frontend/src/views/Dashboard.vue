@@ -23,6 +23,43 @@
       macro
     />
 
+    <!-- Modal de Pagamento Pendente Otimizado -->
+    <ModalBase v-model="showPendingDialog" :title="$t('features.PPE')" maxWidth="500px" persistent>
+        <div class="text-center pa-4">
+            <v-avatar color="info-lighten-4" size="80" class="mb-4">
+                <v-icon icon="mdi-credit-card-clock-outline" color="info" size="40"></v-icon>
+            </v-avatar>
+            <h3 class="text-h5 font-weight-bold mb-2">{{ $t('features.PPE') }}</h3>
+            <p class="text-body-1 text-medium-emphasis mb-6">
+                {{ $t('features.VEIP', { pendingPlanName: $t('plans.plan_names.' + pendingPlanName, pendingPlanName) }) }}.<br>
+                {{ $t('features.continue_or_cancel') }}
+            </p>
+            
+            <div class="d-flex flex-column gap-3">
+                <v-btn
+                    block
+                    color="primary"
+                    size="large"
+                    class="rounded-xl font-weight-bold"
+                    :loading="continuing"
+                    @click="continuePayment"
+                >
+                    {{ $t('features.continue_payment') }}
+                </v-btn>
+                <v-btn
+                    block
+                    variant="text"
+                    color="error"
+                    class="font-weight-bold"
+                    :loading="cancelling"
+                    @click="cancelarPagamento"
+                >
+                    {{ $t('features.cancel_previous') }}
+                </v-btn>
+            </div>
+        </div>
+    </ModalBase>
+
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -106,7 +143,13 @@
                   <Doughnut v-if="!loading" :data="chartData" :options="chartOptions" :key="JSON.stringify(chartData.datasets[0].data)" />
                   <div class="chart-center-text" v-if="!loading">
                     <div class="text-h5 font-weight-bold">{{ getMarginPercentage }}%</div>
-                    <div class="text-caption">{{ $t('features.margin') }}</div>
+                    <div class="text-caption d-flex align-center justify-center">
+                      {{ $t('features.margin') }}
+                      <v-tooltip activator="parent" location="bottom" max-width="250">
+                        {{ $t('features.margin_explanation') || 'Representa a porcentagem da receita que sobra após o pagamento de todas as despesas (Margem de Lucro Líquida).' }}
+                      </v-tooltip>
+                      <v-icon icon="mdi-help-circle-outline" size="12" class="ml-1 opacity-60"></v-icon>
+                    </div>
                   </div>
                 </div>
               </v-col>
@@ -151,9 +194,8 @@
            </v-toolbar>
            <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
-                class="rounded-xl mb-3 hover-item border-item"
                 :title="item.descricao || $t('categories.' + item.categoria)" 
-                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)}`" 
+                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)} • ${$t('transactions.payment_methods.' + (item.forma_pagamento || 'other'))}`" 
               >
                 <template v-slot:prepend>
                     <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">
@@ -234,17 +276,25 @@
       </v-col>
     </v-row>
 
-    <ModalNovoLancamento v-model="dialog" @saved="fetchSummary" />
-    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="fetchSummary" />
-    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="fetchSummary" />
+    <ModalNovoLancamento v-model="dialog" @saved="onLancamentoSalvo" />
+    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="onLancamentoEditado" />
+    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="onLancamentoExcluido" />
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { toast } from 'vue3-toastify'
+import ModalBase from '../components/Modals/modalBase.vue'
+
+const router = useRouter()
+const showPendingDialog = ref(false)
+const pendingPlanName = ref('')
+const cancelling = ref(false)
+const continuing = ref(false)
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
@@ -309,16 +359,22 @@ const getMarginPercentage = computed(() => {
 })
 
 const formatNumber = (val) => {
-    const num = Number(val)
-
-    if (!isFinite(num)) return '0,00'
-
-    return num.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    })
+    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
+    return Number(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method] || icons.other
+}
 const chartData = computed(() => ({
     labels: [t('features.incomes'), t('features.expenses'), t('features.net')],
     datasets: [{
@@ -350,10 +406,48 @@ const resumo = ref({
     atividades_recentes: []
 })
 
+const checkPendingPayment = async () => {
+    if (!authStore.isAuthenticated) return
+    try {
+        const prefResponse = await authStore.apiFetch('/checkout/preferencia')
+        if (prefResponse.ok) {
+            const data = await prefResponse.json()
+            if (data.id && data.plano) {
+                pendingPlanName.value = data.plano.nome
+                showPendingDialog.value = true
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao buscar preferência:', e)
+    }
+}
+
+const continuePayment = () => {
+    continuing.value = true
+    router.push({ name: 'Checkout' })
+}
+
+const cancelarPagamento = async () => {
+    try {
+        cancelling.value = true
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
+            method: 'POST'
+        })
+        if (response.ok) {
+            toast.success(t('plans.toast_cancel_success'))
+            showPendingDialog.value = false
+        }
+    } catch (e) {
+        toast.error(t('plans.toast_cancel_error'))
+    } finally {
+        cancelling.value = false
+    }
+}
 
 onMounted(async () => {
     fetchSummary()
     fetchMetas()
+    checkPendingPayment()
 })
 
 const fetchMetas = async () => {
@@ -379,8 +473,8 @@ const calculatePercentage = (meta) => {
 }
 
 
-const fetchSummary = async () => {
-    loading.value = true
+const fetchSummary = async (isSilent = false) => {
+    if (!isSilent) loading.value = true
     try {
         const params = new URLSearchParams()
         const f = filterStore.filters
@@ -406,7 +500,7 @@ const fetchSummary = async () => {
     } catch (e) {
         console.error(e)
     } finally {
-        loading.value = false
+        if (!isSilent) loading.value = false
     }
 }
 
@@ -419,9 +513,89 @@ const formatCurrency = (value) => {
   }).format(Number(value))
 }
 
-
-const abrirEditar = (item) => { itemAEditar.value = item; dialogEditar.value = true }
+const abrirEditar = (item) => { itemAEditar.value = { ...item }; dialogEditar.value = true }
 const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
+
+// Optimistic updates: atualiza a lista local imediatamente, depois busca do servidor
+const onLancamentoSalvo = (optimisticItem) => {
+    // 1. Atualização Otimista: Adiciona na lista e atualiza totais localmente
+    if (optimisticItem && resumo.value.atividades_recentes) {
+        // Inserir no início da lista (recentes)
+        resumo.value.atividades_recentes.unshift({
+            ...optimisticItem,
+            id: Date.now() // ID temporário para o v-for não reclamar
+        })
+        
+        // Limitar a lista a 5 itens se necessário
+        if (resumo.value.atividades_recentes.length > 5) {
+            resumo.value.atividades_recentes.pop()
+        }
+
+        // Atualizar Lógica dos totais
+        if (optimisticItem.tipo === 'receita') {
+            resumo.value.receita += Number(optimisticItem.valor)
+        } else {
+            resumo.value.despesa += Number(optimisticItem.valor)
+        }
+        resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+    }
+    
+    // 2. Sincronização em background - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
+}
+
+const onLancamentoEditado = (updatedItem) => {
+    if (resumo.value.atividades_recentes && updatedItem) {
+        const index = resumo.value.atividades_recentes.findIndex(a => a.id === updatedItem.id)
+        if (index !== -1) {
+            const oldItem = resumo.value.atividades_recentes[index]
+            
+            // Reverter valor antigo
+            if (oldItem.tipo === 'receita') resumo.value.receita -= Number(oldItem.valor)
+            else resumo.value.despesa -= Number(oldItem.valor)
+            
+            // Aplicar valor novo
+            if (updatedItem.tipo === 'receita') resumo.value.receita += Number(updatedItem.valor)
+            else resumo.value.despesa += Number(updatedItem.valor)
+            
+            resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+            
+            // Atualizar lista
+            resumo.value.atividades_recentes[index] = { ...updatedItem }
+        }
+    }
+    // Sincronização em segundo plano - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
+}
+
+const onLancamentoExcluido = (deletedId) => {
+    // 1. Encontrar o item ANTES de remover para atualizar os totais localmente
+    const item = resumo.value.atividades_recentes?.find(a => a.id === deletedId)
+    
+    if (item) {
+        // 2. Atualização Lógica dos totais (Instantânea)
+        if (item.tipo === 'receita') {
+            resumo.value.receita -= Number(item.valor)
+        } else {
+            resumo.value.despesa -= Number(item.valor)
+        }
+        resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+        
+        // 3. Remover da lista
+        resumo.value.atividades_recentes = resumo.value.atividades_recentes.filter(
+            a => a.id !== deletedId
+        )
+    }
+
+    // 4. Sincronização em segundo plano - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
+}
 
 </script>
 

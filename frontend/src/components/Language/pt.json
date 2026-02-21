@@ -201,7 +201,28 @@
       "description": "Descrição",
       "category": "Categoria",
       "type": "Tipo",
-      "amount": "Valor"
+      "amount": "Valor",
+      "payment_method": "Forma de Pagamento"
+    },
+    "payment_methods": {
+      "title": "Forma de Pagamento",
+      "money": "Dinheiro",
+      "credit_card": "Cartão de Crédito",
+      "debit_card": "Cartão de Débito",
+      "pix": "PIX",
+      "transfer": "Transferência",
+      "bank_transfer": "Transferência Bancária",
+      "boleto": "Boleto",
+      "ticket": "Boleto",
+      "visa": "Visa",
+      "master": "Mastercard",
+      "amex": "Amex",
+      "elo": "Elo",
+      "hipercard": "Hipercard",
+      "account_money": "Saldo Mercado Pago",
+      "credits": "Crédito Financeiro",
+      "prorrata_credit": "Crédito de Prorrata",
+      "other": "Outros"
     },
     "type": {
       "income": "Receita",
@@ -227,6 +248,8 @@
     "free": "Gratuito",
     "active": "Ativo",
     "inactive": "Inativo",
+    "on": "Ativado",
+    "off": "Desativado",
     "toast_success": "Perfil atualizado!",
     "toast_error": "Erro ao atualizar",
     "toast_connection_error": "Erro de conexão",
@@ -264,7 +287,8 @@
       "paid": "PAGO",
       "failed": "FALHOU",
       "pending": "PENDENTE",
-      "pending_payment": "O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente."
+      "pending_payment": "O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.",
+      "manual_payment_only": "Pagamento Manual (Ex: Pix/Boleto)"
     },
     "warnings": {
       "image_size": "A imagem deve ter no máximo 10MB.",
@@ -372,6 +396,7 @@
     "financial_health": "Saúde Financeira",
     "resource_distribution": "Distribuição de Recursos",
     "margin": "Margem",
+    "margin_explanation": "Representa a porcentagem da receita que sobra após o pagamento de todas as despesas (Margem de Lucro Líquida).",
     "incomes": "Receitas",
     "expenses": "Despesas",
     "net": "Líquido",
@@ -574,5 +599,15 @@
     "export_page": "Exportar página atual",
     "export_excel": "Exportar para Excel",
     "export_pdf": "Exportar para PDF"
+  },
+  "finn": {
+    "placeholder": "Pergunte sobre seus gastos...",
+    "thinking": "Finn está pensando...",
+    "greeting": "Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete_confirm": "Deseja remover esta mensagem?",
+    "error_connection": "Desculpe, perdi a conexão com meu cérebro IA. Tente em instantes!",
+    "error_generic": "Tive um probleminha. Pode repetir?"
   }
 }

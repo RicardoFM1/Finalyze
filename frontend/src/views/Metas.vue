@@ -204,8 +204,8 @@
       </v-window-item>
     </v-window>
     
-    <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="fetchMetas" />
-    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="fetchMetas" />
+    <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="onMetaSalva" />
+    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="onMetaExcluida" />
   </v-container>
 </template>
 
@@ -237,8 +237,51 @@ onMounted(() => {
   fetchMetas()
 })
 
-const fetchMetas = async () => {
-  loading.value = true
+const onMetaSalva = (optimisticItem, isAnotacao) => {
+    if (optimisticItem) {
+        // Se for uma edição (tem ID real), atualizamos o item existente
+        const isEdit = optimisticItem.id && !String(optimisticItem.id).startsWith('opt-')
+        
+        if (isEdit) {
+            const list = isAnotacao ? anotacoes : metas
+            const index = list.value.findIndex(m => m.id === optimisticItem.id)
+            if (index !== -1) {
+                list.value[index] = { ...list.value[index], ...optimisticItem }
+            }
+        } else {
+            // Se for novo, adicionamos no topo
+            const matchesFilter = statusFilter.value === 'all' || 
+                                  (statusFilter.value === 'andamento' && optimisticItem.status === 'andamento')
+            
+            if (matchesFilter) {
+                if (isAnotacao) {
+                    anotacoes.value.unshift(optimisticItem)
+                } else {
+                    metas.value.unshift(optimisticItem)
+                }
+            }
+        }
+    }
+    
+    // Sincronização em background - com delay para garantir que o backend commitou
+    setTimeout(() => {
+        fetchMetas(true)
+    }, 800)
+}
+
+const onMetaExcluida = ({ id, isAnotacao }) => {
+    if (isAnotacao) {
+        anotacoes.value = anotacoes.value.filter(a => a.id !== id)
+    } else {
+        metas.value = metas.value.filter(m => m.id !== id)
+    }
+    setTimeout(() => {
+        fetchMetas(true)
+    }, 800)
+}
+
+const fetchMetas = async (isSilent = false) => {
+  if (!isSilent) loading.value = true
   try {
     const [resMetas, resAnotacoes] = await Promise.all([
       authStore.apiFetch('/metas'),
@@ -250,7 +293,7 @@ const fetchMetas = async () => {
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
+    if (!isSilent) loading.value = false
   }
 }
 
@@ -299,32 +342,50 @@ const toggleStatusConcluido = async (item) => {
   }
 
   const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
+  const oldStatus = item.status
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
   
+  // Optimistic update
+  item.status = newStatus
+  toast.success(newStatus === 'concluido' ? t('toasts.success_update') : t('toasts.success_restore'))
+
   try {
     const response = await authStore.apiFetch(endpoint, {
       method: 'PATCH',
-      body: JSON.stringify({ status: 'andamento' })
+      body: JSON.stringify({ status: newStatus })
     })
-    if (response.ok) {
-      toast.success(t('toasts.success_restore'))
-      fetchMetas()
-      fetchAnotacoes()
+    if (!response.ok) {
+        throw new Error('Erro ao atualizar status')
     }
-  } catch (e) { console.error(e) }
+  } catch (e) { 
+      // Rollback
+      item.status = oldStatus
+      console.error(e) 
+  } finally {
+      setTimeout(() => { fetchMetas(true) }, 800)
+  }
 }
 
 const reativarItem = async (item) => {
   const isAnotacao = !item.tipo || item.tipo === 'pessoal'
   const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
+  const oldStatus = item.status
+
+  // Optimistic update
+  item.status = 'andamento'
+  toast.success(t('metas.actions.reactivate_success'))
   
   try {
     const response = await authStore.apiFetch(endpoint, { method: 'POST' })
-    if (response.ok) {
-      toast.success(t('metas.actions.reactivate_success'))
-      fetchMetas()
+    if (!response.ok) {
+        throw new Error('Erro ao reativar')
     }
-  } catch (e) { console.error(e) }
+  } catch (e) { 
+      item.status = oldStatus
+      console.error(e) 
+  } finally {
+      setTimeout(() => { fetchMetas(true) }, 800)
+  }
 }
 
 // Helpers

@@ -15,8 +15,13 @@
               </div>
             </template>
             <template v-else>
-              <h1 class="text-h3 text-md-h2 font-weight-black mb-6 animate-fade-up">
-                {{ $t('landing.hero_title_alt') }}<span class="gradient-text ml-4" > {{$t('landing.destiny') }}</span> 
+              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up d-flex align-center flex-wrap justify-center justify-md-start py-1" style="line-height: 1.2; overflow: visible;">
+                <span class="d-flex align-center mr-2 mr-md-4">
+                  <img :src="logotipo" alt="Logo" class="hero-logo mr-2 mr-md-3" />
+                  <span class="gradient-text brand-title">Finalyze:</span>
+                </span>
+                <span class="text-white mr-2">{{ $t('landing.hero_title_alt') }}</span>
+                <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
               <p class="text-body-1 text-md-h6 text-medium-emphasis mb-8 animate-fade-up-delay">
                 {{ $t('landing.hero_subtitle_alt') }}
@@ -118,6 +123,7 @@ import slide1 from '@/assets/slide1.png'
 import slide2 from '@/assets/slide2.png'
 import slide3 from '@/assets/slide3.png'
 import slide4 from '@/assets/slide4.png'
+import logotipo from '@/assets/logotipo.png'
 
 const authStore = useAuthStore()
 const { t } = useI18n()
@@ -241,6 +247,8 @@ const features = computed(() => [
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .hero-content {
@@ -344,6 +352,23 @@ const features = computed(() => [
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-20px) rotate(2deg); }
   100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.hero-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 600px) {
+  .hero-logo {
+    height: 50px;
+  }
+}
+
+.brand-title {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 900;
 }
 
 .animate-float { animation: float 6s ease-in-out infinite; }

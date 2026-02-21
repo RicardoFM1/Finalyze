@@ -16,6 +16,7 @@ class DeletarLancamento
         }
 
         $lancamento->delete();
-        cache()->forget("user_summary_{$usuario->id}");
+        // Limpa todos os caches de resumo do usuário (com qualquer combinação de filtros)
+        \App\Servicos\Painel\GerarResumoPainel::limparCacheUsuario($usuario->id);
     }
 }

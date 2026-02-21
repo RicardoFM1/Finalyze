@@ -9,7 +9,7 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="form.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required :disabled="loading"></v-text-field>
+          <CurrencyInput v-model="form.valor" :label="$t('modals.labels.value')" :prefix="$t('common.currency')" variant="outlined" rounded="lg" required :disabled="loading" />
         </v-col>
         <v-col cols="12" md="6">
           <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
@@ -45,6 +45,19 @@
                                 </template>
                             </v-autocomplete>
                         </v-col>
+        <v-col cols="12" md="12">
+          <v-select
+            v-model="form.forma_pagamento"
+            :items="formasPagamento"
+            item-title="title"
+            item-value="value"
+            :label="$t('transactions.payment_methods.title')"
+            variant="outlined"
+            rounded="lg"
+            :disabled="loading"
+            prepend-inner-icon="mdi-credit-card-outline"
+          ></v-select>
+        </v-col>
         <v-col cols="12">
           <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" :disabled="loading"></v-textarea>
         </v-col>
@@ -75,6 +88,8 @@ import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
+import CurrencyInput from '../../Common/CurrencyInput.vue'
+import { categorias } from '../../../constants/categorias'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -102,10 +117,21 @@ const categoriasTraduzidas = computed(() => {
   }))
 })
 
+const formasPagamento = computed(() => [
+  { title: t('transactions.payment_methods.money'), value: 'money' },
+  { title: t('transactions.payment_methods.credit_card'), value: 'credit_card' },
+  { title: t('transactions.payment_methods.debit_card'), value: 'debit_card' },
+  { title: t('transactions.payment_methods.pix'), value: 'pix' },
+  { title: t('transactions.payment_methods.transfer'), value: 'transfer' },
+  { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
+  { title: t('transactions.payment_methods.other'), value: 'other' }
+])
+
 const form = ref({
   tipo: 'despesa',
   valor: '',
   categoria: '',
+  forma_pagamento: 'other',
   data: new Date().toLocaleDateString('en-CA'),
   descricao: ''
 })
@@ -117,6 +143,7 @@ watch(() => props.modelValue, (newVal) => {
       tipo: 'despesa',
       valor: '',
       categoria: '',
+      forma_pagamento: 'other',
       data: new Date().toLocaleDateString('en-CA'),
       descricao: ''
     }
@@ -124,15 +151,25 @@ watch(() => props.modelValue, (newVal) => {
 })
 
 const salvarLancamento = async () => {
-  loading.value = true
-  try {
-    const valor = Number(form.value.valor)
-    if (isNaN(valor) || valor <= 0) {
-      toast.warning(t('validation.invalid_value'))
-      loading.value = false
-      return
-    }
+  const valor = Number(form.value.valor)
+  if (isNaN(valor) || valor <= 0) {
+    toast.warning(t('validation.invalid_value'))
+    return
+  }
 
+  // Preparamos o item de forma otimista para o Dashboard
+  const optimisticItem = {
+      ...form.value,
+      id: Date.now(), // ID temporário
+      valor: valor
+  }
+
+  // Ação Instantânea: Fecha o modal e avisa o pai
+  internalValue.value = false
+  toast.success(t('toasts.success_add'))
+  emit('saved', optimisticItem)
+
+  try {
     const response = await authStore.apiFetch('/lancamentos', {
       method: 'POST',
       body: JSON.stringify({
@@ -141,23 +178,14 @@ const salvarLancamento = async () => {
       })
     })
 
-    if (response.ok) {
-      toast.success(t('toasts.success_add'))
-      internalValue.value = false
-      emit('saved')
-    } else {
+    if (!response.ok) {
       const data = await response.json()
-      if (data.message && data.message.toLowerCase().includes('description') && data.message.includes('255')) {
-        toast.error(t('validation.description_too_long'))
-      } else {
-        toast.error(data.message || t('toasts.error_generic'))
-      }
+      throw new Error(data.message || 'Erro ao salvar')
     }
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
+    // O silent refresh do pai cuidará do rollback se necessário
   }
 }
 </script>

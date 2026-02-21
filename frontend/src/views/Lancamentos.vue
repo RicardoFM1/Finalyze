@@ -50,6 +50,7 @@
       <v-divider></v-divider>
 
       <v-data-table-server
+        v-model:options="options"
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
         :items="serverItems"
@@ -76,6 +77,15 @@
           </v-chip>
         </template>
 
+        <template v-slot:item.forma_pagamento="{ item }">
+          <div class="d-flex align-center justify-center gap-1 opacity-80">
+            <v-icon size="16" :icon="getPaymentMethodIcon(item.forma_pagamento)"></v-icon>
+            <span class="text-caption font-weight-medium">
+              {{ $t('transactions.payment_methods.' + (item.forma_pagamento || 'other')) }}
+            </span>
+          </div>
+        </template>
+
         <template v-slot:item.categoria="{ item }">
           {{ $t('categories.' + item.categoria) }}
         </template>
@@ -100,9 +110,9 @@
     </v-card>
   </v-container>
 
-  <ModalNovoLancamento v-model="dialogNovo" @saved="buscarLancamentos" />
-  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="buscarLancamentos" />
-  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="buscarLancamentos" />
+  <ModalNovoLancamento v-model="dialogNovo" @saved="onLancamentoSalvo" />
+  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="onLancamentoEditado" />
+  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="onLancamentoExcluido" />
 </template>
 
 <script setup>
@@ -147,13 +157,28 @@ const handleImport = async (event) => {
         loading.value = true
         let count = 0
         for (const row of json) {
-            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo
+            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo, forma_pagamento
+            const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
+            const formaMap = {
+                'dinheiro': 'money', 'money': 'money', 'cash': 'money',
+                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card',
+                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card',
+                'pix': 'pix',
+                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer',
+                'boleto': 'boleto',
+                'outros': 'other', 'other': 'other'
+            }
+            
+            const normalizedForma = rawForma.toString().toLowerCase().trim()
+            const finalForma = formaMap[normalizedForma] || 'other'
+
             const payload = {
                 descricao: row.Descrição || row.descricao || row.Description || 'Importado',
                 valor: row.Valor || row.valor || row.Value || 0,
                 categoria: row.Categoria || row.categoria || row.Category || 'Importado',
                 data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
-                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa'
+                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa',
+                forma_pagamento: finalForma
             }
 
             try {
@@ -185,6 +210,7 @@ const exportarExcel = () => {
             [t('transactions.table.description')]: item.descricao,
             [t('transactions.table.category')]: t('categories.' + item.categoria),
             [t('transactions.table.type')]: item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+            [t('transactions.payment_methods.title')]: t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
             [t('transactions.table.amount')]: item.valor
         }))
         const worksheet = XLSX.utils.json_to_sheet(dataToExport)
@@ -213,6 +239,7 @@ const exportarPdf = () => {
                 t('transactions.table.description'), 
                 t('transactions.table.category'), 
                 t('transactions.type.type') || t('transactions.table.type'), 
+                t('transactions.payment_methods.title'),
                 t('transactions.table.amount')
             ]]
             const data = serverItems.value.map(item => [
@@ -220,6 +247,7 @@ const exportarPdf = () => {
                 item.descricao || '',
                 t('categories.' + item.categoria) || item.categoria || '',
                 item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+                t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
                 formatNumber(item.valor)
             ])
 
@@ -261,6 +289,7 @@ const headers = computed(() => [
   { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
   { title: t('transactions.table.category'), key: 'categoria', align: 'start', sortable: true },
   { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
+  { title: t('transactions.table.payment_method'), key: 'forma_pagamento', align: 'center', sortable: true },
   { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
 ])
@@ -272,6 +301,19 @@ const formatNumber = (val) => {
 const formatDate = (date) => {
     const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
     return new Date(date).toLocaleDateString(locale, { timeZone: 'UTC' })
+}
+
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method] || icons.other
 }
 
 
@@ -286,8 +328,8 @@ const categorias = computed(() => {
   }
 })
 
-const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) => {
-  loading.value = true
+const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSilent = false }) => {
+  if (!isSilent) loading.value = true
   try {
     const params = new URLSearchParams({
       page,
@@ -329,7 +371,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch }) =>
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
+    if (!isSilent) loading.value = false
   }
 }
 
@@ -355,9 +397,81 @@ const limparFiltros = () => {
 
 
 
-const buscarLancamentos = () => {
-    search.value = (search.value || '') + ' '
-    setTimeout(() => { search.value = search.value.trim() }, 10)
+const buscarLancamentos = (isSilent = false) => {
+    // Refresh manual mantendo página e filtros
+    loadItems({
+        page: Math.ceil((totalItems.value || 0) / itemsPerPage.value) > 0 ? 1 : 1, // Reset para o caso de novos
+        itemsPerPage: itemsPerPage.value,
+        sortBy: [],
+        search: search.value,
+        isSilent: isSilent
+    })
+}
+
+const options = ref({ page: 1, itemsPerPage: 10, sortBy: [] })
+
+const onLancamentoSalvo = (optimisticItem) => {
+    if (optimisticItem) {
+        // Só adicionamos na lista local se estivermos na página 1 e sem filtros restritivos (ou filtros que batam com o item)
+        const f = filterStore.filters
+        const isPage1 = options.value.page === 1
+        const matchesFilter = (!f.descricao || optimisticItem.descricao.toLowerCase().includes(f.descricao.toLowerCase())) &&
+                              (!f.categoria || optimisticItem.categoria === f.categoria) &&
+                              (!f.tipo || f.tipo === 'todos' || optimisticItem.tipo === f.tipo)
+
+        if (isPage1 && matchesFilter) {
+            const exists = serverItems.value.some(i => i.id === optimisticItem.id)
+            if (!exists) {
+                serverItems.value.unshift(optimisticItem)
+                totalItems.value++
+                
+                if (serverItems.value.length > itemsPerPage.value) {
+                    serverItems.value.pop()
+                }
+            }
+        }
+    }
+    // Sincronização silenciosa em background
+    buscarLancamentos(true)
+}
+
+const onLancamentoEditado = (updatedItem) => {
+    if (updatedItem && serverItems.value) {
+        const index = serverItems.value.findIndex(i => i.id === updatedItem.id)
+        if (index !== -1) {
+            const oldItem = serverItems.value[index]
+            
+            // Reverter valor antigo nos totais
+            if (oldItem.tipo === 'receita') totais.value.receita -= Number(oldItem.valor)
+            else totais.value.despesa -= Number(oldItem.valor)
+            
+            // Aplicar valor novo nos totais
+            if (updatedItem.tipo === 'receita') totais.value.receita += Number(updatedItem.valor)
+            else totais.value.despesa += Number(updatedItem.valor)
+            
+            // Atualizar o item na lista
+            serverItems.value[index] = { ...updatedItem }
+        }
+    }
+    buscarLancamentos(true)
+}
+
+const onLancamentoExcluido = (deletedId) => {
+    if (deletedId && serverItems.value) {
+        // Encontrar item para atualizar totais locais
+        const item = serverItems.value.find(i => i.id === deletedId)
+        if (item) {
+            if (item.tipo === 'receita') {
+                totais.value.receita -= Number(item.valor)
+            } else {
+                totais.value.despesa -= Number(item.valor)
+            }
+        }
+        
+        serverItems.value = serverItems.value.filter(i => i.id !== deletedId)
+        totalItems.value = Math.max(0, totalItems.value - 1)
+    }
+    buscarLancamentos(true)
 }
 
 const abrirNovo = () => { dialogNovo.value = true }

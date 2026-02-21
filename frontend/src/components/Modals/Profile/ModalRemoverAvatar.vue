@@ -34,25 +34,27 @@ const internalValue = computed({
 })
 
 const confirmRemove = async () => {
-  loading.value = true
+  // Feedback imediato
+  internalValue.value = false
+  toast.success(t('toasts.success_update'))
+  emit('removed')
+
   try {
     const response = await authStore.apiFetch('/usuario/avatar', {
       method: 'DELETE'
     })
     
     if (response.ok) {
-      toast.success(t('toasts.success_update'))
       const data = await response.json()
       authStore.user = data.usuario
-      emit('removed', data.usuario)
-      internalValue.value = false
     } else {
-      toast.error(t('toasts.error_generic'))
+      throw new Error('Erro ao remover avatar')
     }
   } catch (e) {
+    console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
+    // O pai pode tratar rollback via fetchUser se necessário, 
+    // mas avatar é menos crítico em termos de dados estritos.
   }
 }
 </script>

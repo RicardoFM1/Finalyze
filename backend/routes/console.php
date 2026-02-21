@@ -13,10 +13,10 @@ Schedule::command('app:verificar-assinaturas-expiradas')
     ->at('00:00')
     ->timezone('America/Sao_Paulo');
 
-Schedule::command('app:enviar-lembretes-renovacao')
+Schedule::command('app:enviar-avisos-renovacao')
     ->dailyAt('09:00')
     ->timezone('America/Sao_Paulo');
 
-Schedule::command('app:enviar-lembretes-renovacao')
+Schedule::command('app:enviar-avisos-renovacao')
     ->dailyAt('18:00')
     ->timezone('America/Sao_Paulo');
