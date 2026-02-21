@@ -1,6 +1,5 @@
 <template>
   <div class="coin-selector-container">
-    <!-- Desktop: Select compacto -->
     <v-select
       v-if="mdAndUp"
       v-model="selectedCoin"
@@ -13,14 +12,25 @@
       class="compact-select"
     >
       <template v-slot:selection="{ item }">
-        <div class="d-flex align-center">
-          <v-icon size="18" class="mr-2">mdi-cash-multiple</v-icon>
-          <span>{{ item.value }}</span>
+        <div class="d-flex align-center gap-2">
+          <img :src="item.raw.flag" class="coin-flag-img" />
+          <span class="coin-code">{{ item.value }}</span>
         </div>
+      </template>
+
+      <template v-slot:item="{ item, props: itemProps }">
+        <v-list-item v-bind="itemProps" :title="undefined" density="compact">
+          <div class="d-flex align-center gap-2 py-1">
+            <img :src="item.raw.flag" class="coin-flag-img" />
+            <div>
+              <div class="text-body-2 font-weight-bold">{{ item.value }}</div>
+              <div class="text-caption opacity-60">{{ item.raw.name }}</div>
+            </div>
+          </div>
+        </v-list-item>
       </template>
     </v-select>
 
-    <!-- Mobile: Ícone com Menu -->
     <v-menu v-else location="bottom end" transition="scale-transition">
       <template v-slot:activator="{ props }">
         <v-btn
@@ -31,21 +41,33 @@
           v-bind="props"
           class="mobile-coin-btn"
         >
-          <span class="currency-label">{{ selectedCoin }}</span>
+          <div class="d-flex flex-column align-center">
+            <img :src="selectedCoinObject?.flag" class="coin-flag-img mb-1" />
+            <span class="currency-label">{{ selectedCoin }}</span>
+          </div>
         </v-btn>
       </template>
-      <v-list class="rounded-lg shadow-lg">
+
+      <v-list class="rounded-lg shadow-lg" width="180">
         <v-list-item
           v-for="coin in coins"
           :key="coin.value"
           @click="selectedCoin = coin.value"
           :active="selectedCoin === coin.value"
           color="primary"
+          density="compact"
         >
           <template v-slot:prepend>
-            <v-icon>{{ coin.value === 'BRL' ? 'mdi-currency-brl' : 'mdi-currency-usd' }}</v-icon>
+            <img :src="coin.flag" class="coin-flag-img mr-2" />
           </template>
-          <v-list-item-title>{{ coin.label }}</v-list-item-title>
+
+          <v-list-item-title class="text-body-2">
+            {{ coin.value }}
+          </v-list-item-title>
+
+          <v-list-item-subtitle class="text-caption">
+            {{ coin.name }}
+          </v-list-item-subtitle>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -53,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useCurrencyStore } from '../../stores/currency'
 import { useDisplay } from 'vuetify'
 
@@ -61,11 +83,37 @@ const { mdAndUp } = useDisplay()
 const currencyStore = useCurrencyStore()
 
 const coins = [
-  { label: 'BRL', value: 'BRL' },
-  { label: 'USD', value: 'USD' },
+  {
+    label: 'BRL',
+    value: 'BRL',
+    name: 'Real Brasileiro',
+    flag: 'https://flagcdn.com/w40/br.png'
+  },
+  {
+    label: 'USD',
+    value: 'USD',
+    name: 'Dólar Americano',
+    flag: 'https://flagcdn.com/w40/us.png'
+  },
+  {
+    label: 'EUR',
+    value: 'EUR',
+    name: 'Euro',
+    flag: 'https://flagcdn.com/w40/eu.png'
+  },
+  {
+    label: 'GBP',
+    value: 'GBP',
+    name: 'Libra Esterlina',
+    flag: 'https://flagcdn.com/w40/gb.png'
+  }
 ]
 
 const selectedCoin = ref(currencyStore.currency)
+
+const selectedCoinObject = computed(() =>
+  coins.find(c => c.value === selectedCoin.value)
+)
 
 watch(selectedCoin, (newCoin) => {
   currencyStore.setCurrency(newCoin)
@@ -86,7 +134,7 @@ watch(
 }
 
 .compact-select {
-  width: 100px;
+  width: 120px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
 }
@@ -94,21 +142,50 @@ watch(
 :deep(.compact-select .v-field) {
   border-radius: 8px !important;
   color: white !important;
+  font-size: 12px !important;
+  min-height: 34px !important;
+}
+
+:deep(.compact-select .v-field__input) {
+  font-size: 12px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 34px !important;
 }
 
 :deep(.compact-select .v-field__outline) {
   --v-field-border-opacity: 0.3 !important;
 }
 
+:deep(.compact-select .v-field__append-inner .v-icon) {
+  font-size: 16px !important;
+  opacity: 0.7;
+}
+
+.coin-flag-img {
+  width: 18px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.coin-code {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: white;
+}
+
 .mobile-coin-btn {
   background: rgba(255, 255, 255, 0.15) !important;
   font-weight: 800;
-  width: 40px !important;
-  height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
 }
 
 .currency-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
 }
 </style>

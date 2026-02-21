@@ -62,6 +62,7 @@
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "goals": "Goals",
+    "reminders": "Reminders",
     "reports": "Reports",
     "profile": "Profile",
     "settings": "Settings",
@@ -512,7 +513,8 @@
       "edit_goal": "Edit Goal",
       "new_goal": "New Goal",
       "edit_note": "Edit Note",
-      "new_note": "New Note"
+      "new_note": "New Note",
+      "share": "Share"
     },
     "labels": {
       "value": "Amount",

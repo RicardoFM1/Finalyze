@@ -62,6 +62,7 @@
     "dashboard": "Painel",
     "transactions": "Lançamentos",
     "goals": "Metas",
+    "reminders": "Agenda",
     "reports": "Relatórios",
     "profile": "Meu Perfil",
     "settings": "Configurações",
@@ -149,6 +150,7 @@
   },
   "metas": {
     "financial_title": "Metas Financeiras",
+    "financial_subtitle": "Planeje e monitore suas economias e objetivos",
     "financial_tooltip": "Acompanhe seus objetivos de economia e gastos.",
     "new_goal": "Nova Meta",
     "goal_late": "Meta Atrasada!",
@@ -157,37 +159,47 @@
     "edit": "Editar",
     "delete": "Desativar",
     "no_financial_goals": "Nenhuma meta financeira encontrada.",
-    "notepad_title": "Bloco de Notas",
-    "notepad_tooltip": "Suas anotações pessoais e lembretes.",
-    "new_note": "Nova Anotação",
-    "no_notes_content": "Sem anotações...",
+    "notepad_title": "Agenda & Lembretes",
+    "notepad_subtitle": "Suas reuniões e tarefas importantes",
+    "notepad_tooltip": "Organize seu dia com lembretes e avisos.",
+    "new_note": "Novo Lembrete",
+    "no_notes_content": "Sem descrição disponível...",
     "completed": "Concluído",
-    "no_notes_available": "Nenhuma anotação disponível.",
+    "no_notes_available": "Nenhum lembrete encontrado.",
     "history_dev": "Histórico em desenvolvimento",
     "planning_dev": "Planejamento em desenvolvimento",
     "tabs": {
       "metas": "Minhas Metas",
-      "notepad": "Bloco de Notas"
+      "notepad": "Agenda"
     },
     "filter": {
       "active": "Em andamento",
       "completed": "Concluídas",
-      "inactive": "Inativas",
-      "all": "Todas"
+      "inactive": "Inativos",
+      "all": "Todos"
     },
     "actions": {
       "complete": "Concluir",
       "reopen": "Reabrir",
       "delete": "Desativar",
       "edit": "Editar",
-      "inactivate_title": "Desativar Item",
-      "inactivate_confirm": "Você tem certeza que deseja desativar \"{title}\"?",
-      "inactivate_desc": "O item será removido da sua lista atual, mas poderá ser recuperado na aba de itens inativos.",
+      "inactivate_title": "Mover para Inativos",
+      "inactivate_confirm": "Deseja mover \"{title}\" para os inativos?",
+      "inactivate_desc": "O item não aparecerá mais na lista principal, mas você pode encontrá-lo no filtro de 'Inativos'.",
       "reactivate": "Reativar",
       "reactivate_success": "Item reativado com sucesso!"
     },
     "no_goals_completed": "Nenhuma meta concluída ainda.",
-    "no_notes_completed": "Sem anotações concluídas."
+    "no_notes_completed": "Sem lembretes concluídos.",
+    "goal_incomplete_error": "A meta só pode ser finalizada quando atingir 100% de progresso.",
+    "empty_filter": "Nenhum item encontrado para este filtro.",
+    "calendar_title": "Agenda de Compromissos",
+    "calendar_search": "Lembretes para {date}",
+    "no_calendar_notes": "Nenhum lembrete para este dia.",
+    "create_hint": "Criar novo lembrete",
+    "day_details": "Eventos de {date}",
+    "add_event": "Adicionar Lembrete",
+    "test_notifications": "Testar Notificações"
   },
   "transactions": {
     "title": "Lançamentos",
@@ -506,8 +518,9 @@
       "edit_transaction": "Editar Lançamento",
       "edit_goal": "Editar Meta",
       "new_goal": "Nova Meta",
-      "edit_note": "Editar Anotação",
-      "new_note": "Nova Anotação"
+      "edit_note": "Editar Lembrete",
+      "new_note": "Novo Lembrete",
+      "share": "Colaboração"
     },
     "labels": {
       "value": "Valor",
@@ -520,6 +533,11 @@
       "current_value": "Valor Atual",
       "deadline": "Prazo",
       "deadline_optional": "Data Limite (Opcional)",
+      "date_agenda": "Data do Lembrete",
+      "time": "Hora (Opcional)",
+      "notifications": "NOTIFICAÇÕES",
+      "on_site": "No Site",
+      "by_email": "Por E-mail",
       "color": "Cor",
       "header_color": "Cor do Cabeçalho",
       "icon": "Ícone/Emoji"

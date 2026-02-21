@@ -10,6 +10,12 @@
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
+    "@fullcalendar/core": "^6.1.20",
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/list": "^6.1.20",
+    "@fullcalendar/timegrid": "^6.1.20",
+    "@fullcalendar/vue3": "^6.1.20",
     "@mdi/font": "^7.4.47",
     "@popperjs/core": "^2.11.8",
     "@vuepic/vue-datepicker": "^12.1.0",

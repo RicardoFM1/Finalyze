@@ -15,7 +15,7 @@ Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reen
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'workspace'])->group(function () {
     Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
     Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
     Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
@@ -51,14 +51,20 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::match(['put', 'patch'], '/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
             Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
+        });
 
-            Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
-            Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
-            Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
-            Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
-            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\AnotacaoController::class, 'reativar']);
+        Route::middleware('check_resource:lembretes-avisos')->group(function () {
+            Route::get('/anotacoes', [App\Http\Controllers\LembreteController::class, 'index']);
+            Route::post('/anotacoes', [App\Http\Controllers\LembreteController::class, 'store']);
+            Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
+            Route::delete('/anotacoes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
+            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\LembreteController::class, 'reativar']);
         });
     });
+
+    Route::get('/shared-accounts', [App\Http\Controllers\AccountShareController::class, 'index']);
+    Route::post('/shared-accounts', [App\Http\Controllers\AccountShareController::class, 'store']);
+    Route::delete('/shared-accounts/{id}', [App\Http\Controllers\AccountShareController::class, 'destroy']);
 
 
     Route::middleware('admin')->group(function () {

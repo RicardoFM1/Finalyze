@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Servicos\Anotacoes;
+namespace App\Servicos\Lembretes;
 
-use App\Models\Anotacao;
+use App\Models\Lembrete;
 
-class ListarAnotacoes
+class ListarLembretes
 {
     public function executar($usuarioId)
     {
-        return Anotacao::withTrashed()
+        return Lembrete::withTrashed()
             ->where('usuario_id', $usuarioId)
             ->orderBy('created_at', 'desc')
             ->get();

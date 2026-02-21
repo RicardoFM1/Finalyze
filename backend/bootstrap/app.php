@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'has_plan' => \App\Http\Middleware\EnsureUserHasPlan::class,
             'admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'check_resource' => \App\Http\Middleware\CheckResource::class,
+            'workspace' => \App\Http\Middleware\SetWorkspaceContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();

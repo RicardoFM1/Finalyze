@@ -20,3 +20,7 @@ Schedule::command('app:enviar-avisos-renovacao')
 Schedule::command('app:enviar-avisos-renovacao')
     ->dailyAt('18:00')
     ->timezone('America/Sao_Paulo');
+
+Schedule::command('app:enviar-lembretes-pessoais')
+    ->everyMinute()
+    ->timezone('America/Sao_Paulo');

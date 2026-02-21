@@ -20,10 +20,16 @@ const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
-  meta: Object
+  meta: Object,
+  // 'anotacoes' for Lembretes, 'metas' for Metas. Defaults to 'metas'.
+  resourceType: {
+    type: String,
+    default: 'metas',
+    validator: (v) => ['metas', 'anotacoes'].includes(v)
+  }
 })
 
-const emit = defineEmits(['update:modelValue', 'deleted'])
+const emit = defineEmits(['update:modelValue', 'deleted', 'rollback'])
 
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -37,24 +43,25 @@ const confirmDelete = async () => {
   if (!props.meta?.id) return
 
   const id = props.meta.id
-  const isAnotacao = !props.meta.tipo || props.meta.tipo === 'pessoal'
-  
-  // Close immediately for perceived speed
+  const oldStatus = props.meta.status
+  const resource = props.resourceType  // 'metas' or 'anotacoes'
+  const endpoint = `/${resource}/${id}`
+
+  // Optimistic: close + notify immediately
   internalValue.value = false
   toast.success(t('toasts.success_inactivate'))
-  emit('deleted', { id, isAnotacao })
+  emit('deleted', { id, oldStatus })
 
   try {
-    const endpoint = isAnotacao ? `/anotacoes/${id}` : `/metas/${id}`
-    const response = await authStore.apiFetch(endpoint, {
-      method: 'DELETE'
-    })
+    const response = await authStore.apiFetch(endpoint, { method: 'DELETE' })
     if (!response.ok) {
-        throw new Error('Erro ao desativar')
+      const body = await response.json().catch(() => ({}))
+      throw new Error(body.message || 'Erro ao desativar')
     }
   } catch (e) {
-    console.error(e)
+    console.error(`[ModalExcluirMeta] DELETE ${endpoint} falhou:`, e.message)
     toast.error(t('toasts.error_generic'))
+    emit('rollback', { id, oldStatus })
   }
 }
 </script>

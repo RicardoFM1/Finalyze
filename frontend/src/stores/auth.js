@@ -7,6 +7,8 @@ import { useUiStore } from './ui';
 export const useAuthStore = defineStore('auth', () => {
 
     const user = ref(null);
+    const workspaceId = ref(localStorage.getItem('workspace_id') || null);
+    const sharedAccounts = ref([]);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -30,6 +32,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (token.value) {
             headers['Authorization'] = `Bearer ${token.value}`;
+        }
+
+        if (workspaceId.value) {
+            headers['X-Workspace-Id'] = workspaceId.value;
         }
 
         if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
@@ -120,6 +126,11 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
+                if (!workspaceId.value) {
+                    workspaceId.value = data.id;
+                    localStorage.setItem('workspace_id', data.id);
+                }
+                fetchSharedAccounts();
             }
         } catch (e) {
             console.error(e);
@@ -128,10 +139,33 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    async function fetchSharedAccounts() {
+        try {
+            const response = await apiFetch('/shared-accounts');
+            if (response.ok) {
+                const data = await response.json();
+                sharedAccounts.value = [
+                    { id: user.value.id, owner: user.value, is_owner: true },
+                    ...data.shared_with_me.map(s => ({ ...s, is_owner: false }))
+                ];
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function setWorkspace(id) {
+        workspaceId.value = id;
+        localStorage.setItem('workspace_id', id);
+        window.location.reload(); // Reload to refresh all data context
+    }
+
     function logout() {
         token.value = null;
         user.value = null;
+        workspaceId.value = null;
         localStorage.removeItem('token');
+        localStorage.removeItem('workspace_id');
     }
 
     function hasFeature(featureSlug) {
@@ -195,5 +229,5 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
+    return { user, token, workspaceId, sharedAccounts, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts };
 });

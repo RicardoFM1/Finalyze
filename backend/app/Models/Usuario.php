@@ -84,9 +84,18 @@ class Usuario extends Authenticatable
         return $this->hasMany(Meta::class, 'usuario_id');
     }
 
+    public function anotacoes()
+    {
+        return $this->hasMany(Anotacao::class, 'usuario_id');
+    }
+
+    public function shares()
+    {
+        return $this->hasMany(AccountShare::class, 'owner_id');
+    }
+
     public function getAvatarUrlAttribute()
     {
-        // Avatar já está em base64 (data:image/png;base64,...)
         return $this->avatar;
     }
 }
