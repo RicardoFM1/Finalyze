@@ -2,13 +2,14 @@
 
 namespace App\Servicos\Metas;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\Meta;
 
 class EditarMeta
 {
     public function executar(int $id, array $dados)
     {
-        $meta = Auth::user()->metas()->findOrFail($id);
+        $workspaceId = app('workspace_id');
+        $meta = Meta::where('id', $id)->where('usuario_id', $workspaceId)->firstOrFail();
 
         // Se a meta estava concluída, mas agora o objetivo aumentou ou o atual diminuiu
         // e ela não atinge mais 100%, voltamos o status para 'andamento'

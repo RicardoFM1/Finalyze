@@ -55,6 +55,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'metas' }
     },
     {
+      path: '/lembretes',
+      name: 'Lembretes',
+      component: () => import('@/views/Lembretes.vue'),
+      meta: { requiresAuth: true, requiresPlan: true, requiresFeature: 'lembretes-avisos' }
+    },
+    {
       path: '/relatorios',
       name: 'Reports',
       component: () => import('@/views/Reports.vue'),

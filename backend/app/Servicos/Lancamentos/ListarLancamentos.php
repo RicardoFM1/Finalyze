@@ -3,12 +3,15 @@
 namespace App\Servicos\Lancamentos;
 
 use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
 
 class ListarLancamentos
 {
     public function executar(array $filtros = [])
     {
-        $query = Auth::user()->lancamentos()->latest();
+        $workspaceId = app('workspace_id');
+        $usuario = Usuario::findOrFail($workspaceId);
+        $query = $usuario->lancamentos()->latest();
 
         if (!empty($filtros['search'])) {
             $search = $filtros['search'];

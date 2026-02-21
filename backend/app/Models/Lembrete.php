@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Anotacao extends Model
+class Lembrete extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'anotacoes';
+    protected $table = 'lembretes';
 
     protected $fillable = [
         'usuario_id',
@@ -18,6 +18,11 @@ class Anotacao extends Model
         'icone',
         'cor',
         'prazo',
+        'hora',
+        'notificacao_site',
+        'notificacao_email',
+        'email_notified_at',
+        'site_notified_at',
         'status'
     ];
 

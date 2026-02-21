@@ -1,5 +1,5 @@
 <template>
-  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : $t('modals.titles.edit_note')) : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : $t('modals.titles.new_note'))" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : 'Editar Compromisso') : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : 'Novo Lembrete')" v-model="internalValue" maxWidth="550px">
     <v-form ref="metaForm" @submit.prevent="saveMeta">
 
       <v-text-field
@@ -112,17 +112,28 @@
       </template>
 
       <v-row dense>
-        <v-col :cols="form.tipo === 'financeira' ? 6 : 12">
+        <v-col :cols="form.tipo === 'publico' ? 12 : 6">
           <DateInput
             v-model="form.prazo"
-            :label="form.tipo === 'financeira' ? 'Prazo' : 'Data Limite (Opcional)'"
+            :label="form.tipo === 'financeira' ? $t('modals.labels.deadline') : $t('modals.labels.date_agenda')"
             clearable
           />
+        </v-col>
+        <v-col v-if="form.tipo === 'pessoal' || form.tipo === 'agenda'" cols="6">
+          <v-text-field
+            v-model="form.hora"
+            :label="$t('modals.labels.time')"
+            type="time"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-clock-outline"
+            :disabled="loading"
+          ></v-text-field>
         </v-col>
         <v-col v-if="form.tipo === 'financeira'" cols="6">
           <v-text-field
             v-model="form.cor"
-            label="Cor (Hex)"
+            :label="$t('modals.labels.color') + ' (Hex)'"
             type="color"
             variant="outlined"
             rounded="lg"
@@ -130,6 +141,31 @@
           ></v-text-field>
         </v-col>
       </v-row>
+
+      <template v-if="form.tipo === 'pessoal' || form.tipo === 'agenda'">
+        <v-divider class="my-4"></v-divider>
+        <p class="text-caption font-weight-bold mb-2 text-medium-emphasis">NOTIFICAÇÕES</p>
+        <v-row dense>
+            <v-col cols="6">
+                <v-switch
+                    v-model="form.notificacao_site"
+                    label="No Site"
+                    color="primary"
+                    density="compact"
+                    hide-details
+                ></v-switch>
+            </v-col>
+            <v-col cols="6">
+                <v-switch
+                    v-model="form.notificacao_email"
+                    label="Por E-mail"
+                    color="primary"
+                    density="compact"
+                    hide-details
+                ></v-switch>
+            </v-col>
+        </v-row>
+      </template>
 
       <v-btn 
         type="submit" 
@@ -216,6 +252,9 @@ const form = ref({
   atual_quantidade: 0,
   unidade: '',
   prazo: null,
+  hora: null,
+  notificacao_site: false,
+  notificacao_email: true,
   cor: '#1867C0',
   icone: ''
 })
@@ -223,9 +262,19 @@ const form = ref({
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     if (props.meta) {
+      // Fix date offset by ensuring we don't treat it as UTC
+      let formattedPrazo = null
+      if (props.meta.prazo) {
+          const d = new Date(props.meta.prazo)
+          // Se vier do banco como YYYY-MM-DD, o new Date() pode puxar UTC
+          // Vamos garantir que pegamos exatamente o que está escrito
+          formattedPrazo = typeof props.meta.prazo === 'string' ? props.meta.prazo.split('T')[0] : props.meta.prazo
+      }
+
       form.value = { 
         ...props.meta,
-        prazo: props.meta.prazo ? new Date(props.meta.prazo).toLocaleDateString('en-CA') : null
+        tipo: props.meta.tipo || props.initialTipo,
+        prazo: formattedPrazo
       }
     } else {
       form.value = {
@@ -238,6 +287,9 @@ watch(() => props.modelValue, (newVal) => {
         atual_quantidade: 0,
         unidade: props.initialTipo === 'financeira' ? 'BRL' : '',
         prazo: null,
+        hora: null,
+        notificacao_site: false,
+        notificacao_email: true,
         cor: props.initialTipo === 'financeira' ? '#4CAF50' : '#FFF9BF',
         icone: props.initialTipo === 'pessoal' ? '🎯' : ''
       }
@@ -248,34 +300,44 @@ watch(() => props.modelValue, (newVal) => {
 const saveMeta = async () => {
   const isEdit = !!form.value.id
   const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
-  const isAnotacao = currentTipo === 'pessoal'
+  const isAnotacao = currentTipo === 'pessoal' || currentTipo === 'agenda'
   
+  // Clean empty strings to null for backend
+  const cleanData = { ...form.value }
+  Object.keys(cleanData).forEach(key => {
+    if (cleanData[key] === '') cleanData[key] = null
+  })
+
   // Perceived speed: Close and tell parent to refresh
   const optimisticItem = {
-    ...form.value,
-    id: isEdit ? form.value.id : 'opt-' + Date.now(),
-    status: form.value.status || 'andamento'
+    ...cleanData,
+    id: isEdit ? cleanData.id : 'opt-' + Date.now(),
+    status: cleanData.status || 'andamento'
   }
   
   internalValue.value = false
-  toast.success(t('toasts.success_add'))
   emit('saved', optimisticItem, isAnotacao) 
 
   try {
     const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
-    const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
+    const endpoint = isEdit ? `${endpointBase}/${cleanData.id}` : endpointBase
     
+    loading.value = true
     const response = await authStore.apiFetch(endpoint, {
       method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(cleanData)
     })
 
     if (!response.ok) {
         throw new Error('Erro ao salvar')
     }
+    
+    toast.success(isEdit ? t('toasts.success_update') : t('toasts.success_add'))
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
+  } finally {
+      loading.value = false
   }
 }
 </script>

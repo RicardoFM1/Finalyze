@@ -80,7 +80,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.receita) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_income_month') }}</div>
@@ -98,7 +98,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.despesa) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_expense_month') }}</div>
@@ -116,7 +116,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.saldo) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.saldo) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.net_worth_today') }}</div>
@@ -159,7 +159,7 @@
                     <div class="dot receita-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.incomes') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">{{ $t('common.currency') }} {{ formatNumber(resumo.receita) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="mb-4 d-flex align-center justify-space-between">
@@ -167,7 +167,7 @@
                     <div class="dot despesa-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.expenses') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">{{ $t('common.currency') }} {{ formatNumber(resumo.despesa) }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="d-flex align-center justify-space-between">
@@ -176,7 +176,7 @@
                     <span class="text-body-2">{{ $t('features.net') }}</span>
                   </div>
                   <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
-                    {{ $t('common.currency') }} {{ formatNumber(resumo.saldo) }}
+                    {{ currencySymbol }} {{ formatNumber(resumo.saldo) }}
                   </span>
                 </div>
               </v-col>
@@ -205,7 +205,7 @@
                 <template v-slot:append>
                     <div class="d-flex align-center">
                         <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold mr-4">
-                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
+                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ currencySymbol }} {{ formatNumber(item.valor) }}
                         </span>
                         <div class="d-flex gap-1">
                             <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click="abrirEditar(item)"></v-btn>
@@ -306,7 +306,9 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 ChartJS.register(ArcElement, Tooltip, Legend)
 import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
+import { useMoney } from '../composables/useMoney'
 const { t } = useI18n()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum } = useMoney()
 
 
 import { categorias as categoriasConstantes } from '../constants/categorias'
@@ -358,10 +360,7 @@ const getMarginPercentage = computed(() => {
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
 
-const formatNumber = (val) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return Number(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+const formatNumber = (val) => fmtNum(fromBRL(val))
 
 const getPaymentMethodIcon = (method) => {
   const icons = {
@@ -392,7 +391,7 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
-                label: (context) => ` ${t('common.currency')} ${formatNumber(context.raw)}`
+        label: (context) => ` ${currencySymbol.value} ${fmtNum(fromBRL(context.raw))}`
             }
         }
     },

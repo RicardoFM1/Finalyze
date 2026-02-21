@@ -8,6 +8,7 @@ class CriarMeta
 {
     public function executar(array $dados)
     {
-        return Auth::user()->metas()->create($dados);
+        $dados['usuario_id'] = app('workspace_id');
+        return \App\Models\Meta::create($dados);
     }
 }

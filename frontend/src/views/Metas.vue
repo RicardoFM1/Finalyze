@@ -5,28 +5,25 @@
         <div class="d-flex flex-column gap-6">
           <!-- Top Row: Main View Tabs & New Button -->
           <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
-            <div class="tabs-container rounded-xl pa-1 elevation-1 glass-card d-inline-flex">
-              <v-tabs v-model="activeTab" color="primary" hide-slider class="pill-tabs" density="comfortable">
-                <v-tab value="metas" rounded="lg" class="px-6">
-                  <v-icon start icon="mdi-bullseye-arrow" class="mr-2"></v-icon>
-                  {{ $t('metas.tabs.metas') }}
-                </v-tab>
-                <v-tab value="notepad" rounded="lg" class="px-6">
-                  <v-icon start icon="mdi-notebook-outline" class="mr-2"></v-icon>
-                  {{ $t('metas.tabs.notepad') }}
-                </v-tab>
-              </v-tabs>
+            <div class="d-flex align-center">
+              <v-avatar color="primary" size="48" class="mr-3 elevation-2">
+                <v-icon icon="mdi-bullseye-arrow" color="white"></v-icon>
+              </v-avatar>
+              <div>
+                <h1 class="text-h4 font-weight-bold">{{ $t('metas.tabs.metas') }}</h1>
+                <p class="text-subtitle-2 text-medium-emphasis">{{ $t('metas.financial_subtitle') }}</p>
+              </div>
             </div>
 
             <v-btn 
               color="primary" 
-              :prepend-icon="activeTab === 'metas' ? 'mdi-plus' : 'mdi-note-plus-outline'" 
+              prepend-icon="mdi-plus" 
               rounded="xl" 
               size="large"
               class="font-weight-bold px-8 elevation-3 shadow-primary w-100 w-sm-auto"
-              @click="openDialog(activeTab === 'metas' ? 'financeira' : 'pessoal')"
+              @click="openDialog('financeira')"
             >
-              {{ activeTab === 'metas' ? $t('metas.new_goal') : $t('metas.new_note') }}
+              {{ $t('metas.new_goal') }}
             </v-btn>
           </div>
 
@@ -103,6 +100,11 @@
                   <v-icon v-else icon="mdi-trending-up" size="14" color="success" class="mr-1"></v-icon>
                   <span class="text-truncate">{{ meta.descricao || getMetaSubtitle(meta) }}</span>
                 </div>
+
+                <v-chip v-if="meta.prazo" size="x-small" variant="tonal" class="mt-3" color="medium-emphasis">
+                  <v-icon icon="mdi-calendar" size="10" class="mr-1"></v-icon>
+                  {{ formatDate(meta.prazo) }}
+                </v-chip>
               </v-card-text>
 
               <v-divider opacity="0.1"></v-divider>
@@ -129,8 +131,8 @@
                 >
                   {{ $t('metas.actions.reactivate') }}
                 </v-btn>
-                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
-                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline" />
+                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline" />
               </v-card-actions>
             </v-card>
           </v-col>
@@ -140,72 +142,16 @@
           <p>{{ statusFilter === 'concluido' ? $t('metas.no_goals_completed') : $t('metas.no_financial_goals') }}</p>
         </div>
       </v-window-item>
-
-      <v-window-item value="notepad">
-        <div v-if="loading" class="d-flex flex-column align-center py-12">
-          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="120" />
-          <v-skeleton-loader type="card" class="mb-6" :loading="true" :width="'100%'" :height="120" />
-        </div>
-
-        <v-row v-else-if="filteredNotes.length">
-          <v-col v-for="note in filteredNotes" :key="note.id" cols="12" sm="6" md="4" lg="3">
-            <v-card 
-              class="rounded-xl goal-card notepad-card overflow-hidden" 
-              :class="{ 'completed-note': note.status === 'concluido' }"
-              elevation="2"
-            >
-              <div class="notepad-header" :style="`background: ${note.cor || '#FFEB3B'}`"></div>
-              <v-card-text class="pa-5 notepad-content">
-                <div class="d-flex align-start mb-2">
-                  <span v-if="note.icone" class="mr-2 notepad-emoji">{{ note.icone }}</span>
-                  <span class="text-h6 font-weight-bold notepad-title text-truncate">{{ note.titulo }}</span>
-                </div>
-
-                <div class="notepad-text mb-4">
-                   {{ note.descricao || $t('metas.no_notes_content') }}
-                </div>
-
-                <div class="d-flex justify-space-between align-center text-caption text-medium-emphasis mt-auto">
-                   <span v-if="note.prazo" class="d-flex align-center">
-                      <v-icon icon="mdi-calendar-clock" size="14" class="mr-1"></v-icon>
-                      {{ formatDate(note.prazo) }}
-                   </span>
-                   <v-chip v-if="note.status === 'concluido'" size="x-small" color="success" variant="tonal" class="rounded-lg">{{ $t('metas.completed') }}</v-chip>
-                </div>
-              </v-card-text>
-
-              <v-divider opacity="0.1"></v-divider>
-              <v-card-actions class="pa-2 px-4 justify-end gap-1">
-                <v-btn 
-                  :icon="note.status === 'concluido' ? 'mdi-refresh' : 'mdi-check'" 
-                  size="small" 
-                  variant="text" 
-                  :color="note.status === 'concluido' ? 'warning' : 'success'" 
-                  @click="toggleStatusConcluido(note)"
-                ></v-btn>
-                <v-btn 
-                  v-if="note.status === 'inativo'"
-                  variant="text" 
-                  size="small" 
-                  color="info" 
-                  @click="reativarItem(note)"
-                  icon="mdi-restore"
-                ></v-btn>
-                <v-btn v-if="note.status !== 'inativo'" icon="mdi-pencil-outline" size="small" variant="text" color="primary" @click="editMeta(note)"></v-btn>
-                <v-btn v-if="note.status !== 'inativo'" icon="mdi-delete-outline" size="small" variant="text" color="error" @click="confirmDelete(note)"></v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-        <div v-else class="text-center py-12 text-medium-emphasis">
-          <v-icon icon="mdi-notebook-outline" size="64" class="mb-4 opacity-20"></v-icon>
-          <p>{{ statusFilter === 'concluido' ? $t('metas.no_notes_completed') : $t('metas.no_notes_available') }}</p>
-        </div>
-      </v-window-item>
     </v-window>
     
     <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="onMetaSalva" />
-    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="onMetaExcluida" />
+    <ModalExcluirMeta
+      v-model="deleteDialog"
+      :meta="metaToDelete"
+      resourceType="metas"
+      @deleted="onMetaExcluida"
+      @rollback="({ id, oldStatus }) => { const i = metas.findIndex(m => m.id === id); if(i !== -1) metas[i].status = oldStatus; fetchMetas(true) }"
+    />
   </v-container>
 </template>
 
@@ -216,12 +162,13 @@ import { toast } from 'vue3-toastify'
 import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
 import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
+const { fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 const authStore = useAuthStore()
 
 const metas = ref([])
-const anotacoes = ref([])
 const loading = ref(false)
 const dialog = ref(false)
 const deleteDialog = ref(false)
@@ -237,59 +184,41 @@ onMounted(() => {
   fetchMetas()
 })
 
-const onMetaSalva = (optimisticItem, isAnotacao) => {
+const onMetaSalva = (optimisticItem) => {
     if (optimisticItem) {
-        // Se for uma edição (tem ID real), atualizamos o item existente
         const isEdit = optimisticItem.id && !String(optimisticItem.id).startsWith('opt-')
-        
         if (isEdit) {
-            const list = isAnotacao ? anotacoes : metas
-            const index = list.value.findIndex(m => m.id === optimisticItem.id)
+            const index = metas.value.findIndex(m => m.id === optimisticItem.id)
             if (index !== -1) {
-                list.value[index] = { ...list.value[index], ...optimisticItem }
+                metas.value[index] = { ...metas.value[index], ...optimisticItem }
             }
         } else {
-            // Se for novo, adicionamos no topo
             const matchesFilter = statusFilter.value === 'all' || 
                                   (statusFilter.value === 'andamento' && optimisticItem.status === 'andamento')
-            
             if (matchesFilter) {
-                if (isAnotacao) {
-                    anotacoes.value.unshift(optimisticItem)
-                } else {
-                    metas.value.unshift(optimisticItem)
-                }
+                metas.value.unshift(optimisticItem)
             }
         }
     }
-    
-    // Sincronização em background - com delay para garantir que o backend commitou
-    setTimeout(() => {
-        fetchMetas(true)
-    }, 800)
+    setTimeout(() => { fetchMetas(true) }, 800)
 }
 
-const onMetaExcluida = ({ id, isAnotacao }) => {
-    if (isAnotacao) {
-        anotacoes.value = anotacoes.value.filter(a => a.id !== id)
-    } else {
-        metas.value = metas.value.filter(m => m.id !== id)
+const onMetaExcluida = ({ id, oldStatus }) => {
+    const index = metas.value.findIndex(m => m.id === id)
+    if (index !== -1) {
+        metas.value[index].status = 'inativo'
     }
-    setTimeout(() => {
-        fetchMetas(true)
-    }, 800)
+    setTimeout(() => { fetchMetas(true) }, 1500)
 }
 
 const fetchMetas = async (isSilent = false) => {
   if (!isSilent) loading.value = true
   try {
-    const [resMetas, resAnotacoes] = await Promise.all([
-      authStore.apiFetch('/metas'),
-      authStore.apiFetch('/anotacoes')
+    const [resMetas] = await Promise.all([
+      authStore.apiFetch('/metas')
     ])
     
     if (resMetas.ok) metas.value = await resMetas.json()
-    if (resAnotacoes.ok) anotacoes.value = await resAnotacoes.json()
   } catch (e) {
     console.error(e)
   } finally {
@@ -305,14 +234,6 @@ const filteredMetas = computed(() => {
   return metas.value.filter(m => m.status === statusFilter.value)
 })
 
-const filteredNotes = computed(() => {
-  if (statusFilter.value === 'all') return anotacoes.value
-  if (statusFilter.value === 'andamento') {
-    return anotacoes.value.filter(n => (n.status === 'andamento' || n.status === 'atrasado') && n.status !== 'inativo')
-  }
-  return anotacoes.value.filter(n => n.status === statusFilter.value)
-})
-
 const openDialog = (tipo = 'financeira') => {
   initialTipo.value = tipo
   itemAEditar.value = null
@@ -321,7 +242,7 @@ const openDialog = (tipo = 'financeira') => {
 
 const editMeta = (meta) => {
   itemAEditar.value = meta
-  initialTipo.value = meta.tipo || 'pessoal'
+  initialTipo.value = meta.tipo || 'financeira'
   dialog.value = true
 }
 
@@ -331,12 +252,12 @@ const confirmDelete = (meta) => {
 }
 
 const toggleStatusConcluido = async (item) => {
-  const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  const isAnotacao = false
   
   if (!isAnotacao && item.status !== 'concluido') {
     const p = calculatePercentage(item.valor_atual, item.valor_objetivo)
     if (p < 100) {
-      toast.error('A meta só pode ser finalizada quando atingir 100% de progresso.')
+      toast.error(t('metas.goal_incomplete_error') || 'A meta só pode ser finalizada quando atingir 100% de progresso.')
       return
     }
   }
@@ -367,7 +288,7 @@ const toggleStatusConcluido = async (item) => {
 }
 
 const reativarItem = async (item) => {
-  const isAnotacao = !item.tipo || item.tipo === 'pessoal'
+  const isAnotacao = false
   const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
   const oldStatus = item.status
 
@@ -390,17 +311,27 @@ const reativarItem = async (item) => {
 
 // Helpers
 const formatPrice = (value) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
+    const converted = fromBRL(value || 0)
+    return new Intl.NumberFormat(currencyMeta.value.locale, {
+        style: 'currency',
+        currency: currencyMeta.value.code
+    }).format(converted)
 }
 const formatShortPrice = (value) => {
-  if (value >= 1000) return (value / 1000) + 'k'
-  return value
+  // Convert from BRL to selected currency first, then abbreviate
+  const converted = fromBRL(value || 0)
+  if (converted >= 1000000) return currencySymbol.value + (converted / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (converted >= 1000) return currencySymbol.value + (converted / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return formatPrice(value)
 }
 const formatDate = (date) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return new Date(date).toLocaleDateString(locale)
+    if (!date) return ''
+    // parse YYYY-MM-DD as local time to avoid UTC offset (-1 day bug)
+    if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
+        const [y, mo, d] = date.split('T')[0].split('-').map(Number)
+        return new Date(y, mo - 1, d).toLocaleDateString(currencyMeta.value.locale)
+    }
+    return new Date(date).toLocaleDateString(currencyMeta.value.locale)
 }
 const calculatePercentage = (current, total) => {
   if (!total || total === 0) return 0
@@ -457,85 +388,9 @@ const getMetaSubtitle = (meta) => {
   border-color: rgba(var(--v-theme-primary), 0.2);
 }
 
-.notepad-card {
-  background: #FFF9C4;
-  position: relative;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.notepad-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
-}
-
-:root[data-v-theme="dark"] .notepad-card,
-.v-theme--dark .notepad-card {
-  background: #33301a;
-}
-
-.completed-note {
-  opacity: 0.7;
-}
-
-.notepad-header {
-  height: 12px;
-  width: 100%;
-}
-
-.notepad-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.notepad-emoji {
-  font-size: 1.5rem;
-}
-
-.notepad-title {
-  color: inherit;
-  font-family: 'Inter', sans-serif;
-}
-
-.notepad-text {
-  color: inherit;
-  opacity: 0.9;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  font-family: 'Inter', sans-serif;
-}
-
-.gap-1 {
-  gap: 8px;
-}
-.pill-tabs :deep(.v-tab--selected) {
-  background: white !important;
-  color: rgb(var(--v-theme-primary)) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.v-theme--dark .pill-tabs :deep(.v-tab--selected) {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-}
-
-.pill-tabs :deep(.v-tab) {
-  text-transform: none;
-  font-weight: 700;
-  letter-spacing: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 120px !important;
-  opacity: 0.7;
-}
-
-.pill-tabs :deep(.v-tab--selected) {
-    opacity: 1;
-}
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
 
 .status-toggle-group {
     background: transparent !important;
@@ -560,34 +415,7 @@ const getMetaSubtitle = (meta) => {
     box-shadow: 0 4px 10px rgba(var(--v-theme-primary), 0.3) !important;
 }
 
-.filter-scroll-wrapper::-webkit-scrollbar {
-    display: none;
-}
-
-.filter-scroll-wrapper {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.glass-card {
-  background: rgba(var(--v-theme-surface), 0.7) !important;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
-}
-
-.gap-2 { gap: 8px; }
-.gap-4 { gap: 16px; }
-.gap-6 { gap: 24px; }
-
 .shadow-primary {
   box-shadow: 0 8px 20px rgba(var(--v-theme-primary), 0.3) !important;
-}
-
-@media (max-width: 600px) {
-  .pill-tabs :deep(.v-tab) {
-    min-width: 100px !important;
-    padding: 0 12px !important;
-    font-size: 0.85rem !important;
-  }
 }
 </style>
