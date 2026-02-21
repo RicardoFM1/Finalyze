@@ -35,7 +35,7 @@ class AnotacaoController extends Controller
     public function update(Request $request, $id, AtualizarAnotacao $servico)
     {
         $dados = $request->validate([
-            'titulo' => 'required|string|max:255',
+            'titulo' => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
             'icone' => 'nullable|string',
             'cor' => 'nullable|string',

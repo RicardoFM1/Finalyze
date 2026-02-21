@@ -61,22 +61,30 @@ const internalValue = computed({
 const excluir = async () => {
   if (!props.lancamentoId) return
 
-  loading.value = true
+  // Pegamos o ID para emitir antes de fechar
+  const id = props.lancamentoId
+  
+  // Fechamos o modal IMEDIATAMENTE para dar sensação de velocidade
+  internalValue.value = false
+  
+  // Feedback imediato
+  toast.success(t('toasts.success_delete'))
+  
+  // Emitimos o evento de exclusão para o pai tratar de forma otimista
+  emit('deleted', id)
+
   try {
-    const response = await authStore.apiFetch(`/lancamentos/${props.lancamentoId}`, {
+    const response = await authStore.apiFetch(`/lancamentos/${id}`, {
       method: 'DELETE'
     })
 
-    if (response.ok) {
-      toast.success(t('toasts.success_delete'))
-      internalValue.value = false
-      emit('deleted')
+    if (!response.ok) {
+      throw new Error('Erro ao deletar')
     }
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
+    // O silent refresh do pai cuidará de restaurar se necessário
   }
 }
 </script>

@@ -175,7 +175,19 @@
             <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
                 <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
                     <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
-                       {{ $t('profile.subscription.pending_payment') }}
+                       <div class="d-flex flex-column flex-sm-row align-center justify-space-between w-100">
+                           <div class="mb-2 mb-sm-0 text-center text-sm-left">
+                               {{ $t('profile.subscription.pending_payment') }}
+                           </div>
+                           <div class="d-flex gap-2">
+                               <v-btn size="small" variant="text" color="error" class="font-weight-bold" @click="cancelarPagamentoPerfil" :loading="cancelling">
+                                   {{ $t('plans.cancel_prev') }}
+                               </v-btn>
+                               <v-btn size="small" color="warning" class="font-weight-bold text-white" :to="{ name: 'Checkout' }">
+                                   {{ $t('plans.continue') }}
+                               </v-btn>
+                           </div>
+                       </div>
                     </v-alert>
                 </v-col>
                 <v-col cols="12" md="5">
@@ -224,14 +236,19 @@
                         <div class="font-weight-bold">{{ $t('profile.subscription.auto_renewal') }}</div>
                         <div class="text-body-2 text-medium-emphasis">{{ $t('profile.subscription.auto_renewal_desc') }}</div>
                       </div>
-                      <v-switch
-                        :model-value="subscriptionData?.assinatura?.renovacao_automatica ? true : false"
-                        color="primary"
-                        hide-details
-                        inset
-                        @change="ativarAutoRenovacao"
-                        :disabled="loadingSub || uiStore.loading"
-                      ></v-switch>
+                      <div class="d-flex flex-column align-end">
+                        <v-switch
+                          :model-value="!!subscriptionData?.assinatura?.renovacao_automatica"
+                          color="primary"
+                          hide-details
+                          inset
+                          @update:model-value="ativarAutoRenovacao"
+                          :disabled="loadingSub || uiStore.loading"
+                        ></v-switch>
+                        <v-chip size="x-small" :color="subscriptionData?.assinatura?.renovacao_automatica ? 'success' : 'grey'" variant="tonal" class="mt-n1">
+                           {{ subscriptionData?.assinatura?.renovacao_automatica ? $t('profile.on') : $t('profile.off') }}
+                        </v-chip>
+                      </div>
                     </div>
 
                     <v-divider class="mb-8"></v-divider>
@@ -280,6 +297,7 @@
                 <tr>
                   <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('admin.item') }}</th>
+                  <th class="text-left font-weight-bold text-center">{{ $t('transactions.table.payment_method') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
                 </tr>
@@ -297,6 +315,15 @@
                         </span>
                       </span>
                     </div>
+                  </td>
+                  <td>
+                    <div class="d-flex align-center justify-center gap-1 opacity-80" v-if="item.metodo_pagamento">
+                        <v-icon size="16" :icon="getPaymentMethodIcon(item.metodo_pagamento)"></v-icon>
+                        <span class="text-caption font-weight-medium">
+                            {{ $t('transactions.payment_methods.' + (item.metodo_pagamento || 'other')) }}
+                        </span>
+                    </div>
+                    <div v-else class="text-center">-</div>
                   </td>
                   <td class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</td>
                   <td>
@@ -362,8 +389,26 @@ const subscriptionData = ref({
 
 const loadingSub = ref(true)
 const saving = ref(false)
+const cancelling = ref(false)
 const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+
+const cancelarPagamentoPerfil = async () => {
+    try {
+        cancelling.value = true
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
+            method: 'POST'
+        })
+        if (response.ok) {
+            toast.success(t('plans.toast_cancel_success'))
+            await fetchSubscription()
+        }
+    } catch (e) {
+        toast.error(t('plans.toast_cancel_error'))
+    } finally {
+        cancelling.value = false
+    }
+}
 
 const cpfRules = [
   v => !!v || t('validation.required'),
@@ -417,38 +462,80 @@ const getStatusColor = (status) => {
         case 'pago':
         case 'approved':
         case 'active':
+        case 'authorized':
             return 'success'
         case 'pending':
         case 'pendente':
+        case 'in_process':
             return 'warning'
         case 'failed':
         case 'falhou':
         case 'cancelled':
         case 'cancelado':
+        case 'rejected':
             return 'error'
         default:
             return 'grey'
     }
 }
 
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    bank_transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    ticket: 'mdi-barcode-scan',
+    // IDs vindos do Mercado Pago
+    visa: 'mdi-credit-card',
+    master: 'mdi-credit-card',
+    amex: 'mdi-credit-card',
+    elo: 'mdi-credit-card',
+    hipercard: 'mdi-credit-card',
+    account_money: 'mdi-wallet',
+    credits: 'mdi-star-circle',
+    prorrata_credit: 'mdi-star-circle',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method?.toLowerCase()] || icons.other
+}
+
 const getStatusText = (status) => {
     if (!status) return '-'
     const s = status.toLowerCase()
-    if (s === 'paid' || s === 'pago' || s === 'approved') return t('profile.subscription.paid')
-    if (s === 'pending' || s === 'pendente') return t('profile.subscription.pending')
-    if (s === 'failed' || s === 'falhou') return t('profile.subscription.failed')
+    if (['paid', 'pago', 'approved', 'authorized', 'active'].includes(s)) return t('profile.subscription.paid')
+    if (['pending', 'pendente', 'in_process'].includes(s)) return t('profile.subscription.pending')
+    if (['failed', 'falhou', 'rejected', 'cancelled', 'cancelado'].includes(s)) return t('profile.subscription.failed')
     return status.toUpperCase()
 }
 
 const ativarAutoRenovacao = async () => {
+    const oldValue = !!subscriptionData.value.assinatura.renovacao_automatica
+    const newValue = !oldValue
+    
+    // Feedback imediato (Optimistic)
+    subscriptionData.value.assinatura.renovacao_automatica = newValue
+    
     try {
-        const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { method: 'POST' })
+        const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { 
+            method: 'POST',
+            body: JSON.stringify({ active: newValue }) // Envia o estado desejado explicitamente
+        })
+        
         if (response.ok) {
             const data = await response.json()
-            subscriptionData.value.assinatura.renovacao_automatica = data.active
-            toast.success(data.message)
+            // Sincroniza com o valor real do servidor
+            subscriptionData.value.assinatura.renovacao_automatica = !!data.active
+            toast.success(t('profile.toast_success'))
+        } else {
+            throw new Error('Erro no servidor')
         }
     } catch (e) {
+        // Rollback
+        subscriptionData.value.assinatura.renovacao_automatica = oldValue
         toast.error(t('profile.warnings.renewal_error'))
     }
 }
@@ -518,11 +605,22 @@ const removeAvatar = () => {
 
 
 const saveProfile = async () => {
-    saving.value = true
+    // Feedback imediato
+    toast.success(t('profile.toast_success'))
+    
+    // Atualização Otimista local
+    const optimisticUser = {
+        ...user.value,
+        // Se houver preview de avatar, usamos ele temporariamente
+        avatar_url: previewAvatar.value || user.value.avatar_url
+    }
+    authStore.user = { ...authStore.user, ...optimisticUser }
+
     try {
         const formData = new FormData()
         formData.append('nome', user.value.nome)
         formData.append('email', user.value.email)
+        // ... (rest of formData)
         if (user.value.cpf && typeof user.value.cpf === 'string') {
             formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
         }
@@ -541,36 +639,26 @@ const saveProfile = async () => {
         })
         
         if (response.ok) {
-            toast.success(t('profile.toast_success'))
-        
             const updated = await response.json()
             authStore.user = updated
             user.value = { ...updated }
             
-           
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
             if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
               user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
-            } else {
-              user.value.data_nascimento = ''
             }
             
             previewAvatar.value = null 
             selectedFile.value = null 
         } else {
              const errorData = await response.json().catch(() => ({}))
-             if (errorData.errors) {
-               
-                 const firstErrorKey = Object.keys(errorData.errors)[0]
-                 toast.warning(errorData.errors[firstErrorKey][0])
-             } else {
-                 toast.error(errorData.message || t('profile.warnings.update_error'))
-             }
+             toast.error(errorData.message || t('profile.warnings.update_error'))
+             // Rollback em caso de erro crítico
+             fetchUser()
         }
     } catch (e) {
         toast.error(t('profile.toast_connection_error'))
-    } finally {
-        saving.value = false
+        fetchUser()
     }
 }
 

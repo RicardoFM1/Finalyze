@@ -9,7 +9,7 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field v-model="localForm.valor" :label="$t('modals.labels.value')" prefix="R$" type="number" step="0.01" variant="outlined" rounded="lg" required></v-text-field>
+          <CurrencyInput v-model="localForm.valor" :label="$t('modals.labels.value')" :prefix="$t('common.currency')" variant="outlined" rounded="lg" required />
         </v-col>
         <v-col cols="12" md="6">
           <DateInput v-model="localForm.data" :label="$t('modals.labels.date')" required />
@@ -44,6 +44,18 @@
                                 </template>
                             </v-autocomplete>
                         </v-col>
+        <v-col cols="12" md="12">
+          <v-select
+            v-model="localForm.forma_pagamento"
+            :items="formasPagamento"
+            item-title="title"
+            item-value="value"
+            :label="$t('transactions.payment_methods.title')"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-credit-card-outline"
+          ></v-select>
+        </v-col>
         <v-col cols="12">
           <v-textarea v-model="localForm.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2"></v-textarea>
         </v-col>
@@ -74,6 +86,7 @@ import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
+import CurrencyInput from '../../Common/CurrencyInput.vue'
 import { categorias } from '../../../constants/categorias'
 import { useI18n } from 'vue-i18n'
 
@@ -103,10 +116,21 @@ const categoriasTraduzidas = computed(() => {
   }))
 })
 
+const formasPagamento = computed(() => [
+  { title: t('transactions.payment_methods.money'), value: 'money' },
+  { title: t('transactions.payment_methods.credit_card'), value: 'credit_card' },
+  { title: t('transactions.payment_methods.debit_card'), value: 'debit_card' },
+  { title: t('transactions.payment_methods.pix'), value: 'pix' },
+  { title: t('transactions.payment_methods.transfer'), value: 'transfer' },
+  { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
+  { title: t('transactions.payment_methods.other'), value: 'other' }
+])
+
 const localForm = ref({
   tipo: 'despesa',
   valor: '',
   categoria: '',
+  forma_pagamento: 'other',
   data: '',
   descricao: ''
 })
@@ -117,6 +141,7 @@ watch(() => props.lancamento, (newVal) => {
       tipo: newVal.tipo,
       valor: newVal.valor,
       categoria: newVal.categoria,
+      forma_pagamento: newVal.forma_pagamento || 'other',
       data: newVal.data ? new Date(newVal.data).toLocaleDateString('en-CA') : '',
       descricao: newVal.descricao
     }
@@ -126,15 +151,25 @@ watch(() => props.lancamento, (newVal) => {
 const editar = async () => {
   if (!props.lancamento?.id) return
   
-  loading.value = true
-  try {
-    const valor = Number(localForm.value.valor)
-    if (isNaN(valor) || valor <= 0) {
-      toast.warning(t('validation.invalid_value'))
-      loading.value = false
-      return
-    }
+  const valor = Number(localForm.value.valor)
+  if (isNaN(valor) || valor <= 0) {
+    toast.warning(t('validation.invalid_value'))
+    return
+  }
 
+  // Preparamos o objeto para atualização otimista
+  const optimisticItem = {
+    ...props.lancamento,
+    ...localForm.value,
+    valor: valor
+  }
+
+  // Fechamos e emitimos IMEDIATAMENTE
+  internalValue.value = false
+  toast.success(t('toasts.success_update'))
+  emit('updated', optimisticItem)
+
+  try {
     const response = await authStore.apiFetch(`/lancamentos/${props.lancamento.id}`, {
       method: 'PUT',
       body: JSON.stringify({
@@ -143,16 +178,12 @@ const editar = async () => {
       })
     })
 
-    if (response.ok) {
-      toast.success(t('toasts.success_update'))
-      internalValue.value = false
-      emit('updated')
+    if (!response.ok) {
+        throw new Error('Erro ao editar')
     }
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
   }
 }
 </script>

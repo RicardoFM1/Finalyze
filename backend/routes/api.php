@@ -30,7 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
-    Route::post('/assinaturas/auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'toggleAutoRenewal']);
 
 
 
@@ -49,13 +48,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::middleware('check_resource:metas')->group(function () {
             Route::get('/metas', [App\Http\Controllers\MetaController::class, 'index']);
             Route::post('/metas', [App\Http\Controllers\MetaController::class, 'store']);
-            Route::put('/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
+            Route::match(['put', 'patch'], '/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
             Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
 
             Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
             Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
-            Route::put('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
+            Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
             Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
             Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\AnotacaoController::class, 'reativar']);
         });

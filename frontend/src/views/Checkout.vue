@@ -239,27 +239,30 @@ onMounted(async () => {
                 const data = await response.json()
                 creditosRestantes.value = data.creditos_prorrata || 0
                 
-                if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
-                    preferenceId.value = null
-                } else {
-                    preferenceId.value = data.id
-                    planInfo.value = data.plan
-                    planId.value = data.plan.id
-                
-                    if (route.query.period && data.plan.periodos) {
-                        const found = data.plan.periodos.find(p => p.id == route.query.period)
-                        if (found) {
-                            periodId.value = found.id
-                            periodInfo.value = found
-                        }
-                    }
+                // Safe check for data.plan and data.plan.id
+                if (data.plan && data.plan.id) {
+                    if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
+                        preferenceId.value = null
+                    } else {
+                        preferenceId.value = data.id
+                        planInfo.value = data.plan
+                        planId.value = data.plan.id
                     
-                    if (!periodInfo.value && data.period_id) {
-                        periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
-                        periodId.value = data.period_id
-                    }
+                        if (route.query.period && data.plan.periodos) {
+                            const found = data.plan.periodos.find(p => p.id == route.query.period)
+                            if (found) {
+                                periodId.value = found.id
+                                periodInfo.value = found
+                            }
+                        }
+                        
+                        if (!periodInfo.value && data.period_id) {
+                            periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
+                            periodId.value = data.period_id
+                        }
 
-                    step.value = 3
+                        step.value = 3
+                    }
                 }
             }
         }

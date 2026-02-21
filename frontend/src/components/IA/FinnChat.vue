@@ -74,8 +74,8 @@
                   class="mb-2 text-body-2"
               ></v-textarea>
               <div class="d-flex justify-end">
-                  <v-btn size="x-small" variant="text" color="white" @click="editingId = null">Cancelar</v-btn>
-                  <v-btn size="x-small" color="secondary" class="ml-1" @click="saveEdit">Salvar</v-btn>
+                  <v-btn size="x-small" variant="text" color="white" @click="editingId = null">{{ $t('finn.cancel') }}</v-btn>
+                  <v-btn size="x-small" color="secondary" class="ml-1" @click="saveEdit">{{ $t('finn.save') }}</v-btn>
               </div>
           </div>
           <div v-else class="text-body-2 white-space-pre">{{ msg.text }}</div>
@@ -89,7 +89,7 @@
       </div>
       <div v-if="loading" class="typing-indicator mb-2">
         <v-progress-circular indeterminate size="20" width="2" color="primary"></v-progress-circular>
-        <span class="text-caption ml-2 text-medium-emphasis">Finn está pensando...</span>
+        <span class="text-caption ml-2 text-medium-emphasis">{{ $t('finn.thinking') }}</span>
       </div>
     </v-card-text>
 
@@ -98,7 +98,7 @@
     <v-card-actions class="pa-3 bg-white">
       <v-text-field
         v-model="input"
-        placeholder="Pergunte sobre seus gastos..."
+        :placeholder="$t('finn.placeholder')"
         variant="solo-filled"
         density="comfortable"
         hide-details
@@ -117,10 +117,12 @@
 import { ref, nextTick, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useDisplay } from 'vuetify'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const display = useDisplay()
 const { mobile: isMobile } = display
+const { t } = useI18n()
 
 const hasAiAccess = computed(() => {
   return authStore.user?.admin || authStore.hasFeature('Chat IA')
@@ -147,7 +149,7 @@ onMounted(() => {
 
   // Se estiver vazio, bota a mensagem inicial
   if (messages.value.length === 0) {
-    messages.value.push({ role: 'bot', text: 'Olá! Eu sou o Finn. Como posso ajudar com suas finanças hoje?' })
+    messages.value.push({ role: 'bot', text: t('finn.greeting') })
   }
   
   scrollToBottom()
@@ -199,7 +201,9 @@ const sendMessage = async () => {
       method: 'POST',
       body: JSON.stringify({ 
         mensagem: userMsg,
-        historico: context
+        historico: context,
+        locale: t('locale') || 'pt-BR',
+        user_name: authStore.user?.nome
       })
     })
     
@@ -208,10 +212,10 @@ const sendMessage = async () => {
     if (data.resposta) {
       messages.value.push({ role: 'bot', text: data.resposta, id: Date.now() + 1 })
     } else {
-      messages.value.push({ role: 'bot', text: data.error || 'Tive um probleminha. Pode repetir?' })
+      messages.value.push({ role: 'bot', text: data.error || t('finn.error_generic') })
     }
   } catch (e) {
-    messages.value.push({ role: 'bot', text: 'Desculpe, perdi a conexão com meu cérebro IA. tente em instantes!' })
+    messages.value.push({ role: 'bot', text: t('finn.error_connection') })
   } finally {
     loading.value = false
     scrollToBottom()
@@ -220,7 +224,7 @@ const sendMessage = async () => {
 
 const deleteMessage = (id) => {
   if (!id) return
-  if (!confirm('Deseja remover esta mensagem?')) return
+  if (!confirm(t('finn.delete_confirm'))) return
   messages.value = messages.value.filter(m => m.id !== id)
 }
 

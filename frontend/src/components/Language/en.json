@@ -201,7 +201,28 @@
       "description": "Description",
       "category": "Category",
       "type": "Type",
-      "amount": "Amount"
+      "amount": "Amount",
+      "payment_method": "Payment Method"
+    },
+    "payment_methods": {
+      "title": "Payment Method",
+      "money": "Cash",
+      "credit_card": "Credit Card",
+      "debit_card": "Debit Card",
+      "pix": "PIX",
+      "transfer": "Transfer",
+      "bank_transfer": "Bank Transfer",
+      "boleto": "Boleto",
+      "ticket": "Boleto/Ticket",
+      "visa": "Visa",
+      "master": "Mastercard",
+      "amex": "Amex",
+      "elo": "Elo",
+      "hipercard": "Hipercard",
+      "account_money": "Mercado Pago Account",
+      "credits": "Financial Credits",
+      "prorrata_credit": "Prorata Credit",
+      "other": "Other"
     },
     "type": {
       "income": "Income",
@@ -227,6 +248,8 @@
     "free": "Free",
     "active": "Active",
     "inactive": "Inactive",
+    "on": "Enabled",
+    "off": "Disabled",
     "toast_success": "Profile updated!",
     "toast_error": "Error updating profile",
     "toast_connection_error": "Connection error",
@@ -264,7 +287,8 @@
       "paid": "PAID",
       "failed": "FAILED",
       "pending": "PENDING",
-      "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically."
+      "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically.",
+      "manual_payment_only": "Manual Payment (e.g., Pix/Invoice)"
     },
     "warnings": {
       "image_size": "Image must be at most 10MB.",
@@ -334,6 +358,7 @@
     "financial_health": "Financial Health",
     "resource_distribution": "Resource Distribution",
     "margin": "Margin",
+    "margin_explanation": "Represents the percentage of revenue that remains after paying all expenses (Net Profit Margin).",
     "incomes": "Income",
     "expenses": "Expenses",
     "net": "Net",
@@ -579,5 +604,15 @@
     "export_page": "Export current page",
     "export_excel": "Export to Excel",
     "export_pdf": "Export to PDF"
+  },
+  "finn": {
+    "placeholder": "Ask about your spending...",
+    "thinking": "Finn is thinking...",
+    "greeting": "Hello! I'm Finn. How can I help with your finances today?",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete_confirm": "Do you want to remove this message?",
+    "error_connection": "Sorry, I lost connection with my AI brain. Try again in a moment!",
+    "error_generic": "I had a little issue. Can you repeat that?"
   }
 }
