@@ -73,7 +73,8 @@
     "appearance": "Aparência",
     "theme": "Tema do Sistema",
     "light_mode_active": "Modo Claro Ativo",
-    "dark_mode_active": "Modo Escuro Ativo"
+    "dark_mode_active": "Modo Escuro Ativo",
+    "currency_desc": "Formato de exibição dos valores monetários"
   },
   "login": {
     "welcome_back": "Bem-vindo de volta",
@@ -187,7 +188,39 @@
       "reactivate_success": "Item reativado com sucesso!"
     },
     "no_goals_completed": "Nenhuma meta concluída ainda.",
-    "no_notes_completed": "Sem anotações concluídas."
+    "no_notes_completed": "Sem anotações concluídas.",
+    "reminder": {
+      "title": "Definir Lembrete",
+      "edit_title": "Editar Lembrete",
+      "active": "Lembrete Ativo",
+      "date_label": "Data",
+      "time_label": "Horário",
+      "name_label": "Título do lembrete",
+      "name_placeholder": "Ex: Verificar progresso da meta",
+      "message_label": "Descrição (opcional)",
+      "message_placeholder": "Ex: Checar progresso!",
+      "category_label": "Categoria",
+      "default_name": "Lembrete de meta",
+      "default_message": "Lembrete da meta: {title}",
+      "save": "Salvar Lembrete",
+      "remove": "Remover Lembrete",
+      "set_tooltip": "Definir lembrete",
+      "edit_tooltip": "Lembrete ativo — clique para editar",
+      "saved_success": "Lembrete salvo com sucesso!",
+      "removed_success": "Lembrete removido.",
+      "past_error": "A data e hora devem ser no futuro.",
+      "permission_denied": "Permissão de notificação negada. Habilite nas configurações do browser.",
+      "notification_title": "Lembrete de Meta"
+    },
+    "share": {
+      "title": "Compartilhar Conta",
+      "description": "Envie um convite para outro usuário do Finalyze para compartilhar acesso.",
+      "email_label": "E-mail do destinatário",
+      "send": "Enviar convite",
+      "sent_success": "Convite enviado com sucesso!",
+      "error_send": "Não foi possível enviar o convite.",
+      "tooltip": "Compartilhar conta"
+    }
   },
   "transactions": {
     "title": "Lançamentos",

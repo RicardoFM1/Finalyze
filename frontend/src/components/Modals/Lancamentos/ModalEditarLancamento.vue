@@ -9,7 +9,7 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <CurrencyInput v-model="localForm.valor" :label="$t('modals.labels.value')" :prefix="$t('common.currency')" variant="outlined" rounded="lg" required />
+          <CurrencyInput v-model="localForm.valor" :label="$t('modals.labels.value')" :prefix="currencySymbol" variant="outlined" rounded="lg" required />
         </v-col>
         <v-col cols="12" md="6">
           <DateInput v-model="localForm.data" :label="$t('modals.labels.date')" required />
@@ -89,8 +89,10 @@ import DateInput from '../../Common/DateInput.vue'
 import CurrencyInput from '../../Common/CurrencyInput.vue'
 import { categorias } from '../../../constants/categorias'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
+const { currencySymbol } = useMoney()
 
 const props = defineProps({
   modelValue: Boolean,

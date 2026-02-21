@@ -162,8 +162,10 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../components/Modals/modalBase.vue'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
+const { formatPrice } = useMoney()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
@@ -295,12 +297,7 @@ const applyFreeUpgrade = async () => {
     }
 }
 
-const formatPrice = (value) => {
-    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', {
-        style: 'currency',
-        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD'
-    }).format(value || 0)
-}
+// formatPrice is from useMoney composable (imported above)
 
 const continuePayment = () => {
     continuing.value = true

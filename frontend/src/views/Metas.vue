@@ -129,6 +129,36 @@
                 >
                   {{ $t('metas.actions.reactivate') }}
                 </v-btn>
+                <!-- Reminder button -->
+                <v-tooltip :text="hasActiveReminder(meta) ? $t('metas.reminder.edit_tooltip') : $t('metas.reminder.set_tooltip')" location="top">
+                  <template v-slot:activator="{ props: tooltipProps }">
+                    <v-btn 
+                      v-if="meta.status !== 'inativo' && meta.status !== 'concluido'" 
+                      v-bind="tooltipProps"
+                      variant="tonal" 
+                      size="small" 
+                      rounded="lg" 
+                      :color="hasActiveReminder(meta) ? 'warning' : 'secondary'" 
+                      @click="openLembreteDialog(meta)" 
+                      :icon="hasActiveReminder(meta) ? 'mdi-bell-ring' : 'mdi-bell-outline'"
+                    ></v-btn>
+                  </template>
+                </v-tooltip>
+                <!-- Share button -->
+                <v-tooltip :text="$t('metas.share.tooltip')" location="top">
+                  <template v-slot:activator="{ props: tooltipProps }">
+                    <v-btn 
+                      v-if="meta.status !== 'inativo'"
+                      v-bind="tooltipProps"
+                      variant="tonal" 
+                      size="small" 
+                      rounded="lg" 
+                      color="info" 
+                      @click="openCompartilharDialog" 
+                      icon="mdi-share-variant-outline"
+                    ></v-btn>
+                  </template>
+                </v-tooltip>
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
               </v-card-actions>
@@ -206,6 +236,14 @@
     
     <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="onMetaSalva" />
     <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="onMetaExcluida" />
+    <ModalLembrete 
+      v-model="lembreteDialog" 
+      :meta="metaParaLembrete" 
+      :reminder="reminderParaMeta(metaParaLembrete)"
+      @saved="onLembreteSalvo" 
+      @deleted="onLembreteExcluido"
+    />
+    <CompartilharModal v-model="compartilharDialog" @invite="onConviteEnviado" />
   </v-container>
 </template>
 
@@ -215,7 +253,10 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalMeta from '../components/Modals/Metas/ModalMeta.vue'
 import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
+import ModalLembrete from '../components/Modals/Metas/ModalLembrete.vue'
+import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -228,6 +269,11 @@ const deleteDialog = ref(false)
 const metaToDelete = ref(null)
 const itemAEditar = ref(null)
 const initialTipo = ref('financeira')
+const lembreteDialog = ref(false)
+const metaParaLembrete = ref(null)
+const compartilharDialog = ref(false)
+// Lembretes carregados do backend, indexados por meta id
+const lembretesPorMeta = ref({})
 
 // UI State
 const activeTab = ref('metas')
@@ -235,6 +281,7 @@ const statusFilter = ref('andamento')
 
 onMounted(() => {
   fetchMetas()
+  fetchLembretes()
 })
 
 const onMetaSalva = (optimisticItem, isAnotacao) => {
@@ -330,6 +377,72 @@ const confirmDelete = (meta) => {
   deleteDialog.value = true
 }
 
+const openLembreteDialog = (meta) => {
+  metaParaLembrete.value = meta
+  lembreteDialog.value = true
+}
+
+const fetchLembretes = async () => {
+  try {
+    const res = await authStore.apiFetch('/lembretes')
+    if (!res.ok) return
+    const lista = await res.json()
+    // Indexa por titulo da meta para associar (lembretes não têm meta_id na Eduardo)
+    // Usa a lista flat e deixa o ModalLembrete buscar pelo id do lembrete
+    const mapa = {}
+    lista.forEach(l => {
+      // Associamos pelo meta_id se existir, ou mantemos lista flat
+      const key = l.meta_id || null
+      if (key) {
+        mapa[key] = l
+      }
+    })
+    lembretesPorMeta.value = mapa
+  } catch (e) {
+    console.error('Erro ao buscar lembretes:', e)
+  }
+}
+
+const reminderParaMeta = (meta) => {
+  if (!meta?.id) return null
+  return lembretesPorMeta.value[meta.id] || null
+}
+
+const onLembreteSalvo = (lembrete) => {
+  if (!lembrete?.id) return
+  // Atualiza o mapa — usa meta_id se disponível
+  const key = lembrete.meta_id
+  if (key) {
+    lembretesPorMeta.value = { ...lembretesPorMeta.value, [key]: lembrete }
+  }
+  fetchLembretes()
+}
+
+const onLembreteExcluido = (id) => {
+  // Remove do mapa
+  const mapa = { ...lembretesPorMeta.value }
+  for (const key of Object.keys(mapa)) {
+    if (mapa[key]?.id === id) delete mapa[key]
+  }
+  lembretesPorMeta.value = mapa
+}
+
+const hasActiveReminder = (meta) => {
+  if (!meta?.id) return false
+  const lembrete = lembretesPorMeta.value[meta.id]
+  if (!lembrete) return false
+  if (lembrete.status !== 'pendente') return false
+  return new Date(lembrete.data_aviso) > new Date()
+}
+
+const openCompartilharDialog = () => {
+  compartilharDialog.value = true
+}
+
+const onConviteEnviado = (convite) => {
+  toast.success(t('metas.share.sent_success'))
+}
+
 const toggleStatusConcluido = async (item) => {
   const isAnotacao = !item.tipo || item.tipo === 'pessoal'
   
@@ -388,24 +501,15 @@ const reativarItem = async (item) => {
   }
 }
 
-// Helpers
-const formatPrice = (value) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    const currency = t('common.currency') === 'R$' ? 'BRL' : 'USD'
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(value)
-}
-const formatShortPrice = (value) => {
-  if (value >= 1000) return (value / 1000) + 'k'
-  return value
-}
+// Helpers — all formatting from central useMoney composable
+const { formatPrice, formatShortPrice, currencyLocale } = useMoney()
 const formatDate = (date) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return new Date(date).toLocaleDateString(locale)
+    return new Date(date).toLocaleDateString(currencyLocale.value)
 }
 const calculatePercentage = (current, total) => {
   if (!total || total === 0) return 0
   const p = Math.round((current / total) * 100)
-  return p > 100 ? 100 : p
+  return Math.max(0, Math.min(100, p))
 }
 
 const getProgressColor = (meta) => {

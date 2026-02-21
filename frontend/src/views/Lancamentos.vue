@@ -92,7 +92,7 @@
 
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
-            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
+            {{ item.tipo === 'receita' ? '+' : '-' }} {{ currencySymbol }} {{ formatNumber(item.valor) }}
           </span>
         </template>
 
@@ -120,10 +120,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 import { categorias as categoriasConstantes } from '../constants/categorias'
 import * as XLSX from "xlsx"
 
 const { t } = useI18n()
+const { formatNumber, currencyLocale, currencySymbol } = useMoney()
 const authStore = useAuthStore()
 const filterStore = useFilterStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
@@ -294,13 +296,9 @@ const headers = computed(() => [
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
 ])
 
-const formatNumber = (val) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return Number(val).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+// formatNumber is provided by useMoney composable (imported above)
 const formatDate = (date) => {
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return new Date(date).toLocaleDateString(locale, { timeZone: 'UTC' })
+    return new Date(date).toLocaleDateString(currencyLocale.value, { timeZone: 'UTC' })
 }
 
 const getPaymentMethodIcon = (method) => {

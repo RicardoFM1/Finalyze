@@ -46,9 +46,9 @@
       </div>
 
       <div class="price-container my-4">
-        <span class="currency">{{ $t('common.currency') }}</span>
+        <span class="currency">{{ currencySymbol }}</span>
         <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
-        <span class="price-decimal">{{ $t('common.currency') === 'R$' ? ',' : '.' }}{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+        <span class="price-decimal">{{ decimalSeparator }}{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -120,8 +120,10 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
+const { currencySymbol, decimalSeparator, formatPrice } = useMoney()
 const router = useRouter()
 const authStore = useAuthStore()
 const props = defineProps({
@@ -181,13 +183,7 @@ const clickEscolha = () => {
     })
 }
 
-const formatPrice = (value) => {
-    if (!value && value !== 0) return t('common.currency') + ' 0,00';
-    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', { 
-        style: 'currency', 
-        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD' 
-    }).format(value)
-}
+// formatPrice, currencySymbol, decimalSeparator are from useMoney composable (imported above)
 </script>
 
 <style scoped>

@@ -13,12 +13,22 @@
             <h3 class="text-h6 font-weight-bold">{{ $t('profile.settings.language') }}</h3>
           </div>
 
-          <div class="management-item d-flex align-center justify-space-between mb-2">
+          <div class="management-item d-flex align-center justify-space-between mb-4">
             <div>
               <div class="font-weight-bold">{{ $t('profile.settings.language') }}</div>
               <div class="text-body-2 text-medium-emphasis">{{ $t('profile.settings.language_desc') }}</div>
             </div>
             <LanguageSelector />
+          </div>
+
+          <v-divider class="my-4 opacity-30" />
+
+          <div class="management-item d-flex align-center justify-space-between">
+            <div>
+              <div class="font-weight-bold">{{ $t('landing.select_currency') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('settings.currency_desc') || 'Formato de exibição dos valores monetários' }}</div>
+            </div>
+            <CurrencySelector />
           </div>
         </v-card>
       </v-col>
@@ -27,14 +37,8 @@
 </template>
 
 <script setup>
-import { useUiStore } from '../stores/ui'
 import LanguageSelector from '../components/Language/LanguageSelector.vue'
-
-const uiStore = useUiStore()
-
-const saveTheme = (val) => {
-  localStorage.setItem('theme', val)
-}
+import CurrencySelector from '../components/Language/CurrencySelector.vue'
 </script>
 
 <style scoped>

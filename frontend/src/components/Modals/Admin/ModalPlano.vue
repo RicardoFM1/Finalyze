@@ -25,7 +25,7 @@
               <v-text-field 
                 v-model="baseMonthlyPrice" 
                 :label="$t('admin.form.price') + ' (' + $t('admin.intervals.month') + ')'" 
-                :prefix="$t('common.currency')" 
+                :prefix="currencySymbol" 
                 variant="solo" 
                 type="number"
                 @input="calculatePeriodPrices"
@@ -46,7 +46,7 @@
               <v-text-field 
                 v-model="p.price" 
                 :label="$t('admin.price')" 
-                :prefix="$t('common.currency')" 
+                :prefix="currencySymbol" 
                 variant="outlined" 
                 density="compact" 
                 type="number" 
@@ -112,8 +112,10 @@ import { useAuthStore } from '../../../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
+const { currencySymbol } = useMoney()
 
 const props = defineProps({
   modelValue: Boolean,

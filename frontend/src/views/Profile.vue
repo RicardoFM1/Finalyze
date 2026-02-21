@@ -362,11 +362,13 @@ import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
 
 const { t } = useI18n()
+const { formatPrice, currencyLocale } = useMoney()
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
@@ -671,20 +673,14 @@ const getInitials = (name) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
-    const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    return new Date(dateString).toLocaleDateString(locale, {
+    return new Date(dateString).toLocaleDateString(currencyLocale.value, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     })
 }
 
-const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(value)
-}
+// formatPrice is from useMoney composable (imported above)
 
 const validateCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '')

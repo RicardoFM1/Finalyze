@@ -51,6 +51,7 @@
 import { ref, computed, watch } from 'vue'
 import { useUiStore } from '../../stores/ui'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { ptBR, enUS } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -88,11 +89,11 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const uiStore = useUiStore()
 const { t } = useI18n()
+const { currencyLocale } = useMoney()
 
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
-const locale = computed(() => t('common.currency') === 'R$' ? 'pt-BR' : 'en-US')
-const dpLocale = computed(() => locale.value === 'pt-BR' ? ptBR : enUS)
+const dpLocale = computed(() => currencyLocale.value === 'pt-BR' ? ptBR : enUS)
 
 const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime())
 const internalDate = ref(null)
@@ -128,8 +129,7 @@ const parseValue = (val) => {
 const formattedDisplayDate = computed(() => {
   if (!internalDate.value) return ''
   
-  const localeStr = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-  const formatter = new Intl.DateTimeFormat(localeStr, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const formatter = new Intl.DateTimeFormat(currencyLocale.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
   
   if (props.mode === 'range' && Array.isArray(internalDate.value)) {
     const [start, end] = internalDate.value
