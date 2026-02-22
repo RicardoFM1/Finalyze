@@ -674,6 +674,9 @@
     "toast_remove_success": "Acesso removido com sucesso",
     "toast_remove_error": "Erro ao remover acesso",
     "toast_copy_success": "Link copiado para a área de transferência!",
-    "confirm_remove": "Deseja realmente remover o acesso de {email}?"
+    "confirm_remove": "Deseja realmente remover o acesso de {email}?",
+    "confirm_remove_title": "Remover Acesso",
+    "confirm_remove_desc": "Esta pessoa não terá mais acesso às suas informações financeiras, metas e agenda.",
+    "remove_btn": "Remover Acesso"
   }
 }

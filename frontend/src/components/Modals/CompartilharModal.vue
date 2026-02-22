@@ -83,6 +83,47 @@
       </div>
     </div>
   </ModalBase>
+
+  <!-- Confirmation Modal for Removing Access -->
+  <ModalBase 
+    v-model="showConfirmDelete" 
+    :title="$t('share.confirm_remove_title') || 'Remover Acesso'" 
+    maxWidth="400px"
+  >
+    <div class="text-center pa-4">
+        <v-avatar color="error-lighten-4" size="70" class="mb-4">
+            <v-icon icon="mdi-account-remove-outline" color="error" size="40"></v-icon>
+        </v-avatar>
+        <p class="text-body-1 font-weight-medium mb-2">
+            {{ $t('share.confirm_remove', { email: selectedShareToDelete?.guest_email }) }}
+        </p>
+        <p class="text-caption text-medium-emphasis">
+            {{ $t('share.confirm_remove_desc') || 'Esta pessoa não terá mais acesso às suas informações financeiras.' }}
+        </p>
+    </div>
+
+    <template #actions>
+        <v-spacer></v-spacer>
+        <v-btn 
+            variant="text" 
+            class="px-4 text-none" 
+            @click="showConfirmDelete = false"
+        >
+            {{ $t('common.cancel') }}
+        </v-btn>
+        <v-btn 
+            color="error" 
+            variant="elevated" 
+            class="px-6 text-none font-weight-bold ml-2" 
+            elevation="1"
+            rounded="lg"
+            :loading="deleting"
+            @click="handleConfirmedDelete"
+        >
+            {{ $t('share.remove_btn') || 'Remover' }}
+        </v-btn>
+    </template>
+  </ModalBase>
 </template>
 
 <script setup>
@@ -100,7 +141,11 @@ const emit = defineEmits(['update:modelValue'])
 const authStore = useAuthStore()
 const inviteEmail = ref('')
 const loading = ref(false)
+const deleting = ref(false)
 const mySharedAccounts = ref([])
+
+const showConfirmDelete = ref(false)
+const selectedShareToDelete = ref(null)
 
 const internalValue = computed({
   get: () => props.modelValue,
@@ -150,9 +195,21 @@ const inviteUser = async () => {
   }
 }
 
-const confirmRemoveShare = async (share) => {
-    if (confirm(t('share.confirm_remove', { email: share.guest_email }))) {
-        await removeShare(share.id)
+const confirmRemoveShare = (share) => {
+    selectedShareToDelete.value = share
+    showConfirmDelete.value = true
+}
+
+const handleConfirmedDelete = async () => {
+    if (!selectedShareToDelete.value) return
+    
+    deleting.value = true
+    try {
+        await removeShare(selectedShareToDelete.value.id)
+        showConfirmDelete.value = false
+    } finally {
+        deleting.value = false
+        selectedShareToDelete.value = null
     }
 }
 

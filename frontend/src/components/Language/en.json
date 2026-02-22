@@ -664,6 +664,9 @@
     "toast_remove_success": "Access removed successfully",
     "toast_remove_error": "Error removing access",
     "toast_copy_success": "Link copied to clipboard!",
-    "confirm_remove": "Are you sure you want to remove access for {email}?"
+    "confirm_remove": "Are you sure you want to remove access for {email}?",
+    "confirm_remove_title": "Remove Access",
+    "confirm_remove_desc": "This person will no longer have access to your financial information, goals, and schedule.",
+    "remove_btn": "Remove Access"
   }
 }
