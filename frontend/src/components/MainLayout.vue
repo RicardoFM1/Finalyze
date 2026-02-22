@@ -14,7 +14,7 @@
             />
 
             <!-- Grupo Central de Ações -->
-            <div class="d-flex align-center">
+            <div class="d-flex align-center gap-2">
                 <!-- Se Logado: Logo + Nome Pequeno (Home já está no menu lateral) -->
                 <div v-if="authStore.isAuthenticated" class="brand-wrapper-mobile mx-1" @click="$router.push({ name: 'Home' })">
                     <img :src="logotipo" alt="Logo" class="logo-mini" />
@@ -24,7 +24,37 @@
                 <!-- Se Não Logado: Botão Home -->
                 <v-btn v-else icon="mdi-home-outline" variant="text" color="white" :to="{ name: 'Home' }" size="small"></v-btn>
 
-                <v-btn icon variant="text" color="white" size="small" @click="$router.push({ name: 'Lembretes' })">
+                <!-- Workspace Switcher Mobile -->
+                <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            v-bind="props"
+                            icon="mdi-office-building"
+                            variant="text"
+                            color="white"
+                            size="small"
+                        ></v-btn>
+                    </template>
+                    <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
+                        <v-list-item 
+                            v-for="acc in authStore.sharedAccounts" 
+                            :key="acc.id"
+                            :active="authStore.workspaceId == acc.id"
+                            @click="authStore.setWorkspace(acc.id)"
+                        >
+                            <template v-slot:prepend>
+                                <v-avatar size="32" class="mr-2" color="primary">
+                                    <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                                </v-avatar>
+                            </template>
+                            <v-list-item-title class="font-weight-bold">
+                                {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
+                            </v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+
+                <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" size="small" @click="$router.push({ name: 'Lembretes' })">
                     <v-icon icon="mdi-bell-ring-outline"></v-icon>
                 </v-btn>
                 
@@ -33,7 +63,7 @@
                 </v-btn>
 
                 <template v-if="authStore.isAuthenticated">
-                    <Coinselector />
+                    <Coinselector class="ml-1" />
                 </template>
 
                 <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="small">
@@ -142,7 +172,7 @@
             </v-menu>
 
             <Coinselector />
-            <v-btn icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
+            <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
                 <v-icon icon="mdi-bell-ring-outline"></v-icon>
                 <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
             </v-btn>

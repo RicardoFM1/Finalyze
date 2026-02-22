@@ -87,7 +87,7 @@
                 @endif
             </p>
 
-            <a href="{{ config('app.url') }}/#/lembretes" class="btn">{{ __('View in Dashboard') }}</a>
+            <a href="https://finalyze-6gw9.onrender.com/#/lembretes" class="btn">{{ __('View in Dashboard') }}</a>
         </div>
         <div class="footer">
             {{ __('This is an automated reminder from Finalyze.') }}<br>

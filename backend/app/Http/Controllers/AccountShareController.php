@@ -45,7 +45,9 @@ class AccountShareController extends Controller
         );
 
         try {
-            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\InviteCollaboration($user));
+            \Illuminate\Support\Facades\Mail::to($request->email)
+                ->locale(app()->getLocale())
+                ->send(new \App\Mail\InviteCollaboration($user));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Erro ao enviar e-mail de convite: " . $e->getMessage());
         }

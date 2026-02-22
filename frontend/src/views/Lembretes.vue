@@ -29,15 +29,6 @@
                   @click="viewMode = 'calendar'"
                 ></v-btn>
                 <v-btn 
-                  color="info" 
-                  variant="tonal"
-                  @click="testNotification"
-                  icon
-                >
-                  <v-icon icon="mdi-bell-ring-outline"></v-icon>
-                  <v-tooltip activator="parent" location="bottom">{{ $t('metas.test_notifications') }}</v-tooltip>
-                </v-btn>
-                <v-btn 
                   color="secondary" 
                   prepend-icon="mdi-note-plus-outline" 
                   rounded="xl" 
@@ -376,13 +367,6 @@ const onDateClick = (day) => {
         calendarDate.value = day.date
     }
     dayDetailsDialog.value = true
-}
-
-const testNotification = () => {
-    toast.info(t('metas.toast_test_notification'), {
-        autoClose: 6000,
-        position: 'top-right'
-    })
 }
 
 const openDialogWithDate = (date) => {

@@ -35,8 +35,13 @@ class EnviarLembretesPessoais extends Command
         foreach ($lembretes as $lembrete) {
             try {
                 if ($lembrete->usuario && $lembrete->usuario->email) {
-                    Log::info("Enviando lembrete #{$lembrete->id} para {$lembrete->usuario->email}");
-                    Mail::to($lembrete->usuario->email)->send(new \App\Mail\LembreteNotificacao($lembrete));
+                    $userLocale = $lembrete->usuario->idioma ?? config('app.locale');
+                    Log::info("Enviando lembrete #{$lembrete->id} para {$lembrete->usuario->email} (Locale: {$userLocale})");
+
+                    Mail::to($lembrete->usuario->email)
+                        ->locale($userLocale)
+                        ->send(new \App\Mail\LembreteNotificacao($lembrete));
+
                     $lembrete->update(['email_notified_at' => now()]);
                     $contagem++;
                 } else {
