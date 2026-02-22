@@ -161,11 +161,7 @@ import PaymentBrick from '../components/PaymentBrick.vue'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
 import { useI18n } from 'vue-i18n'
-<<<<<<< HEAD
-import { useMoney } from '@/composables/useMoney'
-=======
 import { useMoney } from '../composables/useMoney'
->>>>>>> Ricardo
 
 const { t } = useI18n()
 const { formatPrice } = useMoney()
@@ -475,15 +471,11 @@ const cancelPendingPayment = async () => {
     }
 }
 
-<<<<<<< HEAD
-// formatPrice is from useMoney composable (imported above)
-=======
 const { formatMoney } = useMoney()
 
 const formatPrice = (value) => {
     return formatMoney(value, { withSymbol: true })
 }
->>>>>>> Ricardo
 
 const handleCpfInput = (event) => {
   errors.value.cpf = '' 

@@ -218,44 +218,7 @@
       "export_excel": "Export to Excel",
       "export_pdf": "Export to PDF"
     },
-<<<<<<< HEAD
-    "no_goals_completed": "No goals completed yet.",
-    "no_notes_completed": "No notes completed yet.",
-    "reminder": {
-      "title": "Set Reminder",
-      "edit_title": "Edit Reminder",
-      "active": "Active Reminder",
-      "date_label": "Date",
-      "time_label": "Time",
-      "name_label": "Reminder title",
-      "name_placeholder": "Ex: Check goal progress",
-      "message_label": "Description (optional)",
-      "message_placeholder": "Ex: Check goal progress!",
-      "category_label": "Category",
-      "default_name": "Goal reminder",
-      "default_message": "Goal reminder: {title}",
-      "save": "Save Reminder",
-      "remove": "Remove Reminder",
-      "set_tooltip": "Set reminder",
-      "edit_tooltip": "Active reminder — click to edit",
-      "saved_success": "Reminder saved successfully!",
-      "removed_success": "Reminder removed.",
-      "past_error": "The date and time must be in the future.",
-      "permission_denied": "Notification permission denied. Enable it in your browser settings.",
-      "notification_title": "Goal Reminder"
-    },
-    "share": {
-      "title": "Share Account",
-      "description": "Send an invite to another Finalyze user to share access.",
-      "email_label": "Recipient email",
-      "send": "Send invite",
-      "sent_success": "Invite sent successfully!",
-      "error_send": "Could not send the invite.",
-      "tooltip": "Share account"
-    }
-=======
     "empty_filter": "No items found for this filter."
->>>>>>> Ricardo
   },
   "transactions": {
     "title": "Transactions",

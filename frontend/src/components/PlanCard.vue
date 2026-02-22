@@ -47,13 +47,8 @@
 
       <div class="price-container my-4">
         <span class="currency">{{ currencySymbol }}</span>
-<<<<<<< HEAD
-        <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
-        <span class="price-decimal">{{ decimalSeparator }}{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
-=======
         <span class="price-integer">{{ formattedPriceInt }}</span>
         <span class="price-decimal">{{ currencyDecimalSep }}{{ formattedPriceDec }}</span>
->>>>>>> Ricardo
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -125,17 +120,10 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-<<<<<<< HEAD
-import { useMoney } from '@/composables/useMoney'
-
-const { t } = useI18n()
-const { currencySymbol, decimalSeparator, formatPrice } = useMoney()
-=======
 import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
 const { fromBRL, currencySymbol, meta: currencyMeta } = useMoney()
->>>>>>> Ricardo
 const router = useRouter()
 const authStore = useAuthStore()
 const props = defineProps({
@@ -215,9 +203,6 @@ const clickEscolha = () => {
     })
 }
 
-<<<<<<< HEAD
-// formatPrice, currencySymbol, decimalSeparator are from useMoney composable (imported above)
-=======
 const formatPrice = (value) => {
     if (!value && value !== 0) return currencySymbol.value + ' 0,00'
     const converted = fromBRL((value || 0) / 100)
@@ -226,7 +211,6 @@ const formatPrice = (value) => {
         currency: currencyMeta.value.code
     }).format(converted)
 }
->>>>>>> Ricardo
 </script>
 
 <style scoped>

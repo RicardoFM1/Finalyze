@@ -53,36 +53,12 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
             Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
         });
 
-<<<<<<< HEAD
-            Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
-            Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
-            Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
-            Route::delete('/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'destroy']);
-            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\AnotacaoController::class, 'reativar']);
-
-            // Lembretes pessoais
-            Route::get('/lembretes', [App\Http\Controllers\LembreteController::class, 'index']);
-            Route::post('/lembretes', [App\Http\Controllers\LembreteController::class, 'store']);
-            Route::put('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
-            Route::patch('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'patch']);
-            Route::patch('/lembretes/{id}/status', [App\Http\Controllers\LembreteController::class, 'patchStatus']);
-            Route::delete('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
-
-            // Compartilhamento de conta
-            Route::get('/convites/buscar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'index']);
-            Route::post('/convites/enviar', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'store']);
-            Route::post('/convites/aceitar-token', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'aceitarToken']);
-            Route::put('/convites/atualizar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
-            Route::patch('/convites/atualizacao/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
-            Route::delete('/convites/deletar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
-=======
         Route::middleware('check_resource:lembretes')->group(function () {
             Route::get('/lembretes', [App\Http\Controllers\LembreteController::class, 'index']);
             Route::post('/lembretes', [App\Http\Controllers\LembreteController::class, 'store']);
             Route::match(['put', 'patch'], '/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
             Route::delete('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
             Route::post('/lembretes/{id}/reativar', [App\Http\Controllers\LembreteController::class, 'reativar']);
->>>>>>> Ricardo
         });
     });
 

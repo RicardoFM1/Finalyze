@@ -349,15 +349,9 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 ChartJS.register(ArcElement, Tooltip, Legend)
 import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
-<<<<<<< HEAD
-import { useMoney } from '@/composables/useMoney'
-const { t } = useI18n()
-const { formatNumber, currencySymbol } = useMoney()
-=======
 import { useMoney } from '../composables/useMoney'
 const { t } = useI18n()
 const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
->>>>>>> Ricardo
 
 
 import { categorias as categoriasConstantes } from '../constants/categorias'
@@ -444,9 +438,6 @@ const getMarginPercentage = computed(() => {
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
 
-<<<<<<< HEAD
-// formatNumber is provided by useMoney composable (imported above)
-=======
 
 const formatNumber = (val) => fmtNum(val)
 
@@ -460,7 +451,6 @@ const formatDate = (date) => {
     }
     return new Date(date).toLocaleDateString(locale.value)
 }
->>>>>>> Ricardo
 
 const getPaymentMethodIcon = (method) => {
   const icons = {
@@ -491,14 +481,10 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
-<<<<<<< HEAD
-                label: (context) => ` ${currencySymbol.value} ${formatNumber(context.raw)}`
-=======
                 label: (context) => {
                     const val = context.raw || 0
                     return ` ${currencySymbol.value} ${fmtNum(fromBRL(val))}`
                 }
->>>>>>> Ricardo
             }
         }
     },

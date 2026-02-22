@@ -798,13 +798,9 @@ const formatDate = (dateString) => {
     })
 }
 
-<<<<<<< HEAD
-// formatPrice is from useMoney composable (imported above)
-=======
 const formatPrice = (value) => {
     return formatMoney(value)
 }
->>>>>>> Ricardo
 
 const validateCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '')

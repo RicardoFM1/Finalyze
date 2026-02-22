@@ -13,21 +13,6 @@ class Lembrete extends Model
 
     protected $fillable = [
         'usuario_id',
-<<<<<<< HEAD
-        'meta_id',
-        'titulo',
-        'descricao',
-        'categoria',
-        'cor',
-        'data_aviso',
-        'data_lembrete',
-        'status',
-    ];
-
-    protected $casts = [
-        'data_aviso'    => 'datetime',
-        'data_lembrete' => 'datetime',
-=======
         'titulo',
         'descricao',
         'icone',
@@ -43,7 +28,6 @@ class Lembrete extends Model
 
     protected $casts = [
         'prazo' => 'date',
->>>>>>> Ricardo
     ];
 
     public function usuario()

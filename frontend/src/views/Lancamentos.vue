@@ -162,20 +162,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { useI18n } from 'vue-i18n'
-<<<<<<< HEAD
-import { useMoney } from '@/composables/useMoney'
-=======
 import { useMoney } from '../composables/useMoney'
->>>>>>> Ricardo
 import { categorias as categoriasConstantes } from '../constants/categorias'
 import * as XLSX from "xlsx"
 
 const { t } = useI18n()
-<<<<<<< HEAD
-const { formatNumber, currencyLocale, currencySymbol } = useMoney()
-=======
 const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
->>>>>>> Ricardo
 const authStore = useAuthStore()
 const filterStore = useFilterStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
@@ -348,11 +340,6 @@ const headers = computed(() => [
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
 ])
 
-<<<<<<< HEAD
-// formatNumber is provided by useMoney composable (imported above)
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString(currencyLocale.value, { timeZone: 'UTC' })
-=======
 const formatNumber = (val) => fmtNum(val)
 const formatDate = (date) => {
     if (!date) return ''
@@ -363,7 +350,6 @@ const formatDate = (date) => {
         return new Date(y, m - 1, d).toLocaleDateString(locale.value)
     }
     return new Date(date).toLocaleDateString(locale.value)
->>>>>>> Ricardo
 }
 
 const getPaymentMethodIcon = (method) => {

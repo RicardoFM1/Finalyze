@@ -131,43 +131,8 @@
                 >
                   {{ $t('actions.reactivate') }}
                 </v-btn>
-<<<<<<< HEAD
-                <!-- Reminder button -->
-                <v-tooltip :text="hasActiveReminder(meta) ? $t('metas.reminder.edit_tooltip') : $t('metas.reminder.set_tooltip')" location="top">
-                  <template v-slot:activator="{ props: tooltipProps }">
-                    <v-btn 
-                      v-if="meta.status !== 'inativo' && meta.status !== 'concluido'" 
-                      v-bind="tooltipProps"
-                      variant="tonal" 
-                      size="small" 
-                      rounded="lg" 
-                      :color="hasActiveReminder(meta) ? 'warning' : 'secondary'" 
-                      @click="openLembreteDialog(meta)" 
-                      :icon="hasActiveReminder(meta) ? 'mdi-bell-ring' : 'mdi-bell-outline'"
-                    ></v-btn>
-                  </template>
-                </v-tooltip>
-                <!-- Share button -->
-                <v-tooltip :text="$t('metas.share.tooltip')" location="top">
-                  <template v-slot:activator="{ props: tooltipProps }">
-                    <v-btn 
-                      v-if="meta.status !== 'inativo'"
-                      v-bind="tooltipProps"
-                      variant="tonal" 
-                      size="small" 
-                      rounded="lg" 
-                      color="info" 
-                      @click="openCompartilharDialog" 
-                      icon="mdi-share-variant-outline"
-                    ></v-btn>
-                  </template>
-                </v-tooltip>
-                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline"></v-btn>
-                <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline"></v-btn>
-=======
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline" />
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline" />
->>>>>>> Ricardo
               </v-card-actions>
             </v-card>
           </v-col>
@@ -180,17 +145,6 @@
     </v-window>
     
     <ModalMeta v-model="dialog" :meta="itemAEditar" :initialTipo="initialTipo" @saved="onMetaSalva" />
-<<<<<<< HEAD
-    <ModalExcluirMeta v-model="deleteDialog" :meta="metaToDelete" @deleted="onMetaExcluida" />
-    <ModalLembrete 
-      v-model="lembreteDialog" 
-      :meta="metaParaLembrete" 
-      :reminder="reminderParaMeta(metaParaLembrete)"
-      @saved="onLembreteSalvo" 
-      @deleted="onLembreteExcluido"
-    />
-    <CompartilharModal v-model="compartilharDialog" @invite="onConviteEnviado" />
-=======
     <ModalExcluirMeta
       v-model="deleteDialog"
       :meta="metaToDelete"
@@ -198,7 +152,6 @@
       @deleted="onMetaExcluida"
       @rollback="({ id, oldStatus }) => { const i = metas.findIndex(m => m.id === id); if(i !== -1) metas[i].status = oldStatus; fetchMetas(true) }"
     />
->>>>>>> Ricardo
   </v-container>
 </template>
 
@@ -211,11 +164,7 @@ import ModalExcluirMeta from '../components/Modals/Metas/ModalExcluirMeta.vue'
 import ModalLembrete from '../components/Modals/Metas/ModalLembrete.vue'
 import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
 import { useI18n } from 'vue-i18n'
-<<<<<<< HEAD
-import { useMoney } from '@/composables/useMoney'
-=======
 import { useMoney } from '../composables/useMoney'
->>>>>>> Ricardo
 
 const { t } = useI18n()
 const { fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
@@ -434,12 +383,6 @@ const reativarItem = async (item) => {
   }
 }
 
-<<<<<<< HEAD
-// Helpers — all formatting from central useMoney composable
-const { formatPrice, formatShortPrice, currencyLocale } = useMoney()
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString(currencyLocale.value)
-=======
 // Helpers
 const formatPrice = (value) => {
     const converted = fromBRL(value || 0)
@@ -463,7 +406,6 @@ const formatDate = (date) => {
         return new Date(y, mo - 1, d).toLocaleDateString(currencyMeta.value.locale)
     }
     return new Date(date).toLocaleDateString(currencyMeta.value.locale)
->>>>>>> Ricardo
 }
 const calculatePercentage = (current, total) => {
   if (!total || total === 0) return 0
