@@ -53,17 +53,17 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Convite de Colaboração</h1>
+            <h1>{{ __('Collaboration Invite') }}</h1>
         </div>
         <div class="content">
-            <p>Olá!</p>
-            <p><strong>{{ $owner->nome }}</strong> convidou você para colaborar na conta do <strong>Finalyze Finance</strong>.</p>
-            <p>Como colaborador, você poderá visualizar e editar lançamentos, metas e agenda deste workspace.</p>
-            <p>Para começar, basta acessar sua conta (ou criar uma se ainda não tiver) usando este e-mail.</p>
-            <a href="https://finalyze-6gw9.onrender.com" class="btn">Acessar Finalyze</a>
+            <p>{{ __('Hello!') }}</p>
+            <p><strong>{{ $owner->nome }}</strong> {{ __('has invited you to collaborate on their Finalyze Finance account.') }}</p>
+            <p>{{ __('As a collaborator, you can view and edit transactions, goals, and the agenda of this workspace.') }}</p>
+            <p>{{ __('To start, simply access your account (or create one if you do not have one yet) using this e-mail.') }}</p>
+            <a href="https://finalyze-6gw9.onrender.com/#/cadastro" class="btn">{{ __('Access Finalyze') }}</a>
         </div>
         <div class="footer">
-            <p>Finalyze - Controle financeiro inteligente.</p>
+            <p>{{ __('Finalyze - Intelligent financial control.') }}</p>
         </div>
     </div>
 </body>

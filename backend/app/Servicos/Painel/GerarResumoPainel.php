@@ -31,7 +31,11 @@ class GerarResumoPainel
                 $query->where('descricao', 'like', '%' . $filtros['descricao'] . '%');
             }
             if (!empty($filtros['categoria'])) {
-                $query->where('categoria', $filtros['categoria']);
+                if (is_array($filtros['categoria'])) {
+                    $query->whereIn('categoria', $filtros['categoria']);
+                } else {
+                    $query->where('categoria', $filtros['categoria']);
+                }
             }
             if (!empty($filtros['tipo']) && $filtros['tipo'] !== 'todos') {
                 $query->where('tipo', $filtros['tipo']);
@@ -40,9 +44,9 @@ class GerarResumoPainel
                 $query->where('valor', $filtros['valor']);
             }
 
-            if (!empty($filtros['data_inicio']) && !empty($filtros['data_fim'])) {
+            if (isset($filtros['data_inicio']) && isset($filtros['data_fim'])) {
                 $query->whereBetween('data', [$filtros['data_inicio'], $filtros['data_fim']]);
-            } elseif (!empty($filtros['data'])) {
+            } elseif (isset($filtros['data'])) {
                 $data = $filtros['data'];
                 if (str_contains($data, ' to ')) {
                     $parts = explode(' to ', $data);
@@ -50,29 +54,49 @@ class GerarResumoPainel
                 } else {
                     $query->whereDate('data', $data);
                 }
+            }
+
+            $dateFilterActive = isset($filtros['data_inicio']) || isset($filtros['data_active']) || !empty($filtros['data']);
+
+            if ($dateFilterActive) {
+                $periodo_label = "filters.period_custom";
+                $data_inicio = $filtros['data_inicio'] ?? null;
+                $data_fim = $filtros['data_fim'] ?? null;
+                if (!$data_inicio && isset($filtros['data'])) {
+                    if (str_contains($filtros['data'], ' to ')) {
+                        $parts = explode(' to ', $filtros['data']);
+                        $data_inicio = $parts[0];
+                        $data_fim = $parts[1] ?? $parts[0];
+                    } else {
+                        $data_inicio = $filtros['data'];
+                        $data_fim = $filtros['data'];
+                    }
+                }
             } else {
-                $query->whereMonth('data', now()->month)
-                    ->whereYear('data', now()->year);
+                $periodo_label = "filters.period_all";
+                $data_inicio = null;
+                $data_fim = null;
             }
 
             $receita = (clone $query)->where('tipo', 'receita')->sum('valor');
             $despesa = (clone $query)->where('tipo', 'despesa')->sum('valor');
+            $saldo = $receita - $despesa;
 
-            if (!empty($filtros)) {
-                $saldo = $receita - $despesa;
-                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->get();
-            } else {
-                $totalRec = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
-                $totalDes = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
-                $saldo = $totalRec - $totalDes;
+            // If no filters at all, limit to 5, otherwise show filtered
+            if (empty($filtros)) {
                 $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->take(5)->get();
+            } else {
+                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->get();
             }
 
             return [
                 'receita' => (float) $receita,
                 'despesa' => (float) $despesa,
                 'saldo' => (float) $saldo,
-                'atividades_recentes' => $recentes
+                'atividades_recentes' => $recentes,
+                'periodo_label' => $periodo_label,
+                'data_inicio' => $data_inicio,
+                'data_fim' => $data_fim
             ];
         };
 

@@ -2,9 +2,9 @@
   <div class="email-verification">
     <div class="text-center mb-10">
       <v-icon size="64" color="primary" class="mb-4">mdi-email-check-outline</v-icon>
-      <h2 class="text-h4 font-weight-bold mb-2">Verifique seu e-mail</h2>
+      <h2 class="text-h4 font-weight-bold mb-2">{{ $t('auth.verify_title') }}</h2>
       <p class="text-body-1 text-medium-emphasis">
-        Enviamos um código de 6 dígitos para <br>
+        {{ $t('auth.verify_subtitle') }} <br>
         <strong class="text-primary">{{ email }}</strong>
       </p>
     </div>
@@ -37,11 +37,11 @@
         :disabled="code.length < 6"
         append-icon="mdi-check-decagram"
       >
-        Verificar Código
+        {{ $t('auth.btn_verify') }}
       </v-btn>
 
       <div class="text-center mt-8">
-        <p class="text-body-2 text-medium-emphasis mb-2">Não recebeu o e-mail?</p>
+        <p class="text-body-2 text-medium-emphasis mb-2">{{ $t('auth.no_email') }}</p>
         <v-btn
           variant="text"
           color="primary"
@@ -49,7 +49,7 @@
           :disabled="resending || timer > 0"
           @click="handleResend"
         >
-          {{ timer > 0 ? `Reenviar em ${timer}s` : 'Reenviar código' }}
+          {{ timer > 0 ? $t('auth.resend_timer', { seconds: timer }) : $t('auth.btn_resend') }}
         </v-btn>
       </div>
 
@@ -59,7 +59,7 @@
         class="mt-4 text-none text-medium-emphasis"
         @click="$emit('back')"
       >
-        Voltar para o login
+        {{ $t('auth.btn_back_login') }}
       </v-btn>
     </v-form>
   </div>

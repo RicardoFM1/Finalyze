@@ -58,7 +58,7 @@
         </v-col>
 
         <!-- Categoria -->
-        <v-col cols="12" sm="6" :md="macro ? 2 : 4" :lg="macro ? 3 : 2">
+        <v-col cols="12" sm="6" :md="macro ? 4 : 4" :lg="macro ? 4 : 2">
           <v-select
             v-model="localFilters.categoria"
             :items="formatCategorias"
@@ -68,6 +68,12 @@
             flat
             hide-details
             clearable
+            multiple
+            chips
+            closable-chips
+            persistent-placeholder
+            :placeholder="localFilters.categoria && localFilters.categoria.length ? '' : $t('common.all')"
+            class="filter-select-multi"
           />
         </v-col>
 
@@ -126,7 +132,7 @@ const expanded = ref(true)
 const localFilters = reactive({ 
   data: props.modelValue?.data || '',
   descricao: props.modelValue?.descricao || '',
-  categoria: props.modelValue?.categoria || '',
+  categoria: Array.isArray(props.modelValue?.categoria) ? props.modelValue.categoria : (props.modelValue?.categoria ? [props.modelValue.categoria] : []),
   tipo: props.modelValue?.tipo || 'todos',
   valor: props.modelValue?.valor || ''
 })
@@ -216,6 +222,20 @@ const limpar = () => emit('clear')
 .macro-date-input :deep(.v-field__input) {
   font-size: 1.1rem !important;
   font-weight: 600 !important;
+}
+
+.filter-select-multi :deep(.v-field__input) {
+  flex-wrap: wrap !important;
+  padding-top: 14px !important;
+  padding-bottom: 4px !important;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.filter-select-multi :deep(.v-chip) {
+  margin: 1px !important;
+  height: 22px !important;
+  font-size: 0.7rem !important;
 }
 
 

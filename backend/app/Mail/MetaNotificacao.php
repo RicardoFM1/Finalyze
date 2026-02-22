@@ -2,30 +2,30 @@
 
 namespace App\Mail;
 
-use App\Models\Lembrete;
+use App\Models\Meta;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class LembreteNotificacao extends Mailable
+class MetaNotificacao extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Lembrete $lembrete) {}
+    public function __construct(public Meta $meta) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Reminder: :title', ['title' => $this->lembrete->titulo]),
+            subject: __('Goal Reminder: :title', ['title' => $this->meta->titulo]),
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.lembrete-anotacao',
+            view: 'emails.meta-notificacao',
         );
     }
 }

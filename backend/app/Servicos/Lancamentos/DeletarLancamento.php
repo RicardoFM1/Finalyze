@@ -12,10 +12,11 @@ class DeletarLancamento
         $workspaceId = app('workspace_id');
         $usuario = Usuario::findOrFail($workspaceId);
 
-        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
+        $lancamento = $usuario->lancamentos()->find($lancamentoId);
 
-        $lancamento->delete();
-
-        GerarResumoPainel::limparCacheUsuario($workspaceId);
+        if ($lancamento) {
+            $lancamento->delete();
+            GerarResumoPainel::limparCacheUsuario($workspaceId);
+        }
     }
 }

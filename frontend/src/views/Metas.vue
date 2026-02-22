@@ -118,7 +118,7 @@
                   @click="toggleStatusConcluido(meta)"
                   :prepend-icon="meta.status === 'concluido' ? 'mdi-refresh' : 'mdi-check'"
                 >
-                  {{ meta.status === 'concluido' ? $t('metas.actions.reopen') : $t('metas.actions.complete') }}
+                  {{ meta.status === 'concluido' ? $t('actions.reopen') : $t('actions.complete') }}
                 </v-btn>
                 <v-btn 
                   v-if="meta.status === 'inativo'"
@@ -129,7 +129,7 @@
                   @click="reativarItem(meta)"
                   prepend-icon="mdi-restore"
                 >
-                  {{ $t('metas.actions.reactivate') }}
+                  {{ $t('actions.reactivate') }}
                 </v-btn>
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" icon="mdi-pencil-outline" />
                 <v-btn v-if="meta.status !== 'inativo'" variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" icon="mdi-delete-outline" />
@@ -139,7 +139,7 @@
         </v-row>
         <div v-else class="text-center py-12 text-medium-emphasis">
           <v-icon icon="mdi-bullseye-arrow" size="64" class="mb-4 opacity-20"></v-icon>
-          <p>{{ statusFilter === 'concluido' ? $t('metas.no_goals_completed') : $t('metas.no_financial_goals') }}</p>
+          <p>{{ statusFilter === 'concluido' ? $t('no_goals_completed') : $t('metas.no_financial_goals') }}</p>
         </div>
       </v-window-item>
     </v-window>

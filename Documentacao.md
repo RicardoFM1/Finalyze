@@ -20,7 +20,29 @@
 - **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente via modal na página de Planos, sem necessidade de ir ao checkout.
 - **Acúmulo de Dias**: Renovação do mesmo plano soma os dias à data de expiração atual; mudança de plano (upgrade) reseta o ciclo usando o desconto calculado.
 
-### 5. Finn AI - Assistente Financeiro com Memória
+### 5. Multi-Workspace e Compartilhamento de Contas (Collaboration System)
+- **Conceito de Workspace**: Cada usuário no Finalyze possui um "Workspace" (o ID do usuário é o ID do Workspace). Todos os dados (lançamentos, metas, lembretes) pertencem a esse ID.
+- **Fluxo de Convite**:
+    1. O **Proprietário** convida um **Convidado** via e-mail.
+    2. O sistema cria um registro na tabela `account_shares` com o `owner_id` e o `guest_email`.
+    3. O Convidado recebe um e-mail de convite traduzido baseado em sua preferência de idioma.
+- **Chaveamento de Contexto (Context Switching)**:
+    - O Convidado, ao fazer login, pode listar as contas às quais tem acesso.
+    - Ao selecionar uma conta, o frontend passa a enviar o header `X-Workspace-Id: [ID_DO_PROPRIETARIO]` em todas as requisições HTTP.
+- **Middleware `SetWorkspaceContext.php`**:
+    - Intercepta cada requisição para validar a permissão.
+    - Verifica se existe uma entrada em `account_shares` ligando o e-mail do usuário autenticado ao ID do workspace solicitado.
+    - Caso válido, ele injeta esse ID em um Singleton: `app()->instance('workspace_id', $id)`.
+- **Arquitetura de Serviços**:
+    - Todos os **Serviços** (`CriarLancamento`, `ListarMetas`, `GerarResumoPainel`, etc.) utilizam `app('workspace_id')` em vez de `auth()->id()`. Isso permite que o Convidado "atue" em nome do Proprietário de forma transparente e segura.
+- **Segurança**: Mesmo que o Convidado tente forjar o header `X-Workspace-Id`, o middleware bloqueia o acesso se não houver um registro válido de compartilhamento no banco de dados.
+
+### 6. Sistema Multi-Idioma no Backend
+- **Idioma Nativo**: Adicionada a coluna `idioma` na tabela `usuarios` para persistir a preferência (EN/PT) do usuário.
+- **Middleware `SetLocale.php`**: Detecta o idioma preferido através do header `Accept-Language` ou da configuração no perfil do usuário, ajustando as respostas do servidor e templates de e-mail dinamicamente.
+- **Templates de Email Bilíngues**: Todos os e-mails (Verificação, Convites, Lembretes) utilizam strings traduzíveis do Laravel (`__()`), garantindo uma experiência premium e globalizada.
+
+### 7. Finn AI - Assistente Financeiro com Memória
 - **Inteligência Artificial**: Utiliza o modelo **Gemini 1.5 Flash** do Google para respostas ultrarrápidas e precisas.
 - **Persistência**: Histórico de chat completo salvo no banco de dados (`mensagens_chat`).
 - **Interatividade**: Edição e exclusão de mensagens do usuário integradas.
@@ -76,14 +98,15 @@ O backend é uma API RESTful construída com Laravel, focada em segurança, proc
 - **Middlewares de Segurança**:
     - `EnsureUserHasPlan`: Bloqueia o acesso a funcionalidades do dashboard se o usuário não possuir um plano ativo.
     - `EnsureUserIsAdmin`: Restringe rotas administrativas para usuários com o papel de 'admin'.
-- **Gerenciamento Automático de Assinaturas**:
-    - **Expiração Automática**: Command agendado (`app:verificar-assinaturas-expiradas`) que roda diariamente à meia-noite para expirar assinaturas vencidas e remover planos de usuários.
-    - **Lembretes de Renovação por Email**: 
-        - Sistema de notificações automáticas enviado 2x ao dia (9h e 18h).
-        - Email amigável 3 dias antes da expiração com detalhes da assinatura.
-        - Email urgente 1 dia antes com contador de horas restantes.
-        - Templates profissionais e responsivos com links diretos para renovação.
-        - Sistema anti-duplicação para evitar múltiplos envios.
+    - **Gerenciamento Automático de Assinaturas**:
+        - **Expiração Automática**: Command agendado (`app:verificar-assinaturas-expiradas`) que agora roda a **cada 30 minutos** para garantir que o acesso seja removido quase instantaneamente após o vencimento.
+        - **Lembretes de Renovação por Email**: 
+            - Verificação automática executada a **cada 30 minutos** (anteriormente 2x ao dia).
+            - Email amigável 3 dias antes da expiração com detalhes da assinatura.
+            - Email urgente 1 dia antes com contador de horas restantes.
+            - Templates profissionais e responsivos (Blade) com links diretos para renovação.
+            - Sistema anti-duplicação para evitar múltiplos envios dentro do mesmo ciclo.
+    - **Lembretes Pessoais**: Command `app:enviar-lembretes-pessoais` executado **minuto a minuto** para disparar notificações de agenda e compromissos.
     - **Manutenção de Assinaturas**:
         - Lógica de ativação/atualização de plano do usuário no banco de dados.
         - **Limpeza de Pendências**: Endpoint para cancelamento de assinaturas pendentes que realiza um "wipeout" em qualquer `HistoricoPagamento` órfão para garantir que o usuário não tenha cobranças duplicadas ou estados inconsistentes.
@@ -99,11 +122,13 @@ Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para 
     - **PlanCard Component**: Botões dinâmicos que mostram "Plano Atual" (se já ativo) ou "Mudar para [Plano]" (se for um upgrade/change).
 - **Checkout (PaymentBrick.vue)**:
     - Integração de segurança com Mercado Pago Brick.
+    - **Conversão de Moeda**: Suporte integrado ao `useMoney`, permitindo checkout em USD, EUR ou BRL com conversão baseada em taxas de câmbio em tempo real.
     - Redirecionamentos automáticos e Toasts de sucesso após a confirmação.
     - Sistema de **Polling** para PIX: Verifica o status do pagamento em tempo real para liberar o acesso assim que pago.
 - **Dashboard (Painel)**: 
-    - Acesso centralizado às métricas financeiras.
+    - **Visão Geral**: Por padrão, o painel agora exibe o acumulado histórico (Visão Geral) de receitas e despesas para garantir consistência total com o saldo bancário. O filtro mensal pode ser aplicado manualmente.
     - Protegido por guardas de rota que verificam a autenticação e o plano ativo.
+- **Moedas**: Centralização da lógica de formatação no composable `useMoney.js`, tratando BRL como moeda base no banco de dados e convertendo dinamicamente para exibição.
 - **UX - Skeleton Loading**: Implementado sistema de carregamento estruturado na **Home** e **Perfil**, eliminando transições bruscas e melhorando a percepção de performance.
 - **Perfil**: Área para o usuário gerenciar seus dados pessoais e ver o status do seu plano atual com indicadores de progresso de vigência.
 - **Checkout State Management**: Controle global de carregamento (`pageLoading`) que garante que o usuário só veja o formulário de pagamento após todos os dados de prorrata e preferências estarem totalmente sincronizados.

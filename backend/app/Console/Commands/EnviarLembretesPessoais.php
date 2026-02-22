@@ -35,13 +35,19 @@ class EnviarLembretesPessoais extends Command
         foreach ($lembretes as $lembrete) {
             try {
                 if ($lembrete->usuario && $lembrete->usuario->email) {
+                    Log::info("Enviando lembrete #{$lembrete->id} para {$lembrete->usuario->email}");
                     Mail::to($lembrete->usuario->email)->send(new \App\Mail\LembreteNotificacao($lembrete));
                     $lembrete->update(['email_notified_at' => now()]);
                     $contagem++;
+                } else {
+                    Log::warning("Lembrete #{$lembrete->id} sem usuário ou e-mail válido.");
                 }
             } catch (\Exception $e) {
                 $this->error("Erro ao enviar para {$lembrete->usuario->email}: {$e->getMessage()}");
-                Log::error("Erro no comando EnviarLembretesPessoais: {$e->getMessage()}");
+                Log::error("Erro no comando EnviarLembretesPessoais: {$e->getMessage()}", [
+                    'lembrete_id' => $lembrete->id,
+                    'user_email' => $lembrete->usuario->email ?? 'N/A'
+                ]);
             }
         }
 

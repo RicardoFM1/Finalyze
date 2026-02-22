@@ -12,22 +12,26 @@ class Meta extends Model
         'descricao',
         'tipo',
         'valor_objetivo',
-        'valor_objetivo',
         'meta_quantidade',
         'atual_quantidade',
         'unidade',
         'prazo',
         'status',
         'cor',
-        'icone'
+        'icone',
+        'notificacao_site',
+        'notificacao_email',
+        'email_notified_at'
     ];
 
     protected $casts = [
         'valor_objetivo' => 'float',
-        'valor_objetivo' => 'float',
         'meta_quantidade' => 'integer',
         'atual_quantidade' => 'integer',
         'prazo' => 'date',
+        'notificacao_site' => 'boolean',
+        'notificacao_email' => 'boolean',
+        'email_notified_at' => 'datetime'
     ];
 
     public function usuario()

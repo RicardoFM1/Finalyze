@@ -1,8 +1,8 @@
 <template>
-  <ModalBase title="Colaboração e Compartilhamento" v-model="internalValue" maxWidth="600px">
+  <ModalBase :title="$t('modals.titles.share')" v-model="internalValue" maxWidth="600px">
     <div class="pa-4">
       <p class="text-body-2 text-medium-emphasis mb-6">
-        Convide outras pessoas para visualizar e editar seus dados financeiros, metas e agenda. Elas terão acesso total à sua conta.
+        {{ $t('share.subtitle') }}
       </p>
 
       <!-- Invite Section -->
@@ -10,7 +10,7 @@
         <div class="d-flex flex-column flex-sm-row gap-2 align-sm-center">
             <v-text-field
                 v-model="inviteEmail"
-                label="E-mail do colaborador"
+                :label="$t('share.email_label')"
                 placeholder="exemplo@email.com"
                 variant="outlined"
                 density="comfortable"
@@ -27,7 +27,7 @@
                 :loading="loading"
                 elevation="2"
             >
-                Convidar
+                {{ $t('share.invite_btn') }}
             </v-btn>
         </div>
       </v-form>
@@ -37,35 +37,37 @@
       <!-- Collaborators List -->
       <h3 class="text-subtitle-1 font-weight-bold mb-4 d-flex align-center">
         <v-icon icon="mdi-account-multiple-outline" class="mr-2"></v-icon>
-        Pessoas com acesso
+        {{ $t('share.people_access') }}
       </h3>
       
       <v-list class="bg-transparent pa-0">
         <v-list-item class="bg-surface rounded-xl mb-3 border" elevation="0">
             <template v-slot:prepend>
                 <v-avatar color="primary" class="mr-3">
-                    <span class="text-caption font-weight-bold">{{ getInitials(authStore.user?.nome) }}</span>
+                    <v-img v-if="authStore.user?.avatar" :src="authStore.getStorageUrl(authStore.user.avatar)" cover></v-img>
+                    <span v-else class="text-caption font-weight-bold">{{ getInitials(authStore.user?.nome) }}</span>
                 </v-avatar>
             </template>
-            <v-list-item-title class="font-weight-bold">{{ authStore.user?.nome }} (Você)</v-list-item-title>
-            <v-list-item-subtitle>Proprietário</v-list-item-subtitle>
+            <v-list-item-title class="font-weight-bold">{{ authStore.user?.nome }} ({{ $t('share.you') }})</v-list-item-title>
+            <v-list-item-subtitle>{{ $t('share.owner') }}</v-list-item-subtitle>
         </v-list-item>
 
         <v-list-item v-for="share in mySharedAccounts" :key="share.id" class="bg-surface rounded-xl mb-3 border shadow-sm" elevation="0">
             <template v-slot:prepend>
                 <v-avatar color="secondary" class="mr-3">
-                    <v-icon icon="mdi-account-guest"></v-icon>
+                    <v-img v-if="share.guest?.avatar" :src="authStore.getStorageUrl(share.guest.avatar)" cover></v-img>
+                    <v-icon v-else icon="mdi-account-guest"></v-icon>
                 </v-avatar>
             </template>
-            <v-list-item-title class="font-weight-bold text-truncate">{{ share.guest_email }}</v-list-item-title>
-            <v-list-item-subtitle>{{ share.status === 'pending' ? 'Pendente' : 'Convidado' }}</v-list-item-subtitle>
+            <v-list-item-title class="font-weight-bold text-truncate">{{ share.guest?.nome || share.guest_email }}</v-list-item-title>
+            <v-list-item-subtitle>{{ share.status === 'pending' ? $t('share.status_pending') : $t('share.status_accepted') }}</v-list-item-subtitle>
             <template v-slot:append>
                 <v-btn 
                   icon="mdi-delete-outline" 
                   variant="text" 
                   color="error" 
                   size="small"
-                  @click="removeShare(share.id)"
+                  @click="confirmRemoveShare(share)"
                 ></v-btn>
             </template>
         </v-list-item>
@@ -88,6 +90,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import ModalBase from './modalBase.vue'
 import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
@@ -130,19 +135,25 @@ const inviteUser = async () => {
     })
     
     if (response.ok) {
-      toast.success('Convite de colaboração enviado!')
+      toast.success(t('share.toast_invite_sent'))
       inviteEmail.value = ''
       fetchMyShares()
     } else {
         const data = await response.json()
-        toast.error(data.message || 'Erro ao enviar convite')
+        toast.error(data.message || t('share.toast_invite_error'))
     }
   } catch (e) {
     console.error(e)
-    toast.error('Ocorreu um erro ao processar o convite')
+    toast.error(t('share.toast_invite_error'))
   } finally {
     loading.value = false
   }
+}
+
+const confirmRemoveShare = async (share) => {
+    if (confirm(t('share.confirm_remove', { email: share.guest_email }))) {
+        await removeShare(share.id)
+    }
 }
 
 const removeShare = async (id) => {
@@ -152,14 +163,15 @@ const removeShare = async (id) => {
     try {
         const response = await authStore.apiFetch(`/shared-accounts/${id}`, { method: 'DELETE' })
         if (response.ok) {
-            toast.success('Acesso removido com sucesso')
+            toast.success(t('share.toast_remove_success'))
         } else {
-            throw new Error('Falha ao remover')
+            const data = await response.json().catch(() => ({}))
+            throw new Error(data.message || 'Falha ao remover')
         }
     } catch (e) { 
         console.error(e)
         mySharedAccounts.value = oldShares
-        toast.error('Erro ao remover acesso')
+        toast.error(e.message || t('share.toast_remove_error'))
     } finally {
         fetchMyShares()
     }
@@ -184,6 +196,6 @@ const shareSocial = (platform) => {
 
 const copyLink = () => {
   navigator.clipboard.writeText(window.location.origin)
-  toast.success('Link copiado para a área de transferência!')
+  toast.success(t('share.toast_copy_success'))
 }
 </script>

@@ -55,7 +55,14 @@
   },
   "auth": {
     "join_us_title": "Junte-se a nós",
-    "join_us_subtitle": "Comece sua jornada para a liberdade financeira hoje mesmo."
+    "join_us_subtitle": "Comece sua jornada para a liberdade financeira hoje mesmo.",
+    "verify_title": "Verifique seu e-mail",
+    "verify_subtitle": "Enviamos um código de 6 dígitos para",
+    "btn_verify": "Verificar Código",
+    "no_email": "Não recebeu o e-mail?",
+    "resend_timer": "Reenviar em {seconds}s",
+    "btn_resend": "Reenviar código",
+    "btn_back_login": "Voltar para o login"
   },
   "sidebar": {
     "home": "Página inicial",
@@ -69,6 +76,9 @@
     "admin": "Administração",
     "plans": "Planos",
     "logout": "Sair"
+  },
+  "footer": {
+    "colaboradores": "Colaboradores"
   },
   "settings": {
     "appearance": "Aparência",
@@ -100,6 +110,11 @@
     "continue": "Continuar Pagamento",
     "launch_limits": "Limite de {count} Lançamentos",
     "launch_unlimited": "Lançamentos Ilimitados",
+    "plan_names": {
+      "Essencial": "Essencial",
+      "Pro": "Pro",
+      "Elite": "Elite"
+    },
     "toast_cancel_success": "Pagamento anterior cancelado.",
     "toast_cancel_error": "Erro ao cancelar assinatura.",
     "upgrade_tip": {
@@ -134,11 +149,6 @@
     "toast_upgrade_success": "Upgrade realizado com sucesso! Aproveite seu novo plano.",
     "toast_upgrade_error": "Erro ao processar upgrade.",
     "toast_connection_error": "Erro de conexão.",
-    "plan_names": {
-      "Básico": "Básico",
-      "Pro": "Pro",
-      "Premium": "Premium"
-    },
     "feature_names": {
       "Painel Financeiro": "Painel Financeiro",
       "Lançamentos": "Lançamentos",
@@ -161,7 +171,8 @@
     "no_financial_goals": "Nenhuma meta financeira encontrada.",
     "notepad_title": "Agenda & Lembretes",
     "notepad_subtitle": "Suas reuniões e tarefas importantes",
-    "notepad_tooltip": "Organize seu dia com lembretes e avisos.",
+    "notepad_tooltip": "Organize seu dia com lembretes e tarefas.",
+    "lembretes_subtitle": "Gerencie seus compromissos e tarefas pessoais.",
     "new_note": "Novo Lembrete",
     "no_notes_content": "Sem descrição disponível...",
     "completed": "Concluído",
@@ -178,6 +189,20 @@
       "inactive": "Inativos",
       "all": "Todos"
     },
+    "calendar_title": "Agenda de Compromissos",
+    "calendar_search": "Lembretes para {date}",
+    "no_calendar_notes": "Nenhum lembrete para este dia.",
+    "create_hint": "Criar novo lembrete",
+    "day_details": "Eventos de {date}",
+    "add_event": "Adicionar Lembrete",
+    "test_notifications": "Testar Notificações",
+    "toast_test_notification": "⏰ Teste de Notificação: Seus compromissos aparecerão assim no topo da tela!",
+    "calendar": {
+      "today": "Hoje",
+      "month": "Mês",
+      "week": "Semana",
+      "list": "Lista"
+    },
     "actions": {
       "complete": "Concluir",
       "reopen": "Reabrir",
@@ -186,20 +211,15 @@
       "inactivate_title": "Mover para Inativos",
       "inactivate_confirm": "Deseja mover \"{title}\" para os inativos?",
       "inactivate_desc": "O item não aparecerá mais na lista principal, mas você pode encontrá-lo no filtro de 'Inativos'.",
+      "inactivate_btn": "Desativar",
       "reactivate": "Reativar",
-      "reactivate_success": "Item reativado com sucesso!"
+      "reactivate_success": "Item reativado com sucesso!",
+      "import_excel": "Importar Excel",
+      "export_page": "Exportar página atual",
+      "export_excel": "Exportar para Excel",
+      "export_pdf": "Exportar para PDF"
     },
-    "no_goals_completed": "Nenhuma meta concluída ainda.",
-    "no_notes_completed": "Sem lembretes concluídos.",
-    "goal_incomplete_error": "A meta só pode ser finalizada quando atingir 100% de progresso.",
-    "empty_filter": "Nenhum item encontrado para este filtro.",
-    "calendar_title": "Agenda de Compromissos",
-    "calendar_search": "Lembretes para {date}",
-    "no_calendar_notes": "Nenhum lembrete para este dia.",
-    "create_hint": "Criar novo lembrete",
-    "day_details": "Eventos de {date}",
-    "add_event": "Adicionar Lembrete",
-    "test_notifications": "Testar Notificações"
+    "empty_filter": "Nenhum item encontrado para este filtro."
   },
   "transactions": {
     "title": "Lançamentos",
@@ -234,6 +254,7 @@
       "account_money": "Saldo Mercado Pago",
       "credits": "Crédito Financeiro",
       "prorrata_credit": "Crédito de Prorrata",
+      "preferência": "Link de Pagamento",
       "other": "Outros"
     },
     "type": {
@@ -299,6 +320,7 @@
       "paid": "PAGO",
       "failed": "FALHOU",
       "pending": "PENDENTE",
+      "cancelled": "CANCELADO",
       "pending_payment": "O seu pagamento está sendo processado ou está pendente. Assim que for aprovado, o plano será liberado automaticamente.",
       "manual_payment_only": "Pagamento Manual (Ex: Pix/Boleto)"
     },
@@ -438,7 +460,19 @@
     "all": "Todos",
     "items_per_page": "Itens por página",
     "welcome_fallback": "bem-vindo",
-    "currency": "R$"
+    "currency": "R$",
+    "Date": "Data",
+    "Time": "Hora",
+    "Reminder": "Lembrete",
+    "View in Dashboard": "Ver no Painel",
+    "This is an automated reminder from Finalyze.": "Este é um lembrete automático do Finalyze.",
+    "All rights reserved.": "Todos os direitos reservados.",
+    "currencies": {
+      "brl": "Real Brasileiro",
+      "usd": "Dólar Americano",
+      "eur": "Euro",
+      "gbp": "Libra Esterlina"
+    }
   },
   "register": {
     "title": "Criar Conta",
@@ -518,6 +552,8 @@
       "edit_transaction": "Editar Lançamento",
       "edit_goal": "Editar Meta",
       "new_goal": "Nova Meta",
+      "edit_reminder": "Editar Lembrete",
+      "new_reminder": "Novo Lembrete",
       "edit_note": "Editar Lembrete",
       "new_note": "Novo Lembrete",
       "share": "Colaboração"
@@ -561,7 +597,9 @@
     "value": "Valor",
     "clear": "Limpar",
     "apply": "Aplicar",
-    "movement_period": "Movimentações no Período"
+    "movement_period": "Movimentações no Período",
+    "period_all": "Visão Geral",
+    "period_custom": "Período Personalizado"
   },
   "categories": {
     "Salário": "Salário",
@@ -612,12 +650,6 @@
     "Crianças": "Crianças",
     "Outros": "Outros"
   },
-  "actions": {
-    "import_excel": "Importar Excel",
-    "export_page": "Exportar página atual",
-    "export_excel": "Exportar para Excel",
-    "export_pdf": "Exportar para PDF"
-  },
   "finn": {
     "placeholder": "Pergunte sobre seus gastos...",
     "thinking": "Finn está pensando...",
@@ -627,5 +659,21 @@
     "delete_confirm": "Deseja remover esta mensagem?",
     "error_connection": "Desculpe, perdi a conexão com meu cérebro IA. Tente em instantes!",
     "error_generic": "Tive um probleminha. Pode repetir?"
+  },
+  "share": {
+    "subtitle": "Convide outras pessoas para visualizar e editar seus dados financeiros, metas e agenda. Elas terão acesso total à sua conta.",
+    "email_label": "E-mail do colaborador",
+    "invite_btn": "Convidar",
+    "people_access": "Pessoas com acesso",
+    "you": "Você",
+    "owner": "Proprietário",
+    "status_pending": "Pendente",
+    "status_accepted": "Convidado",
+    "toast_invite_sent": "Convite de colaboração enviado!",
+    "toast_invite_error": "Erro ao enviar convite",
+    "toast_remove_success": "Acesso removido com sucesso",
+    "toast_remove_error": "Erro ao remover acesso",
+    "toast_copy_success": "Link copiado para a área de transferência!",
+    "confirm_remove": "Deseja realmente remover o acesso de {email}?"
   }
 }

@@ -62,13 +62,22 @@ class CriarPreferenciaCheckout
             'creditos_aplicados' => $creditos
         ]);
 
-        // Criamos uma assinatura pendente primeiro para ter o ID
-        $assinatura = Assinatura::create([
-            'user_id' => $usuario->id,
-            'plano_id' => $plano->id,
-            'periodo_id' => $periodo->id,
-            'status' => 'pending'
-        ]);
+        // Tenta reaproveitar assinatura pendente compatível
+        $assinatura = Assinatura::where('user_id', $usuario->id)
+            ->where('status', 'pending')
+            ->where('plano_id', $plano->id)
+            ->where('periodo_id', $periodo->id)
+            ->latest()
+            ->first();
+
+        if (!$assinatura) {
+            $assinatura = Assinatura::create([
+                'user_id' => $usuario->id,
+                'plano_id' => $plano->id,
+                'periodo_id' => $periodo->id,
+                'status' => 'pending'
+            ]);
+        }
 
         $preferenceData = [
             "items" => $items,
@@ -80,8 +89,7 @@ class CriarPreferenciaCheckout
                 "quantidade_dias" => $periodo->quantidade_dias,
                 "creditos_prorrata" => $creditos
             ],
-            // auto_return e back_urls removidos: só funcionam com URLs públicas (não localhost)
-            // O redirecionamento pós-pagamento é feito pelo frontend via PaymentBrick callbacks
+            // notification_url sugerido: https://seudominio.com/api/webhook/mercadopago
             "notification_url" => $backendUrl . "/api/webhook/mercadopago"
         ];
 
@@ -90,11 +98,39 @@ class CriarPreferenciaCheckout
         // Atualizamos a assinatura com o ID da preferência
         $assinatura->update(['mercado_pago_id' => $preference->id]);
 
-        // Cancelamos outras assinaturas pendentes para evitar duplicidade
-        Assinatura::where('user_id', $usuario->id)
+        // Gerenciamento de histórico: evita duplicados na mesma assinatura
+        $historico = \App\Models\HistoricoPagamento::where('assinatura_id', $assinatura->id)->first();
+
+        if ($historico) {
+            $historico->update([
+                'valor_centavos' => (int)($totalPagar * 100),
+                'status' => 'pending',
+                'metodo_pagamento' => 'preferência',
+                'mercado_pago_id' => $preference->id,
+            ]);
+        } else {
+            \App\Models\HistoricoPagamento::create([
+                'user_id' => $usuario->id,
+                'assinatura_id' => $assinatura->id,
+                'valor_centavos' => (int)($totalPagar * 100),
+                'status' => 'pending',
+                'metodo_pagamento' => 'preferência',
+                'mercado_pago_id' => $preference->id,
+            ]);
+        }
+
+        // Cancelamos outras assinaturas pendentes e SEUS históricos para evitar duplicidade na lista principal
+        $outrasPendentes = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->where('id', '!=', $assinatura->id)
-            ->update(['status' => 'cancelled']);
+            ->get();
+
+        foreach ($outrasPendentes as $outra) {
+            $outra->update(['status' => 'cancelled']);
+            \App\Models\HistoricoPagamento::where('assinatura_id', $outra->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
+        }
 
         return [
             'id' => $preference->id,

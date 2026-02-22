@@ -16,4 +16,9 @@ class AccountShare extends Model
     {
         return $this->belongsTo(Usuario::class, 'owner_id');
     }
+
+    public function guest()
+    {
+        return $this->belongsTo(Usuario::class, 'guest_email', 'email');
+    }
 }

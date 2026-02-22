@@ -12,16 +12,16 @@
       class="compact-select"
     >
       <template v-slot:selection="{ item }">
-        <div class="d-flex align-center gap-2">
-          <img :src="item.raw.flag" class="coin-flag-img" />
+        <div class="d-flex align-center gap-3">
+          <img :src="item.raw.flag" class="coin-flag-img shadow-sm" />
           <span class="coin-code">{{ item.value }}</span>
         </div>
       </template>
 
       <template v-slot:item="{ item, props: itemProps }">
         <v-list-item v-bind="itemProps" :title="undefined" density="compact">
-          <div class="d-flex align-center gap-2 py-1">
-            <img :src="item.raw.flag" class="coin-flag-img" />
+          <div class="d-flex align-center gap-4 py-1">
+            <img :src="item.raw.flag" class="coin-flag-img mr-1" />
             <div>
               <div class="text-body-2 font-weight-bold">{{ item.value }}</div>
               <div class="text-caption opacity-60">{{ item.raw.name }}</div>
@@ -41,9 +41,9 @@
           v-bind="props"
           class="mobile-coin-btn"
         >
-          <div class="d-flex flex-column align-center">
-            <img :src="selectedCoinObject?.flag" class="coin-flag-img mb-1" />
-            <span class="currency-label">{{ selectedCoin }}</span>
+          <div class="d-flex align-center gap-1">
+            <img v-if="selectedCoinObject?.flag" :src="selectedCoinObject.flag" class="coin-flag-img" />
+            <span class="currency-label ml-1">{{ selectedCoin }}</span>
           </div>
         </v-btn>
       </template>
@@ -78,41 +78,44 @@
 import { ref, watch, computed } from 'vue'
 import { useCurrencyStore } from '../../stores/currency'
 import { useDisplay } from 'vuetify'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { mdAndUp } = useDisplay()
 const currencyStore = useCurrencyStore()
 
-const coins = [
+const coins = computed(() => [
   {
     label: 'BRL',
     value: 'BRL',
-    name: 'Real Brasileiro',
+    name: t('common.currencies.brl'),
     flag: 'https://flagcdn.com/w40/br.png'
   },
   {
     label: 'USD',
     value: 'USD',
-    name: 'Dólar Americano',
+    name: t('common.currencies.usd'),
     flag: 'https://flagcdn.com/w40/us.png'
   },
   {
     label: 'EUR',
     value: 'EUR',
-    name: 'Euro',
+    name: t('common.currencies.eur'),
     flag: 'https://flagcdn.com/w40/eu.png'
   },
   {
     label: 'GBP',
     value: 'GBP',
-    name: 'Libra Esterlina',
+    name: t('common.currencies.gbp'),
     flag: 'https://flagcdn.com/w40/gb.png'
   }
-]
+])
 
 const selectedCoin = ref(currencyStore.currency)
 
 const selectedCoinObject = computed(() =>
-  coins.find(c => c.value === selectedCoin.value)
+  coins.value.find(c => c.value === selectedCoin.value)
 )
 
 watch(selectedCoin, (newCoin) => {

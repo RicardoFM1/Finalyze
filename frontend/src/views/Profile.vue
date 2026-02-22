@@ -288,45 +288,118 @@
 
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
-            <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
-            <div v-if="loadingSub" class="pt-2">
-              <v-skeleton-loader type="table-row-divider@5"></v-skeleton-loader>
+            <div class="d-flex align-center justify-space-between mb-6">
+                <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.recent_payments') }}</h3>
             </div>
-            <v-table v-else-if="subscriptionData?.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
-              <thead>
-                <tr>
-                  <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.item') }}</th>
-                  <th class="text-left font-weight-bold text-center">{{ $t('transactions.table.payment_method') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in subscriptionData.historico" :key="item.id">
-                  <td class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</td>
-                  <td>
-                    <div class="d-flex align-center">
+
+            <v-card class="filter-card mb-6 pa-4 rounded-xl border" elevation="0">
+                <v-row dense align="center">
+                    <v-col cols="12" md="4">
+                        <DateInput
+                            v-model="historyFilters.data"
+                            :label="$t('filters.period')"
+                            hide-details
+                            clearable
+                            mode="range"
+                            density="compact"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                        <v-select
+                            v-model="historyFilters.status"
+                            :items="[
+                                { title: $t('common.all'), value: 'todos' },
+                                { title: $t('profile.subscription.paid'), value: 'pago' },
+                                { title: $t('profile.subscription.pending'), value: 'pendente' },
+                                { title: $t('profile.subscription.failed'), value: 'falhou' },
+                                { title: $t('profile.subscription.cancelled'), value: 'cancelado' }
+                            ]"
+                            :label="$t('admin.status')"
+                            density="compact"
+                            variant="outlined"
+                            hide-details
+                            rounded="lg"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                        <v-select
+                            v-model="historyFilters.metodo"
+                            :items="[
+                                { title: $t('common.all'), value: 'todos' },
+                                { title: $t('transactions.payment_methods.credit_card'), value: 'credit_card' },
+                                { title: $t('transactions.payment_methods.pix'), value: 'pix' },
+                                { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
+                                { title: t('transactions.payment_methods.account_money'), value: 'account_money' },
+                                { title: t('transactions.payment_methods.other'), value: 'other' }
+                            ]"
+                            :label="$t('transactions.table.payment_method')"
+                            density="compact"
+                            variant="outlined"
+                            hide-details
+                            rounded="lg"
+                        />
+                    </v-col>
+                    <v-col cols="12" md="2" class="text-right">
+                        <v-btn
+                            variant="text"
+                            color="primary"
+                            size="small"
+                            @click="historyFilters = { data: '', status: 'todos', metodo: 'todos' }; historySearch = ''"
+                        >
+                            {{ $t('filters.clear') }}
+                        </v-btn>
+                    </v-col>
+                </v-row>
+            </v-card>
+
+            <v-data-table
+              :headers="historyHeaders"
+              :items="filteredHistory"
+              :loading="loadingSub"
+              :no-data-text="$t('profile.subscription.no_history')"
+              class="billing-table-v3 rounded-xl border"
+              hover
+            >
+                <!-- Custom item slots -->
+                <template v-slot:item.created_at="{ item }">
+                    <span class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</span>
+                </template>
+
+                <template v-slot:item.item="{ item }">
+                    <div class="d-flex align-center py-2">
                       <v-icon icon="mdi-package-variant" size="small" class="mr-2" color="primary"></v-icon>
-                      <span class="text-body-2">
-                        {{ $t('plans.plan_names.' + (item.assinatura?.plano?.nome || item.item_nome), item.assinatura?.plano?.nome || item.item_nome) }}
-                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70 ml-1">
-                          ({{ item.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (item.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : item.assinatura.periodo.nome) }})
+                      <div class="d-flex flex-column">
+                        <span class="text-body-2 font-weight-bold">
+                            {{ $t('plans.plan_names.' + (item.assinatura?.plano?.nome || item.item_nome), item.assinatura?.plano?.nome || item.item_nome) }}
                         </span>
-                      </span>
+                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70">
+                          {{ item.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (item.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : item.assinatura.periodo.nome) }}
+                        </span>
+                      </div>
                     </div>
-                  </td>
-                  <td>
-                    <div class="d-flex align-center justify-center gap-1 opacity-80" v-if="item.metodo_pagamento">
+                </template>
+
+                <template v-slot:item.metodo_pagamento="{ item }">
+                    <div class="d-flex align-center gap-1 opacity-80" v-if="item.metodo_pagamento">
                         <v-icon size="16" :icon="getPaymentMethodIcon(item.metodo_pagamento)"></v-icon>
                         <span class="text-caption font-weight-medium">
                             {{ $t('transactions.payment_methods.' + (item.metodo_pagamento || 'other')) }}
                         </span>
                     </div>
-                    <div v-else class="text-center">-</div>
-                  </td>
-                  <td class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</td>
-                  <td>
+                    <span v-else>-</span>
+                </template>
+
+                <template v-slot:item.valor="{ item }">
+                    <div class="d-flex flex-column">
+                        <span class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</span>
+                        <!-- Mostrar valor original se for convertida -->
+                        <span v-if="currencySymbol !== 'R$'" class="text-caption opacity-60">
+                            (R$ {{ (item.valor_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }})
+                        </span>
+                    </div>
+                </template>
+
+                <template v-slot:item.status="{ item }">
                     <v-chip
                       :color="getStatusColor(item.status)"
                       size="x-small"
@@ -335,17 +408,8 @@
                     >
                       {{ getStatusText(item.status) }}
                     </v-chip>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-            
-            <div v-else-if="!loadingSub" class="text-center py-12 billing-empty opacity-60">
-              <v-icon icon="mdi-receipt-text-minus-outline" size="64" class="mb-4"></v-icon>
-              <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.no_history') }}</h3>
-              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') }}</p>
-            </div>
-            
+                </template>
+            </v-data-table>
           </v-container>
         </v-window-item>
       </v-window>
@@ -365,6 +429,7 @@ import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
 
@@ -392,6 +457,57 @@ const saving = ref(false)
 const cancelling = ref(false)
 const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+const historySearch = ref('')
+const historyFilters = ref({
+    data: '',
+    status: 'todos',
+    metodo: 'todos'
+})
+
+const filteredHistory = computed(() => {
+    let list = subscriptionData.value.historico || []
+    
+    // Status Filter
+    if (historyFilters.value.status !== 'todos') {
+        list = list.filter(item => {
+            const s = item.status?.toLowerCase()
+            if (historyFilters.value.status === 'pago') return ['paid', 'pago', 'approved', 'active', 'authorized'].includes(s)
+            if (historyFilters.value.status === 'pendente') return ['pending', 'pendente', 'in_process'].includes(s)
+            if (historyFilters.value.status === 'falhou') return ['failed', 'falhou', 'rejected'].includes(s)
+            if (historyFilters.value.status === 'cancelado') return ['cancelled', 'cancelado'].includes(s)
+            return s === historyFilters.value.status
+        })
+    }
+
+    // Payment Method Filter
+    if (historyFilters.value.metodo !== 'todos') {
+        list = list.filter(item => item.metodo_pagamento?.toLowerCase() === historyFilters.value.metodo)
+    }
+
+    // Date Range Filter
+    if (historyFilters.value.data && historyFilters.value.data.includes(' to ')) {
+        const [startStr, endStr] = historyFilters.value.data.split(' to ')
+        const start = new Date(startStr + 'T00:00:00')
+        const end = new Date(endStr + 'T23:59:59')
+        
+        list = list.filter(item => {
+            const itemDate = new Date(item.pago_em || item.created_at)
+            return itemDate >= start && itemDate <= end
+        })
+    }
+
+    return list
+})
+
+const historyHeaders = computed(() => [
+  { title: t('transactions.table.date'), key: 'created_at', align: 'start', sortable: true },
+  { title: t('admin.item'), key: 'item', align: 'start', sortable: false },
+  { title: t('transactions.table.payment_method'), key: 'metodo_pagamento', align: 'start', sortable: false },
+  { title: t('transactions.table.amount'), key: 'valor', align: 'start', sortable: true },
+  { title: t('admin.status'), key: 'status', align: 'start', sortable: true },
+])
+
+const { formatMoney, fromBRL, currencySymbol, formatNumber } = useMoney()
 
 const cancelarPagamentoPerfil = async () => {
     try {
@@ -470,10 +586,11 @@ const getStatusColor = (status) => {
             return 'warning'
         case 'failed':
         case 'falhou':
-        case 'cancelled':
-        case 'cancelado':
         case 'rejected':
             return 'error'
+        case 'cancelled':
+        case 'cancelado':
+            return 'grey'
         default:
             return 'grey'
     }
@@ -508,7 +625,8 @@ const getStatusText = (status) => {
     const s = status.toLowerCase()
     if (['paid', 'pago', 'approved', 'authorized', 'active'].includes(s)) return t('profile.subscription.paid')
     if (['pending', 'pendente', 'in_process'].includes(s)) return t('profile.subscription.pending')
-    if (['failed', 'falhou', 'rejected', 'cancelled', 'cancelado'].includes(s)) return t('profile.subscription.failed')
+    if (['failed', 'falhou', 'rejected'].includes(s)) return t('profile.subscription.failed')
+    if (['cancelled', 'cancelado'].includes(s)) return t('profile.subscription.cancelled')
     return status.toUpperCase()
 }
 
@@ -680,10 +798,7 @@ const formatDate = (dateString) => {
 }
 
 const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(value)
+    return formatMoney(value)
 }
 
 const validateCPF = (cpf) => {

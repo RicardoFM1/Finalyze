@@ -26,7 +26,11 @@ class ListarLancamentos
         }
 
         if (!empty($filtros['categoria'])) {
-            $query->where('categoria', $filtros['categoria']);
+            if (is_array($filtros['categoria'])) {
+                $query->whereIn('categoria', $filtros['categoria']);
+            } else {
+                $query->where('categoria', $filtros['categoria']);
+            }
         }
 
         if (!empty($filtros['tipo']) && $filtros['tipo'] !== 'todos') {
@@ -65,12 +69,34 @@ class ListarLancamentos
 
         $paginated = $query->paginate($perPage, ['*'], 'page', $page);
 
+        $data_inicio = $filtros['data_inicio'] ?? null;
+        $data_fim = $filtros['data_fim'] ?? null;
+        $hasDateFilter = !empty($filtros['data']) || (!empty($filtros['data_inicio']) && !empty($filtros['data_fim']));
+
+        if (!$data_inicio && !empty($filtros['data'])) {
+            if (str_contains($filtros['data'], ' to ')) {
+                $parts = explode(' to ', $filtros['data']);
+                $data_inicio = $parts[0];
+                $data_fim = $parts[1] ?? $parts[0];
+            } else {
+                $data_inicio = $filtros['data'];
+                $data_fim = $filtros['data'];
+            }
+        }
+
+        $isFiltered = !empty($filtros['search']) || !empty($filtros['descricao']) ||
+            !empty($filtros['categoria']) || (!empty($filtros['tipo']) && $filtros['tipo'] !== 'todos') ||
+            $hasDateFilter || !empty($filtros['valor']);
+
         return response()->json([
             'data' => $paginated->items(),
             'total' => $paginated->total(),
             'current_page' => $paginated->currentPage(),
             'last_page' => $paginated->lastPage(),
-            'totais' => $totais
+            'totais' => $totais,
+            'periodo_label' => $isFiltered ? "filters.period_custom" : "filters.period_all",
+            'data_inicio' => $data_inicio,
+            'data_fim' => $data_fim
         ]);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : 'Editar Compromisso') : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : 'Novo Lembrete')" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : $t('modals.titles.edit_reminder')) : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : $t('modals.titles.new_reminder'))" v-model="internalValue" maxWidth="550px">
     <v-form ref="metaForm" @submit.prevent="saveMeta">
 
       <v-text-field
@@ -144,12 +144,12 @@
 
       <template v-if="form.tipo === 'pessoal' || form.tipo === 'agenda'">
         <v-divider class="my-4"></v-divider>
-        <p class="text-caption font-weight-bold mb-2 text-medium-emphasis">NOTIFICAÇÕES</p>
+        <p class="text-caption font-weight-bold mb-2 text-medium-emphasis">{{ $t('modals.labels.notifications') }}</p>
         <v-row dense>
             <v-col cols="6">
                 <v-switch
                     v-model="form.notificacao_site"
-                    label="No Site"
+                    :label="$t('modals.labels.on_site')"
                     color="primary"
                     density="compact"
                     hide-details
@@ -158,7 +158,7 @@
             <v-col cols="6">
                 <v-switch
                     v-model="form.notificacao_email"
-                    label="Por E-mail"
+                    :label="$t('modals.labels.by_email')"
                     color="primary"
                     density="compact"
                     hide-details
@@ -233,7 +233,9 @@ const selectEmoji = (emoji) => {
 }
 
 const isEmoji = (str) => {
-  const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/
+  if (!str) return true
+  // Allow multiple emojis or complex ones (like ZWJ sequences)
+  const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g
   return emojiRegex.test(str)
 }
 
@@ -274,7 +276,11 @@ watch(() => props.modelValue, (newVal) => {
       form.value = { 
         ...props.meta,
         tipo: props.meta.tipo || props.initialTipo,
-        prazo: formattedPrazo
+        prazo: formattedPrazo,
+        notificacao_site: !!props.meta.notificacao_site,
+        notificacao_email: !!props.meta.notificacao_email,
+        cor: props.meta.cor || (props.meta.tipo === 'financeira' ? '#4CAF50' : '#FFF9BF'),
+        icone: props.meta.icone || ''
       }
     } else {
       form.value = {
@@ -319,7 +325,7 @@ const saveMeta = async () => {
   emit('saved', optimisticItem, isAnotacao) 
 
   try {
-    const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
+    const endpointBase = isAnotacao ? '/lembretes' : '/metas'
     const endpoint = isEdit ? `${endpointBase}/${cleanData.id}` : endpointBase
     
     loading.value = true

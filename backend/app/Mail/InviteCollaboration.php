@@ -18,7 +18,7 @@ class InviteCollaboration extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Convite de Colaboração: Finalyze Finance",
+            subject: __('Collaboration Invite: Finalyze Finance'),
         );
     }
 

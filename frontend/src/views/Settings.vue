@@ -13,8 +13,8 @@
             <h3 class="text-h6 font-weight-bold">{{ $t('profile.settings.language') }}</h3>
           </div>
 
-          <div class="management-item d-flex align-center justify-space-between mb-2">
-            <div>
+          <div class="management-item d-flex flex-column flex-sm-row align-sm-start align-sm-center justify-space-between mb-2">
+            <div class="mb-4 mb-sm-0">
               <div class="font-weight-bold">{{ $t('profile.settings.language') }}</div>
               <div class="text-body-2 text-medium-emphasis">{{ $t('profile.settings.language_desc') }}</div>
             </div>

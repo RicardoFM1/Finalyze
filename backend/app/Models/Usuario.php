@@ -23,7 +23,8 @@ class Usuario extends Authenticatable
         'cpf',
         'data_nascimento',
         'codigo_verificacao',
-        'codigo_expira_em'
+        'codigo_expira_em',
+        'idioma'
     ];
 
     protected $hidden = [
@@ -84,9 +85,9 @@ class Usuario extends Authenticatable
         return $this->hasMany(Meta::class, 'usuario_id');
     }
 
-    public function anotacoes()
+    public function lembretes()
     {
-        return $this->hasMany(Anotacao::class, 'usuario_id');
+        return $this->hasMany(Lembrete::class, 'usuario_id');
     }
 
     public function shares()

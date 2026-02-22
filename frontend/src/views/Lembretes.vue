@@ -10,8 +10,8 @@
                 <v-icon icon="mdi-calendar-clock" color="white"></v-icon>
               </v-avatar>
               <div>
-                <h1 class="text-h4 font-weight-bold">{{ $t('metas.calendar_title') }}</h1>
-                <p class="text-subtitle-2 text-medium-emphasis">{{ $t('metas.notepad_subtitle') }}</p>
+                <h1 class="text-h4 font-weight-bold">{{ $t('sidebar.reminders') }}</h1>
+                <p class="text-subtitle-2 text-medium-emphasis">{{ $t('metas.lembretes_subtitle') }}</p>
               </div>
             </div>
 
@@ -161,7 +161,7 @@
     <ModalExcluirMeta
       v-model="deleteDialog"
       :meta="noteToDelete"
-      resourceType="anotacoes"
+      resourceType="lembretes"
       @deleted="onNoteDeleted"
       @rollback="({ id, oldStatus }) => { const i = anotacoes.value.findIndex(a => a.id === id); if(i !== -1) anotacoes.value[i].status = oldStatus; fetchNotes(true) }"
     />
@@ -265,7 +265,7 @@ const onNoteDeleted = ({ id }) => {
 const fetchNotes = async (isSilent = false) => {
   if (!isSilent) loading.value = true
   try {
-    const response = await authStore.apiFetch('/anotacoes')
+    const response = await authStore.apiFetch('/lembretes')
     if (response.ok) anotacoes.value = await response.json()
   } catch (e) {
     console.error(e)
@@ -314,17 +314,17 @@ const calendarAttributes = computed(() => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
-  locale: 'pt-br',
+  locale: t('common.currency') === 'R$' ? 'pt-br' : 'en',
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,listMonth'
   },
   buttonText: {
-    today: 'Hoje',
-    month: 'Mês',
-    week: 'Semana',
-    list: 'Lista'
+    today: t('metas.calendar.today'),
+    month: t('metas.calendar.month'),
+    week: t('metas.calendar.week'),
+    list: t('metas.calendar.list')
   },
   height: 'auto',
   selectable: true,
@@ -379,7 +379,7 @@ const onDateClick = (day) => {
 }
 
 const testNotification = () => {
-    toast.info("⏰ Teste de Notificação: Seus compromissos aparecerão assim no topo da tela!", {
+    toast.info(t('metas.toast_test_notification'), {
         autoClose: 6000,
         position: 'top-right'
     })
@@ -412,7 +412,7 @@ const confirmDelete = (note) => {
 }
 
 const toggleStatusConcluido = async (item) => {
-  const endpoint = `/anotacoes/${item.id}`
+  const endpoint = `/lembretes/${item.id}`
   const oldStatus = item.status
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
   
@@ -434,7 +434,7 @@ const toggleStatusConcluido = async (item) => {
 }
 
 const reativarItem = async (item) => {
-  const endpoint = `/anotacoes/${item.id}/reativar`
+  const endpoint = `/lembretes/${item.id}/reativar`
   const oldStatus = item.status
   item.status = 'andamento'
   toast.success(t('metas.actions.reactivate_success'))
@@ -739,4 +739,46 @@ const isToday = (date) => {
   cursor: pointer;
 }
 
+/* FullCalendar Dark Mode Fixes */
+:deep(.fc) {
+  --fc-button-text-color: #fff;
+  --fc-button-bg-color: #1867C0;
+  --fc-button-border-color: #1867C0;
+  --fc-button-hover-bg-color: #1557a0;
+  --fc-button-hover-border-color: #1557a0;
+  --fc-button-active-bg-color: #10457d;
+  --fc-button-active-border-color: #10457d;
+}
+
+:deep(.v-theme--dark .fc .fc-col-header-cell) {
+    background-color: #2a2a2a !important;
+}
+
+:deep(.v-theme--dark .fc .fc-col-header-cell-cushion) {
+    color: #fff !important;
+}
+
+:deep(.v-theme--dark .fc .fc-list-day-cushion) {
+    background-color: #2a2a2a !important;
+}
+
+:deep(.v-theme--dark .fc .fc-toolbar-title) {
+    color: #5CBBF6 !important;
+}
+
+:deep(.fc .fc-toolbar-title) {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1867C0;
+}
+
+:deep(.fc .fc-button-primary:disabled) {
+    background-color: #1867c0;
+    border-color: #1867c0;
+    opacity: 0.65;
+}
+
+:deep(.fc-theme-standard td, .fc-theme-standard th) {
+    border-color: rgba(var(--v-border-color), 0.1);
+}
 </style>

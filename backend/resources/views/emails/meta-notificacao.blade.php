@@ -75,19 +75,22 @@
             <div class="logo">Finalyze</div>
         </div>
         <div class="content">
-            <div class="title">{{ $lembrete->icone }} {{ $lembrete->titulo }}</div>
-            <div class="description">{{ $lembrete->descricao }}</div>
+            <div class="title">{{ $meta->icone }} {{ $meta->titulo }}</div>
+            <div class="description">{{ $meta->descricao }}</div>
 
             <p>
-                @if($lembrete->prazo)
-                📅 <strong>{{ __('Date') }}:</strong> {{ \Carbon\Carbon::parse($lembrete->prazo)->format(__('d/m/Y')) }}<br>
+                <strong>{{ __('Status') }}:</strong> {{ $meta->status }}<br>
+                @if($meta->prazo)
+                📅 <strong>{{ __('Deadline') }}:</strong> {{ \Carbon\Carbon::parse($meta->prazo)->format(__('d/m/Y')) }}<br>
                 @endif
-                @if($lembrete->hora)
-                ⏰ <strong>{{ __('Time') }}:</strong> {{ \Carbon\Carbon::parse($lembrete->hora)->format('H:i') }}
+                @if($meta->tipo === 'financeira')
+                💰 <strong>{{ __('Progress') }}:</strong> {{ number_format($meta->valor_atual, 2, ',', '.') }} / {{ number_format($meta->valor_objetivo, 2, ',', '.') }}
+                @else
+                📈 <strong>{{ __('Progress') }}:</strong> {{ $meta->atual_quantidade }} / {{ $meta->meta_quantidade }} {{ $meta->unidade }}
                 @endif
             </p>
 
-            <a href="{{ config('app.url') }}/#/lembretes" class="btn">{{ __('View in Dashboard') }}</a>
+            <a href="{{ config('app.url') }}/#/metas" class="btn">{{ __('View Goals') }}</a>
         </div>
         <div class="footer">
             {{ __('This is an automated reminder from Finalyze.') }}<br>

@@ -14,11 +14,11 @@ class AccountShareController extends Controller
         $user = $request->user();
 
         // Contas que eu compartilhei com outros
-        $myShares = $user->shares()->get();
+        $myShares = $user->shares()->with('guest')->get();
 
         // Contas que outros compartilharam comigo
         $sharedWithMe = AccountShare::where('guest_email', $user->email)
-            ->with('owner')
+            ->with(['owner', 'guest'])
             ->get();
 
         return response()->json([

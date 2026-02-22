@@ -39,6 +39,48 @@
       @apply="aplicarFiltros"
       @clear="limparFiltros"
     />
+    
+    <div v-if="!loading && (periodoInfo.label || activeFilterChips.length)" class="d-flex align-center mb-4 px-2 animate-fade-in flex-wrap gap-2">
+        <v-chip v-if="periodoInfo.label" size="small" color="primary" variant="tonal" class="rounded-lg px-3">
+            <v-icon icon="mdi-calendar-range" size="14" class="mr-2"></v-icon>
+            <span class="text-caption font-weight-bold">
+                {{ $t(periodoInfo.label) }}
+                <span v-if="periodoInfo.inicio" class="ml-1 opacity-70 font-weight-medium">
+                   ({{ formatDate(periodoInfo.inicio) }} {{ periodoInfo.fim && periodoInfo.fim !== periodoInfo.inicio ? '- ' + formatDate(periodoInfo.fim) : '' }})
+                </span>
+            </span>
+        </v-chip>
+
+        <!-- Active Filters Chips Grouped by Line -->
+        <div class="d-flex flex-column gap-2 w-100">
+            <div 
+                v-for="(group, key) in groupedActiveChips" 
+                :key="key" 
+                class="d-flex align-center flex-wrap gap-2 animate-fade-in"
+            >
+                <div class="d-flex align-center opacity-60 mr-2" style="min-width: 100px;">
+                    <v-icon :icon="group.icon" size="14" class="mr-1"></v-icon>
+                    <span class="text-caption font-weight-black text-uppercase letter-spacing-1">{{ group.label }}:</span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    <v-chip
+                        v-for="chip in group.chips"
+                        :key="chip.key + '-' + chip.value"
+                        size="small"
+                        color="secondary"
+                        variant="flat"
+                        class="rounded-lg px-3"
+                        closable
+                        @click:close="removeFilter(chip)"
+                        style="max-width: 300px;"
+                    >
+                        <span class="text-caption font-weight-bold text-truncate">{{ chip.value }}</span>
+                    </v-chip>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
@@ -125,7 +167,7 @@ import { categorias as categoriasConstantes } from '../constants/categorias'
 import * as XLSX from "xlsx"
 
 const { t } = useI18n()
-const { fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 const authStore = useAuthStore()
 const filterStore = useFilterStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
@@ -203,6 +245,7 @@ const handleImport = async (event) => {
 }
 
 const totais = ref({ receita: 0, despesa: 0 })
+const periodoInfo = ref({ label: '', inicio: '', fim: '' })
 
 const exportarExcel = () => {
     loading.value = true
@@ -279,6 +322,7 @@ const itemsPerPage = ref(10)
 
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
+const deletedIds = ref(new Set())
 const dialogNovo = ref(false)
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
@@ -296,15 +340,16 @@ const headers = computed(() => [
   { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
 ])
 
-const formatNumber = (val) => fmtNum(fromBRL(val))
+const formatNumber = (val) => fmtNum(val)
 const formatDate = (date) => {
     if (!date) return ''
+    const { locale } = useI18n()
     // parse YYYY-MM-DD as local date to avoid UTC offset shift
-    if (typeof date === 'string' && date.match(/^d{4}-d{2}-d{2}/)) {
+    if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
         const [y, m, d] = date.split('T')[0].split('-').map(Number)
-        return new Date(y, m - 1, d).toLocaleDateString(currencyMeta.value.locale)
+        return new Date(y, m - 1, d).toLocaleDateString(locale.value)
     }
-    return new Date(date).toLocaleDateString(currencyMeta.value.locale)
+    return new Date(date).toLocaleDateString(locale.value)
 }
 
 const getPaymentMethodIcon = (method) => {
@@ -331,6 +376,40 @@ const categorias = computed(() => {
     return Array.from(set)
   }
 })
+
+const activeFilterChips = computed(() => {
+    const chips = []
+    const f = filterStore.filters
+    if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
+    if (f.categoria && f.categoria.length) {
+        f.categoria.forEach(c => {
+            chips.push({ key: 'categoria', label: t('filters.category'), value: t('categories.' + c), icon: 'mdi-tag', originalValue: c })
+        })
+    }
+    if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })
+    if (f.valor) chips.push({ key: 'valor', label: t('filters.value'), value: f.valor, icon: 'mdi-currency-usd' })
+    return chips
+})
+
+const groupedActiveChips = computed(() => {
+    const groups = {}
+    activeFilterChips.value.forEach(chip => {
+        if (!groups[chip.key]) groups[chip.key] = { label: chip.label, icon: chip.icon, chips: [] }
+        groups[chip.key].chips.push(chip)
+    })
+    return groups
+})
+
+const removeFilter = (chip) => {
+    if (chip.key === 'categoria') {
+        filterStore.filters.categoria = filterStore.filters.categoria.filter(c => c !== chip.originalValue)
+    } else if (chip.key === 'tipo') {
+        filterStore.filters[chip.key] = 'todos'
+    } else {
+        filterStore.filters[chip.key] = ''
+    }
+    loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [] })
+}
 
 const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSilent = false }) => {
   if (!isSilent) loading.value = true
@@ -366,10 +445,15 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSi
     const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)
     if (response.ok) {
         const data = await response.json()
-        serverItems.value = data.data
+        serverItems.value = data.data.filter(i => !deletedIds.value.has(i.id))
         totalItems.value = data.total
         if (data.totais) {
           totais.value = data.totais
+        }
+        periodoInfo.value = {
+            label: data.periodo_label,
+            inicio: data.data_inicio,
+            fim: data.data_fim
         }
     }
   } catch (e) {
@@ -462,6 +546,7 @@ const onLancamentoEditado = (updatedItem) => {
 
 const onLancamentoExcluido = (deletedId) => {
     if (deletedId && serverItems.value) {
+        deletedIds.value.add(deletedId)
         // Encontrar item para atualizar totais locais
         const item = serverItems.value.find(i => i.id === deletedId)
         if (item) {
@@ -475,6 +560,7 @@ const onLancamentoExcluido = (deletedId) => {
         serverItems.value = serverItems.value.filter(i => i.id !== deletedId)
         totalItems.value = Math.max(0, totalItems.value - 1)
     }
+    // Refresh background, mas a ghost list vai proteger contra race conditions
     buscarLancamentos(true)
 }
 

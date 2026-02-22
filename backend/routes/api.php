@@ -15,7 +15,7 @@ Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reen
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 
-Route::middleware(['auth:sanctum', 'workspace'])->group(function () {
+Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function () {
     Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
     Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
     Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
@@ -53,12 +53,12 @@ Route::middleware(['auth:sanctum', 'workspace'])->group(function () {
             Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
         });
 
-        Route::middleware('check_resource:lembretes-avisos')->group(function () {
-            Route::get('/anotacoes', [App\Http\Controllers\LembreteController::class, 'index']);
-            Route::post('/anotacoes', [App\Http\Controllers\LembreteController::class, 'store']);
-            Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
-            Route::delete('/anotacoes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
-            Route::post('/anotacoes/{id}/reativar', [App\Http\Controllers\LembreteController::class, 'reativar']);
+        Route::middleware('check_resource:lembretes')->group(function () {
+            Route::get('/lembretes', [App\Http\Controllers\LembreteController::class, 'index']);
+            Route::post('/lembretes', [App\Http\Controllers\LembreteController::class, 'store']);
+            Route::match(['put', 'patch'], '/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
+            Route::delete('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
+            Route::post('/lembretes/{id}/reativar', [App\Http\Controllers\LembreteController::class, 'reativar']);
         });
     });
 

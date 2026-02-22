@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'check_resource' => \App\Http\Middleware\CheckResource::class,
             'workspace' => \App\Http\Middleware\SetWorkspaceContext::class,
+            'set_locale' => \App\Http\Middleware\SetLocale::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();

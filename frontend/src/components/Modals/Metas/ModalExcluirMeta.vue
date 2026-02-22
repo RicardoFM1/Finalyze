@@ -4,7 +4,7 @@
     <p class="text-caption text-medium-emphasis mt-2">{{ $t('metas.actions.inactivate_desc') }}</p>
     <template #actions>
       <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
-      <v-btn color="error" variant="flat" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">Desativar</v-btn>
+      <v-btn color="error" variant="flat" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('metas.actions.inactivate_btn') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -25,7 +25,7 @@ const props = defineProps({
   resourceType: {
     type: String,
     default: 'metas',
-    validator: (v) => ['metas', 'anotacoes'].includes(v)
+    validator: (v) => ['metas', 'lembretes'].includes(v)
   }
 })
 

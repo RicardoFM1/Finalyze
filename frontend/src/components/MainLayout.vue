@@ -144,11 +144,11 @@
             <Coinselector />
             <v-btn icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
                 <v-icon icon="mdi-bell-ring-outline"></v-icon>
-                <v-tooltip activator="parent" location="bottom">Agenda</v-tooltip>
+                <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
             </v-btn>
             <v-btn icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
                 <v-icon icon="mdi-account-group"></v-icon>
-                <v-tooltip activator="parent" location="bottom">Colaboradores</v-tooltip>
+                <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
             </v-btn>
           </template>
 
@@ -219,7 +219,7 @@
             <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" :title="$t('sidebar.dashboard')" :to="{ name: 'Dashboard' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" :title="$t('sidebar.transactions')" :to="{ name: 'Lancamentos' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" :title="$t('sidebar.goals')" :to="{ name: 'Metas' }" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.hasFeature('lembretes-avisos')" prepend-icon="mdi-calendar-clock" title="Minha Agenda" :to="{ name: 'Lembretes' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('lembretes')" prepend-icon="mdi-calendar-clock" :title="$t('sidebar.reminders')" :to="{ name: 'Lembretes' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" :title="$t('sidebar.reports')" :to="{ name: 'Reports' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-account" :title="$t('sidebar.profile')" :to="{ name: 'Profile' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.user?.admin" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
@@ -343,26 +343,33 @@ const notifiedSession = new Set()
 
 const checkReminders = async () => {
     try {
-        const response = await authStore.apiFetch('/anotacoes')
+        const response = await authStore.apiFetch('/lembretes')
         if (response.ok) {
             const list = await response.json()
             
-            // Get local date in YYYY-MM-DD format
             const now = new Date()
             const today = now.getFullYear() + '-' + 
                           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
                           String(now.getDate()).padStart(2, '0')
             
-            const pending = list.filter(n => 
-                n.status === 'andamento' && 
-                n.prazo === today && 
-                n.notificacao_site &&
-                !notifiedSession.has(n.id)
-            )
+            const currentTime = String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0')
+            
+            const pending = list.filter(n => {
+                const itemDate = n.prazo ? n.prazo.split('T')[0] : ''
+                const isToday = itemDate === today
+                const isAfterTime = !n.hora || currentTime >= n.hora
+                
+                return n.status === 'andamento' && 
+                       isToday && 
+                       isAfterTime &&
+                       n.notificacao_site &&
+                       !notifiedSession.has(n.id)
+            })
             
             if (pending.length > 0) {
                 pending.forEach(n => notifiedSession.add(n.id))
-                toast.info(`⏰ Você tem ${pending.length} compromisso(s) na agenda para hoje!`, {
+                toast.info(`⏰ Você tem ${pending.length} compromisso(s) na agenda para agora!`, {
                     autoClose: 10000,
                     theme: uiAuthStore.theme,
                     onClick: () => router.push({ name: 'Lembretes' })
