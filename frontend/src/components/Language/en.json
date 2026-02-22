@@ -55,19 +55,30 @@
   },
   "auth": {
     "join_us_title": "Join Us",
-    "join_us_subtitle": "Start your journey to financial freedom today."
+    "join_us_subtitle": "Start your journey to financial freedom today.",
+    "verify_title": "Verify your email",
+    "verify_subtitle": "We sent a 6-digit code to",
+    "btn_verify": "Verify Code",
+    "no_email": "Didn't receive the email?",
+    "resend_timer": "Resend in {seconds}s",
+    "btn_resend": "Resend code",
+    "btn_back_login": "Back to login"
   },
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "goals": "Goals",
+    "reminders": "Schedule",
     "reports": "Reports",
     "profile": "Profile",
     "settings": "Settings",
-    "admin": "Administration",
+    "admin": "Admin Panel",
     "plans": "Plans",
     "logout": "Logout"
+  },
+  "footer": {
+    "colaboradores": "Collaborators"
   },
   "settings": {
     "appearance": "Appearance",
@@ -100,7 +111,7 @@
     "continue": "Continue Payment",
     "launch_limits": "{count} Transactions Limit",
     "launch_unlimited": "Unlimited Transactions",
-    "toast_cancel_success": "Previous subscription canceled.",
+    "toast_cancel_success": "Previous payment canceled.",
     "toast_cancel_error": "Error canceling subscription.",
     "upgrade_tip": {
       "title": "Upgrade Tip",
@@ -135,9 +146,9 @@
     "toast_upgrade_error": "Error processing upgrade.",
     "toast_connection_error": "Connection error.",
     "plan_names": {
-      "Básico": "Basic",
+      "Essencial": "Essential",
       "Pro": "Pro",
-      "Premium": "Premium"
+      "Elite": "Elite"
     },
     "feature_names": {
       "Painel Financeiro": "Financial Dashboard",
@@ -163,6 +174,7 @@
     "new_note": "New Note",
     "no_notes_content": "No notes...",
     "completed": "Completed",
+    "lembretes_subtitle": "Manage your appointments and personal tasks.",
     "no_notes_available": "No notes available.",
     "history_dev": "History in development",
     "planning_dev": "Planning in development",
@@ -176,6 +188,20 @@
       "inactive": "Inactive",
       "all": "All"
     },
+    "calendar_title": "Appointment Calendar",
+    "calendar_search": "Reminders for {date}",
+    "no_calendar_notes": "No reminders for this day.",
+    "create_hint": "Create new reminder",
+    "day_details": "Events for {date}",
+    "add_event": "Add Reminder",
+    "test_notifications": "Test Notifications",
+    "toast_test_notification": "⏰ Notification Test: Your reminders will appear like this at the top of the screen!",
+    "calendar": {
+      "today": "Today",
+      "month": "Month",
+      "week": "Week",
+      "list": "List"
+    },
     "actions": {
       "complete": "Complete",
       "reopen": "Reopen",
@@ -184,9 +210,15 @@
       "inactivate_title": "Deactivate Item",
       "inactivate_confirm": "Are you sure you want to deactivate \"{title}\"?",
       "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab.",
+      "inactivate_btn": "Deactivate",
       "reactivate": "Reactivate",
-      "reactivate_success": "Item reactivated successfully!"
+      "reactivate_success": "Item reactivated successfully!",
+      "import_excel": "Import Excel",
+      "export_page": "Export current page",
+      "export_excel": "Export to Excel",
+      "export_pdf": "Export to PDF"
     },
+<<<<<<< HEAD
     "no_goals_completed": "No goals completed yet.",
     "no_notes_completed": "No notes completed yet.",
     "reminder": {
@@ -221,6 +253,9 @@
       "error_send": "Could not send the invite.",
       "tooltip": "Share account"
     }
+=======
+    "empty_filter": "No items found for this filter."
+>>>>>>> Ricardo
   },
   "transactions": {
     "title": "Transactions",
@@ -255,6 +290,7 @@
       "account_money": "Mercado Pago Account",
       "credits": "Financial Credits",
       "prorrata_credit": "Prorata Credit",
+      "preferência": "Payment Link",
       "other": "Other"
     },
     "type": {
@@ -320,6 +356,7 @@
       "paid": "PAID",
       "failed": "FAILED",
       "pending": "PENDING",
+      "cancelled": "CANCELLED",
       "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically.",
       "manual_payment_only": "Manual Payment (e.g., Pix/Invoice)"
     },
@@ -341,6 +378,44 @@
     "restricted_access": "Restricted Access",
     "restricted_subtitle": "Your current plan does not include advanced reports.",
     "view_plans": "View Plans"
+  },
+  "checkout": {
+    "price_per_period": "{period}: {price}",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "current_credit": "Current plan credit (-)",
+    "plan_adjustment": "Plan Adjustment",
+    "credit_covered_desc": "Your accumulated credits cover the full value of this change. Click the button below to complete your plan update.",
+    "finish_update": "Finish Update",
+    "steps": {
+      "identification": "Identification",
+      "verification": "Verification",
+      "payment": "Payment"
+    },
+    "auth_tabs": {
+      "login": "Login",
+      "register": "Register"
+    },
+    "btn_login_continue": "Login and Continue",
+    "btn_register_continue": "Register and Continue",
+    "btn_payment_continue": "Continue to Payment",
+    "identified_as": "Identified as {name}",
+    "ready_to_pay": "You are ready to proceed with payment.",
+    "payment_data": "Payment Data",
+    "plan_selected": "You selected the {plan} plan ({period}).",
+    "cancel_pending": "Cancel Pending Order / Choose Another Plan",
+    "preparing_payment": "Preparing payment environment...",
+    "try_again": "Try Again",
+    "back_to_plans": "Back to Plans",
+    "toasts": {
+      "upgrade_success": "Upgrade successful!",
+      "upgrade_error": "Error processing free upgrade",
+      "verify_success": "Account verified successfully!",
+      "verify_error": "Error verifying code",
+      "resend_success": "New code sent successfully!",
+      "resend_error": "Error resending code",
+      "register_success": "Registration completed! Please check your email."
+    }
   },
   "admin": {
     "title": "Plans",
@@ -421,7 +496,14 @@
     "all": "All",
     "items_per_page": "Items per page",
     "welcome_fallback": "welcome",
-    "currency": "R$"
+    "currency": "$",
+    "currencies": {
+      "brl": "Brazilian Real",
+      "usd": "US Dollar",
+      "eur": "Euro",
+      "gbp": "British Pound"
+    },
+    "my_account": "My Account"
   },
   "register": {
     "title": "Create Account",
@@ -450,50 +532,6 @@
     },
     "register_footer": "Finalyze Finance. Your journey to financial freedom."
   },
-  "checkout": {
-    "title": "Complete Your Subscription",
-    "subtitle": "You are subscribing to the {planName} plan",
-    "Gen_pagament": "Generating payment...",
-    "title_assinatura": "Subscription Plan ${planName}",
-    "quantity": "Quantity",
-    "unit_price": "Unit Price",
-    "total": "Total",
-    "price_per_period": "{period}: {price}",
-    "subtotal": "Subtotal",
-    "current_credit": "Current plan credit (-)",
-    "plan_adjustment": "Plan Adjustment",
-    "credit_covered_desc": "Your accumulated credits cover the full value of this change. Click the button below to complete your plan update.",
-    "finish_update": "Finish Update",
-    "steps": {
-      "identification": "Identification",
-      "verification": "Verification",
-      "payment": "Payment"
-    },
-    "auth_tabs": {
-      "login": "Login",
-      "register": "Register"
-    },
-    "btn_login_continue": "Login and Continue",
-    "btn_register_continue": "Register and Continue",
-    "btn_payment_continue": "Continue to Payment",
-    "identified_as": "Identified as {name}",
-    "ready_to_pay": "You are ready to proceed with payment.",
-    "payment_data": "Payment Data",
-    "plan_selected": "You selected the {plan} plan ({period}).",
-    "cancel_pending": "Cancel Pending Order / Choose Another Plan",
-    "preparing_payment": "Preparing payment environment...",
-    "try_again": "Try Again",
-    "back_to_plans": "Back to Plans",
-    "toasts": {
-      "upgrade_success": "Upgrade successful!",
-      "upgrade_error": "Error processing free upgrade",
-      "verify_success": "Account verified successfully!",
-      "verify_error": "Error verifying code",
-      "resend_success": "New code sent successfully!",
-      "resend_error": "Error resending code",
-      "register_success": "Registration completed! Please check your email."
-    }
-  },
   "NotFound": {
     "title": "404",
     "p": "Page not found",
@@ -519,6 +557,7 @@
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
     "success_delete": "Item removed successfully!",
+    "success_inactivate": "Item deactivated successfully!",
     "success_restore": "Item restored successfully!",
     "error_generic": "An error occurred. Please try again."
   },
@@ -544,8 +583,9 @@
       "edit_transaction": "Edit Transaction",
       "edit_goal": "Edit Goal",
       "new_goal": "New Goal",
-      "edit_note": "Edit Note",
-      "new_note": "New Note"
+      "edit_reminder": "Edit Reminder",
+      "new_reminder": "New Reminder",
+      "share": "Collaboration"
     },
     "labels": {
       "value": "Amount",
@@ -560,7 +600,12 @@
       "deadline_optional": "Deadline (Optional)",
       "color": "Color",
       "header_color": "Header Color",
-      "icon": "Icon/Emoji"
+      "icon": "Icon/Emoji",
+      "notifications": "NOTIFICATIONS",
+      "on_site": "On Site",
+      "by_email": "By E-mail",
+      "date_agenda": "Reminder Date",
+      "time": "Time (Optional)"
     },
     "placeholders": {
       "select_category": "Select or type to filter",
@@ -581,7 +626,9 @@
     "value": "Value",
     "clear": "Clear",
     "apply": "Apply",
-    "movement_period": "Movements in the Period"
+    "movement_period": "Movements in the Period",
+    "period_all": "Full Overview",
+    "period_custom": "Custom Period"
   },
   "categories": {
     "Salário": "Salary",
@@ -632,12 +679,6 @@
     "Crianças": "Kids",
     "Outros": "Others"
   },
-  "actions": {
-    "import_excel": "Import Excel",
-    "export_page": "Export current page",
-    "export_excel": "Export to Excel",
-    "export_pdf": "Export to PDF"
-  },
   "finn": {
     "placeholder": "Ask about your spending...",
     "thinking": "Finn is thinking...",
@@ -647,5 +688,30 @@
     "delete_confirm": "Do you want to remove this message?",
     "error_connection": "Sorry, I lost connection with my AI brain. Try again in a moment!",
     "error_generic": "I had a little issue. Can you repeat that?"
+  },
+  "share": {
+    "subtitle": "Invite others to view and edit your financial data, goals, and schedule. They will have full access to your account.",
+    "email_label": "Collaborator's E-mail",
+    "invite_btn": "Invite",
+    "people_access": "People with access",
+    "you": "You",
+    "owner": "Owner",
+    "status_pending": "Pending",
+    "status_accepted": "Guest",
+    "toast_invite_sent": "Collaboration invite sent!",
+    "toast_invite_error": "Error sending invite",
+    "toast_remove_success": "Access removed successfully",
+    "toast_remove_error": "Error removing access",
+    "toast_copy_success": "Link copied to clipboard!",
+    "confirm_remove": "Are you sure you want to remove access for {email}?",
+    "confirm_remove_title": "Remove Access",
+    "confirm_remove_desc": "This person will no longer have access to your financial information, goals, and schedule.",
+    "remove_btn": "Remove Access"
+  },
+  "actions": {
+    "import_excel": "Import Excel",
+    "export_excel": "Export Excel",
+    "export_pdf": "Export PDF",
+    "export_page": "Export Page"
   }
 }

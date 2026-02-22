@@ -23,9 +23,8 @@ class ChecarStatusPagamentoCheckout
         $client = new PaymentClient();
         $payment = $client->get($id);
 
-        if ($payment->status === 'approved') {
-            $ativarPlanoServico->executar($payment);
-        }
+        // Sempre chama o serviço para registrar no histórico ou ativar
+        $ativarPlanoServico->executar($payment);
 
         return [
             'status' => $payment->status,

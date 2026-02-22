@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Auth;
 
 class GerarResumoPainel
 {
-    /**
-     * Remove todos os caches de resumo do usuário (qualquer combinação de filtros).
-     */
     public static function limparCacheUsuario(int $userId): void
     {
         $metaKey = "user_summary_keys_{$userId}";
@@ -21,19 +18,24 @@ class GerarResumoPainel
 
     public function executar(array $filtros = [])
     {
-        $usuario = Auth::user();
+        $workspaceId = app('workspace_id');
+        $usuario = \App\Models\Usuario::findOrFail($workspaceId);
+
         $filtrosHash = md5(json_encode($filtros));
-        $cacheKey = "user_summary_{$usuario->id}_{$filtrosHash}";
+        $cacheKey = "user_summary_{$workspaceId}_{$filtrosHash}";
 
         $calc = function () use ($usuario, $filtros) {
             $query = $usuario->lancamentos();
 
-            // Aplicar Filtros Gerais
             if (!empty($filtros['descricao'])) {
                 $query->where('descricao', 'like', '%' . $filtros['descricao'] . '%');
             }
             if (!empty($filtros['categoria'])) {
-                $query->where('categoria', $filtros['categoria']);
+                if (is_array($filtros['categoria'])) {
+                    $query->whereIn('categoria', $filtros['categoria']);
+                } else {
+                    $query->where('categoria', $filtros['categoria']);
+                }
             }
             if (!empty($filtros['tipo']) && $filtros['tipo'] !== 'todos') {
                 $query->where('tipo', $filtros['tipo']);
@@ -42,10 +44,9 @@ class GerarResumoPainel
                 $query->where('valor', $filtros['valor']);
             }
 
-            // Aplicar Filtro de Data
-            if (!empty($filtros['data_inicio']) && !empty($filtros['data_fim'])) {
+            if (isset($filtros['data_inicio']) && isset($filtros['data_fim'])) {
                 $query->whereBetween('data', [$filtros['data_inicio'], $filtros['data_fim']]);
-            } elseif (!empty($filtros['data'])) {
+            } elseif (isset($filtros['data'])) {
                 $data = $filtros['data'];
                 if (str_contains($data, ' to ')) {
                     $parts = explode(' to ', $data);
@@ -53,36 +54,49 @@ class GerarResumoPainel
                 } else {
                     $query->whereDate('data', $data);
                 }
+            }
+
+            $dateFilterActive = isset($filtros['data_inicio']) || isset($filtros['data_active']) || !empty($filtros['data']);
+
+            if ($dateFilterActive) {
+                $periodo_label = "filters.period_custom";
+                $data_inicio = $filtros['data_inicio'] ?? null;
+                $data_fim = $filtros['data_fim'] ?? null;
+                if (!$data_inicio && isset($filtros['data'])) {
+                    if (str_contains($filtros['data'], ' to ')) {
+                        $parts = explode(' to ', $filtros['data']);
+                        $data_inicio = $parts[0];
+                        $data_fim = $parts[1] ?? $parts[0];
+                    } else {
+                        $data_inicio = $filtros['data'];
+                        $data_fim = $filtros['data'];
+                    }
+                }
             } else {
-                // Default: Mês Atual se não houver NENHUM outro filtro
-                // Se houver categoria/descrição mas não data, talvez mostrar histórico geral?
-                // Decisão: Se não houver filtro de data, pegamos o mês atual para o resumo financeiro.
-                $query->whereMonth('data', now()->month)
-                    ->whereYear('data', now()->year);
+                $periodo_label = "filters.period_all";
+                $data_inicio = null;
+                $data_fim = null;
             }
 
             $receita = (clone $query)->where('tipo', 'receita')->sum('valor');
             $despesa = (clone $query)->where('tipo', 'despesa')->sum('valor');
+            $saldo = $receita - $despesa;
 
-            // Saldo Gerar vs Saldo Período
-            // Se houver filtros, o saldo mostrado deve ser o resultado daquela busca
-            if (!empty($filtros)) {
-                $saldo = $receita - $despesa;
-                // Retornamos todos os movimentos que batem com o filtro para o dashboard mostrar "o que gerou isso"
-                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->get();
-            } else {
-                $totalRec = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
-                $totalDes = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
-                $saldo = $totalRec - $totalDes;
-                // Sem filtro, mostramos apenas os 5 mais recentes
+            // If no filters at all, limit to 5, otherwise show filtered
+            if (empty($filtros)) {
                 $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->take(5)->get();
+            } else {
+                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->get();
             }
 
             return [
                 'receita' => (float) $receita,
                 'despesa' => (float) $despesa,
                 'saldo' => (float) $saldo,
-                'atividades_recentes' => $recentes
+                'atividades_recentes' => $recentes,
+                'periodo_label' => $periodo_label,
+                'data_inicio' => $data_inicio,
+                'data_fim' => $data_fim
             ];
         };
 
@@ -90,8 +104,7 @@ class GerarResumoPainel
             return $calc();
         }
 
-        // Registra a chave na lista de chaves do usuário para limpeza futura
-        $metaKey = "user_summary_keys_{$usuario->id}";
+        $metaKey = "user_summary_keys_{$workspaceId}";
         $existingKeys = cache()->get($metaKey, []);
         if (!in_array($cacheKey, $existingKeys)) {
             $existingKeys[] = $cacheKey;

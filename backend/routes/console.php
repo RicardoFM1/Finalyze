@@ -9,14 +9,17 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:verificar-assinaturas-expiradas')
-    ->daily()
-    ->at('00:00')
+    ->everyThirtyMinutes()
     ->timezone('America/Sao_Paulo');
 
 Schedule::command('app:enviar-avisos-renovacao')
-    ->dailyAt('09:00')
+    ->everyThirtyMinutes()
     ->timezone('America/Sao_Paulo');
 
-Schedule::command('app:enviar-avisos-renovacao')
-    ->dailyAt('18:00')
+Schedule::command('app:enviar-lembretes-pessoais')
+    ->everyMinute()
+    ->timezone('America/Sao_Paulo');
+
+Schedule::command('app:enviar-notificacoes-metas')
+    ->everyMinute()
     ->timezone('America/Sao_Paulo');

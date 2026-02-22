@@ -31,7 +31,7 @@ class CodigoVerificacao extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Seu código de verificação - Finalyze Finance',
+            subject: __('Your verification code - Finalyze Finance'),
         );
     }
 

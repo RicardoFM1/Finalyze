@@ -15,7 +15,7 @@ Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reen
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function () {
     Route::get('/usuario', [App\Http\Controllers\UserController::class, 'mostrar']);
     Route::put('/usuario', [App\Http\Controllers\UserController::class, 'atualizar']);
     Route::delete('/usuario/avatar', [App\Http\Controllers\UserController::class, 'removerAvatar']);
@@ -51,7 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::match(['put', 'patch'], '/metas/{id}', [App\Http\Controllers\MetaController::class, 'update']);
             Route::delete('/metas/{id}', [App\Http\Controllers\MetaController::class, 'destroy']);
             Route::post('/metas/{id}/reativar', [App\Http\Controllers\MetaController::class, 'reativar']);
+        });
 
+<<<<<<< HEAD
             Route::get('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'index']);
             Route::post('/anotacoes', [App\Http\Controllers\AnotacaoController::class, 'store']);
             Route::match(['put', 'patch'], '/anotacoes/{id}', [App\Http\Controllers\AnotacaoController::class, 'update']);
@@ -73,8 +75,20 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/convites/atualizar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'update']);
             Route::patch('/convites/atualizacao/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'patch']);
             Route::delete('/convites/deletar/{id}', [App\Http\Controllers\AvisoCompartilhamentoController::class, 'destroy']);
+=======
+        Route::middleware('check_resource:lembretes')->group(function () {
+            Route::get('/lembretes', [App\Http\Controllers\LembreteController::class, 'index']);
+            Route::post('/lembretes', [App\Http\Controllers\LembreteController::class, 'store']);
+            Route::match(['put', 'patch'], '/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'update']);
+            Route::delete('/lembretes/{id}', [App\Http\Controllers\LembreteController::class, 'destroy']);
+            Route::post('/lembretes/{id}/reativar', [App\Http\Controllers\LembreteController::class, 'reativar']);
+>>>>>>> Ricardo
         });
     });
+
+    Route::get('/colaboracoes', [App\Http\Controllers\ColaboracaoController::class, 'index']);
+    Route::post('/colaboracoes', [App\Http\Controllers\ColaboracaoController::class, 'store']);
+    Route::delete('/colaboracoes/{id}', [App\Http\Controllers\ColaboracaoController::class, 'destroy']);
 
 
     Route::middleware('admin')->group(function () {

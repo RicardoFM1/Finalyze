@@ -23,7 +23,8 @@ class Usuario extends Authenticatable
         'cpf',
         'data_nascimento',
         'codigo_verificacao',
-        'codigo_expira_em'
+        'codigo_expira_em',
+        'idioma'
     ];
 
     protected $hidden = [
@@ -84,9 +85,18 @@ class Usuario extends Authenticatable
         return $this->hasMany(Meta::class, 'usuario_id');
     }
 
+    public function lembretes()
+    {
+        return $this->hasMany(Lembrete::class, 'usuario_id');
+    }
+
+    public function colaboracoes()
+    {
+        return $this->hasMany(Colaboracao::class, 'proprietario_id');
+    }
+
     public function getAvatarUrlAttribute()
     {
-        // Avatar já está em base64 (data:image/png;base64,...)
         return $this->avatar;
     }
 }

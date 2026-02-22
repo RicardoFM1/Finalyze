@@ -60,6 +60,49 @@
         </div>
     </ModalBase>
 
+    <div v-if="!loading && (resumo.periodo_label || activeFilterChips.length)" class="d-flex align-center mb-4 px-2 animate-fade-in flex-wrap gap-2">
+        <!-- Period Chip -->
+        <v-chip v-if="resumo.periodo_label" size="small" color="primary" variant="tonal" class="rounded-lg px-3">
+            <v-icon icon="mdi-calendar-range" size="14" class="mr-2"></v-icon>
+            <span class="text-caption font-weight-bold">
+                {{ $t(resumo.periodo_label) }}
+                <span v-if="resumo.data_inicio" class="ml-1 opacity-70 font-weight-medium">
+                   ({{ formatDate(resumo.data_inicio) }} {{ resumo.data_fim && resumo.data_fim !== resumo.data_inicio ? '- ' + formatDate(resumo.data_fim) : '' }})
+                </span>
+            </span>
+        </v-chip>
+
+        <!-- Active Filters Chips Grouped by Line -->
+        <div class="d-flex flex-column gap-2 w-100">
+            <div 
+                v-for="(group, key) in groupedActiveChips" 
+                :key="key" 
+                class="d-flex align-center flex-wrap gap-2 animate-fade-in"
+            >
+                <div class="d-flex align-center opacity-60 mr-2" style="min-width: 100px;">
+                    <v-icon :icon="group.icon" size="14" class="mr-1"></v-icon>
+                    <span class="text-caption font-weight-black text-uppercase letter-spacing-1">{{ group.label }}:</span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    <v-chip
+                        v-for="chip in group.chips"
+                        :key="chip.key + '-' + chip.value"
+                        size="small"
+                        color="secondary"
+                        variant="flat"
+                        class="rounded-lg px-3"
+                        closable
+                        @click:close="removeFilter(chip)"
+                        style="max-width: 300px;"
+                    >
+                        <span class="text-caption font-weight-bold text-truncate">{{ chip.value }}</span>
+                    </v-chip>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -134,7 +177,7 @@
             <v-icon icon="mdi-chart-donut" color="primary" class="mr-2"></v-icon>
             {{ $t('features.financial_health') }}
             <v-spacer></v-spacer>
-            <div class="text-caption text-medium-emphasis font-weight-medium">{{ $t('features.resource_distribution') }}</div>
+            <div class="text-caption text-medium-emphasis font-weight-medium d-none d-sm-block">{{ $t('features.resource_distribution') }}</div>
           </v-card-title>
           <v-card-text class="pa-6">
             <v-row class="align-center">
@@ -185,12 +228,12 @@
         </v-card>
 
         <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
-           <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
-               <v-toolbar-title class="font-weight-bold">
+           <v-toolbar color="transparent" density="comfortable" class="px-2 px-sm-4 py-2">
+               <v-toolbar-title class="font-weight-bold card-title-responsive">
                     {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? $t('filters.movement_period') : $t('features.recent_transactions') }}
                 </v-toolbar-title>
                <v-spacer></v-spacer>
-               <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
+               <v-btn variant="tonal" size="small" color="primary" class="rounded-lg text-none px-2" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
            </v-toolbar>
            <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
@@ -306,9 +349,15 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 ChartJS.register(ArcElement, Tooltip, Legend)
 import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
+<<<<<<< HEAD
 import { useMoney } from '@/composables/useMoney'
 const { t } = useI18n()
 const { formatNumber, currencySymbol } = useMoney()
+=======
+import { useMoney } from '../composables/useMoney'
+const { t } = useI18n()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
+>>>>>>> Ricardo
 
 
 import { categorias as categoriasConstantes } from '../constants/categorias'
@@ -327,8 +376,43 @@ const categorias = computed(() => {
   }
 })
 
+const activeFilterChips = computed(() => {
+    const chips = []
+    const f = filterStore.filters
+    if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
+    if (f.categoria && f.categoria.length) {
+        f.categoria.forEach(c => {
+            chips.push({ key: 'categoria', label: t('filters.category'), value: t('categories.' + c), icon: 'mdi-tag', originalValue: c })
+        })
+    }
+    if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })
+    if (f.valor) chips.push({ key: 'valor', label: t('filters.value'), value: f.valor, icon: 'mdi-currency-usd' })
+    return chips
+})
+
+const removeFilter = (chip) => {
+    if (chip.key === 'categoria') {
+        filterStore.filters.categoria = filterStore.filters.categoria.filter(c => c !== chip.originalValue)
+    } else if (chip.key === 'tipo') {
+        filterStore.filters[chip.key] = 'todos'
+    } else {
+        filterStore.filters[chip.key] = ''
+    }
+    fetchSummary()
+}
+
+const groupedActiveChips = computed(() => {
+    const groups = {}
+    activeFilterChips.value.forEach(chip => {
+        if (!groups[chip.key]) groups[chip.key] = { label: chip.label, icon: chip.icon, chips: [] }
+        groups[chip.key].chips.push(chip)
+    })
+    return groups
+})
+
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
+const deletedIds = ref(new Set())
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
 
@@ -360,7 +444,23 @@ const getMarginPercentage = computed(() => {
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
 
+<<<<<<< HEAD
 // formatNumber is provided by useMoney composable (imported above)
+=======
+
+const formatNumber = (val) => fmtNum(val)
+
+const formatDate = (date) => {
+    if (!date) return ''
+    const dStr = typeof date === 'string' ? date.split('T')[0] : date
+    const { locale } = useI18n()
+    if (typeof dStr === 'string' && dStr.includes('-')) {
+        const [y, m, d] = dStr.split('-').map(Number)
+        return new Date(y, m - 1, d).toLocaleDateString(locale.value)
+    }
+    return new Date(date).toLocaleDateString(locale.value)
+}
+>>>>>>> Ricardo
 
 const getPaymentMethodIcon = (method) => {
   const icons = {
@@ -391,7 +491,14 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
+<<<<<<< HEAD
                 label: (context) => ` ${currencySymbol.value} ${formatNumber(context.raw)}`
+=======
+                label: (context) => {
+                    const val = context.raw || 0
+                    return ` ${currencySymbol.value} ${fmtNum(fromBRL(val))}`
+                }
+>>>>>>> Ricardo
             }
         }
     },
@@ -475,26 +582,15 @@ const calculatePercentage = (meta) => {
 const fetchSummary = async (isSilent = false) => {
     if (!isSilent) loading.value = true
     try {
-        const params = new URLSearchParams()
-        const f = filterStore.filters
-        if (f.data) {
-            if (f.data.includes(' to ')) {
-                const [inicio, fim] = f.data.split(' to ')
-                params.append('data_inicio', inicio)
-                params.append('data_fim', fim)
-            } else {
-                params.append('data', f.data)
-            }
-        }
-        if (f.descricao) params.append('descricao', f.descricao)
-        if (f.categoria) params.append('categoria', f.categoria)
-        if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
-        if (f.valor) params.append('valor', f.valor)
-
-        const url = Array.from(params).length > 0 ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        const url = `/painel/resumo?${filterStore.queryString}`
         const response = await authStore.apiFetch(url)
         if (response.ok) {
-            resumo.value = await response.json()
+            const data = await response.json()
+            // Filtro otimista: removemos itens que estão na ghost list
+            if (data.atividades_recentes) {
+                data.atividades_recentes = data.atividades_recentes.filter(i => !deletedIds.value.has(i.id))
+            }
+            resumo.value = data
         }
     } catch (e) {
         console.error(e)
@@ -575,6 +671,10 @@ const onLancamentoExcluido = (deletedId) => {
     // 1. Encontrar o item ANTES de remover para atualizar os totais localmente
     const item = resumo.value.atividades_recentes?.find(a => a.id === deletedId)
     
+    if (deletedId) {
+        deletedIds.value.add(deletedId)
+    }
+
     if (item) {
         // 2. Atualização Lógica dos totais (Instantânea)
         if (item.tipo === 'receita') {
@@ -650,6 +750,13 @@ const onLancamentoExcluido = (deletedId) => {
   }
   .summary-card:hover {
       transform: none;
+  }
+  .card-title-responsive {
+      font-size: 0.95rem !important;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
   }
 }
 

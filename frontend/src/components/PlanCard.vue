@@ -47,8 +47,13 @@
 
       <div class="price-container my-4">
         <span class="currency">{{ currencySymbol }}</span>
+<<<<<<< HEAD
         <span class="price-integer">{{ Math.floor(currentPrice / 100) }}</span>
         <span class="price-decimal">{{ decimalSeparator }}{{ (currentPrice % 100).toString().padStart(2, '0') }}</span>
+=======
+        <span class="price-integer">{{ formattedPriceInt }}</span>
+        <span class="price-decimal">{{ currencyDecimalSep }}{{ formattedPriceDec }}</span>
+>>>>>>> Ricardo
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -120,10 +125,17 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+<<<<<<< HEAD
 import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
 const { currencySymbol, decimalSeparator, formatPrice } = useMoney()
+=======
+import { useMoney } from '../composables/useMoney'
+
+const { t } = useI18n()
+const { fromBRL, currencySymbol, meta: currencyMeta } = useMoney()
+>>>>>>> Ricardo
 const router = useRouter()
 const authStore = useAuthStore()
 const props = defineProps({
@@ -147,6 +159,26 @@ const selectedPeriod = computed(() => {
 
 const currentPrice = computed(() => {
     return selectedPeriod.value?.pivot?.valor_centavos || 0
+})
+
+// Convert BRL cents → selected currency, then split into int + dec parts
+const currentPriceConverted = computed(() => {
+    const brlReais = currentPrice.value / 100
+    return fromBRL(brlReais)
+})
+
+const formattedPriceInt = computed(() => {
+    return Math.floor(currentPriceConverted.value)
+})
+
+const formattedPriceDec = computed(() => {
+    const dec = Math.round((currentPriceConverted.value % 1) * 100)
+    return dec.toString().padStart(2, '0')
+})
+
+// Decimal separator: comma for pt-BR, period for others
+const currencyDecimalSep = computed(() => {
+    return currencyMeta.value.locale === 'pt-BR' ? ',' : '.'
 })
 
 const selectedPeriodSlug = computed(() => {
@@ -183,7 +215,18 @@ const clickEscolha = () => {
     })
 }
 
+<<<<<<< HEAD
 // formatPrice, currencySymbol, decimalSeparator are from useMoney composable (imported above)
+=======
+const formatPrice = (value) => {
+    if (!value && value !== 0) return currencySymbol.value + ' 0,00'
+    const converted = fromBRL((value || 0) / 100)
+    return new Intl.NumberFormat(currencyMeta.value.locale, {
+        style: 'currency',
+        currency: currencyMeta.value.code
+    }).format(converted)
+}
+>>>>>>> Ricardo
 </script>
 
 <style scoped>

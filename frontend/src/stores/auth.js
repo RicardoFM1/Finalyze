@@ -7,12 +7,17 @@ import { useUiStore } from './ui';
 export const useAuthStore = defineStore('auth', () => {
 
     const user = ref(null);
+    const workspaceId = ref(localStorage.getItem('workspace_id') || null);
+    const sharedAccounts = ref([]);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
+    const activeWorkspace = computed(() => {
+        return sharedAccounts.value.find(acc => acc.id == workspaceId.value);
+    });
 
     const hasActivePlan = computed(() => {
         if (user.value?.admin) return true;
@@ -30,6 +35,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (token.value) {
             headers['Authorization'] = `Bearer ${token.value}`;
+        }
+
+        if (workspaceId.value) {
+            headers['X-Workspace-Id'] = workspaceId.value;
         }
 
         if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
@@ -84,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
+            await fetchSharedAccounts();
             return { success: true };
         } catch (error) {
             console.error(error);
@@ -120,6 +130,11 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
+                if (!workspaceId.value) {
+                    workspaceId.value = data.id;
+                    localStorage.setItem('workspace_id', data.id);
+                }
+                fetchSharedAccounts();
             }
         } catch (e) {
             console.error(e);
@@ -128,21 +143,52 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    async function fetchSharedAccounts() {
+        try {
+            const response = await apiFetch('/colaboracoes');
+            if (response.ok) {
+                const data = await response.json();
+                if (!user.value) return;
+                sharedAccounts.value = [
+                    { id: user.value.id, owner: user.value, is_owner: true },
+                    ...data.shared_with_me.map(s => ({ ...s, id: s.proprietario_id, owner: s.proprietario, is_owner: false }))
+                ];
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function setWorkspace(id) {
+        workspaceId.value = id;
+        localStorage.setItem('workspace_id', id);
+        window.location.reload(); // Reload to refresh all data context
+    }
+
     function logout() {
         token.value = null;
         user.value = null;
+        workspaceId.value = null;
         localStorage.removeItem('token');
+        localStorage.removeItem('workspace_id');
     }
 
     function hasFeature(featureSlug) {
-        if (user.value?.admin) return true;
-
-        if (!user.value?.plano?.recursos) return false;
-
-        const features = user.value.plano.recursos;
-
         const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
         const target = normalize(featureSlug);
+
+        // Bloqueio explícito de Admin para colaboradores
+        const isShared = activeWorkspace.value && !activeWorkspace.value.is_owner;
+        if (target === 'admin' && isShared) return false;
+
+        const targetUser = activeWorkspace.value?.owner || user.value;
+
+        if (targetUser?.admin) return true;
+
+        if (!targetUser?.plano?.recursos) return false;
+
+        const features = targetUser.plano.recursos;
+
         return features.some(f => {
             return normalize(f.slug) === target || normalize(f.nome) === target;
         });
@@ -195,5 +241,5 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
+    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts };
 });

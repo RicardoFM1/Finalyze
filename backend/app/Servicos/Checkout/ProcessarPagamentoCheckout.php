@@ -49,18 +49,31 @@ class ProcessarPagamentoCheckout
             $transactionAmount = max(0, $transactionAmount - $creditos);
         }
 
-        Assinatura::where('user_id', $usuario->id)
+        // Tenta reaproveitar a assinatura pendente criada em CriarPreferenciaCheckout
+        $assinatura = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
-            ->update(['status' => 'cancelled']);
+            ->where('plano_id', (int) $plano_id)
+            ->where('periodo_id', (int) $periodo_id)
+            ->latest()
+            ->first();
 
+        if (!$assinatura) {
+            // Se não encontrou uma compatível, cancela as outras e cria uma nova
+            Assinatura::where('user_id', $usuario->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'cancelled']);
 
-        $assinatura = Assinatura::create([
-            'user_id'    => $usuario->id,
-            'plano_id'   => (int) $plano_id,
-            'periodo_id' => (int) $periodo_id,
-            'status'     => 'pending',
-            'inicia_em'  => now(),
-        ]);
+            $assinatura = Assinatura::create([
+                'user_id'    => $usuario->id,
+                'plano_id'   => (int) $plano_id,
+                'periodo_id' => (int) $periodo_id,
+                'status'     => 'pending',
+                'inicia_em'  => now(),
+            ]);
+        } else {
+            // Se reaproveitou, garante que a data de início seja atualizada para agora
+            $assinatura->update(['inicia_em' => now()]);
+        }
 
         // Se o valor for zero, ativamos direto (Simulando aprovação)
         if ($transactionAmount <= 0) {
@@ -191,6 +204,36 @@ class ProcessarPagamentoCheckout
 
         $response = $client->create($paymentData);
 
+        // Registrar ou atualizar no histórico
+        try {
+            // Tenta encontrar o registro de "intenção" criado na preferência
+            $historico = \App\Models\HistoricoPagamento::where('assinatura_id', $assinatura->id)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($historico) {
+                $historico->update([
+                    'mercado_pago_id' => (string)($response->id ?? $historico->mercado_pago_id),
+                    'status' => $response->status ?? 'pending',
+                    'metodo_pagamento' => $dados['payment_method_id'],
+                    'valor_centavos' => (int)($transactionAmount * 100),
+                    'pago_em' => ($response->status === 'approved') ? now() : null
+                ]);
+            } else {
+                \App\Models\HistoricoPagamento::create([
+                    'mercado_pago_id' => (string)($response->id ?? null),
+                    'user_id' => $usuario->id,
+                    'assinatura_id' => $assinatura->id,
+                    'valor_centavos' => (int)($transactionAmount * 100),
+                    'status' => $response->status ?? 'pending',
+                    'metodo_pagamento' => $dados['payment_method_id'],
+                    'pago_em' => ($response->status === 'approved') ? now() : null
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("Erro ao salvar histórico de pagamento: " . $e->getMessage());
+        }
+
         // Ativação automática se for aprovado (comum em cartão)
         if (isset($response->status) && $response->status === 'approved') {
             try {
@@ -198,21 +241,6 @@ class ProcessarPagamentoCheckout
                 $ativarServico->executar($response);
             } catch (\Exception $e) {
                 Log::error("Erro ao ativar plano após aprovação: " . $e->getMessage());
-            }
-        } else if ($dados['payment_method_id'] === 'pix') {
-            // Registrar no histórico para Pix pendente
-            try {
-                \App\Models\HistoricoPagamento::create([
-                    'user_id' => $usuario->id,
-                    'assinatura_id' => $assinatura->id,
-                    'valor_centavos' => (int)($transactionAmount * 100),
-                    'status' => $response->status ?? 'pending',
-                    'metodo_pagamento' => 'pix',
-                    'mercado_pago_id' => (string)($response->id ?? null),
-                    'pago_em' => ($response->status === 'approved') ? now() : null
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Erro ao salvar histórico de Pix: " . $e->getMessage());
             }
         }
 

@@ -2,35 +2,66 @@
   <v-layout>
     <template v-if="!uiAuthStore.loading">
       <v-app-bar color="primary" elevation="2">
-        <!-- LAYOUT MOBILE/TABLET: Centralizado e Compacto -->
-        <div v-if="!lgAndUp" class="d-flex align-center justify-center w-100 px-2 h-100">
-            <!-- Botão do Menu (Absoluto à Esquerda) -->
-            <v-app-bar-nav-icon
-                v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
-                @click="toggleDrawer"
-                class="position-absolute left-0 ml-1"
-                variant="text"
-                size="small"
-            />
-
-            <!-- Grupo Central de Ações -->
+        <!-- LAYOUT MOBILE/TABLET: Espaçado e Profissional -->
+        <div v-if="!lgAndUp" class="d-flex align-center justify-space-between w-100 px-2 h-100">
+            <!-- Left: Menu + Logo -->
             <div class="d-flex align-center">
-                <!-- Se Logado: Logo + Nome Pequeno (Home já está no menu lateral) -->
-                <div v-if="authStore.isAuthenticated" class="brand-wrapper-mobile mx-1" @click="$router.push({ name: 'Home' })">
+                <v-app-bar-nav-icon
+                    v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
+                    @click="toggleDrawer"
+                    variant="text"
+                    size="small"
+                />
+                <div v-if="authStore.isAuthenticated" class="brand-wrapper-mobile ml-1" @click="$router.push({ name: 'Home' })">
                     <img :src="logotipo" alt="Logo" class="logo-mini" />
-                    <span class="brand-name-mini">Finalyze</span>
                 </div>
-                
-                <!-- Se Não Logado: Botão Home -->
                 <v-btn v-else icon="mdi-home-outline" variant="text" color="white" :to="{ name: 'Home' }" size="small"></v-btn>
 
-                <v-btn icon="mdi-tag-multiple-outline" variant="text" color="white" :to="{ name: 'Plans' }" size="small" class="mx-n1"></v-btn>
+            </div>
+
+            <!-- Right: Action Icons -->
+            <div class="d-flex align-center gap-1">
+
+
+                <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            v-bind="props"
+                            variant="text"
+                            color="white"
+                            size="x-small"
+                        >
+                            <v-icon icon="mdi-office-building"></v-icon>
+                        </v-btn>
+                    </template>
+                    <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
+                        <v-list-item 
+                            v-for="acc in authStore.sharedAccounts" 
+                            :key="acc.id"
+                            :active="authStore.workspaceId == acc.id"
+                            @click="authStore.setWorkspace(acc.id)"
+                        >
+                            <v-list-item-title class="font-weight-bold">
+                                {{ acc.is_owner ? ($t('common.my_account') || 'Minha Conta') : acc.owner?.nome }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle class="text-caption">{{ acc.owner?.email }}</v-list-item-subtitle>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+
+                <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" size="x-small" @click="$router.push({ name: 'Lembretes' })">
+                    <v-icon icon="mdi-bell-ring-outline"></v-icon>
+                </v-btn>
                 
+                <v-btn v-if="authStore.isAuthenticated" icon variant="text" color="white" size="x-small" @click="shareDialog = true">
+                    <v-icon icon="mdi-account-group"></v-icon>
+                </v-btn>
+
                 <template v-if="authStore.isAuthenticated">
-                    <Coinselector />
+                    <Coinselector class="ml-1" />
                 </template>
 
-                <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="small">
+                <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="x-small">
                     <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
                 </v-btn>
 
@@ -102,10 +133,51 @@
           </template>
 
           <template v-else>
+            <!-- Workspace Switcher -->
+            <v-menu v-if="authStore.sharedAccounts.length > 1">
+                <template v-slot:activator="{ props }">
+                    <v-btn
+                        v-bind="props"
+                        variant="tonal"
+                        color="white"
+                        prepend-icon="mdi-office-building"
+                        class="text-none ml-2 rounded-xl"
+                    >
+                        {{ activeWorkspaceName }}
+                    </v-btn>
+                </template>
+                <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
+                    <v-list-item 
+                        v-for="acc in authStore.sharedAccounts" 
+                        :key="acc.id"
+                        :active="authStore.workspaceId == acc.id"
+                        @click="authStore.setWorkspace(acc.id)"
+                    >
+                        <template v-slot:prepend>
+                            <v-avatar size="32" class="mr-2" color="primary">
+                                <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                            </v-avatar>
+                        </template>
+                        <v-list-item-title class="font-weight-bold">
+                            {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+
             <Coinselector />
+            <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
+                <v-icon icon="mdi-bell-ring-outline"></v-icon>
+                <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
+            </v-btn>
+            <v-btn icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
+                <v-icon icon="mdi-account-group"></v-icon>
+                <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
+            </v-btn>
           </template>
 
-          <v-btn icon variant="text" color="white" class="ml-2" @click="uiAuthStore.toggleTheme">
+          <v-btn icon variant="text" color="white" class="ml-4" @click="uiAuthStore.toggleTheme">
             <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
           </v-btn>
 
@@ -168,13 +240,39 @@
         </v-list>
         <v-divider></v-divider>
         <v-list density="compact" nav>
+            <!-- Workspace Switcher in Sidebar (Visible when multiple accounts available) -->
+            <v-list-item 
+                v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1"
+                prepend-icon="mdi-office-building" 
+                :title="activeWorkspaceName"
+                color="secondary"
+                class="mb-2 bg-secondary-lighten-5 rounded-lg border-dashed"
+            >
+                <v-menu activator="parent" class="rounded-xl mt-2 overflow-hidden" elevation="4">
+                    <v-list>
+                        <v-list-item 
+                            v-for="acc in authStore.sharedAccounts" 
+                            :key="acc.id"
+                            :active="authStore.workspaceId == acc.id"
+                            @click="authStore.setWorkspace(acc.id)"
+                        >
+                            <v-list-item-title class="font-weight-bold">
+                                {{ acc.is_owner ? $t('common.my_account') || 'Minha Conta' : acc.owner?.nome }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>{{ acc.owner?.email }}</v-list-item-subtitle>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </v-list-item>
+
            <v-list-item prepend-icon="mdi-home" :title="$t('sidebar.home')" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" :title="$t('sidebar.dashboard')" :to="{ name: 'Dashboard' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" :title="$t('sidebar.transactions')" :to="{ name: 'Lancamentos' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Metas')" prepend-icon="mdi-flag-checkered" :title="$t('sidebar.goals')" :to="{ name: 'Metas' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('lembretes')" prepend-icon="mdi-calendar-clock" :title="$t('sidebar.reminders')" :to="{ name: 'Lembretes' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Relatórios Gráficos')" prepend-icon="mdi-chart-bar" :title="$t('sidebar.reports')" :to="{ name: 'Reports' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-account" :title="$t('sidebar.profile')" :to="{ name: 'Profile' }" @click="!isDesktop && (drawer = false)"></v-list-item>
-            <v-list-item v-if="authStore.user?.admin" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
+            <v-list-item v-if="authStore.hasFeature('Admin')" prepend-icon="mdi-shield-crown" :title="$t('sidebar.admin')" :to="{ name: 'Admin' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-tag-text-outline" :title="$t('sidebar.plans')" :to="{ name: 'Plans' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item prepend-icon="mdi-cog" :title="$t('sidebar.settings') || 'Configurações'" :to="{ name: 'Settings' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" :title="$t('sidebar.logout')"></v-list-item>
@@ -216,7 +314,8 @@
             </v-btn>
         </template>
     </ModalBase>
-    <FinnChat v-if="authStore.isAuthenticated" />
+    <FinnChat v-if="authStore.isAuthenticated && authStore.hasFeature('Finn AI')" />
+    <CompartilharModal v-model="shareDialog" />
   </v-layout>
 </template>
 
@@ -226,9 +325,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
+import { useI18n } from 'vue-i18n'
+import { toast } from 'vue3-toastify'
 import logotipo from '../assets/logotipo.png'
 
 import ModalBase from '../components/Modals/modalBase.vue'
+import CompartilharModal from '../components/Modals/CompartilharModal.vue'
 import FinnChat from './IA/FinnChat.vue'
 
 import Coinselector from './Currency/Coinselector.vue'
@@ -237,8 +339,10 @@ const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const confirmLogout = ref(false)
+const shareDialog = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
 
@@ -248,6 +352,12 @@ const isDesktop = computed(() => lgAndUp.value)
 const isAuthPage = computed(() =>
   ['Login', 'Register'].includes(route.name)
 )
+
+const activeWorkspaceName = computed(() => {
+    const active = authStore.sharedAccounts.find(a => a.id == authStore.workspaceId)
+    if (active?.is_owner) return t('common.my_account') || 'Minha Conta'
+    return active?.owner?.nome || 'Workspace'
+})
 
 const toggleDrawer = () => {
   if (uiAuthStore.loading) return;
@@ -266,27 +376,70 @@ const handleLogout = () => {
   router.push({ name: 'Home' })
 }
 
-const getInitials = (name) => {
-  if (!name) return ''
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase()
-}
-
-
-// getStorageUrl removed as it is now in authStore
 
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {
     await authStore.fetchUser();
   }
+  if (authStore.isAuthenticated) {
+    checkReminders();
+    authStore.fetchSharedAccounts();
+    // Check every minute for precision
+    setInterval(checkReminders, 60 * 1000);
+  }
   if (isDesktop.value && authStore.isAuthenticated) {
     drawer.value = true;
   }
 })
+
+const notifiedSession = new Set()
+
+const checkReminders = async () => {
+    try {
+        const response = await authStore.apiFetch('/lembretes')
+        if (response.ok) {
+            const list = await response.json()
+            
+            const now = new Date()
+            const today = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0')
+            
+            const currentTime = String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0')
+            
+            const pending = list.filter(n => {
+                const itemDate = n.prazo ? n.prazo.split('T')[0] : ''
+                const isToday = itemDate === today
+                const isAfterTime = !n.hora || currentTime >= n.hora
+                
+                return n.status === 'andamento' && 
+                       isToday && 
+                       isAfterTime &&
+                       n.notificacao_site &&
+                       !notifiedSession.has(n.id)
+            })
+            
+            if (pending.length > 0) {
+                pending.forEach(n => notifiedSession.add(n.id))
+                toast.info(`⏰ Você tem ${pending.length} compromisso(s) na agenda para agora!`, {
+                    autoClose: 10000,
+                    theme: uiAuthStore.theme,
+                    onClick: () => router.push({ name: 'Lembretes' })
+                })
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao verificar agenda:', e)
+    }
+}
+
+
+
+const getInitials = (name) => {
+    if (!name) return 'U'
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+}
 
 watch(isDesktop, (desktop) => {
   drawer.value = desktop && authStore.isAuthenticated
