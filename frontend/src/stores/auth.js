@@ -146,7 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
                 const data = await response.json();
                 sharedAccounts.value = [
                     { id: user.value.id, owner: user.value, is_owner: true },
-                    ...data.shared_with_me.map(s => ({ ...s, is_owner: false }))
+                    ...data.shared_with_me.map(s => ({ ...s, id: s.owner_id, is_owner: false }))
                 ];
             }
         } catch (e) {

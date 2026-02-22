@@ -678,5 +678,11 @@
     "confirm_remove_title": "Remover Acesso",
     "confirm_remove_desc": "Esta pessoa não terá mais acesso às suas informações financeiras, metas e agenda.",
     "remove_btn": "Remover Acesso"
+  },
+  "actions": {
+    "import_excel": "Importar Excel",
+    "export_excel": "Exportar Excel",
+    "export_pdf": "Exportar PDF",
+    "export_page": "Exportar Página"
   }
 }

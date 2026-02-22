@@ -668,5 +668,11 @@
     "confirm_remove_title": "Remove Access",
     "confirm_remove_desc": "This person will no longer have access to your financial information, goals, and schedule.",
     "remove_btn": "Remove Access"
+  },
+  "actions": {
+    "import_excel": "Import Excel",
+    "export_excel": "Export Excel",
+    "export_pdf": "Export PDF",
+    "export_page": "Export Page"
   }
 }

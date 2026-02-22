@@ -60,7 +60,7 @@
             <p><strong>{{ $owner->nome }}</strong> {{ __('has invited you to collaborate on their Finalyze Finance account.') }}</p>
             <p>{{ __('As a collaborator, you can view and edit transactions, goals, and the agenda of this workspace.') }}</p>
             <p>{{ __('To start, simply access your account (or create one if you do not have one yet) using this e-mail.') }}</p>
-            <a href="https://finalyze-6gw9.onrender.com/#/cadastro" class="btn">{{ __('Access Finalyze') }}</a>
+            <a href="https://finalyze-6gw9.onrender.com/#/login" class="btn">{{ __('Access Finalyze') }}</a>
         </div>
         <div class="footer">
             <p>{{ __('Finalyze - Intelligent financial control.') }}</p>

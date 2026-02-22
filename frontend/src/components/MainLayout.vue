@@ -14,7 +14,7 @@
             />
 
             <!-- Grupo Central de Ações -->
-            <div class="d-flex align-center gap-2">
+            <div class="d-flex align-center gap-1">
                 <!-- Se Logado: Logo + Nome Pequeno (Home já está no menu lateral) -->
                 <div v-if="authStore.isAuthenticated" class="brand-wrapper-mobile mx-1" @click="$router.push({ name: 'Home' })">
                     <img :src="logotipo" alt="Logo" class="logo-mini" />
@@ -29,11 +29,13 @@
                     <template v-slot:activator="{ props }">
                         <v-btn
                             v-bind="props"
-                            icon="mdi-office-building"
                             variant="text"
                             color="white"
                             size="small"
-                        ></v-btn>
+                            class="mr-n2"
+                        >
+                            <v-icon icon="mdi-office-building"></v-icon>
+                        </v-btn>
                     </template>
                     <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
                         <v-list-item 
@@ -54,11 +56,11 @@
                     </v-list>
                 </v-menu>
 
-                <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" size="small" @click="$router.push({ name: 'Lembretes' })">
+                <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" size="x-small" @click="$router.push({ name: 'Lembretes' })">
                     <v-icon icon="mdi-bell-ring-outline"></v-icon>
                 </v-btn>
                 
-                <v-btn v-if="authStore.isAuthenticated" icon variant="text" color="white" size="small" @click="shareDialog = true">
+                <v-btn v-if="authStore.isAuthenticated" icon variant="text" color="white" size="x-small" @click="shareDialog = true">
                     <v-icon icon="mdi-account-group"></v-icon>
                 </v-btn>
 
@@ -66,7 +68,7 @@
                     <Coinselector class="ml-1" />
                 </template>
 
-                <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="small">
+                <v-btn icon variant="text" color="white" @click="uiAuthStore.toggleTheme" size="x-small">
                     <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
                 </v-btn>
 
