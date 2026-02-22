@@ -20,22 +20,28 @@
 - **Upgrades Gratuitos**: Se o crédito acumulado cobrir o valor total do novo plano, a ativação ocorre instantaneamente via modal na página de Planos, sem necessidade de ir ao checkout.
 - **Acúmulo de Dias**: Renovação do mesmo plano soma os dias à data de expiração atual; mudança de plano (upgrade) reseta o ciclo usando o desconto calculado.
 
-### 5. Multi-Workspace e Compartilhamento de Contas (Collaboration System)
-- **Conceito de Workspace**: Cada usuário no Finalyze possui um "Workspace" (o ID do usuário é o ID do Workspace). Todos os dados (lançamentos, metas, lembretes) pertencem a esse ID.
+### 5. Multi-Workspace e Colaboração (Collaboration System)
+- **Conceito de Workspace**: Cada usuário possui um "Workspace" (o ID do usuário é o ID do Workspace). Todos os dados (lançamentos, metas, lembretes) pertencem a esse ID.
 - **Fluxo de Convite**:
-    1. O **Proprietário** convida um **Convidado** via e-mail.
-    2. O sistema cria um registro na tabela `account_shares` com o `owner_id` e o `guest_email`.
-    3. O Convidado recebe um e-mail de convite traduzido baseado em sua preferência de idioma.
+    1. O **Proprietário** faz um convite via e-mail na aba de Colaboradores.
+    2. O sistema cria um registro na tabela `colaboracoes` com o `proprietario_id` e o `email_convidado`.
+    3. O Convidado recebe um e-mail de convite traduzido.
 - **Chaveamento de Contexto (Context Switching)**:
-    - O Convidado, ao fazer login, pode listar as contas às quais tem acesso.
-    - Ao selecionar uma conta, o frontend passa a enviar o header `X-Workspace-Id: [ID_DO_PROPRIETARIO]` em todas as requisições HTTP.
-- **Middleware `SetWorkspaceContext.php`**:
-    - Intercepta cada requisição para validar a permissão.
-    - Verifica se existe uma entrada em `account_shares` ligando o e-mail do usuário autenticado ao ID do workspace solicitado.
-    - Caso válido, ele injeta esse ID em um Singleton: `app()->instance('workspace_id', $id)`.
-- **Arquitetura de Serviços**:
-    - Todos os **Serviços** (`CriarLancamento`, `ListarMetas`, `GerarResumoPainel`, etc.) utilizam `app('workspace_id')` em vez de `auth()->id()`. Isso permite que o Convidado "atue" em nome do Proprietário de forma transparente e segura.
-- **Segurança**: Mesmo que o Convidado tente forjar o header `X-Workspace-Id`, o middleware bloqueia o acesso se não houver um registro válido de compartilhamento no banco de dados.
+    - O Convidado, ao selecionar um workspace compartilhado, faz o frontend enviar o header `X-Workspace-Id: [ID_DO_PROPRIETARIO]` em todas as requisições.
+- **Middleware de Contexto (`SetWorkspaceContext.php`)**:
+    - Valida se o usuário autenticado tem permissão para acessar o workspace solicitado (via tabela `colaboracoes`).
+    - Injeta o ID do dono em um Singleton: `app()->instance('workspace_id', $id)`.
+- **Lógica de Permissões Herdadass**:
+    - O colaborador herda **todas as funcionalidades do plano do proprietário** enquanto estiver em seu workspace.
+    - Se o dono for Premium, o colaborador tem acesso ao Finn AI e Relatórios, mesmo que o plano pessoal do colaborador seja Gratuito.
+    - **Restrição de Admin**: A página de Administração (`/admin`) é bloqueada explicitamente para colaboradores, mesmo que o proprietário seja um administrador. Apenas o dono real da conta acessa as funções administrativas.
+- **Arquitetura de Serviços e Middlewares**:
+    - **Middlewares (`CheckResource`, `EnsureUserHasPlan`)**: Atualizados para verificar o plano do **Dono do Workspace** em vez do usuário logado.
+    - **Serviços**: Utilizam `app('workspace_id')` para garantir que qualquer ação (Criar Lançamento, Editar Meta, etc.) seja persistida na conta do proprietário correta.
+- **Endpoints**: Substituídos `/shared-accounts` por `/colaboracoes` para manter a consistência com o idioma do projeto.
+
+> [!NOTE]
+> Para detalhes técnicos de implementação da prorrata e endpoints financeiros, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
 
 ### 6. Sistema Multi-Idioma no Backend
 - **Idioma Nativo**: Adicionada a coluna `idioma` na tabela `usuarios` para persistir a preferência (EN/PT) do usuário.
@@ -54,9 +60,6 @@
     - **Upgrades**: Opções de planos disponíveis para facilitar a decisão do usuário.
     - **Histórico**: As últimas 15 mensagens formatadas para manter o contexto da conversa.
 - **Cloud Storage**: Integração com **Supabase Storage** para persistência de avatares.
-
-> [!NOTE]
-> Para detalhes técnicos de implementação da prorrata e endpoints financeiros, consulte o arquivo [DOCUMENTACAO_ASSINATURA.md](file:///c:/Users/Pessoal/Desktop/Programação/Finalyze/backend/DOCUMENTACAO_ASSINATURA.md).
 
 ---
 

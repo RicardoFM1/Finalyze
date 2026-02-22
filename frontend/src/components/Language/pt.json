@@ -472,7 +472,8 @@
       "usd": "Dólar Americano",
       "eur": "Euro",
       "gbp": "Libra Esterlina"
-    }
+    },
+    "my_account": "Minha Conta"
   },
   "register": {
     "title": "Criar Conta",

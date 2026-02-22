@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\AccountShare;
+use App\Models\Colaboracao;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,8 +16,8 @@ class SetWorkspaceContext
 
         if ($workspaceId && $user) {
             // Check if user has access
-            $hasAccess = AccountShare::where('owner_id', $workspaceId)
-                ->where('guest_email', $user->email)
+            $hasAccess = Colaboracao::where('proprietario_id', $workspaceId)
+                ->where('email_convidado', $user->email)
                 ->exists();
 
             if ($hasAccess || $user->id == $workspaceId) {

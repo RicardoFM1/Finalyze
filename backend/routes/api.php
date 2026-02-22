@@ -62,9 +62,9 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
         });
     });
 
-    Route::get('/shared-accounts', [App\Http\Controllers\AccountShareController::class, 'index']);
-    Route::post('/shared-accounts', [App\Http\Controllers\AccountShareController::class, 'store']);
-    Route::delete('/shared-accounts/{id}', [App\Http\Controllers\AccountShareController::class, 'destroy']);
+    Route::get('/colaboracoes', [App\Http\Controllers\ColaboracaoController::class, 'index']);
+    Route::post('/colaboracoes', [App\Http\Controllers\ColaboracaoController::class, 'store']);
+    Route::delete('/colaboracoes/{id}', [App\Http\Controllers\ColaboracaoController::class, 'destroy']);
 
 
     Route::middleware('admin')->group(function () {

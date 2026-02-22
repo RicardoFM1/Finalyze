@@ -464,7 +464,8 @@
       "usd": "US Dollar",
       "eur": "Euro",
       "gbp": "British Pound"
-    }
+    },
+    "my_account": "My Account"
   },
   "register": {
     "title": "Create Account",

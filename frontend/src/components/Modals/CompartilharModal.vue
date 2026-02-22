@@ -59,7 +59,7 @@
                     <v-icon v-else icon="mdi-account-guest"></v-icon>
                 </v-avatar>
             </template>
-            <v-list-item-title class="font-weight-bold text-truncate">{{ share.guest?.nome || share.guest_email }}</v-list-item-title>
+            <v-list-item-title class="font-weight-bold text-truncate">{{ share.guest?.nome || share.email_convidado }}</v-list-item-title>
             <v-list-item-subtitle>{{ share.status === 'pending' ? $t('share.status_pending') : $t('share.status_accepted') }}</v-list-item-subtitle>
             <template v-slot:append>
                 <v-btn 
@@ -95,7 +95,7 @@
             <v-icon icon="mdi-account-remove-outline" color="error" size="40"></v-icon>
         </v-avatar>
         <p class="text-body-1 font-weight-medium mb-2">
-            {{ $t('share.confirm_remove', { email: selectedShareToDelete?.guest_email }) }}
+            {{ $t('share.confirm_remove', { email: selectedShareToDelete?.email_convidado }) }}
         </p>
         <p class="text-caption text-medium-emphasis">
             {{ $t('share.confirm_remove_desc') || 'Esta pessoa não terá mais acesso às suas informações financeiras.' }}
@@ -162,7 +162,7 @@ watch(internalValue, (val) => {
 
 const fetchMyShares = async () => {
     try {
-        const response = await authStore.apiFetch('/shared-accounts')
+        const response = await authStore.apiFetch('/colaboracoes')
         if (response.ok) {
             const data = await response.json()
             mySharedAccounts.value = data.my_shares
@@ -174,7 +174,7 @@ const inviteUser = async () => {
   if (!inviteEmail.value) return
   loading.value = true
   try {
-    const response = await authStore.apiFetch('/shared-accounts', {
+    const response = await authStore.apiFetch('/colaboracoes', {
       method: 'POST',
       body: JSON.stringify({ email: inviteEmail.value })
     })
@@ -218,7 +218,7 @@ const removeShare = async (id) => {
     mySharedAccounts.value = mySharedAccounts.value.filter(s => s.id !== id)
     
     try {
-        const response = await authStore.apiFetch(`/shared-accounts/${id}`, { method: 'DELETE' })
+        const response = await authStore.apiFetch(`/colaboracoes/${id}`, { method: 'DELETE' })
         if (response.ok) {
             toast.success(t('share.toast_remove_success'))
         } else {

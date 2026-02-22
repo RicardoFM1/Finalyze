@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AccountShare;
+use App\Models\Colaboracao;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AccountShareController extends Controller
+class ColaboracaoController extends Controller
 {
     public function index(Request $request)
     {
         $user = $request->user();
 
         // Contas que eu compartilhei com outros
-        $myShares = $user->shares()->with('guest')->get();
+        $minhasColaboracoes = $user->colaboracoes()->with('guest')->get();
 
         // Contas que outros compartilharam comigo
-        $sharedWithMe = AccountShare::where('guest_email', $user->email)
-            ->with(['owner', 'guest'])
+        $colaboracoesComigo = Colaboracao::where('email_convidado', $user->email)
+            ->with(['proprietario.plano.recursos', 'guest'])
             ->get();
 
         return response()->json([
-            'my_shares' => $myShares,
-            'shared_with_me' => $sharedWithMe
+            'my_shares' => $minhasColaboracoes,
+            'shared_with_me' => $colaboracoesComigo
         ]);
     }
 
@@ -39,8 +39,8 @@ class AccountShareController extends Controller
             return response()->json(['message' => 'Você não pode compartilhar com você mesmo.'], 422);
         }
 
-        $share = AccountShare::updateOrCreate(
-            ['owner_id' => $user->id, 'guest_email' => $request->email],
+        $colaboracao = Colaboracao::updateOrCreate(
+            ['proprietario_id' => $user->id, 'email_convidado' => $request->email],
             ['status' => 'pending']
         );
 
@@ -54,21 +54,21 @@ class AccountShareController extends Controller
 
         return response()->json([
             'message' => 'Convite enviado com sucesso!',
-            'share' => $share
+            'share' => $colaboracao
         ]);
     }
 
     public function destroy($id, Request $request)
     {
         $user = $request->user();
-        $share = AccountShare::where('id', $id)
+        $colaboracao = Colaboracao::where('id', $id)
             ->where(function ($q) use ($user) {
-                $q->where('owner_id', $user->id)
-                    ->orWhere('guest_email', $user->email);
+                $q->where('proprietario_id', $user->id)
+                    ->orWhere('email_convidado', $user->email);
             })
             ->firstOrFail();
 
-        $share->delete();
+        $colaboracao->delete();
         return response()->json(['message' => 'Compartilhamento removido.']);
     }
 }

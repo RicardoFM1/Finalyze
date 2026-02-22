@@ -15,6 +15,9 @@ export const useAuthStore = defineStore('auth', () => {
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
+    const activeWorkspace = computed(() => {
+        return sharedAccounts.value.find(acc => acc.id == workspaceId.value);
+    });
 
     const hasActivePlan = computed(() => {
         if (user.value?.admin) return true;
@@ -90,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
+            await fetchSharedAccounts();
             return { success: true };
         } catch (error) {
             console.error(error);
@@ -141,12 +145,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchSharedAccounts() {
         try {
-            const response = await apiFetch('/shared-accounts');
+            const response = await apiFetch('/colaboracoes');
             if (response.ok) {
                 const data = await response.json();
+                if (!user.value) return;
                 sharedAccounts.value = [
                     { id: user.value.id, owner: user.value, is_owner: true },
-                    ...data.shared_with_me.map(s => ({ ...s, id: s.owner_id, is_owner: false }))
+                    ...data.shared_with_me.map(s => ({ ...s, id: s.proprietario_id, owner: s.proprietario, is_owner: false }))
                 ];
             }
         } catch (e) {
@@ -169,14 +174,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function hasFeature(featureSlug) {
-        if (user.value?.admin) return true;
-
-        if (!user.value?.plano?.recursos) return false;
-
-        const features = user.value.plano.recursos;
-
         const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
         const target = normalize(featureSlug);
+
+        // Bloqueio explícito de Admin para colaboradores
+        const isShared = activeWorkspace.value && !activeWorkspace.value.is_owner;
+        if (target === 'admin' && isShared) return false;
+
+        const targetUser = activeWorkspace.value?.owner || user.value;
+
+        if (targetUser?.admin) return true;
+
+        if (!targetUser?.plano?.recursos) return false;
+
+        const features = targetUser.plano.recursos;
+
         return features.some(f => {
             return normalize(f.slug) === target || normalize(f.nome) === target;
         });
@@ -229,5 +241,5 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, workspaceId, sharedAccounts, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts };
+    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts };
 });

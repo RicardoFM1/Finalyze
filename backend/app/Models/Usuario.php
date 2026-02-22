@@ -90,9 +90,9 @@ class Usuario extends Authenticatable
         return $this->hasMany(Lembrete::class, 'usuario_id');
     }
 
-    public function shares()
+    public function colaboracoes()
     {
-        return $this->hasMany(AccountShare::class, 'owner_id');
+        return $this->hasMany(Colaboracao::class, 'proprietario_id');
     }
 
     public function getAvatarUrlAttribute()
