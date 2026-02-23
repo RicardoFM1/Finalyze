@@ -193,6 +193,7 @@
     "goal_reached": "Goal reached! Congratulations!",
     "edit": "Edit",
     "delete": "Deactivate",
+    "no_goals_completed": "No completed goals found.",
     "no_financial_goals": "No financial goals found.",
     "notepad_title": "Notepad",
     "notepad_tooltip": "Your personal notes and reminders.",
