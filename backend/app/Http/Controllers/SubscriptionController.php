@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assinatura;
-use App\Models\Faturamento;
+use App\Servicos\Assinaturas\ObterDadosAssinatura;
 use App\Servicos\Checkout\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
-    protected $subscriptionService;
+    protected SubscriptionService $subscriptionService;
 
     public function __construct(SubscriptionService $subscriptionService)
     {
@@ -18,45 +18,24 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Retorna a assinatura ativa do usu�rio e o hist�rico de pagamentos.
-     * Chamado por Profile.vue -> fetchSubscription
+     * Retorna assinatura e historico de pagamentos do usuario.
      */
-    public function index()
+    public function index(ObterDadosAssinatura $servico)
     {
         try {
-            $user = auth()->user();
-
-            $assinatura = Assinatura::where('user_id', $user->id)
-                ->with(['plano', 'periodo'])
-                ->orderByRaw("CASE
-                    WHEN status = 'active' THEN 1
-                    WHEN status = 'authorized' THEN 2
-                    WHEN status = 'pending' THEN 3
-                    ELSE 4 END")
-                ->orderBy('termina_em', 'desc')
-                ->first();
-
-            $historico = Faturamento::where('user_id', $user->id)
-                ->with(['assinatura.plano', 'assinatura.periodo'])
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                'assinatura' => $assinatura,
-                'historico' => $historico
-            ]);
+            return response()->json($servico->executar());
         } catch (\Exception $e) {
             Log::error('Erro ao buscar assinaturas: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => 'Falha ao buscar dados de assinatura.'], 500);
         }
     }
 
     /**
-     * Alterna a renova��o autom�tica (Ligar/Desligar).
-     * Chamado por Profile.vue -> ativarAutoRenovacao
+     * Alterna renovacao automatica da assinatura.
      */
     public function ativarAutoRenovacao(Request $request)
     {
@@ -64,7 +43,6 @@ class SubscriptionController extends Controller
             /** @var \App\Models\Usuario $user */
             $user = auth()->user();
 
-            // Busca qualquer assinatura ativa, com ou sem preapproval_id
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->whereIn('status', ['active', 'authorized'])
                 ->orderByDesc('termina_em')
@@ -74,39 +52,37 @@ class SubscriptionController extends Controller
                 return response()->json(['message' => 'Nenhuma assinatura ativa encontrada.'], 404);
             }
 
-            $oldState = (bool)$assinatura->renovacao_automatica;
+            $oldState = (bool) $assinatura->renovacao_automatica;
             $newState = $request->has('active') ? $request->boolean('active') : !$oldState;
 
-            // Só chama Mercado Pago se existir um preapproval_id vinculado
             if ($assinatura->preapproval_id) {
                 $this->subscriptionService->setupMercadoPago();
                 $this->subscriptionService->toggleAutoRenewal($assinatura->preapproval_id, $newState);
             }
 
-            // Sempre atualiza a flag local
             $assinatura->update(['renovacao_automatica' => $newState]);
 
-            Log::info("Auto-renovação alterada pelo usuário #{$user->id}: " . ($newState ? 'ON' : 'OFF') . ($assinatura->preapproval_id ? ' (MP sync)' : ' (local only)'));
+            Log::info("Auto-renovacao alterada pelo usuario #{$user->id}: " . ($newState ? 'ON' : 'OFF'));
 
             return response()->json([
-                'message' => 'Renovação automática ' . ($newState ? 'ativada' : 'desativada') . ' com sucesso.',
-                'active' => $newState
+                'message' => 'Renovacao automatica alterada com sucesso.',
+                'active' => $newState,
             ]);
         } catch (\Exception $e) {
-            Log::error("Erro ao alterar renovação automática: " . $e->getMessage());
+            Log::error('Erro ao alterar renovacao automatica: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Cancela a assinatura (status = cancelled).
-     * Chamado por ModalCancelarAssinatura -> confirmCancel
+     * Cancela assinatura ativa.
      */
     public function cancelar()
     {
         try {
             /** @var \App\Models\Usuario $user */
             $user = auth()->user();
+
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->where('status', 'active')
                 ->first();
@@ -121,7 +97,7 @@ class SubscriptionController extends Controller
 
             $assinatura->update([
                 'status' => 'cancelled',
-                'renovacao_automatica' => false
+                'renovacao_automatica' => false,
             ]);
 
             return response()->json(['message' => 'Assinatura cancelada com sucesso.']);

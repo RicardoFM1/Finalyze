@@ -458,6 +458,7 @@ const saving = ref(false)
 const cancelling = ref(false)
 const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+const subscriptionLoaded = ref(false)
 const historySearch = ref('')
 const historyFilters = ref({
     data: '',
@@ -568,6 +569,10 @@ const fetchSubscription = async (force = false) => {
         const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
+            subscriptionLoaded.value = true
+        } else if (response.status === 404) {
+            subscriptionData.value = { assinatura: null, historico: [] }
+            subscriptionLoaded.value = true
         } else {
             console.error('Error fetching subscription:', response.status)
         }
