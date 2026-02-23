@@ -4,7 +4,7 @@ namespace App\Servicos\Lembretes;
 
 use App\Models\Lembrete;
 
-class ExcluirLembrete
+class DesativarLembrete
 {
     public function executar(int $lembreteId)
     {
@@ -14,7 +14,7 @@ class ExcluirLembrete
             ->findOrFail($lembreteId);
 
         if ($lembrete->status === 'inativo' || $lembrete->trashed()) {
-            return; // Already done
+            return; 
         }
 
         $lembrete->status = 'inativo';
