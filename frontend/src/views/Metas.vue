@@ -1,79 +1,5 @@
-<template>
+﻿<template>
   <v-container>
-<<<<<<< HEAD
-    <div v-if="!loading" class="d-flex align-center mb-8">
-      <div>
-        <h1 class="text-h4 font-weight-bold d-flex align-center">
-          {{ $t('metas.financial_title') }}
-          <v-tooltip :text="$t('metas.financial_tooltip')">
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" icon="mdi-information-outline" size="xs" color="medium-emphasis" class="ml-2"></v-icon>
-            </template>
-          </v-tooltip>
-        </h1>
-      </div>
-      <v-spacer></v-spacer>
-      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="openDialog('financeira')" elevation="2">
-        {{ $t('metas.new_goal') }}
-      </v-btn>
-    </div>
-
-    <div v-if="loading" class="d-flex justify-center align-center py-12">
-      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-    </div>
-
-
-    <v-row v-if="!loading && financialMetas.length" class="mb-12">
-      <v-col v-for="meta in financialMetas" :key="meta.id" cols="12" md="4">
-        <v-card class="rounded-xl goal-card finance-card" elevation="4">
-          <v-card-text class="pa-6">
-            <div class="d-flex align-center mb-4">
-              <v-avatar :color="meta.cor || 'primary-lighten-4'" size="36" class="mr-3">
-                <v-icon :icon="meta.icone || 'mdi-cash-multiple'" :color="meta.cor ? 'white' : 'primary'" size="20"></v-icon>
-              </v-avatar>
-              <span class="text-h6 font-weight-bold">{{ meta.titulo }}</span>
-            </div>
-
-            <div class="d-flex justify-space-between align-baseline mb-2">
-              <div>
-                <span class="text-h5 font-weight-bold">{{ formatPrice(meta.valor_atual) }}</span>
-                <span class="text-medium-emphasis"> / {{ formatShortPrice(meta.valor_objetivo) }}</span>
-              </div>
-              <v-chip :color="getProgressColor(meta)" size="small" class="font-weight-bold">
-                {{ calculatePercentage(meta.valor_atual, meta.valor_objetivo) }}%
-              </v-chip>
-            </div>
-
-            <v-progress-linear
-              :model-value="calculatePercentage(meta.valor_atual, meta.valor_objetivo)"
-              height="8"
-              rounded
-              :color="getProgressColor(meta)"
-              class="mb-4"
-            ></v-progress-linear>
-
-            <div class="d-flex align-center text-caption" :class="meta.status === 'atrasado' ? 'text-error' : 'text-medium-emphasis'">
-              <v-icon v-if="meta.status === 'atrasado'" icon="mdi-alert" size="14" class="mr-1"></v-icon>
-              <v-icon v-else icon="mdi-trending-up" size="14" color="success" class="mr-1"></v-icon>
-              <span>{{ meta.descricao || getMetaSubtitle(meta) }}</span>
-            </div>
-          </v-card-text>
-
-          <v-divider></v-divider>
-
-          <v-card-actions class="pa-4 justify-end gap-2">
-            <v-btn variant="tonal" size="small" rounded="lg" color="primary" @click="editMeta(meta)" prepend-icon="mdi-pencil-outline">{{ $t('metas.edit') }}</v-btn>
-            <v-btn variant="tonal" size="small" rounded="lg" color="error" @click="confirmDelete(meta)" prepend-icon="mdi-delete-outline">{{ $t('metas.delete') }}</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6" class="d-flex justify-md-end mt-4 mt-md-0">
-            <v-btn-toggle v-model="statusFilter" mandatory color="primary" rounded="xl" class="mr-4" density="comfortable" variant="tonal">
-              <v-btn value="andamento" class="px-4">{{ $t('metas.filter.active') }}</v-btn>
-              <v-btn value="concluido" class="px-4">{{ $t('metas.filter.completed') }}</v-btn>
-              <v-btn value="inativo" class="px-4">{{ $t('metas.filter.inactive') }}</v-btn>
-              <v-btn value="all" class="px-4">{{ $t('metas.filter.all') }}</v-btn>
-=======
     <v-row align="center" class="mb-6 pt-4">
       <v-col cols="12">
         <div class="d-flex flex-column gap-6">
@@ -129,7 +55,6 @@
                 <v-icon start size="18">mdi-format-list-bulleted</v-icon>
                 {{ $t('metas.filter.all') }}
               </v-btn>
->>>>>>> origin/Ricardo
             </v-btn-toggle>
           </div>
         </div>
@@ -299,6 +224,8 @@ const { formatCurrency, convert, currency } = useCurrency()
 const authStore = useAuthStore()
 const metas = ref([])
 const anotacoes = ref([])
+const activeTab = ref('metas')
+const statusFilter = ref('andamento')
 const loading = ref(false)
 const dialog = ref(false)
 const deleteDialog = ref(false)
@@ -366,7 +293,7 @@ const toggleStatusConcluido = async (item) => {
   if (!isAnotacao && item.status !== 'concluido') {
     const p = calculatePercentage(item.valor_atual, item.valor_objetivo)
     if (p < 100) {
-      toast.error('A meta só pode ser finalizada quando atingir 100% de progresso.')
+      toast.error('A meta sÃ³ pode ser finalizada quando atingir 100% de progresso.')
       return
     }
   }
@@ -377,12 +304,11 @@ const toggleStatusConcluido = async (item) => {
   try {
     const response = await authStore.apiFetch(endpoint, {
       method: 'PATCH',
-      body: JSON.stringify({ status: 'andamento' })
+      body: JSON.stringify({ status: newStatus })
     })
     if (response.ok) {
-      toast.success(t('toasts.success_restore'))
+      toast.success(newStatus === 'concluido' ? t('toasts.success_update') : t('toasts.success_restore'))
       fetchMetas()
-      fetchAnotacoes()
     }
   } catch (e) { console.error(e) }
 }
@@ -451,9 +377,6 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 }
 
 .finance-card {
-<<<<<<< HEAD
-  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-=======
   background: linear-gradient(135deg, rgba(var(--v-theme-surface), 1) 0%, rgba(var(--v-theme-surface), 0.8) 100%);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid rgba(var(--v-border-color), 0.05);
@@ -463,7 +386,6 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
   border-color: rgba(var(--v-theme-primary), 0.2);
->>>>>>> origin/Ricardo
 }
 
 .notepad-card {
@@ -512,13 +434,6 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
 .gap-1 {
   gap: 8px;
 }
-<<<<<<< HEAD
-
-/* Glassmorphism subtle touch */
-.v-dialog .v-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-=======
 .pill-tabs :deep(.v-tab--selected) {
   background: white !important;
   color: rgb(var(--v-theme-primary)) !important;
@@ -595,6 +510,5 @@ const viewPlanning = (meta) => toast.info(t('metas.planning_dev'))
     padding: 0 12px !important;
     font-size: 0.85rem !important;
   }
->>>>>>> origin/Ricardo
 }
 </style>

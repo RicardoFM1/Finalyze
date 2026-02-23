@@ -239,16 +239,21 @@ onMounted(async () => {
             if (response.ok) {
                 const data = await response.json()
                 creditosRestantes.value = data.creditos_prorrata || 0
+                const selectedPlan = data.plano || data.plan
                 
-                if (route.query.plan && Number(data.plan.id) !== Number(route.query.plan)) {
+                if (!selectedPlan) {
+                    throw new Error('Preferencia de checkout sem plano associado')
+                }
+
+                if (route.query.plan && Number(selectedPlan.id) !== Number(route.query.plan)) {
                     preferenceId.value = null
                 } else {
                     preferenceId.value = data.id
-                    planInfo.value = data.plan
-                    planId.value = data.plan.id
+                    planInfo.value = selectedPlan
+                    planId.value = selectedPlan.id
                 
-                    if (route.query.period && data.plan.periodos) {
-                        const found = data.plan.periodos.find(p => p.id == route.query.period)
+                    if (route.query.period && selectedPlan.periodos) {
+                        const found = selectedPlan.periodos.find(p => p.id == route.query.period)
                         if (found) {
                             periodId.value = found.id
                             periodInfo.value = found
@@ -256,25 +261,26 @@ onMounted(async () => {
                     }
                     
                     if (!periodInfo.value && data.period_id) {
-                        periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
+                        periodInfo.value = selectedPlan.periodos?.find(p => p.id == data.period_id)
                         periodId.value = data.period_id
                     }
 
                     step.value = 3
                 }
                 
-               
+                
                 if (!periodInfo.value && data.period_id) {
-                    periodInfo.value = data.plan.periodos.find(p => p.id == data.period_id)
+                    periodInfo.value = selectedPlan.periodos?.find(p => p.id == data.period_id)
                     periodId.value = data.period_id
                 }
-
-                step.value = 2
             }
         }
 
         if (!preferenceId.value && planId.value) {
             const response = await authStore.apiFetch(`/planos`)
+            if (!response.ok) {
+                throw new Error(`Falha ao carregar planos (${response.status})`)
+            }
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
             

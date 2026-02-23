@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assinatura;
-use App\Models\HistoricoPagamento;
+use App\Models\Faturamento;
 use App\Servicos\Checkout\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +18,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Retorna a assinatura ativa do usuário e o histórico de pagamentos.
+     * Retorna a assinatura ativa do usu�rio e o hist�rico de pagamentos.
      * Chamado por Profile.vue -> fetchSubscription
      */
     public function index()
@@ -26,19 +26,17 @@ class SubscriptionController extends Controller
         try {
             $user = auth()->user();
 
-            // Busca a assinatura ativa ou a mais recente que ainda não expirou
-            // Prioriza status 'active' ou 'authorized' sobre 'cancelled' ou 'expired'
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->with(['plano', 'periodo'])
-                ->orderByRaw("CASE 
-                    WHEN status = 'active' THEN 1 
+                ->orderByRaw("CASE
+                    WHEN status = 'active' THEN 1
                     WHEN status = 'authorized' THEN 2
                     WHEN status = 'pending' THEN 3
                     ELSE 4 END")
                 ->orderBy('termina_em', 'desc')
                 ->first();
 
-            $historico = HistoricoPagamento::where('user_id', $user->id)
+            $historico = Faturamento::where('user_id', $user->id)
                 ->with(['assinatura.plano', 'assinatura.periodo'])
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -48,13 +46,16 @@ class SubscriptionController extends Controller
                 'historico' => $historico
             ]);
         } catch (\Exception $e) {
-            Log::error("Erro ao buscar assinaturas: " . $e->getMessage());
+            Log::error('Erro ao buscar assinaturas: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => 'Falha ao buscar dados de assinatura.'], 500);
         }
     }
 
     /**
-     * Alterna a renovação automática (Ligar/Desligar).
+     * Alterna a renova��o autom�tica (Ligar/Desligar).
      * Chamado por Profile.vue -> ativarAutoRenovacao
      */
     public function ativarAutoRenovacao(Request $request)
@@ -68,25 +69,24 @@ class SubscriptionController extends Controller
                 ->first();
 
             if (!$assinatura) {
-                return response()->json(['message' => 'Nenhuma assinatura ativa com renovação automática encontrada.'], 404);
+                return response()->json(['message' => 'Nenhuma assinatura ativa com renova��o autom�tica encontrada.'], 404);
             }
 
-            // Se o front não enviar 'active', nós invertemos o estado atual
-            $currentState = (bool)$assinatura->renovacao_automatica;
-            $newState = $request->has('active') ? (bool)$request->input('active') : !$currentState;
+            $currentState = (bool) $assinatura->renovacao_automatica;
+            $newState = $request->has('active') ? (bool) $request->input('active') : !$currentState;
 
             $status = $this->subscriptionService->toggleAutoRenewal($assinatura->preapproval_id, $newState);
 
             $assinatura->update(['renovacao_automatica' => $newState]);
 
             return response()->json([
-                'message' => 'Renovação automática ' . ($newState ? 'ativada' : 'desativada') . ' com sucesso.',
+                'message' => 'Renova��o autom�tica ' . ($newState ? 'ativada' : 'desativada') . ' com sucesso.',
                 'active' => $newState,
                 'status' => $status
             ]);
         } catch (\Exception $e) {
-            Log::error("Erro ao alterar renovação automática: " . $e->getMessage());
-            return response()->json(['error' => 'Falha ao processar solicitação.'], 500);
+            Log::error('Erro ao alterar renova��o autom�tica: ' . $e->getMessage());
+            return response()->json(['error' => 'Falha ao processar solicita��o.'], 500);
         }
     }
 
@@ -118,7 +118,7 @@ class SubscriptionController extends Controller
 
             return response()->json(['message' => 'Assinatura cancelada com sucesso.']);
         } catch (\Exception $e) {
-            Log::error("Erro ao cancelar assinatura: " . $e->getMessage());
+            Log::error('Erro ao cancelar assinatura: ' . $e->getMessage());
             return response()->json(['error' => 'Falha ao cancelar assinatura.'], 500);
         }
     }

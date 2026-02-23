@@ -89,11 +89,7 @@
                     {{ $t('plans.change_modal.credit_covered') }}
                 </span>
                 <span v-else>
-<<<<<<< HEAD
-                    Você tem {{ formatPrice(selectedForUpgrade?.creditos) }} de crédito disponível para este upgrade.
-=======
                     {{ $t('plans.change_modal.credit_available', { amount: formatPrice(selectedForUpgrade?.creditos) }) }}
->>>>>>> origin/Ricardo
                 </span>
             </p>
             
@@ -120,25 +116,6 @@
                 <v-divider class="my-4 opacity-20"></v-divider>
                 
                 <div class="d-flex justify-space-between align-center">
-<<<<<<< HEAD
-                    <span class="text-subtitle-2">Novo Plano:</span>
-                    <span class="font-weight-bold">{{ selectedForUpgrade?.plan.nome }} ({{ selectedForUpgrade?.period.nome }})</span>
-                </div>
-                <div class="d-flex justify-space-between align-center mt-1">
-                    <span class="text-subtitle-2">Valor Original:</span>
-                    <span>{{ formatPrice(selectedForUpgrade?.valorPlano) }}</span>
-                </div>
-                <div class="d-flex justify-space-between align-center mt-1">
-                    <span class="text-subtitle-2">Crédito Aplicado:</span>
-                    <span class="text-success font-weight-bold">- {{ formatPrice(selectedForUpgrade?.creditos) }}</span>
-                </div>
-                <v-divider class="my-2"></v-divider>
-                <div class="d-flex justify-space-between align-center">
-                    <span class="text-subtitle-1 font-weight-bold">Total a Pagar:</span>
-                    <span class="text-h6 font-weight-bold text-primary">
-                        {{ formatPrice(selectedForUpgrade?.valorFinal) }}
-                    </span>
-=======
                     <span class="text-h6 font-weight-bold">{{ $t('plans.change_modal.total_to_pay') }}:</span>
                     <div class="text-right">
                         <div v-if="selectedForUpgrade?.gratuito" class="text-h5 font-weight-black text-success">
@@ -148,7 +125,6 @@
                             {{ formatPrice(selectedForUpgrade?.valorFinal) }}
                         </div>
                     </div>
->>>>>>> origin/Ricardo
                 </div>
             </v-card>
 
@@ -219,11 +195,14 @@ onMounted(async () => {
         const prefResponse = await authStore.apiFetch('/checkout/preferencia')
         if (prefResponse.ok) {
             const data = await prefResponse.json()
-            if (data.id && data.plano) {
+            const selectedPlan = data.plano || data.plan
+            if (data.id && selectedPlan) {
                 currentSubscription.value = data
-                pendingPlanName.value = data.plano.nome
+                pendingPlanName.value = selectedPlan.nome
                 showPendingDialog.value = true
             }
+        } else if (prefResponse.status !== 404) {
+            console.error(`Falha ao buscar preferencia de checkout (${prefResponse.status})`)
         }
     } catch (e) {
         console.error('Erro ao buscar preferência:', e)
@@ -321,13 +300,6 @@ const applyFreeUpgrade = async () => {
     }
 }
 
-const formatPrice = (value) => {
-    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', {
-        style: 'currency',
-        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD'
-    }).format(value || 0)
-}
-
 const continuePayment = () => {
     continuing.value = true
     router.push({ name: 'Checkout' })
@@ -413,8 +385,6 @@ const formatPrice = (value) => formatCurrency(Number(value) || 0, 'BRL')
     transform: translateY(0);
   }
 }
-<<<<<<< HEAD
-=======
 
 .gradient-text {
   background: linear-gradient(135deg, #1867C0 30%, #5CBBF6 90%);
@@ -446,5 +416,5 @@ const formatPrice = (value) => formatCurrency(Number(value) || 0, 'BRL')
 .shadow-btn {
     box-shadow: 0 8px 16px rgba(var(--v-theme-primary), 0.25) !important;
 }
->>>>>>> origin/Ricardo
 </style>
+

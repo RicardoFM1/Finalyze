@@ -221,52 +221,11 @@
                 </v-col>
               </v-row>
 
-              <v-btn variant="outlined" color="primary" to="/planos">
-                {{ $t('profile.btn_upgrade') }}
-              </v-btn>
-
-              <Calendar @select="handleCalendarSelect" />
-
-
-              <ReminderModal
-                v-model="showReminderModal"
-                :date="selectedDate"
-              />
-
-              <v-btn color="primary" @click="open = true">
-                Compartilhar
-              </v-btn>
-
-              <CompartilharModal
-                v-model="open"
-                @invite="sendInvite"
-              />
-
-              <!-- ================= ASSINATURA ================= -->
-              <div
-                v-if="!hasActiveOrValidSubscription"
-                class="text-center py-10 no-plan-empty"
-              >
-                <v-icon icon="mdi-alert-circle-outline" size="64" color="grey" />
-                <h3 class="text-h5 mt-4">
-                  {{ $t('profile.subscription.no_active') }}
-                </h3>
-                <p class="text-medium-emphasis mb-6">
-                  {{ $t('profile.subscription.no_active_desc') }}
-                </p>
-                <v-btn color="primary" :to="{ name: 'Plans' }">
-                  {{ $t('profile.subscription.view_plans') }}
-                </v-btn>
-              </div>
-
-              <v-row v-else>
-                <!-- cards de assinatura (mantém os seus) -->
-              </v-row>
 
             </v-container>
         </v-window-item>
 
-        <!-- ================= HISTÓRICO ================= -->
+        <!-- ================= HISTÃ“RICO ================= -->
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
             <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
@@ -329,7 +288,7 @@
 
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
@@ -338,9 +297,6 @@ import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
-import Calendar from '../components/Calendar/Calendar.vue'
-import ReminderModal from '../components/avisos/ReminderModal/ReminderModal.vue'
-import CompartilharModal from '../components/avisos/CompartilharModal/CompartilharModal.vue'
 
 const { t } = useI18n()
 
@@ -348,8 +304,6 @@ const authStore = useAuthStore()
 const uiStore = useUiStore()
 const router = useRouter()
 const activeTab = ref('personal')
-const showReminderModal = ref(false)
-const selectedDate = ref('')
 const user = ref({
     nome: '',
     email: '',
@@ -369,13 +323,17 @@ const loadingSub = ref(true)
 const saving = ref(false)
 const confirmCancel = ref(false)
 const cancelling = ref(false)
-const open =ref(false)
+const subscriptionLoaded = ref(false)
 
 const confirmRemoveAvatarDialog = ref(false)
 
 onMounted(async () => {
    await fetchUser()
-   await fetchSubscription()
+   if (activeTab.value !== 'personal' && (user.value?.plano_id || user.value?.plano?.id)) {
+     await fetchSubscription(true)
+    } else {
+      loadingSub.value = false
+    }
 })
 
 const loadingUser = ref(false)
@@ -403,12 +361,19 @@ const fetchUser = async () => {
       loadingUser.value = false
     }
 }
-const fetchSubscription = async () => {
+const fetchSubscription = async (force = false) => {
+    if (subscriptionLoaded.value && !force) return
     try {
         loadingSub.value = true
         const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
+            subscriptionLoaded.value = true
+        } else if (response.status === 404) {
+            subscriptionData.value = { assinatura: null, historico: [] }
+            subscriptionLoaded.value = true
+        } else {
+            console.error(`Falha ao buscar assinatura (${response.status})`)
         }
     } catch (e) {
         console.error(e)
@@ -417,8 +382,6 @@ const fetchSubscription = async () => {
     }
 }
 
-<<<<<<< HEAD
-=======
 const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
         case 'paid':
@@ -448,7 +411,6 @@ const getStatusText = (status) => {
     return status.toUpperCase()
 }
 
->>>>>>> origin/Ricardo
 const ativarAutoRenovacao = async () => {
     try {
         const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { method: 'POST' })
@@ -466,6 +428,12 @@ const ativarAutoRenovacao = async () => {
 const payAhead = () => {
     router.push({ name: 'Plans' })
 }
+
+watch(activeTab, async (tab) => {
+  if ((tab === 'assinatura' || tab === 'historico') && (user.value?.plano_id || user.value?.plano?.id)) {
+    await fetchSubscription()
+  }
+})
 
 const progressPercentage = computed(() => {
     if (!subscriptionData.value.assinatura) return 0
@@ -492,7 +460,7 @@ const hasActiveOrValidSubscription = computed(() => {
     // Consideramos ativa se o status for active ou authorized (MP)
     if (s.status === 'active' || s.status === 'authorized') return true
     
-    // Se estiver pendente, também queremos mostrar o card (embora com aviso)
+    // Se estiver pendente, tambÃ©m queremos mostrar o card (embora com aviso)
     if (s.status === 'pending') return true
 
     const end = new Date(s.termina_em).getTime()
@@ -646,23 +614,6 @@ const formatCPF = (event) => {
   user.value.cpf = value
 }
 
-function sendInvite(payload) {
-  const emailEnviado = payload?.email_destino || payload?.email || '(email nao informado)'
-  console.log('Teste Email enviado', emailEnviado)
-}
-
-
-function handleCalendarSelect({ date, isFuture }) {
-  if (!isFuture) {
-    toast.warning('Só é possível criar lembretes para datas futuras')
-    return
-  }
-
-  selectedDate.value = date
-  showReminderModal.value = true
-}
-
-
 </script>
 
 <style scoped>
@@ -745,3 +696,4 @@ function handleCalendarSelect({ date, isFuture }) {
   transform: scale(1.02);
 }
 </style>
+

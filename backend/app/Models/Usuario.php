@@ -67,6 +67,11 @@ class Usuario extends Authenticatable
         return $this->hasMany(Assinatura::class, 'user_id');
     }
 
+    public function historicosPagamento()
+    {
+        return $this->hasMany(HistoricoPagamento::class, 'user_id');
+    }
+
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');

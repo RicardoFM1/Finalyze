@@ -87,12 +87,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const uiStore = useUiStore()
-const { locale } = useI18n()
+const { locale: i18nLocale } = useI18n()
 
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
-const locale = computed(() => t('common.currency') === 'R$' ? 'pt-BR' : 'en-US')
-const dpLocale = computed(() => locale.value === 'pt-BR' ? ptBR : enUS)
+const appLocale = computed(() => (i18nLocale.value === 'en' ? 'en-US' : 'pt-BR'))
+const dpLocale = computed(() => (appLocale.value === 'pt-BR' ? ptBR : enUS))
 
 const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime())
 const internalDate = ref(null)
@@ -127,9 +127,7 @@ const parseValue = (val) => {
 
 const formattedDisplayDate = computed(() => {
   if (!internalDate.value) return ''
-  
-  const localeStr = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-  const formatter = new Intl.DateTimeFormat(localeStr, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const formatter = new Intl.DateTimeFormat(appLocale.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
   
   if (props.mode === 'range' && Array.isArray(internalDate.value)) {
     const [start, end] = internalDate.value
@@ -153,18 +151,6 @@ const formatDateISO = (date) => {
 
 const onDateChange = (val) => {
   if (!val) {
-  const dateLocale = locale.value === 'en' ? 'en-US' : 'pt-BR'
-  return new Intl.DateTimeFormat(dateLocale).format(new Date(internalDate.value))
-})
-
-const onDateChange = (date) => {
-  if (date) {
-    // We want to store as YYYY-MM-DD for consistency with backend
-    const offset = date.getTimezoneOffset()
-    const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000))
-    const isoString = adjustedDate.toISOString().split('T')[0]
-    emit('update:modelValue', isoString)
-  } else {
     emit('update:modelValue', null)
     return
   }

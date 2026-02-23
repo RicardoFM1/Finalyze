@@ -1,17 +1,5 @@
 <template>
   <v-container class="dashboard-wrapper">
-<<<<<<< HEAD
-    <!-- Header Modernizado -->
-    <v-row class="mb-8 pt-4">
-      <v-col cols="12">
-        <div class="d-flex align-center">
-            <v-avatar color="#2962FF" size="64" class="mr-4 elevation-4 glass-icon">
-                <v-icon icon="mdi-view-dashboard-outline" color="white" size="32"></v-icon>
-            </v-avatar>
-            <div>
-                <h1 class="text-h3 font-weight-bold mb-1 gradient-text">{{ $t('home_welcome') }}, {{ authStore.user?.nome || 'bem-vindo' }}!</h1>
-                <p class="text-h6 text-medium-emphasis font-weight-medium">{{ $t('home_subtitle') }}</p>
-=======
     <v-row class="mb-4 pt-4" align="center">
       <v-col cols="12">
         <div class="d-flex align-center">
@@ -21,15 +9,11 @@
             <div class="w-100">
                 <h1 class="text-h4 text-sm-h4 text-md-h3 font-weight-bold mb-1 gradient-text text-truncate">{{ $t('landing.home_welcome') }}, {{ authStore.user?.nome || $t('common.welcome_fallback') }}!</h1>
                 <p class="text-subtitle-1 text-md-h6 text-medium-emphasis font-weight-medium">{{ $t('landing.home_subtitle') }}</p>
->>>>>>> origin/Ricardo
             </div>
         </div>
       </v-col>
     </v-row>
 
-<<<<<<< HEAD
-   
-=======
     <FilterLancamentos
       v-model="filterStore.filters"
       :categorias="categorias"
@@ -39,7 +23,6 @@
       macro
     />
 
->>>>>>> origin/Ricardo
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -59,16 +42,11 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
-<<<<<<< HEAD
-                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.receita, 'BRL') }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.total_income_month') }}</div>
-=======
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.receita) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencyPrefix }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_income_month') }}</div>
->>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
@@ -82,16 +60,11 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
-<<<<<<< HEAD
-                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.despesa, 'BRL') }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.total_expense_month') }}</div>
-=======
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.despesa) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencyPrefix }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_expense_month') }}</div>
->>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
@@ -105,16 +78,11 @@
                     </div>
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
-<<<<<<< HEAD
-                <div class="text-h3 font-weight-bold mb-1">{{ formatCurrency(resumo.saldo, 'BRL') }}</div>
-                <div class="text-subtitle-2 opacity-80">{{ $t('features.net_worth_today') }}</div>
-=======
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.saldo) }">
-                  <span class="currency-symbol">{{ $t('common.currency') }}</span>
+                  <span class="currency-symbol">{{ currencyPrefix }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.saldo) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.net_worth_today') }}</div>
->>>>>>> origin/Ricardo
               </v-card-item>
               <div class="card-blur-bg"></div>
             </v-card>
@@ -194,21 +162,11 @@
                     </v-avatar>
                 </template>
                 <template v-slot:append>
-<<<<<<< HEAD
-                    <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold">
-                        {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
-                    </span>
-=======
                     <div class="d-flex align-center">
                         <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold mr-4">
-                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ $t('common.currency') }} {{ formatNumber(item.valor) }}
+                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
                         </span>
-                        <div class="d-flex gap-1">
-                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click.stop="abrirEditar(item)"></v-btn>
-                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="abrirExcluir(item)"></v-btn>
-                        </div>
                     </div>
->>>>>>> origin/Ricardo
                 </template>
               </v-list-item>
               <div v-if="!resumo.atividades_recentes?.length" class="text-center pa-10 text-medium-emphasis">
@@ -284,33 +242,24 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
-import { toast } from 'vue3-toastify'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
-import DateInput from '../components/Common/DateInput.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { useCurrency } from '../composables/useCurrency'
+import { useI18n } from 'vue-i18n'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
-<<<<<<< HEAD
-=======
-import { useI18n } from 'vue-i18n'
-import { watch } from 'vue'
 const { t } = useI18n()
->>>>>>> origin/Ricardo
+const { formatCurrency, formatNumber, currencyPrefix, convert } = useCurrency()
 
 
 import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const authStore = useAuthStore()
-<<<<<<< HEAD
-const { formatCurrency } = useCurrency()
-=======
 const filterStore = useFilterStore()
->>>>>>> origin/Ricardo
 const dialog = ref(false)
 const loading = ref(true)
 const metasSummary = ref([])
@@ -398,13 +347,9 @@ const fetchMetas = async () => {
         const response = await authStore.apiFetch('/metas')
         if (response.ok) {
             const data = await response.json()
-<<<<<<< HEAD
-            metasSummary.value = data.slice(0, 3) // Pega as 3 primeiras
-=======
             metasSummary.value = data
                 .filter(m => m.status !== 'inativo')
                 .slice(0, 3)
->>>>>>> origin/Ricardo
         }
     } catch (e) { console.error(e) }
 }
@@ -418,44 +363,6 @@ const calculatePercentage = (meta) => {
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
 }
 
-<<<<<<< HEAD
-const salvarLancamento = async () => {
-    saving.value = true
-    try {
-        const valor = Number(form.value.valor)
-        if (isNaN(valor) || valor <= 0) {
-            toast.warning('Por favor, informe um valor válido.')
-            saving.value = false
-            return
-        }
-
-        const response = await authStore.apiFetch('/lancamentos', {
-            method: 'POST',
-            body: JSON.stringify({
-                ...form.value,
-                valor: valor 
-            })
-        })
-
-        if (response.ok) {
-            toast.success('Lançamento adicionado!')
-            dialog.value = false
-            fetchSummary()
-           
-            form.value = {
-                tipo: 'despesa',
-                valor: '',
-                categoria: '',
-                data: new Date().toISOString().substr(0, 10),
-                descricao: ''
-            }
-        } else {
-            const data = await response.json().catch(() => ({}))
-            toast.error(data.message || 'Erro ao salvar lançamento')
-        }
-    } catch (e) {
-        toast.error('Erro de conexão')
-=======
 
 const fetchSummary = async () => {
     loading.value = true
@@ -472,9 +379,9 @@ const fetchSummary = async () => {
             }
         }
         if (f.descricao) params.append('descricao', f.descricao)
-        if (f.categoria) params.append('categoria', f.categoria)
+        if (f.categoria) params.append('categoria', f.categoria.value || f.categoria)
         if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
-        if (f.valor) params.append('valor', f.valor)
+        if (f.valor) params.append('valor', convert(f.valor, 'BRL', 'BRL'))
 
         const url = Array.from(params).length > 0 ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
         const response = await authStore.apiFetch(url)
@@ -483,24 +390,11 @@ const fetchSummary = async () => {
         }
     } catch (e) {
         console.error(e)
->>>>>>> origin/Ricardo
     } finally {
         loading.value = false
     }
 }
 
-<<<<<<< HEAD
-=======
-const formatCurrency = (value) => {
-  if (value === null || value === undefined) return '0,00'
-
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(Number(value))
-}
-
->>>>>>> origin/Ricardo
 </script>
 
 <style scoped>

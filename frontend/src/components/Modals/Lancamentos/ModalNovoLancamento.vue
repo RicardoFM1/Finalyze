@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <ModalBase :title="$t('modals.titles.add_transaction')" v-model="internalValue" maxWidth="550px">
     <v-form @submit.prevent="salvarLancamento">
       <v-row dense>
@@ -23,8 +23,6 @@
         <v-col cols="12" md="6">
           <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
         </v-col>
-<<<<<<< HEAD
-=======
        <v-col cols="12">
                             <v-autocomplete
                                 v-model="form.categoria"
@@ -56,37 +54,6 @@
                                 </template>
                             </v-autocomplete>
                         </v-col>
->>>>>>> origin/Ricardo
-        <v-col cols="12">
-          <v-autocomplete
-            v-model="form.categoria"
-            :items="categorias"
-            item-title="title"
-            item-value="title"
-            :label="$t('modals.labels.category')"
-            variant="outlined"
-            rounded="lg"
-            required
-            :placeholder="$t('modals.placeholders.select_category')"
-            :no-data-text="$t('transactions.no_data')"
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :prepend-icon="item.raw.icon"
-                :title="item.raw.title"
-              />
-            </template>
-
-            <template v-slot:prepend-inner>
-              <v-icon
-                v-if="form.categoria"
-                :icon="categorias.find((c) => c.title === form.categoria)?.icon || 'mdi-tag'"
-                class="mr-2 text-medium-emphasis"
-              />
-            </template>
-          </v-autocomplete>
-        </v-col>
         <v-col cols="12">
           <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" />
         </v-col>
@@ -136,8 +103,6 @@ const internalValue = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
-<<<<<<< HEAD
-=======
 const categoriasTraduzidas = computed(() => {
   return categorias.map(c => ({
     displayTitle: t('categories.' + c.title),
@@ -146,7 +111,6 @@ const categoriasTraduzidas = computed(() => {
   }))
 })
 
->>>>>>> origin/Ricardo
 const form = ref({
   tipo: 'despesa',
   valor: '',

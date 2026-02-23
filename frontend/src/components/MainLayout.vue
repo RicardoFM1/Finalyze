@@ -256,12 +256,6 @@ const toggleDrawer = () => {
 const isAuthPage = computed(() => {
   return route.name === 'Login' || route.name === 'Register'
 })
-onMounted(async () => {
-    if (authStore.isAuthenticated) {
-        await authStore.fetchUser()
-    }
-})
-
 const handleLogout = () => {
     confirmLogout.value = false
     authStore.logout()

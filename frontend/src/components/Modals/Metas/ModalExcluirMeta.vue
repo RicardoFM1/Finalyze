@@ -45,11 +45,7 @@ const confirmDelete = async () => {
       method: 'DELETE'
     })
     if (response.ok) {
-<<<<<<< HEAD
-      toast.success(isAnotacao ? t('toasts.success_update') : t('toasts.success_update'))
-=======
       toast.success(t('toasts.success_inactivate'))
->>>>>>> origin/Ricardo
       internalValue.value = false
       emit('deleted')
     }

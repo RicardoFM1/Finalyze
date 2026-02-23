@@ -57,7 +57,10 @@ class ListarLancamentos
             'despesa' => (clone $queryFiltered)->where('tipo', 'despesa')->sum('valor'),
         ];
 
-        $perPage = $filtros['per_page'] ?? 10;
+        $perPage = isset($filtros['per_page']) ? (int) $filtros['per_page'] : 10;
+        $perPage = max(1, min($perPage, 100));
+        $page = isset($filtros['page']) ? (int) $filtros['page'] : 1;
+        $page = max(1, $page);
 
         $paginated = $query->paginate($perPage, ['*'], 'page', $page);
 

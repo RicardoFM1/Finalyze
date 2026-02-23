@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class Lancamento extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'lancamentos';
 
     protected $fillable = [
@@ -20,26 +20,34 @@ class Lancamento extends Model
         'valor',
         'categoria',
         'descricao',
-        'data'
+        'data',
     ];
 
     protected $casts = [
         'data' => 'date',
-        'valor' => 'decimal:2'
+        'valor' => 'decimal:2',
     ];
 
-    public static function validarLimiteLancamentos($userId){
-        $lancamentoUserCount = Lancamento::where('user_id', $userId)->count();
-        $userPlanoId = Usuario::where('id', $userId)->value('plano_id');
-        $userPlanoLimiteLancamentos = Plano::where('id', $userPlanoId)->value('limite_lancamentos');
-        if($lancamentoUserCount >= $userPlanoLimiteLancamentos){
+    public static function validarLimiteLancamentos($userId)
+    {
+        $usuario = Usuario::find($userId);
+        if (!$usuario || $usuario->admin) {
+            return;
+        }
+
+        $limiteLancamentos = Plano::where('id', $usuario->plano_id)->value('limite_lancamentos');
+        if ($limiteLancamentos === null) {
+            return;
+        }
+
+        $lancamentosDoUsuario = self::where('user_id', $userId)->count();
+        if ($lancamentosDoUsuario >= (int) $limiteLancamentos) {
             throw ValidationException::withMessages([
-                'message' => ['Você atingiu o limite de lançamentos do plano, atualize ou adquira um novo.']
+                'message' => ['Voce atingiu o limite de lancamentos do plano, atualize ou adquira um novo.'],
             ]);
         }
-        
     }
-  
+
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'user_id');

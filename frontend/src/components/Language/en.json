@@ -379,9 +379,6 @@
     "title_assinatura": "Subscription Plan ${planName}",
     "quantity": "Quantity",
     "unit_price": "Unit Price",
-<<<<<<< HEAD
-    "total": "Total"
-=======
     "total": "Total",
     "price_per_period": "{period}: {price}",
     "subtotal": "Subtotal",
@@ -418,7 +415,6 @@
       "resend_error": "Error resending code",
       "register_success": "Registration completed! Please check your email."
     }
->>>>>>> origin/Ricardo
   },
   "NotFound": {
     "title": "404",
@@ -432,13 +428,9 @@
     "cpf_invalid": "Invalid Tax ID",
     "age_restriction": "You must be at least 18 years old.",
     "match_password": "Passwords do not match",
-<<<<<<< HEAD
-    "invalid_value": "Invalid value"
-=======
     "invalid_value": "Invalid value",
     "description_too_long": "The description cannot be longer than 255 characters.",
     "min_age": "You must be at least 18 years old."
->>>>>>> origin/Ricardo
   },
   "toasts": {
     "login_success": "Login successful!",

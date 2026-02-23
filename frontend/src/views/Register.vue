@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container class="fill-height pa-0 auth-wrapper" fluid>
     <v-row no-gutters class="fill-height flex-row-reverse">
 
@@ -15,13 +15,13 @@
           
           <v-list bg-transparent class="mt-12 text-left mx-auto transparent-list" max-width="400">
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">Gestão completa de despesas</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">GestÃ£o completa de despesas</v-list-item-title>
             </v-list-item>
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">Relatórios inteligentes em tempo real</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">RelatÃ³rios inteligentes em tempo real</v-list-item-title>
             </v-list-item>
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">Definição e acompanhamento de metas</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">DefiniÃ§Ã£o e acompanhamento de metas</v-list-item-title>
             </v-list-item>
           </v-list>
         </div>
@@ -175,7 +175,7 @@ const handleRegister = async () => {
   error.value = ''
   errors.value = {}
   try {
-    console.log('Dados do formulário:', form.value)
+    console.log('Dados do formulÃ¡rio:', form.value)
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
     await authStore.register(
       form.value.nome, 
@@ -212,7 +212,7 @@ const handleVerify = async (code) => {
     toast.success(t('toasts.register_success'))
     router.push({ name: 'Dashboard' })
   } catch (err) {
-    error.value = err.message || 'Erro ao verificar código'
+    error.value = err.message || 'Erro ao verificar cÃ³digo'
     toast.error(error.value)
   } finally {
     loading.value = false
@@ -222,9 +222,9 @@ const handleVerify = async (code) => {
 const handleResend = async () => {
   try {
     await authStore.resendCode(form.value.email)
-    toast.success('Novo código enviado com sucesso!')
+    toast.success('Novo cÃ³digo enviado com sucesso!')
   } catch (err) {
-    toast.error(err.message || 'Erro ao reenviar código')
+    toast.error(err.message || 'Erro ao reenviar cÃ³digo')
   }
 }
 
@@ -242,8 +242,6 @@ const handleCpfInput = (event) => {
   form.value.cpf = value
 }
 </script>
-<<<<<<< HEAD
-=======
 
 <style scoped>
 .auth-wrapper {
@@ -333,4 +331,3 @@ const handleCpfInput = (event) => {
   width: auto;
 }
 </style>
->>>>>>> origin/Ricardo

@@ -269,8 +269,6 @@
     "restricted_subtitle": "Seu plano atual não inclui relatórios avançados.",
     "view_plans": "Ver Planos"
   },
-<<<<<<< HEAD
-=======
   "checkout": {
     "price_per_period": "{period}: {price}",
     "total": "Total",
@@ -309,7 +307,6 @@
       "register_success": "Cadastro realizado! Por favor, verifique seu e-mail."
     }
   },
->>>>>>> origin/Ricardo
   "admin": {
     "title": "Planos",
     "header": "Gestão de Planos",
@@ -413,15 +410,6 @@
     },
     "register_footer": "Finalyze Finance. Sua jornada rumo à liberdade financeira."
   },
-  "checkout": {
-    "title": "Complete sua Assinatura",
-    "subtitle": "Você está assinando o plano {planName}",
-    "Gen_pagament": "Gerando pagamento...",
-    "title_assinatura": "Assinatura Plano ${planName}",
-    "quantity": "Quantidade",
-    "unit_price": "Preço Unitário",
-    "total": "Total"
-  },
   "NotFound": {
     "title": "404",
     "p": "Página não encontrada",
@@ -434,13 +422,9 @@
     "cpf_invalid": "CPF inválido",
     "age_restriction": "Você deve ter pelo menos 18 anos.",
     "match_password": "As senhas não coincidem",
-<<<<<<< HEAD
-    "invalid_value": "Valor inválido"
-=======
     "invalid_value": "Valor inválido",
     "description_too_long": "A descrição não pode ter mais que 255 caracteres.",
     "min_age": "Você deve ter pelo menos 18 anos."
->>>>>>> origin/Ricardo
   },
   "toasts": {
     "login_success": "Login realizado com sucesso!",

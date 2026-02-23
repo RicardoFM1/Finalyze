@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->appendToGroup('api', 'throttle:api-global-ip');
+
         $middleware->alias([
             'has_plan' => \App\Http\Middleware\EnsureUserHasPlan::class,
             'admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
