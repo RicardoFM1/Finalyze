@@ -24,7 +24,9 @@ class Usuario extends Authenticatable
         'data_nascimento',
         'codigo_verificacao',
         'codigo_expira_em',
-        'idioma'
+        'idioma',
+        'aceita_termos',
+        'aceita_notificacoes'
     ];
 
     protected $hidden = [
@@ -47,6 +49,8 @@ class Usuario extends Authenticatable
             'admin' => 'boolean',
             'data_nascimento' => 'date',
             'codigo_expira_em' => 'datetime',
+            'aceita_termos' => 'boolean',
+            'aceita_notificacoes' => 'boolean',
         ];
     }
 

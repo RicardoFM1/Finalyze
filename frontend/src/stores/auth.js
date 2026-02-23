@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUiStore } from './ui';
+import { toast } from 'vue3-toastify';
 
 
 export const useAuthStore = defineStore('auth', () => {
@@ -101,11 +102,20 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento) {
+    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento, aceita_termos = false, aceita_notificacoes = true) {
         try {
             const response = await apiFetch('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ nome, email, senha, senha_confirmation: password_confirmation, cpf, data_nascimento })
+                body: JSON.stringify({
+                    nome,
+                    email,
+                    senha,
+                    senha_confirmation: password_confirmation,
+                    cpf,
+                    data_nascimento,
+                    aceita_termos,
+                    aceita_notificacoes
+                })
             });
 
             const data = await response.json();
@@ -241,5 +251,17 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts };
+    const ui = useUiStore();
+
+    function setLanguage(lang) {
+        ui.setLocale(lang);
+        localStorage.setItem('locale', lang);
+        if (typeof window !== 'undefined') {
+            // Optional: for fully reactive and persistent components that don't watch the store
+            const msg = lang === 'pt' ? 'Idioma alterado para Português' : 'Language changed to English';
+            toast.success(msg, { autoClose: 1000 });
+        }
+    }
+
+    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage };
 });

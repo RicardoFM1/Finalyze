@@ -426,7 +426,6 @@ import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useMoney } from '@/composables/useMoney'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
@@ -798,9 +797,6 @@ const formatDate = (dateString) => {
     })
 }
 
-const formatPrice = (value) => {
-    return formatMoney(value)
-}
 
 const validateCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '')
@@ -820,9 +816,14 @@ const validateCPF = (cpf) => {
 
 const ageRules = [
   v => {
-    if (!v || typeof v !== 'string' || !v.includes('-')) return true
-    const [year, month, day] = v.split('-').map(Number)
-    const birth = new Date(year, month - 1, day)
+    let birth
+    if (typeof v === 'string' && v.includes('-')) {
+      const [year, month, day] = v.split('-').map(Number)
+      birth = new Date(year, month - 1, day)
+    } else {
+      birth = new Date(v)
+    }
+    
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
     const m = today.getMonth() - birth.getMonth()

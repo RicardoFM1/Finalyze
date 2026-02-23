@@ -18,7 +18,8 @@ class StoreLancamentoRequest extends FormRequest
             'valor' => 'required|numeric',
             'categoria' => 'required|string',
             'data' => 'required|date',
-            'descricao' => 'nullable|string'
+            'descricao' => 'nullable|string',
+            'forma_pagamento' => 'nullable|string'
         ];
     }
 

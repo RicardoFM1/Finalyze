@@ -44,7 +44,8 @@
       "goals_title": "Gestão de Metas",
       "goals_desc": "Defina objetivos claros e acompanhe cada passo da sua jornada para realizá-los.",
       "transactions_title": "Lançamentos Financeiros",
-      "transactions_text": "Gere e visualize seus lançamentos financeiros de forma simples e eficiente."
+      "transactions_text": "Gere e visualize seus lançamentos financeiros de forma simples e eficiente.",
+      "premium_resource": "RECURSO PREMIUM"
     }
   },
   "home": {
@@ -62,7 +63,31 @@
     "no_email": "Não recebeu o e-mail?",
     "resend_timer": "Reenviar em {seconds}s",
     "btn_resend": "Reenviar código",
-    "btn_back_login": "Voltar para o login"
+    "btn_back_login": "Voltar para o login",
+    "i_agree_to": "Eu aceito os",
+    "terms_and_conditions": "termos e condições",
+    "i_agree_to_notifications": "Aceito receber notificações por e-mail com dicas e atualizações importantes.",
+    "login_terms_notice": "Ao entrar, você concorda com nossos",
+    "terms_title": "Termos e Condições & Privacidade",
+    "terms_text": "Ao utilizar o Finalyze, você concorda que: 1. Seus dados financeiros são processados de forma segura e criptografada para gerar seus relatórios e análises. 2. Não realizamos reembolsos de planos após a confirmação do pagamento, dado o acesso imediato às ferramentas premium. 3. Você é responsável pela veracidade dos dados inseridos e pela segurança de sua senha. 4. Seus dados nunca serão compartilhados com terceiros sem sua autorização explícita (ex: através do módulo de Colaboração).",
+    "placeholders": {
+      "name": "Seu nome completo",
+      "email": "exemplo@email.com",
+      "password": "********",
+      "cpf": "000.000.000-00",
+      "birthdate": "DD/MM/AAAA"
+    },
+    "terms_protection_title": "Proteção & Transparência",
+    "terms_btn_close": "Entendi",
+    "feature_list": {
+      "dashboard": "Gestão completa de despesas",
+      "reports": "Relatórios inteligentes em tempo real",
+      "goals": "Definição e acompanhamento de metas"
+    },
+    "feature_badges": {
+      "security": "Segurança Total",
+      "analysis": "Análise Inteligente"
+    }
   },
   "sidebar": {
     "home": "Página inicial",
@@ -83,8 +108,8 @@
   "settings": {
     "appearance": "Aparência",
     "theme": "Tema do Sistema",
-    "light_mode_active": "Modo Claro Ativo",
-    "dark_mode_active": "Modo Escuro Ativo",
+    "light_mode_active": "Modo Claro",
+    "dark_mode_active": "Modo Escuro",
     "currency_desc": "Formato de exibição dos valores monetários"
   },
   "login": {

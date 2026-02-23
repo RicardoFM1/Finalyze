@@ -4,11 +4,8 @@
       v-model="internalDate"
       :range="mode === 'range'"
       :dark="isDark"
-      :locale="dpLocale"
       auto-apply
       :enable-time-picker="false"
-      :time-picker="false"
-      :enable-seconds="false"
       :teleport="true"
       @update:model-value="onDateChange"
       :placeholder="label"
@@ -53,7 +50,6 @@ import { useUiStore } from '../../stores/ui'
 import { useI18n } from 'vue-i18n'
 import { useMoney } from '../../composables/useMoney'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
-import { ptBR, enUS } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps({
@@ -93,8 +89,9 @@ const { meta: currencyMeta } = useMoney()
 
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
-const locale = computed(() => currencyMeta.value.locale)
-const dpLocale = computed(() => locale.value === 'pt-BR' ? ptBR : enUS)
+
+// VueDatePicker locale prop expects a BCP 47 string
+const localeString = computed(() => currencyMeta.value.locale)
 
 const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime())
 const internalDate = ref(null)
@@ -130,8 +127,7 @@ const parseValue = (val) => {
 const formattedDisplayDate = computed(() => {
   if (!internalDate.value) return ''
   
-  const localeStr = currencyMeta.value.locale
-  const formatter = new Intl.DateTimeFormat(localeStr, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const formatter = new Intl.DateTimeFormat(localeString.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
   
   if (props.mode === 'range' && Array.isArray(internalDate.value)) {
     const [start, end] = internalDate.value

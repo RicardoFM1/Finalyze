@@ -16,6 +16,14 @@ class ColaboracaoController extends Controller
         // Contas que eu compartilhei com outros
         $minhasColaboracoes = $user->colaboracoes()->with('guest')->get();
 
+        // Sincronizar status: se o convidado já existe no sistema, marcar como 'accepted' se estiver 'pending'
+        foreach ($minhasColaboracoes as $colaboracao) {
+            if ($colaboracao->status === 'pending' && $colaboracao->guest) {
+                $colaboracao->status = 'accepted';
+                $colaboracao->save();
+            }
+        }
+
         // Contas que outros compartilharam comigo
         $colaboracoesComigo = Colaboracao::where('email_convidado', $user->email)
             ->with(['proprietario.plano.recursos', 'guest'])

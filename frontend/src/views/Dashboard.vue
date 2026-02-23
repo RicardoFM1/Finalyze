@@ -242,7 +242,7 @@
               >
                 <template v-slot:prepend>
                     <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">
-                        <v-icon :icon="item.tipo === 'receita' ? 'mdi-plus' : 'mdi-minus'" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
+                        <v-icon :icon="getCategoryIcon(item.categoria)" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
                     </v-avatar>
                 </template>
                 <template v-slot:append>
@@ -376,7 +376,14 @@ const activeFilterChips = computed(() => {
     if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
     if (f.categoria && f.categoria.length) {
         f.categoria.forEach(c => {
-            chips.push({ key: 'categoria', label: t('filters.category'), value: t('categories.' + c), icon: 'mdi-tag', originalValue: c })
+            const catObj = categoriasConstantes.find(cat => cat.title === c)
+            chips.push({ 
+                key: 'categoria', 
+                label: t('filters.category'), 
+                value: t('categories.' + c), 
+                icon: catObj ? catObj.icon : 'mdi-tag', 
+                originalValue: c 
+            })
         })
     }
     if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })
@@ -463,6 +470,11 @@ const getPaymentMethodIcon = (method) => {
     other: 'mdi-dots-horizontal-circle-outline'
   }
   return icons[method] || icons.other
+}
+
+const getCategoryIcon = (catName) => {
+  const cat = categoriasConstantes.find(c => c.title === catName)
+  return cat ? cat.icon : 'mdi-tag-outline'
 }
 const chartData = computed(() => ({
     labels: [t('features.incomes'), t('features.expenses'), t('features.net')],

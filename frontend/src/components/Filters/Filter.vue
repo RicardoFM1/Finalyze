@@ -74,7 +74,14 @@
             persistent-placeholder
             :placeholder="localFilters.categoria && localFilters.categoria.length ? '' : $t('common.all')"
             class="filter-select-multi"
-          />
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title"></v-list-item>
+            </template>
+            <template v-slot:chip="{ props, item }">
+              <v-chip v-bind="props" :prepend-icon="item.raw.icon" :text="item.raw.title" size="small"></v-chip>
+            </template>
+          </v-select>
         </v-col>
 
         <!-- Tipo -->
@@ -113,6 +120,7 @@
 import { computed, reactive, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DateInput from '../Common/DateInput.vue'
+import { categorias as categoriasConstantes } from '../../constants/categorias'
 
 const { t } = useI18n()
 
@@ -155,10 +163,14 @@ const tipos = computed(() => [
 
 const formatCategorias = computed(() => {
   if (!props.categorias) return []
-  return props.categorias.map(cat => ({
-    title: t('categories.' + cat),
-    value: cat
-  }))
+  return props.categorias.map(cat => {
+    const original = categoriasConstantes.find(c => c.title === cat)
+    return {
+      title: t('categories.' + cat),
+      value: cat,
+      icon: original ? original.icon : 'mdi-tag'
+    }
+  })
 })
 
 const aplicar = () => emit('apply')

@@ -129,7 +129,10 @@
         </template>
 
         <template v-slot:item.categoria="{ item }">
-          {{ $t('categories.' + item.categoria) }}
+          <div class="d-flex align-center gap-2">
+            <v-icon size="20" :icon="getCategoryIcon(item.categoria)" color="primary" class="opacity-80"></v-icon>
+            <span class="font-weight-medium">{{ $t('categories.' + item.categoria) }}</span>
+          </div>
         </template>
 
         <template v-slot:item.valor="{ item }">
@@ -365,6 +368,11 @@ const getPaymentMethodIcon = (method) => {
   return icons[method] || icons.other
 }
 
+const getCategoryIcon = (catName) => {
+  const cat = categoriasConstantes.find(c => c.title === catName)
+  return cat ? cat.icon : 'mdi-tag-outline'
+}
+
 
 
 const categorias = computed(() => {
@@ -383,7 +391,14 @@ const activeFilterChips = computed(() => {
     if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
     if (f.categoria && f.categoria.length) {
         f.categoria.forEach(c => {
-            chips.push({ key: 'categoria', label: t('filters.category'), value: t('categories.' + c), icon: 'mdi-tag', originalValue: c })
+            const catObj = categoriasConstantes.find(cat => cat.title === c)
+            chips.push({ 
+                key: 'categoria', 
+                label: t('filters.category'), 
+                value: t('categories.' + c), 
+                icon: catObj ? catObj.icon : 'mdi-tag', 
+                originalValue: c 
+            })
         })
     }
     if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })

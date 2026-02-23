@@ -100,17 +100,17 @@
 
                     <div class="d-flex justify-space-between text-body-2 mb-1">
                       <span>Subtotal:</span>
-                      <span>{{ formatPrice(periodInfo?.pivot?.valor_centavos ? periodInfo.pivot.valor_centavos / 100 : resumedPrice) }}</span>
+                      <span>{{ renderPrice(periodInfo?.pivot?.valor_centavos ? periodInfo.pivot.valor_centavos / 100 : resumedPrice) }}</span>
                     </div>
 
                     <div v-if="creditosRestantes > 0" class="d-flex justify-space-between text-body-2 mb-1 text-success">
                       <span>Crédito do plano atual (-):</span>
-                      <span>{{ formatPrice(creditosRestantes) }}</span>
+                      <span>{{ renderPrice(creditosRestantes) }}</span>
                     </div>
 
                     <div class="d-flex justify-space-between text-h6 mt-2 font-weight-bold">
                       <span>{{ $t('checkout.total') }}:</span>
-                      <span>{{ formatPrice(totalFinal) }}</span>
+                      <span>{{ renderPrice(totalFinal) }}</span>
                     </div>
                   </v-alert>
 
@@ -164,7 +164,8 @@ import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
-const { formatPrice } = useMoney()
+const { formatMoney } = useMoney()
+const renderPrice = (value) => formatMoney(value, { withSymbol: true })
 
 const route = useRoute()
 const router = useRouter()
@@ -471,11 +472,7 @@ const cancelPendingPayment = async () => {
     }
 }
 
-const { formatMoney } = useMoney()
-
-const formatPrice = (value) => {
-    return formatMoney(value, { withSymbol: true })
-}
+// renderPrice helper defined at the top
 
 const handleCpfInput = (event) => {
   errors.value.cpf = '' 

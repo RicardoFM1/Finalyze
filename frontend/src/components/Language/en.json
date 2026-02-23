@@ -44,7 +44,8 @@
       "goals_title": "Goal Management",
       "goals_desc": "Set clear objectives and track every step of your journey to achieve them.",
       "transactions_title": "Financial Transactions",
-      "transactions_text": "Generate and view your financial transactions simply and efficiently."
+      "transactions_text": "Generate and view your financial transactions simply and efficiently.",
+      "premium_resource": "PREMIUM FEATURE"
     }
   },
   "home": {
@@ -62,7 +63,31 @@
     "no_email": "Didn't receive the email?",
     "resend_timer": "Resend in {seconds}s",
     "btn_resend": "Resend code",
-    "btn_back_login": "Back to login"
+    "btn_back_login": "Back to login",
+    "i_agree_to": "I agree to the",
+    "terms_and_conditions": "terms and conditions",
+    "i_agree_to_notifications": "I agree to receive email notifications with tips and important updates.",
+    "login_terms_notice": "By logging in, you agree to our",
+    "terms_title": "Terms and Conditions & Privacy",
+    "terms_text": "By using Finalyze, you agree that: 1. Your financial data is processed securely and encrypted to generate your reports and analyzes. 2. We do not provide refunds for plans after payment confirmation, given immediate access to premium tools. 3. You are responsible for the truthfulness of the data entered and the security of your password. 4. Your data will never be shared with third parties without your explicit authorization (e.g., through the Collaboration module).",
+    "placeholders": {
+      "name": "Your full name",
+      "email": "example@email.com",
+      "password": "********",
+      "cpf": "000.000.000-00",
+      "birthdate": "MM/DD/YYYY"
+    },
+    "terms_protection_title": "Protection & Transparency",
+    "terms_btn_close": "Got it",
+    "feature_list": {
+      "dashboard": "Full expense management",
+      "reports": "Smart real-time reports",
+      "goals": "Goal setting and tracking"
+    },
+    "feature_badges": {
+      "security": "Total Security",
+      "analysis": "Smart Analysis"
+    }
   },
   "sidebar": {
     "home": "Home",
@@ -83,8 +108,8 @@
   "settings": {
     "appearance": "Appearance",
     "theme": "System Theme",
-    "light_mode_active": "Light Mode Active",
-    "dark_mode_active": "Dark Mode Active",
+    "light_mode_active": "Light Mode",
+    "dark_mode_active": "Dark Mode",
     "currency_desc": "Display format for monetary values"
   },
   "login": {
