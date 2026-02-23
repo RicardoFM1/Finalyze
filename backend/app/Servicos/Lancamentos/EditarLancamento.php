@@ -2,21 +2,22 @@
 
 namespace App\Servicos\Lancamentos;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
+use App\Servicos\Painel\GerarResumoPainel;
 
 class EditarLancamento
 {
     public function executar(int $lancamentoId, array $dados)
     {
-        $usuario = Auth::user();
+        $workspaceId = app('workspace_id');
+        $usuario = Usuario::findOrFail($workspaceId);
+
         $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
 
-        if ($lancamento->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para editar este lançamento.');
-        }
-
         $lancamento->update($dados);
-        cache()->forget("user_summary_{$usuario->id}");
+
+        GerarResumoPainel::limparCacheUsuario($workspaceId);
+
         return $lancamento;
     }
 }

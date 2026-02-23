@@ -19,6 +19,8 @@ class RegisterRequest extends FormRequest
             'senha' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()],
             'cpf' => ['required', 'string', 'size:11', 'unique:usuarios', new \App\Rules\Cpf],
             'data_nascimento' => 'required|date|before:18 years ago',
+            'aceita_termos' => 'required|accepted',
+            'aceita_notificacoes' => 'nullable|boolean',
         ];
     }
 
@@ -43,6 +45,7 @@ class RegisterRequest extends FormRequest
             'data_nascimento.required' => 'A data de nascimento é obrigatória.',
             'data_nascimento.date' => 'A data de nascimento deve ser válida.',
             'data_nascimento.before' => 'Você deve ter pelo menos 18 anos.',
+            'aceita_termos.accepted' => 'Você deve aceitar os termos e condições para continuar.',
         ];
     }
 }

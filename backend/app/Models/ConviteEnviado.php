@@ -21,13 +21,14 @@ class ConviteEnviado extends Model
         'aceito_em',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'expira_em' => 'datetime',
-            'aceito_em' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'expira_em' => 'datetime',
+        'aceito_em' => 'datetime',
+    ];
+
+    protected $hidden = [
+        'token_hash',
+    ];
 
     public function usuario()
     {

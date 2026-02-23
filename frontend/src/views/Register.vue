@@ -15,13 +15,13 @@
           
           <v-list bg-transparent class="mt-12 text-left mx-auto transparent-list" max-width="400">
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">GestÃ£o completa de despesas</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">{{ $t('auth.feature_list.dashboard') }}</v-list-item-title>
             </v-list-item>
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">RelatÃ³rios inteligentes em tempo real</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">{{ $t('auth.feature_list.reports') }}</v-list-item-title>
             </v-list-item>
             <v-list-item class="px-0 mb-4 bg-transparent" prepend-icon="mdi-check-circle" base-color="white">
-              <v-list-item-title class="text-white font-weight-medium">DefiniÃ§Ã£o e acompanhamento de metas</v-list-item-title>
+              <v-list-item-title class="text-white font-weight-medium">{{ $t('auth.feature_list.goals') }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </div>
@@ -42,8 +42,8 @@
 
         <v-card flat max-width="500" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent my-auto">
           <template v-if="!showVerification">
-            <div class="text-center text-md-left mb-10">
-              <div class="d-flex align-center justify-center justify-md-start mb-6 d-md-none">
+            <div class="text-center mb-10">
+              <div class="d-flex align-center justify-center mb-6">
                 <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
                 <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
               </div>
@@ -108,7 +108,9 @@ const form = ref({
   senha: '',
   senha_confirmation: '',
   cpf: '',
-  data_nascimento: ''
+  data_nascimento: '',
+  aceita_termos: false,
+  aceita_notificacoes: true
 })
 
 const loading = ref(false)
@@ -127,7 +129,15 @@ const passwordRules = [
 
 const validateAge = (v) => {
   if (!v) return true
-  const birth = new Date(v)
+  // Handle both Date object and ISO string
+  let birth
+  if (typeof v === 'string' && v.includes('-')) {
+    const [year, month, day] = v.split('-').map(Number)
+    birth = new Date(year, month - 1, day)
+  } else {
+    birth = new Date(v)
+  }
+  
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
@@ -139,34 +149,20 @@ const validateAge = (v) => {
 
 const validateCPF = (v) => {
     if (!v) return true
-    
-    
     const cpf = v.replace(/\D/g, '')
-    
-    if (cpf.length !== 11) {
-        return t('validation.cpf_invalid')
-    }
-
+    if (cpf.length !== 11) return t('validation.cpf_invalid')
     if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
-
     let sum = 0
     let remainder
-
-    for (let i = 1; i <= 9; i++) 
-        sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
+    for (let i = 1; i <= 9; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
     remainder = (sum * 10) % 11
-    
-    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if ((remainder === 10) || (remainder === 11)) remainder = 0
     if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
-
     sum = 0
-    for (let i = 1; i <= 10; i++) 
-        sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
+    for (let i = 1; i <= 10; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
     remainder = (sum * 10) % 11
-
-    if ((remainder === 10) || (remainder === 11))  remainder = 0
+    if ((remainder === 10) || (remainder === 11)) remainder = 0
     if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
-
     return true
 }
 
@@ -175,7 +171,6 @@ const handleRegister = async () => {
   error.value = ''
   errors.value = {}
   try {
-    console.log('Dados do formulÃ¡rio:', form.value)
     const cleanCpf = form.value.cpf.replace(/\D/g, '')
     await authStore.register(
       form.value.nome, 
@@ -183,13 +178,14 @@ const handleRegister = async () => {
       form.value.senha, 
       form.value.senha_confirmation,
       cleanCpf,
-      form.value.data_nascimento
+      form.value.data_nascimento,
+      form.value.aceita_termos,
+      form.value.aceita_notificacoes
     )
     toast.success('Cadastro realizado! Por favor, verifique seu e-mail.')
     showVerification.value = true
   } catch (err) {
     if (err.response && err.response.status === 422 && err.response.data && err.response.data.errors) {
-        
         errors.value = Object.keys(err.response.data.errors).reduce((acc, key) => {
             acc[key] = err.response.data.errors[key][0]
             return acc
@@ -283,13 +279,13 @@ const handleCpfInput = (event) => {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #1867C0, #1A237E);
+  background: linear-gradient(90deg, #1867C0, #0288D1);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-[data-v-theme="dark"] .gradient-text {
+.v-theme--dark .gradient-text {
   background: linear-gradient(90deg, #5CBBF6, #A2D9FF);
   -webkit-background-clip: text;
   background-clip: text;
@@ -329,5 +325,12 @@ const handleCpfInput = (event) => {
 .logo-mobile {
   height: 48px;
   width: auto;
+  /* invert white logo to dark in light mode */
+  filter: invert(1) brightness(0);
+}
+
+:root[data-theme="dark"] .logo-mobile,
+.v-theme--dark .logo-mobile {
+  filter: none;
 }
 </style>

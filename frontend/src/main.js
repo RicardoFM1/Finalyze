@@ -17,22 +17,23 @@ import en from './components/Language/en.json'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-// plugins
+
 const pinia = createPinia()
 
 const i18n = createI18n({
   legacy: false,
-  locale: 'pt',
+  locale: localStorage.getItem('locale') || 'pt',
+  fallbackLocale: 'pt',
   messages: {
     pt,
     en,
   },
 })
 
-// APP — UM SÓ
+
 const app = createApp(App)
 
-app.use(pinia)      // ⬅️ SEMPRE PRIMEIRO
+app.use(pinia)
 app.use(router)
 app.use(vuetify)
 app.use(i18n)

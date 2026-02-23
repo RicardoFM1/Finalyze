@@ -110,7 +110,7 @@ class CheckoutController extends Controller
         $usuario = auth()->user();
         $assinaturaAtiva = $usuario->assinaturaAtiva();
 
-        if (!$assinaturaAtiva || ($assinaturaAtiva->plano_id == $request->plano_id && $assinaturaAtiva->periodo_id == $request->periodo_id)) {
+        if (!$assinaturaAtiva || $assinaturaAtiva->plano_id == $request->plano_id) {
             return response()->json(['creditos' => 0, 'gratuito' => false]);
         }
 
@@ -183,7 +183,7 @@ class CheckoutController extends Controller
                 'user_id' => $usuario->id,
                 'plano_id' => $plano->id,
                 'assinatura_id' => $assinatura->id,
-                'quantidade_dias' => $periodo->pivot->dias,
+                'quantidade_dias' => $periodo->quantidade_dias,
                 'creditos_prorrata' => $creditos
             ]
         ];

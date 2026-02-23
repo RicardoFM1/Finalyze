@@ -2,20 +2,21 @@
 
 namespace App\Servicos\Lancamentos;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
+use App\Servicos\Painel\GerarResumoPainel;
 
 class DeletarLancamento
 {
     public function executar(int $lancamentoId)
     {
-        $usuario = Auth::user();
-        $lancamento = $usuario->lancamentos()->findOrFail($lancamentoId);
+        $workspaceId = app('workspace_id');
+        $usuario = Usuario::findOrFail($workspaceId);
 
-        if ($lancamento->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para editar este lançamento.');
+        $lancamento = $usuario->lancamentos()->find($lancamentoId);
+
+        if ($lancamento) {
+            $lancamento->delete();
+            GerarResumoPainel::limparCacheUsuario($workspaceId);
         }
-
-        $lancamento->delete();
-        cache()->forget("user_summary_{$usuario->id}");
     }
 }

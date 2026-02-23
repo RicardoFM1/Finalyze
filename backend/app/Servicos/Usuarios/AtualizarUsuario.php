@@ -71,6 +71,6 @@ class AtualizarUsuario
 
         \Log::info('User saved', ['avatar' => $usuario->avatar]);
 
-        return $usuario->load('plano');
+        return $usuario->load('plano.recursos');
     }
 }

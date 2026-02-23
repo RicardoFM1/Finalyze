@@ -3,12 +3,14 @@
 namespace App\Servicos\Metas;
 
 use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
 
 class ListarMetas
 {
     public function executar()
     {
-        $usuario = Auth::user();
+        $workspaceId = app('workspace_id');
+        $usuario = Usuario::findOrFail($workspaceId);
 
         $receita = $usuario->lancamentos()->where('tipo', 'receita')->sum('valor');
         $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');

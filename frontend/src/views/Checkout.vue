@@ -14,9 +14,13 @@
             <!-- Step 1: Identification -->
             <template v-slot:item.1>
               <div v-if="!authStore.isAuthenticated">
+                <div class="d-flex align-center mb-6 pa-2">
+                  <v-btn icon="mdi-arrow-left" variant="text" @click="router.push({name: 'Plans'})" class="mr-2"></v-btn>
+                  <span class="text-h6 font-weight-bold">{{ $t('checkout.steps.identification') }}</span>
+                </div>
                 <v-tabs v-model="authTab" color="primary" grow class="mb-6 unique-tabs-no-outline">
-                  <v-tab value="login" class="no-outline">Entrar</v-tab>
-                  <v-tab value="register" class="no-outline">Cadastrar</v-tab>
+                  <v-tab value="login" class="no-outline">{{ $t('checkout.auth_tabs.login') }}</v-tab>
+                  <v-tab value="register" class="no-outline">{{ $t('checkout.auth_tabs.register') }}</v-tab>
                 </v-tabs>
 
                 <div class="pa-4">
@@ -46,6 +50,9 @@
                 </div>
               </div>
               <div v-else class="text-center pa-10">
+                <div class="d-flex justify-start mb-4">
+                  <v-btn icon="mdi-arrow-left" variant="text" @click="router.push({name: 'Plans'})"></v-btn>
+                </div>
                 <v-icon color="success" size="64" icon="mdi-account-check" class="mb-4"></v-icon>
                 <h3 class="text-h5 mb-2">{{ $t('checkout.identified_as', { name: authStore.user?.nome }) }}</h3>
                 <p class="text-medium-emphasis mb-6">{{ $t('checkout.ready_to_pay') }}</p>
@@ -86,24 +93,24 @@
 
                   <v-alert v-if="planInfo" type="info" variant="tonal" class="mb-6 rounded-lg">
                     <div class="d-flex justify-space-between align-center">
-                      <span>{{ $t('checkout.plan_selected', { plan: planInfo.nome, period: periodInfo?.nome }) }}</span>
+                      <span>{{ $t('checkout.plan_selected', { plan: planInfo.nome, period: periodInfo?.nome || '...' }) }}</span>
                     </div>
 
                     <v-divider class="my-3 opacity-20"></v-divider>
 
                     <div class="d-flex justify-space-between text-body-2 mb-1">
                       <span>Subtotal:</span>
-                      <span>{{ formatPrice(periodInfo?.pivot?.valor_centavos / 100) }}</span>
+                      <span>{{ renderPrice(periodInfo?.pivot?.valor_centavos ? periodInfo.pivot.valor_centavos / 100 : resumedPrice) }}</span>
                     </div>
 
                     <div v-if="creditosRestantes > 0" class="d-flex justify-space-between text-body-2 mb-1 text-success">
                       <span>Crédito do plano atual (-):</span>
-                      <span>{{ formatPrice(creditosRestantes) }}</span>
+                      <span>{{ renderPrice(creditosRestantes) }}</span>
                     </div>
 
                     <div class="d-flex justify-space-between text-h6 mt-2 font-weight-bold">
                       <span>{{ $t('checkout.total') }}:</span>
-                      <span>{{ formatPrice(totalFinal) }}</span>
+                      <span>{{ renderPrice(totalFinal) }}</span>
                     </div>
                   </v-alert>
 
@@ -129,11 +136,12 @@
 
                   <div v-else-if="!checkoutError && !preferenceId" class="text-center py-10">
                     <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                    <p class="mt-4">Preparando ambiente de pagamento...</p>
+                    <p class="mt-4">{{ $t('checkout.preparing_payment') }}</p>
                   </div>
                   <v-alert v-if="checkoutError" type="error" variant="tonal" class="mt-4">
                     {{ checkoutError }}
-                    <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">Tentar Novamente</v-btn>
+                    <v-btn block color="error" variant="outlined" class="mt-4" @click="initPayment">{{ $t('checkout.try_again') }}</v-btn>
+                    <v-btn block variant="text" class="mt-2" @click="router.push({name: 'Plans'})">{{ $t('checkout.back_to_plans') }}</v-btn>
                   </v-alert>
                </div>
             </template>
@@ -153,10 +161,11 @@ import PaymentBrick from '../components/PaymentBrick.vue'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
 import { useI18n } from 'vue-i18n'
-import { useCurrency } from '../composables/useCurrency'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
-const { formatCurrency } = useCurrency()
+const { formatMoney } = useMoney()
+const renderPrice = (value) => formatMoney(value, { withSymbol: true })
 
 const route = useRoute()
 const router = useRouter()
@@ -177,9 +186,17 @@ const pageLoading = ref(true)
 const loadingFree = ref(false)
 const creditosRestantes = ref(0)
 
+const resumedPrice = ref(0)
+
 const totalFinal = computed(() => {
-    if (!periodInfo.value) return 0
-    const original = periodInfo.value?.pivot?.valor_centavos / 100
+    let original = 0
+    if (periodInfo.value) {
+        original = (periodInfo.value?.pivot?.valor_centavos || periodInfo.value?.valor_centavos || 0) / 100
+    } else if (resumedPrice.value > 0) {
+        original = resumedPrice.value
+    }
+    
+    if (isNaN(original)) return 0
     const final = Math.max(0, original - creditosRestantes.value)
     return parseFloat(final.toFixed(2))
 })
@@ -241,37 +258,31 @@ onMounted(async () => {
                 creditosRestantes.value = data.creditos_prorrata || 0
                 const selectedPlan = data.plano || data.plan
                 
-                if (!selectedPlan) {
-                    throw new Error('Preferencia de checkout sem plano associado')
-                }
-
-                if (route.query.plan && Number(selectedPlan.id) !== Number(route.query.plan)) {
-                    preferenceId.value = null
-                } else {
-                    preferenceId.value = data.id
-                    planInfo.value = selectedPlan
-                    planId.value = selectedPlan.id
-                
-                    if (route.query.period && selectedPlan.periodos) {
-                        const found = selectedPlan.periodos.find(p => p.id == route.query.period)
-                        if (found) {
-                            periodId.value = found.id
-                            periodInfo.value = found
-                        }
-                    }
+                // Safe check for data.plano and data.plano.id
+                if (data.plano && data.plano.id) {
+                    if (route.query.plan && Number(data.plano.id) !== Number(route.query.plan)) {
+                        preferenceId.value = null
+                    } else {
+                        preferenceId.value = data.id
+                        resumedPrice.value = (data.valor_centavos || 0) / 100
+                        planInfo.value = data.plano
+                        planId.value = data.plano.id
                     
-                    if (!periodInfo.value && data.period_id) {
-                        periodInfo.value = selectedPlan.periodos?.find(p => p.id == data.period_id)
-                        periodId.value = data.period_id
-                    }
+                        if (route.query.period && data.plano.periodos) {
+                            const found = data.plano.periodos.find(p => p.id == route.query.period)
+                            if (found) {
+                                periodId.value = found.id
+                                periodInfo.value = found
+                            }
+                        }
+                        
+                        if (!periodInfo.value && data.periodo_id) {
+                            periodInfo.value = data.plano.periodos.find(p => p.id == data.periodo_id)
+                            periodId.value = data.periodo_id
+                        }
 
-                    step.value = 3
-                }
-                
-                
-                if (!periodInfo.value && data.period_id) {
-                    periodInfo.value = selectedPlan.periodos?.find(p => p.id == data.period_id)
-                    periodId.value = data.period_id
+                        step.value = 3
+                    }
                 }
             }
         }
@@ -291,7 +302,6 @@ onMounted(async () => {
                 periodId.value = periodInfo.value?.id
             }
 
-            // If already authenticated and we have plan info, init payment
             if (authStore.isAuthenticated) {
                 step.value = 3
                 await initPayment()
@@ -364,7 +374,7 @@ const handleLogin = async () => {
       error.value = e.message || t('toasts.login_error')
       toast.error(error.value)
     } finally {
-        loading.value = false
+      loading.value = false
     }
 }
 
@@ -441,7 +451,7 @@ const initPayment = async () => {
             preferenceId.value = data.id
             creditosRestantes.value = data.creditos_prorrata || 0
         } else {
-            throw new Error(data.error || 'Erro ao gerar preferência')
+            throw new Error(data.error || t('toasts.error_generic'))
         }
     } catch (e) {
         checkoutError.value = e.message || t('toasts.error_generic')
@@ -466,9 +476,7 @@ const cancelPendingPayment = async () => {
     }
 }
 
-const formatPrice = (value) => {
-    return formatCurrency(value, 'BRL')
-}
+// renderPrice helper defined at the top
 
 const handleCpfInput = (event) => {
   errors.value.cpf = '' 

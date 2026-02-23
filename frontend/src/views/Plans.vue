@@ -162,10 +162,10 @@ import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../components/Modals/modalBase.vue'
 import { useI18n } from 'vue-i18n'
-import { useCurrency } from '../composables/useCurrency'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
-const { formatCurrency } = useCurrency()
+const { currencySymbol, meta: currencyMeta, fromBRL } = useMoney()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
@@ -300,6 +300,15 @@ const applyFreeUpgrade = async () => {
     }
 }
 
+const formatPrice = (value) => {
+    // Plans are stored in BRL; convert to selected currency for display
+    const converted = fromBRL(value || 0)
+    return new Intl.NumberFormat(currencyMeta.value.locale, {
+        style: 'currency',
+        currency: currencyMeta.value.code
+    }).format(converted)
+}
+
 const continuePayment = () => {
     continuing.value = true
     router.push({ name: 'Checkout' })
@@ -322,8 +331,6 @@ const cancelarPagamento = async () => {
         cancelling.value = false
     }
 }
-
-const formatPrice = (value) => formatCurrency(Number(value) || 0, 'BRL')
 </script>
 
 

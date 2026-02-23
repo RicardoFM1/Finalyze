@@ -1,5 +1,6 @@
 {
   "landing": {
+    "loading_system": "Preparing the system",
     "hero_title": "Master Your Finances with Finalyze",
     "hero_subtitle": "Track expenses, monitor income, and achieve your financial goals with our intuitive platform.",
     "btn_plans": "View Plans",
@@ -18,6 +19,8 @@
       "security_text": "Your financial data is encrypted and protected with bank-level security.",
       "goals_title": "Financial Goals",
       "goals_text": "Define financial goals and track your progress automatically.",
+      "transactions_title": "Financial Transactions",
+      "transactions_text": "Generate and view your financial transactions simply and efficiently.",
       "DS": "Do you want to log out?",
       "VDS": "You will need to log in again to access your data.",
       "stay_new": "Stay",
@@ -41,7 +44,8 @@
       "goals_title": "Goal Management",
       "goals_desc": "Set clear objectives and track every step of your journey to achieve them.",
       "transactions_title": "Financial Transactions",
-      "transactions_text": "Generate and view your financial transactions simply and efficiently."
+      "transactions_text": "Generate and view your financial transactions simply and efficiently.",
+      "premium_resource": "PREMIUM FEATURE"
     }
   },
   "home": {
@@ -52,26 +56,71 @@
   },
   "auth": {
     "join_us_title": "Join Us",
-    "join_us_subtitle": "Start your journey to financial freedom today."
+    "join_us_subtitle": "Start your journey to financial freedom today.",
+    "verify_title": "Verify your email",
+    "verify_subtitle": "We sent a 6-digit code to",
+    "btn_verify": "Verify Code",
+    "no_email": "Didn't receive the email?",
+    "resend_timer": "Resend in {seconds}s",
+    "btn_resend": "Resend code",
+    "btn_back_login": "Back to login",
+    "i_agree_to": "I agree to the",
+    "terms_and_conditions": "terms and conditions",
+    "i_agree_to_notifications": "I agree to receive email notifications with tips and important updates.",
+    "login_terms_notice": "By logging in, you agree to our",
+    "terms_title": "Terms and Conditions & Privacy",
+    "terms_text": "By using Finalyze, you agree that: 1. Your financial data is processed securely and encrypted to generate your reports and analyzes. 2. We do not provide refunds for plans after payment confirmation, given immediate access to premium tools. 3. You are responsible for the truthfulness of the data entered and the security of your password. 4. Your data will never be shared with third parties without your explicit authorization (e.g., through the Collaboration module).",
+    "placeholders": {
+      "name": "Your full name",
+      "email": "example@email.com",
+      "password": "********",
+      "cpf": "000.000.000-00",
+      "birthdate": "MM/DD/YYYY"
+    },
+    "terms_protection_title": "Protection & Transparency",
+    "terms_btn_close": "Got it",
+    "feature_list": {
+      "dashboard": "Full expense management",
+      "reports": "Smart real-time reports",
+      "goals": "Goal setting and tracking"
+    },
+    "feature_badges": {
+      "security": "Total Security",
+      "analysis": "Smart Analysis"
+    }
   },
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "goals": "Goals",
+    "reminders": "Schedule",
     "reports": "Reports",
     "profile": "Profile",
-    "admin": "Admin",
+    "settings": "Settings",
+    "admin": "Admin Panel",
     "plans": "Plans",
     "logout": "Logout"
   },
+  "footer": {
+    "colaboradores": "Collaborators"
+  },
+  "settings": {
+    "appearance": "Appearance",
+    "theme": "System Theme",
+    "light_mode_active": "Light Mode",
+    "dark_mode_active": "Dark Mode",
+    "currency_desc": "Display format for monetary values"
+  },
   "login": {
-    "email_label": "E-mail",
-    "password_label": "Password",
-    "btn_login": "Login",
+    "welcome_back": "Welcome back",
+    "subtitle": "Log in to your account to manage your finances",
+    "email_label": "Registered Email",
+    "password_label": "Your Password",
+    "btn_login": "Sign in to Platform",
     "btn_back_home": "Back to Home",
-    "has_account_text": "Already have an account?",
-    "login_link": "Login",
+    "no_account": "Don't have an account?",
+    "register_link": "Create account now",
     "rules": {
       "email_required": "Email is required for access",
       "password_required": "Password is required for your security"
@@ -87,7 +136,7 @@
     "continue": "Continue Payment",
     "launch_limits": "{count} Transactions Limit",
     "launch_unlimited": "Unlimited Transactions",
-    "toast_cancel_success": "Previous subscription canceled.",
+    "toast_cancel_success": "Previous payment canceled.",
     "toast_cancel_error": "Error canceling subscription.",
     "upgrade_tip": {
       "title": "Upgrade Tip",
@@ -122,9 +171,9 @@
     "toast_upgrade_error": "Error processing upgrade.",
     "toast_connection_error": "Connection error.",
     "plan_names": {
-      "Básico": "Basic",
+      "Essencial": "Essential",
       "Pro": "Pro",
-      "Premium": "Premium"
+      "Elite": "Elite"
     },
     "feature_names": {
       "Painel Financeiro": "Financial Dashboard",
@@ -150,6 +199,7 @@
     "new_note": "New Note",
     "no_notes_content": "No notes...",
     "completed": "Completed",
+    "lembretes_subtitle": "Manage your appointments and personal tasks.",
     "no_notes_available": "No notes available.",
     "history_dev": "History in development",
     "planning_dev": "Planning in development",
@@ -163,6 +213,20 @@
       "inactive": "Inactive",
       "all": "All"
     },
+    "calendar_title": "Appointment Calendar",
+    "calendar_search": "Reminders for {date}",
+    "no_calendar_notes": "No reminders for this day.",
+    "create_hint": "Create new reminder",
+    "day_details": "Events for {date}",
+    "add_event": "Add Reminder",
+    "test_notifications": "Test Notifications",
+    "toast_test_notification": "⏰ Notification Test: Your reminders will appear like this at the top of the screen!",
+    "calendar": {
+      "today": "Today",
+      "month": "Month",
+      "week": "Week",
+      "list": "List"
+    },
     "actions": {
       "complete": "Complete",
       "reopen": "Reopen",
@@ -171,11 +235,15 @@
       "inactivate_title": "Deactivate Item",
       "inactivate_confirm": "Are you sure you want to deactivate \"{title}\"?",
       "inactivate_desc": "The item will be removed from your current list, but can be recovered in the inactive items tab.",
+      "inactivate_btn": "Deactivate",
       "reactivate": "Reactivate",
-      "reactivate_success": "Item reactivated successfully!"
+      "reactivate_success": "Item reactivated successfully!",
+      "import_excel": "Import Excel",
+      "export_page": "Export current page",
+      "export_excel": "Export to Excel",
+      "export_pdf": "Export to PDF"
     },
-    "no_goals_completed": "No goals completed yet.",
-    "no_notes_completed": "No notes completed yet."
+    "empty_filter": "No items found for this filter."
   },
   "transactions": {
     "title": "Transactions",
@@ -189,7 +257,29 @@
       "description": "Description",
       "category": "Category",
       "type": "Type",
-      "amount": "Amount"
+      "amount": "Amount",
+      "payment_method": "Payment Method"
+    },
+    "payment_methods": {
+      "title": "Payment Method",
+      "money": "Cash",
+      "credit_card": "Credit Card",
+      "debit_card": "Debit Card",
+      "pix": "PIX",
+      "transfer": "Transfer",
+      "bank_transfer": "Bank Transfer",
+      "boleto": "Boleto",
+      "ticket": "Boleto/Ticket",
+      "visa": "Visa",
+      "master": "Mastercard",
+      "amex": "Amex",
+      "elo": "Elo",
+      "hipercard": "Hipercard",
+      "account_money": "Mercado Pago Account",
+      "credits": "Financial Credits",
+      "prorrata_credit": "Prorata Credit",
+      "preferência": "Payment Link",
+      "other": "Other"
     },
     "type": {
       "income": "Income",
@@ -201,6 +291,10 @@
   },
   "profile": {
     "title": "Profile Details",
+    "settings": {
+      "language": "Language",
+      "language_desc": "Select the interface language"
+    },
     "name_label": "Full Name",
     "email_label": "E-mail",
     "btn_update": "Save Changes",
@@ -211,6 +305,8 @@
     "free": "Free",
     "active": "Active",
     "inactive": "Inactive",
+    "on": "Enabled",
+    "off": "Disabled",
     "toast_success": "Profile updated!",
     "toast_error": "Error updating profile",
     "toast_connection_error": "Connection error",
@@ -248,7 +344,9 @@
       "paid": "PAID",
       "failed": "FAILED",
       "pending": "PENDING",
-      "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically."
+      "cancelled": "CANCELLED",
+      "pending_payment": "Your payment is being processed or is pending. Once approved, the plan will be released automatically.",
+      "manual_payment_only": "Manual Payment (e.g., Pix/Invoice)"
     },
     "warnings": {
       "image_size": "Image must be at most 10MB.",
@@ -269,118 +367,9 @@
     "restricted_subtitle": "Your current plan does not include advanced reports.",
     "view_plans": "View Plans"
   },
-  "admin": {
-    "title": "Plans",
-    "header": "Plan Management",
-    "subtitle": "Manage subscription plans",
-    "new_plan_btn": "New Plan",
-    "status": "Status",
-    "active_prices": "Active Prices",
-    "features": "Features",
-    "all_features": "All features:",
-    "name": "Name",
-    "price": "Price",
-    "duration": "Duration",
-    "actions": "Actions",
-    "newPlan": "New Plan",
-    "editPlan": "Edit Plan",
-    "deleteTitle": "Confirm Deletion",
-    "deleteConfirm": "Are you sure you want to delete this plan?",
-    "intervals": {
-      "month": "Monthly",
-      "year": "Annual"
-    },
-    "form": {
-      "name": "plan name",
-      "price": "Price",
-      "interval": "Billing Interval",
-      "maxTransactions": "Maximum Transactions",
-      "description": "Description",
-      "features": "Features",
-      "active": "Plan Active"
-    }
-  },
-  "features": {
-    "dashboard": "Dashboard",
-    "pe": "Overview of your financial health",
-    "RE": "Recent Expenses",
-    "DS": "Dashboard Summary",
-    "transactions": "Transactions",
-    "reports": "View Reports",
-    "csv_export": "CSV Export",
-    "ai_support": "AI Support Chat",
-    "balance": "Balance",
-    "total_income_month": "Total income this month",
-    "total_expense_month": "Leaving your pocket",
-    "net_worth_today": "Net worth today",
-    "financial_health": "Financial Health",
-    "resource_distribution": "Resource Distribution",
-    "margin": "Margin",
-    "incomes": "Income",
-    "expenses": "Expenses",
-    "net": "Net",
-    "recent_transactions": "Recent Transactions",
-    "view_history": "View History",
-    "quick_access": "Quick Access",
-    "launch_now": "Launch Now",
-    "my_goals": "My Goals",
-    "goals_progress": "Goals Progress",
-    "explore_goals": "Explore all goals",
-    "define_goals": "Define your goals",
-    "goals_subtitle": "Create financial goals and track your progress closely.",
-    "start_goals": "Start Goals",
-    "Ne": "No recent activity",
-    "PPE": "Pending Payment Found",
-    "VEIP": "You have already started the payment for the {pendingPlanName} plan",
-    "continue_or_cancel": "Do you want to continue from where you left off or cancel this payment to choose a new plan?",
-    "cancel_previous": "Cancel Previous",
-    "continue_payment": "Continue Payment",
-    "leave_new": "Leave Now"
-  },
-  "common": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "search": "Search...",
-    "all": "All",
-    "items_per_page": "Items per page"
-  },
-  "register": {
-    "title": "Create Account",
-    "subtitle": "Fill in your details below",
-    "name_label": "Full Name",
-    "email_label": "E-mail",
-    "password_label": "Password",
-    "password_confirm_label": "Confirm Password",
-    "btn_submit": "Register",
-    "btn_home": "Home Page",
-    "has_account_text": "Already have an account?",
-    "login_link": "Login",
-    "error_register_generic": "Error during registration. Please try again.",
-    "rules": {
-      "required": "{field} is required",
-      "min_chars": "Minimum {count} characters",
-      "uppercase": "Must contain an uppercase letter",
-      "lowercase": "Must contain a lowercase letter",
-      "number": "Must contain a number",
-      "special_char": "Must contain a special character (!@#$%...)",
-      "passwords_match": "Passwords do not match",
-      "name_required": "Name is required",
-      "email_required": "E-mail is required",
-      "pass_required": "Password is required",
-      "confirm_required": "Confirmation is required"
-    },
-    "register_footer": "Finalyze Finance. Your journey to financial freedom."
-  },
   "checkout": {
-    "title": "Complete Your Subscription",
-    "subtitle": "You are subscribing to the {planName} plan",
-    "Gen_pagament": "Generating payment...",
-    "title_assinatura": "Subscription Plan ${planName}",
-    "quantity": "Quantity",
-    "unit_price": "Unit Price",
-    "total": "Total",
     "price_per_period": "{period}: {price}",
+    "total": "Total",
     "subtotal": "Subtotal",
     "current_credit": "Current plan credit (-)",
     "plan_adjustment": "Plan Adjustment",
@@ -416,6 +405,121 @@
       "register_success": "Registration completed! Please check your email."
     }
   },
+  "admin": {
+    "title": "Plans",
+    "header": "Plan Management",
+    "subtitle": "Manage subscription plans",
+    "new_plan_btn": "New Plan",
+    "status": "Status",
+    "active_prices": "Active Prices",
+    "features": "Features",
+    "all_features": "All features:",
+    "name": "Name",
+    "item": "Item",
+    "price": "Price",
+    "duration": "Duration",
+    "actions": "Actions",
+    "newPlan": "New Plan",
+    "editPlan": "Edit Plan",
+    "deleteTitle": "Confirm Deletion",
+    "deleteConfirm": "Are you sure you want to delete this plan?",
+    "intervals": {
+      "month": "Monthly",
+      "year": "Annual"
+    },
+    "form": {
+      "name": "plan name",
+      "price": "Price",
+      "interval": "Billing Interval",
+      "maxTransactions": "Maximum Transactions",
+      "description": "Description",
+      "features": "Features",
+      "error_missing_features": "At least one feature must be selected for the plan.",
+      "active": "Plan Active"
+    }
+  },
+  "features": {
+    "dashboard": "Dashboard",
+    "pe": "Overview of your financial health",
+    "RE": "Recent Expenses",
+    "DS": "Dashboard Summary",
+    "transactions": "Transactions",
+    "reports": "View Reports",
+    "csv_export": "CSV Export",
+    "ai_support": "AI Support Chat",
+    "balance": "Balance",
+    "total_income_month": "Total income this month",
+    "total_expense_month": "Leaving your pocket",
+    "net_worth_today": "Net worth today",
+    "financial_health": "Financial Health",
+    "resource_distribution": "Resource Distribution",
+    "margin": "Margin",
+    "margin_explanation": "Represents the percentage of revenue that remains after paying all expenses (Net Profit Margin).",
+    "incomes": "Income",
+    "expenses": "Expenses",
+    "net": "Net",
+    "recent_transactions": "Recent Transactions",
+    "view_history": "View History",
+    "quick_access": "Quick Access",
+    "launch_now": "Launch Now",
+    "my_goals": "My Goals",
+    "goals_progress": "Goals Progress",
+    "explore_goals": "Explore all goals",
+    "define_goals": "Define your goals",
+    "goals_subtitle": "Create financial goals and track your progress closely.",
+    "start_goals": "Start Goals",
+    "Ne": "No recent activity",
+    "PPE": "Pending Payment Found",
+    "VEIP": "You have already started the payment for the {pendingPlanName} plan",
+    "continue_or_cancel": "Do you want to continue from where you left off or cancel this payment to choose a new plan?",
+    "cancel_previous": "Cancel Previous",
+    "continue_payment": "Continue Payment",
+    "leave_new": "Leave Now"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "search": "Search...",
+    "all": "All",
+    "items_per_page": "Items per page",
+    "welcome_fallback": "welcome",
+    "currency": "$",
+    "currencies": {
+      "brl": "Brazilian Real",
+      "usd": "US Dollar",
+      "eur": "Euro",
+      "gbp": "British Pound"
+    },
+    "my_account": "My Account"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Fill in your details below",
+    "name_label": "Full Name",
+    "email_label": "E-mail",
+    "password_label": "Password",
+    "password_confirm_label": "Confirm Password",
+    "btn_submit": "Register",
+    "btn_home": "Back to Home",
+    "has_account_text": "Already have an account?",
+    "login_link": "Sign In",
+    "error_register_generic": "Error during registration. Please try again.",
+    "rules": {
+      "required": "{field} is required",
+      "min_chars": "Minimum {count} characters",
+      "uppercase": "Must contain an uppercase letter",
+      "lowercase": "Must contain a lowercase letter",
+      "number": "Must contain a number",
+      "special_char": "Must contain a special character (!@#$%...)",
+      "passwords_match": "Passwords do not match",
+      "name_required": "Name is required",
+      "email_required": "E-mail is required",
+      "pass_required": "Password is required",
+      "confirm_required": "Confirmation is required"
+    },
+    "register_footer": "Finalyze Finance. Your journey to financial freedom."
+  },
   "NotFound": {
     "title": "404",
     "p": "Page not found",
@@ -441,6 +545,7 @@
     "success_add": "Item added successfully!",
     "success_update": "Item updated successfully!",
     "success_delete": "Item removed successfully!",
+    "success_inactivate": "Item deactivated successfully!",
     "success_restore": "Item restored successfully!",
     "error_generic": "An error occurred. Please try again."
   },
@@ -456,13 +561,19 @@
       "description": "Are you sure you want to remove your profile photo?",
       "confirm": "Remove Photo"
     },
+    "manage_plan": {
+      "edit": "Edit Plan",
+      "new": "Create New Plan",
+      "save": "Save Plan"
+    },
     "titles": {
       "add_transaction": "Add Transaction",
       "edit_transaction": "Edit Transaction",
       "edit_goal": "Edit Goal",
       "new_goal": "New Goal",
-      "edit_note": "Edit Note",
-      "new_note": "New Note"
+      "edit_reminder": "Edit Reminder",
+      "new_reminder": "New Reminder",
+      "share": "Collaboration"
     },
     "labels": {
       "value": "Amount",
@@ -474,8 +585,15 @@
       "goal_value": "Target Amount",
       "current_value": "Current Amount",
       "deadline": "Deadline",
+      "deadline_optional": "Deadline (Optional)",
       "color": "Color",
-      "icon": "Icon/Emoji"
+      "header_color": "Header Color",
+      "icon": "Icon/Emoji",
+      "notifications": "NOTIFICATIONS",
+      "on_site": "On Site",
+      "by_email": "By E-mail",
+      "date_agenda": "Reminder Date",
+      "time": "Time (Optional)"
     },
     "placeholders": {
       "select_category": "Select or type to filter",
@@ -496,7 +614,9 @@
     "value": "Value",
     "clear": "Clear",
     "apply": "Apply",
-    "movement_period": "Movements in the Period"
+    "movement_period": "Movements in the Period",
+    "period_all": "Full Overview",
+    "period_custom": "Custom Period"
   },
   "categories": {
     "Salário": "Salary",
@@ -547,10 +667,39 @@
     "Crianças": "Kids",
     "Outros": "Others"
   },
+  "finn": {
+    "placeholder": "Ask about your spending...",
+    "thinking": "Finn is thinking...",
+    "greeting": "Hello! I'm Finn. How can I help with your finances today?",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete_confirm": "Do you want to remove this message?",
+    "error_connection": "Sorry, I lost connection with my AI brain. Try again in a moment!",
+    "error_generic": "I had a little issue. Can you repeat that?"
+  },
+  "share": {
+    "subtitle": "Invite others to view and edit your financial data, goals, and schedule. They will have full access to your account.",
+    "email_label": "Collaborator's E-mail",
+    "invite_btn": "Invite",
+    "people_access": "People with access",
+    "you": "You",
+    "owner": "Owner",
+    "status_pending": "Pending",
+    "status_accepted": "Guest",
+    "toast_invite_sent": "Collaboration invite sent!",
+    "toast_invite_error": "Error sending invite",
+    "toast_remove_success": "Access removed successfully",
+    "toast_remove_error": "Error removing access",
+    "toast_copy_success": "Link copied to clipboard!",
+    "confirm_remove": "Are you sure you want to remove access for {email}?",
+    "confirm_remove_title": "Remove Access",
+    "confirm_remove_desc": "This person will no longer have access to your financial information, goals, and schedule.",
+    "remove_btn": "Remove Access"
+  },
   "actions": {
     "import_excel": "Import Excel",
-    "export_page": "Export current page",
-    "export_excel": "Export to Excel",
-    "export_pdf": "Export to PDF"
+    "export_excel": "Export Excel",
+    "export_pdf": "Export PDF",
+    "export_page": "Export Page"
   }
 }

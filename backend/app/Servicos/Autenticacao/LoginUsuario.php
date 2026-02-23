@@ -31,12 +31,9 @@ class LoginUsuario
 
         app(GerarCodigoVerificacao::class)->executar($usuario);
 
-        $token = $usuario->createToken('auth_token')->plainTextToken;
-
         return [
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'usuario' => $usuario->load('plano')
+            'requer_verificacao' => true,
+            'email' => $usuario->email
         ];
     }
 }

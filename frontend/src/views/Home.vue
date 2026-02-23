@@ -1,11 +1,11 @@
 <template>
   <div class="home-wrapper">
-    <!-- Cinematic Hero Section -->
-    <section class="hero-section d-flex align-center justify-center">
+  
+    <section class="hero-section d-flex align-center">
       <div class="hero-bg-overlay"></div>
-      <v-container>
-        <v-row align="center" justify="center">
-          <v-col cols="12" md="7" class="text-center text-md-left hero-content">
+      <v-container fluid class="px-md-16">
+        <v-row align="center" no-gutters>
+          <v-col cols="12" md="6" class="text-center text-md-left hero-content pr-md-12">
             <template v-if="loading">
               <v-skeleton-loader type="heading" width="80%" class="mb-6 bg-transparent"></v-skeleton-loader>
               <v-skeleton-loader type="paragraph" width="90%" class="mb-8 bg-transparent"></v-skeleton-loader>
@@ -15,160 +15,388 @@
               </div>
             </template>
             <template v-else>
-              <h1 class="text-h3 text-md-h2 font-weight-black mb-6 animate-fade-up">
-                {{ $t('landing.hero_title_alt') }}<span class="gradient-text ml-4" > {{$t('landing.destiny') }}</span> 
+              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up" style="line-height: 1.1;">
+                <span class="gradient-text brand-title d-block mb-2">Finalyze</span>
+                <span class="mr-3">{{ $t('landing.hero_title_alt') }}</span>
+                <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
-              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-8 animate-fade-up-delay">
+              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-10 animate-fade-up-delay max-w-500">
                 {{ $t('landing.hero_subtitle_alt') }}
               </p>
               <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
-                <v-btn color="primary" size="x-large" class="rounded-xl px-8 hero-btn mb-3 mb-md-0 mr-md-4" :to="{ name: 'Plans' }" elevation="12">
+                <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold" :to="{ name: 'Plans' }" elevation="20">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-8 glass-btn mb-3 mb-md-0" :to="{ name: 'Dashboard' }">
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-10 glass-btn ml-md-4" :to="{ name: 'Dashboard' }">
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
             </template>
           </v-col>
-          <v-col cols="12" md="5" class="d-none d-md-flex justify-center position-relative">
-            <div class="hero-visual animate-float">
-              <v-icon icon="mdi-chart-areaspline" color="primary" size="300" class="opacity-20"></v-icon>
-              <v-icon icon="mdi-shield-check" color="success" size="120" class="absolute-icon bottom-left"></v-icon>
-              <v-icon icon="mdi-rocket-launch" color="warning" size="80" class="absolute-icon top-right"></v-icon>
-            </div>
+
+          <v-col cols="12" md="6" class="mt-12 mt-md-0 position-relative carousel-col overflow-visible">
+             <div class="modern-carousel-wrapper animate-fade-in">
+                <!-- Navigation Buttons (Desktop) -->
+                <div class="carousel-nav-container d-none d-md-flex">
+                   <v-btn 
+                    icon="mdi-arrow-left" 
+                    variant="elevated" 
+                    color="surface" 
+                    class="carousel-nav-btn" 
+                    elevation="8"
+                    @click="prevSlide"
+                  ></v-btn>
+                   <v-btn 
+                    icon="mdi-arrow-right" 
+                    variant="elevated" 
+                    color="surface" 
+                    class="carousel-nav-btn" 
+                    elevation="8"
+                    @click="nextSlide"
+                  ></v-btn>
+                </div>
+                
+                <div class="carousel-track" :style="{ left: '50%', transform: `translateX(calc(-${isMobile ? 140 : 250}px - ${currentSlide * (isMobile ? 280 : 500)}px))` }">
+                    <div 
+                      v-for="(slide, i) in slides" 
+                      :key="i"
+                      class="loose-slide-v2"
+                      :class="{ 'active': currentSlide === i }"
+                      @click="currentSlide = i"
+                    >
+                       <v-card class="slide-card rounded-xl overflow-hidden shadow-2xl" elevation="0">
+                        <v-img :src="slide.image" class="slide-img">
+                          <template v-slot:placeholder>
+                            <v-skeleton-loader type="image"></v-skeleton-loader>
+                          </template>
+                        </v-img>
+                        <div class="slide-info-overlay-v2" v-if="currentSlide === i">
+                           <div class="d-flex align-center justify-space-between w-100">
+                             <div>
+                               <p class="text-overline mb-0 op-70">{{ $t('landing.carousel.premium_resource') }}</p>
+                               <h4 class="text-h6 font-weight-black">{{ slide.title }}</h4>
+                               <p class="text-caption mt-1 mb-0 op-80 d-none d-sm-block">{{ slide.description }}</p>
+                             </div>
+                             <v-icon icon="mdi-star" color="warning"></v-icon>
+                           </div>
+                        </div>
+                      </v-card>
+                    </div>
+                </div>
+
+                <!-- Navigation Indicators -->
+                <div class="d-flex justify-center mt-8">
+                  <v-btn icon="mdi-chevron-left" variant="text" size="small" @click="prevSlide" class="d-md-none"></v-btn>
+                  <div class="d-flex align-center px-4">
+                     <div v-for="(_, i) in slides" :key="i" class="dot mx-1" :class="{ 'active': currentSlide === i }" @click="currentSlide = i"></div>
+                  </div>
+                  <v-btn icon="mdi-chevron-right" variant="text" size="small" @click="nextSlide" class="d-md-none"></v-btn>
+                </div>
+             </div>
           </v-col>
         </v-row>
       </v-container>
     </section>
 
-    <!-- Value Propositions -->
     <v-container class="py-16">
-      <v-row class="mb-12 text-center">
-        <v-col cols="12">
-          <h2 class="text-h4 text-md-h3 font-weight-bold mb-2">Poder em suas mãos</h2>
-          <p class="text-subtitle-1 text-medium-emphasis">Tudo o que você precisa para uma saúde financeira impecável.</p>
+      <v-row class="mt-8">
+        <v-col cols="12" class="text-center mb-12">
+          <h2 class="text-h3 font-weight-bold gradient-text">{{ $t('home.features.title') }}</h2>
+          <p class="text-h6 text-medium-emphasis mt-4">{{ $t('home.features.subtitle') }}</p>
         </v-col>
       </v-row>
-      <v-row>
+
+      <v-row class="mt-4">
         <v-col v-for="(feature, i) in features" :key="i" cols="12" md="4">
-          <v-card class="feature-card glass-card h-100 pa-6 rounded-xl border-card" elevation="0">
-            <div class="icon-circle mb-6" :class="feature.colorClass">
-              <v-icon :icon="feature.icon" size="32" color="white"></v-icon>
-            </div>
-            <h3 class="text-h5 font-weight-bold mb-3">{{ feature.title }}</h3>
-            <p class="text-body-1 text-medium-emphasis">{{ feature.desc }}</p>
-            <div class="card-glow" :style="{ backgroundColor: feature.glowColor }"></div>
+          <v-card class="feature-card glass-card h-100 pa-8 rounded-xl border-card" elevation="0">
+            <template v-if="loading">
+              <v-skeleton-loader type="avatar" class="mb-4 bg-transparent"></v-skeleton-loader>
+              <v-skeleton-loader type="heading" class="mb-2 bg-transparent"></v-skeleton-loader>
+              <v-skeleton-loader type="text" class="bg-transparent"></v-skeleton-loader>
+            </template>
+            <template v-else>
+              <div class="icon-circle mb-8" :class="feature.colorClass">
+                <v-icon :icon="feature.icon" size="36" color="white"></v-icon>
+              </div>
+              <h3 class="text-h5 font-weight-bold mb-4">{{ feature.title }}</h3>
+              <p class="text-body-1 text-medium-emphasis line-height-relaxed">{{ feature.desc }}</p>
+              <div class="card-glow" :style="{ backgroundColor: feature.glowColor }"></div>
+            </template>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
 
-    <!-- Call to Action -->
-    <section class="cta-section py-16">
-      <v-container>
-        <v-card class="cta-card rounded-pill pa-8 pa-md-12 text-center overflow-hidden" elevation="10" color="primary">
-          <div class="cta-bg-pattern"></div>
-          <h2 class="text-h4 text-md-h3 font-weight-black mb-6">Pronto para transformar suas finanças?</h2>
-          <v-btn color="white" size="x-large" class="rounded-xl text-primary font-weight-bold px-12" :to="{ name: 'Plans' }" elevation="4">
-            Escolher Plano
-          </v-btn>
-        </v-card>
-      </v-container>
-    </section>
+    
   </div>
 </template>
 
 <script setup>
+import { computed, ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
-const authStore = useAuthStore()
+import { useUiStore } from '../stores/ui'
+import { useI18n } from 'vue-i18n'
+import { useDisplay } from 'vuetify'
+import slide1 from '@/assets/slide1.png'
+import slide2 from '@/assets/slide2.png'
+import slide3 from '@/assets/slide3.png'
+import slide4 from '@/assets/slide4.png'
+import logotipo from '@/assets/logotipo.png'
 
-const features = [
+const authStore = useAuthStore()
+const uiAuthStore = useUiStore()
+const { t } = useI18n()
+const display = useDisplay()
+const loading = ref(true)
+const currentSlide = ref(0)
+
+const isMobile = computed(() => display.smAndDown.value)
+
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false
+  }, 600)
+})
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length
+}
+
+const prevSlide = () => {
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
+}
+
+const slides = computed(() => [
   {
-    title: 'Análise Inteligente',
-    desc: 'Algoritmos que transformam números em insights claros sobre seu consumo.',
+    image: slide1,
+    title: t('landing.carousel.dashboard_title') || 'Dashboard Inteligente',
+    description: t('landing.carousel.dashboard_desc') || t('landing.power_subtitle')
+  },
+  {
+    image: slide2,
+    title: t('landing.carousel.reports_title') || 'Relatórios Detalhados',
+    description: t('landing.carousel.reports_desc') || t('landing.features.analysis_text')
+  },
+  
+  {
+    image: slide3,
+    title: t('landing.carousel.goals_title') || 'Metas e Objetivos',
+    description: t('landing.carousel.goals_desc') || t('landing.features.goals_text')
+  },
+  {
+    image: slide4,
+    title: t('landing.carousel.transactions_title') || 'Lançamentos financeiros',
+    description: t('landing.carousel.transactions_text') || t('landing.features.transactions_text')
+  }
+])
+
+const features = computed(() => [
+  {
+    title: t('landing.features.analysis_title'),
+    desc: t('landing.features.analysis_text'),
     icon: 'mdi-auto-fix',
     colorClass: 'receita-gradient',
     glowColor: 'rgba(56, 239, 125, 0.1)'
   },
   {
-    title: 'Segurança de Elite',
-    desc: 'Criptografia de ponta a ponta para garantir que seus dados sejam apenas seus.',
+    title: t('landing.features.security_title'),
+    desc: t('landing.features.security_text'),
     icon: 'mdi-security',
     colorClass: 'despesa-gradient',
     glowColor: 'rgba(255, 75, 43, 0.1)'
   },
   {
-    title: 'Metas em Foco',
-    desc: 'Defina objetivos e veja como cada centavo te aproxima da sua próxima conquista.',
+    title: t('landing.features.goals_title'),
+    desc: t('landing.features.goals_text'),
     icon: 'mdi-bullseye-arrow',
     colorClass: 'saldo-gradient',
     glowColor: 'rgba(0, 131, 176, 0.1)'
   }
-]
+])
 </script>
 
 <style scoped>
 .home-wrapper {
-  background-color: #fafbfc;
+  background: radial-gradient(circle at top right, rgba(var(--v-theme-primary), 0.12), transparent 40%),
+              radial-gradient(circle at bottom left, rgba(17, 153, 142, 0.12), transparent 40%);
+  min-height: 100vh;
   overflow-x: hidden;
 }
 
 .hero-section {
-  min-height: 90vh;
+  padding-top: 140px;
+  padding-bottom: 100px;
   position: relative;
-  overflow: hidden;
-  background: radial-gradient(circle at 10% 20%, rgba(24, 103, 192, 0.05) 0%, transparent 40%),
-              radial-gradient(circle at 90% 80%, rgba(17, 153, 142, 0.05) 0%, transparent 40%);
+  min-height: 80vh;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #11998E);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
 }
 
 .hero-content {
   z-index: 2;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #1867C0 0%, #11998E 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+.max-w-500 {
+  max-width: 500px;
+}
+
+.modern-carousel-wrapper {
+  position: relative;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: visible;
+  margin-top: -20px;
+}
+
+.carousel-nav-container {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.carousel-nav-btn {
+  pointer-events: auto;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+.carousel-track {
+  display: flex;
+  transition: transform 0.8s cubic-bezier(0.2, 0, 0, 1);
+  padding: 40px 0;
+  width: max-content;
+  position: relative;
+}
+
+.loose-slide-v2 {
+  flex: 0 0 500px;
+  padding: 0 20px;
+  transition: all 0.7s cubic-bezier(0.2, 1, 0.2, 1);
+  opacity: 0.5;
+  transform: scale(0.85);
+  cursor: pointer;
+}
+
+.loose-slide-v2.active {
+  opacity: 1;
+  transform: scale(1.1);
+  z-index: 20;
+}
+
+.slide-card {
+  width: 100%;
+  aspect-ratio: 16/10;
+  background: rgba(var(--v-theme-surface), 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  transition: transform 0.6s ease;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+}
+
+.loose-slide-v2.active .slide-img {
+  transform: scale(1.02);
+}
+
+.slide-info-overlay-v2 {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+  padding: 30px 24px 20px;
+  color: white;
+  animation: slideInUp 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(var(--v-theme-primary), 0.2);
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: rgb(var(--v-theme-primary));
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 960px) {
+  .modern-carousel-wrapper {
+    height: 440px;
+    padding-left: 0 !important;
+  }
+  .carousel-track {
+    padding-left: calc(50% - 140px);
+  }
+  .loose-slide-v2 {
+    flex: 0 0 280px;
+  }
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.4s ease;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.1) !important;
+}
+
+.feature-card {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(var(--v-border-color), 0.05);
+  background: rgba(var(--v-theme-surface), 0.7) !important;
+  backdrop-filter: blur(20px);
 }
 
 .feature-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.08) !important;
+  transform: translateY(-15px);
+  border-color: rgba(var(--v-theme-primary), 0.4);
+  background: rgba(var(--v-theme-surface), 0.9) !important;
 }
 
-.feature-card:hover .card-glow {
-  opacity: 1;
-}
-
-.card-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
-  filter: blur(40px);
+.feature-card:hover .icon-circle {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .icon-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  transition: all 0.4s ease;
 }
 
 .receita-gradient { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
@@ -176,41 +404,14 @@ const features = [
 .saldo-gradient { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); }
 
 .glass-btn {
-  background: rgba(24, 103, 192, 0.05);
+  background: rgba(var(--v-theme-primary), 0.05);
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(24, 103, 192, 0.1);
+  border: 1px solid rgba(var(--v-theme-primary), 0.2);
+  color: rgb(var(--v-theme-primary));
 }
 
-.hero-visual {
-  position: relative;
-}
-
-.absolute-icon {
-  position: absolute;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
-}
-
-.bottom-left { bottom: 20px; left: -20px; }
-.top-right { top: 20px; right: 10px; }
-
-.cta-card {
-  background: linear-gradient(135deg, #1867C0 0%, #1A237E 100%) !important;
-  position: relative;
-}
-
-.cta-bg-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0);
-  background-size: 30px 30px;
-}
-
-/* Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -218,11 +419,47 @@ const features = [
 .animate-fade-up-delay { animation: fadeInUp 0.8s 0.2s ease-out forwards; opacity: 0; }
 .animate-fade-up-delay-2 { animation: fadeInUp 0.8s 0.4s ease-out forwards; opacity: 0; }
 
-@keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
 }
 
-.animate-float { animation: float 6s ease-in-out infinite; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.brand-title {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 950;
+  letter-spacing: -1px;
+}
+
+.line-height-relaxed {
+  line-height: 1.7;
+}
+
+@media (max-width: 960px) {
+  .hero-section {
+    padding-top: 100px;
+    padding-bottom: 50px;
+  }
+  .modern-carousel-wrapper {
+    height: 400px;
+    padding-left: 0;
+    justify-content: center;
+  }
+  .loose-slide {
+    flex: 0 0 260px;
+    height: 350px;
+  }
+  .carousel-nav-btn {
+    bottom: -60px;
+  }
+  .carousel-nav-btn.prev {
+    left: calc(50% - 70px);
+  }
+  .carousel-nav-btn.next {
+    left: calc(50% + 10px);
+  }
+}
 </style>

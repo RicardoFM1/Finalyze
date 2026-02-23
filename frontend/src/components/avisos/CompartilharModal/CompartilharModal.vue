@@ -1,32 +1,49 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500">
-    <v-card style="max-height: 90vh; display: flex; flex-direction: column;">
-      <v-card-title>
-        Compartilhar
+  <v-dialog v-model="internalValue" max-width="440px" persistent>
+    <v-card class="rounded-xl pa-2" elevation="8">
+      <v-card-title class="d-flex align-center gap-3 pt-4 pb-2 px-5">
+        <v-avatar color="secondary" size="38" class="mr-2">
+          <v-icon icon="mdi-share-variant-outline" color="white" size="20"></v-icon>
+        </v-avatar>
+        <div class="text-subtitle-1 font-weight-bold">{{ $t('metas.share.title') }}</div>
       </v-card-title>
 
-      <v-card-text>
+      <v-divider opacity="0.1" class="mx-4"></v-divider>
+
+      <v-card-text class="px-5 pt-4 pb-2">
+        <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('metas.share.description') }}</p>
+
         <v-text-field
           v-model="form.email"
-          label="Email"
+          :label="$t('metas.share.email_label')"
           type="email"
+          variant="outlined"
+          rounded="lg"
+          density="comfortable"
+          prepend-inner-icon="mdi-email-outline"
           :error="!!error"
           :error-messages="error"
-        />
+          :disabled="loading"
+          @input="error = null"
+          hide-details="auto"
+        ></v-text-field>
       </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" @click="close">
-          Cancelar
+      <v-card-actions class="px-5 pb-4 gap-2">
+        <v-spacer></v-spacer>
+        <v-btn variant="text" rounded="lg" @click="close" :disabled="loading">
+          {{ $t('common.cancel') }}
         </v-btn>
         <v-btn
-          color="primary"
+          color="secondary"
+          variant="flat"
+          rounded="lg"
+          prepend-icon="mdi-send-outline"
           :loading="loading"
           :disabled="!isValidEmail || loading"
           @click="submitInvite"
         >
-          Enviar convite
+          {{ $t('metas.share.send') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -36,23 +53,24 @@
 <script setup>
 import { reactive, computed, ref } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const authStore = useAuthStore()
 
 const props = defineProps({
   modelValue: Boolean
 })
 
 const emit = defineEmits(['update:modelValue', 'invite'])
-const authStore = useAuthStore()
 
-const dialog = computed({
+const internalValue = computed({
   get: () => props.modelValue,
-  set: value => emit('update:modelValue', value)
+  set: (val) => emit('update:modelValue', val)
 })
 
-const form = reactive({
-  email: ''
-})
-
+const form = reactive({ email: '' })
 const loading = ref(false)
 const error = ref(null)
 
@@ -75,17 +93,15 @@ async function submitInvite() {
     const data = await response.json().catch(() => ({}))
     if (!response.ok) {
       const validationMessage = data?.errors?.email_destino?.[0]
-      throw new Error(validationMessage || data.message || 'Nao foi possivel enviar o convite.')
+      throw new Error(validationMessage || data.message || t('metas.share.error_send'))
     }
 
-    emit('invite', {
-      ...data,
-      email_destino: data?.email_destino || form.email
-    })
+    toast.success(t('metas.share.sent_success'))
+    emit('invite', { ...data, email_destino: data?.email_destino || form.email })
     form.email = ''
-    dialog.value = false
+    internalValue.value = false
   } catch (err) {
-    error.value = err.message || 'Erro ao enviar convite.'
+    error.value = err.message || t('metas.share.error_send')
   } finally {
     loading.value = false
   }
@@ -93,6 +109,7 @@ async function submitInvite() {
 
 function close() {
   error.value = null
-  dialog.value = false
+  form.email = ''
+  internalValue.value = false
 }
 </script>

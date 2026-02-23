@@ -44,5 +44,8 @@ RUN php artisan config:clear || true && \
     php artisan route:clear || true && \
     php artisan view:clear || true
 
-# Comando de inicialização
-CMD php artisan config:cache && php artisan route:cache && php artisan serve --host 0.0.0.0 --port 10000
+# Comando de inicialização: roda o scheduler em background + servidor web
+CMD php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan schedule:work &>/dev/null & \
+    php artisan serve --host 0.0.0.0 --port 10000

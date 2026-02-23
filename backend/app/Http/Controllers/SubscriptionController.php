@@ -18,7 +18,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Retorna a assinatura ativa do usuário e o histórico de pagamentos.
+     * Retorna a assinatura ativa do usuï¿½rio e o histï¿½rico de pagamentos.
      * Chamado por Profile.vue -> fetchSubscription
      */
     public function index()
@@ -55,7 +55,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Alterna a renovação automática (Ligar/Desligar).
+     * Alterna a renovaï¿½ï¿½o automï¿½tica (Ligar/Desligar).
      * Chamado por Profile.vue -> ativarAutoRenovacao
      */
     public function ativarAutoRenovacao(Request $request)
@@ -63,30 +63,38 @@ class SubscriptionController extends Controller
         try {
             /** @var \App\Models\Usuario $user */
             $user = auth()->user();
+
+            // Busca qualquer assinatura ativa, com ou sem preapproval_id
             $assinatura = Assinatura::where('user_id', $user->id)
-                ->where('status', 'active')
-                ->whereNotNull('preapproval_id')
+                ->whereIn('status', ['active', 'authorized'])
+                ->orderByDesc('termina_em')
                 ->first();
 
             if (!$assinatura) {
-                return response()->json(['message' => 'Nenhuma assinatura ativa com renovação automática encontrada.'], 404);
+                return response()->json(['message' => 'Nenhuma assinatura ativa encontrada.'], 404);
             }
 
-            $currentState = (bool) $assinatura->renovacao_automatica;
-            $newState = $request->has('active') ? (bool) $request->input('active') : !$currentState;
+            $oldState = (bool)$assinatura->renovacao_automatica;
+            $newState = $request->has('active') ? $request->boolean('active') : !$oldState;
 
-            $status = $this->subscriptionService->toggleAutoRenewal($assinatura->preapproval_id, $newState);
+            // SÃ³ chama Mercado Pago se existir um preapproval_id vinculado
+            if ($assinatura->preapproval_id) {
+                $this->subscriptionService->setupMercadoPago();
+                $this->subscriptionService->toggleAutoRenewal($assinatura->preapproval_id, $newState);
+            }
 
+            // Sempre atualiza a flag local
             $assinatura->update(['renovacao_automatica' => $newState]);
 
+            Log::info("Auto-renovaÃ§Ã£o alterada pelo usuÃ¡rio #{$user->id}: " . ($newState ? 'ON' : 'OFF') . ($assinatura->preapproval_id ? ' (MP sync)' : ' (local only)'));
+
             return response()->json([
-                'message' => 'Renovação automática ' . ($newState ? 'ativada' : 'desativada') . ' com sucesso.',
-                'active' => $newState,
-                'status' => $status
+                'message' => 'RenovaÃ§Ã£o automÃ¡tica ' . ($newState ? 'ativada' : 'desativada') . ' com sucesso.',
+                'active' => $newState
             ]);
         } catch (\Exception $e) {
-            Log::error('Erro ao alterar renovação automática: ' . $e->getMessage());
-            return response()->json(['error' => 'Falha ao processar solicitação.'], 500);
+            Log::error("Erro ao alterar renovaÃ§Ã£o automÃ¡tica: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 

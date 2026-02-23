@@ -14,9 +14,13 @@ class RegistrarUsuario
             'email' => $dados['email'],
             'senha' => Hash::make($dados['senha']),
             'cpf' => $dados['cpf'],
-            'data_nascimento' => $dados['data_nascimento']
+            'data_nascimento' => $dados['data_nascimento'],
+            'aceita_termos' => $dados['aceita_termos'] ?? false,
+            'aceita_notificacoes' => $dados['aceita_notificacoes'] ?? true
         ]);
 
-        return $usuario->load('plano');
+        app(GerarCodigoVerificacao::class)->executar($usuario);
+
+        return $usuario->load('plano.recursos');
     }
 }

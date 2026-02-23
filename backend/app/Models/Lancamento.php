@@ -21,6 +21,7 @@ class Lancamento extends Model
         'categoria',
         'descricao',
         'data',
+        'forma_pagamento'
     ];
 
     protected $casts = [
@@ -30,18 +31,10 @@ class Lancamento extends Model
 
     public static function validarLimiteLancamentos($userId)
     {
-        $usuario = Usuario::find($userId);
-        if (!$usuario || $usuario->admin) {
-            return;
-        }
-
-        $limiteLancamentos = Plano::where('id', $usuario->plano_id)->value('limite_lancamentos');
-        if ($limiteLancamentos === null) {
-            return;
-        }
-
-        $lancamentosDoUsuario = self::where('user_id', $userId)->count();
-        if ($lancamentosDoUsuario >= (int) $limiteLancamentos) {
+        $lancamentoUserCount = Lancamento::where('user_id', $userId)->count();
+        $userPlanoId = Usuario::where('id', $userId)->value('plano_id');
+        $userPlanoLimiteLancamentos = Plano::where('id', $userPlanoId)->value('limite_lancamentos');
+        if ($lancamentoUserCount >= $userPlanoLimiteLancamentos) {
             throw ValidationException::withMessages([
                 'message' => ['Voce atingiu o limite de lancamentos do plano, atualize ou adquira um novo.'],
             ]);

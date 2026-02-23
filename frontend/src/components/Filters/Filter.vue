@@ -58,7 +58,7 @@
         </v-col>
 
         <!-- Categoria -->
-        <v-col cols="12" sm="6" :md="macro ? 2 : 4" :lg="macro ? 3 : 2">
+        <v-col cols="12" sm="6" :md="macro ? 4 : 4" :lg="macro ? 4 : 2">
           <v-select
             v-model="localFilters.categoria"
             :items="formatCategorias"
@@ -68,7 +68,20 @@
             flat
             hide-details
             clearable
-          />
+            multiple
+            chips
+            closable-chips
+            persistent-placeholder
+            :placeholder="localFilters.categoria && localFilters.categoria.length ? '' : $t('common.all')"
+            class="filter-select-multi"
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title"></v-list-item>
+            </template>
+            <template v-slot:chip="{ props, item }">
+              <v-chip v-bind="props" :prepend-icon="item.raw.icon" :text="item.raw.title" size="small"></v-chip>
+            </template>
+          </v-select>
         </v-col>
 
         <!-- Tipo -->
@@ -107,6 +120,7 @@
 import { computed, reactive, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DateInput from '../Common/DateInput.vue'
+import { categorias as categoriasConstantes } from '../../constants/categorias'
 
 const { t } = useI18n()
 
@@ -126,7 +140,7 @@ const expanded = ref(true)
 const localFilters = reactive({ 
   data: props.modelValue?.data || '',
   descricao: props.modelValue?.descricao || '',
-  categoria: props.modelValue?.categoria || '',
+  categoria: Array.isArray(props.modelValue?.categoria) ? props.modelValue.categoria : (props.modelValue?.categoria ? [props.modelValue.categoria] : []),
   tipo: props.modelValue?.tipo || 'todos',
   valor: props.modelValue?.valor || ''
 })
@@ -149,10 +163,14 @@ const tipos = computed(() => [
 
 const formatCategorias = computed(() => {
   if (!props.categorias) return []
-  return props.categorias.map(cat => ({
-    title: t('categories.' + cat),
-    value: cat
-  }))
+  return props.categorias.map(cat => {
+    const original = categoriasConstantes.find(c => c.title === cat)
+    return {
+      title: t('categories.' + cat),
+      value: cat,
+      icon: original ? original.icon : 'mdi-tag'
+    }
+  })
 })
 
 const aplicar = () => emit('apply')
@@ -216,6 +234,20 @@ const limpar = () => emit('clear')
 .macro-date-input :deep(.v-field__input) {
   font-size: 1.1rem !important;
   font-weight: 600 !important;
+}
+
+.filter-select-multi :deep(.v-field__input) {
+  flex-wrap: wrap !important;
+  padding-top: 14px !important;
+  padding-bottom: 4px !important;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.filter-select-multi :deep(.v-chip) {
+  margin: 1px !important;
+  height: 22px !important;
+  font-size: 0.7rem !important;
 }
 
 

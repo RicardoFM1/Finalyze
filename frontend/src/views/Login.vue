@@ -17,11 +17,11 @@
             <v-row class="mt-12 justify-center gap-4">
               <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
                 <v-icon start icon="mdi-check-decagram" color="#5CBBF6"></v-icon>
-                <span class="font-weight-medium">Segurança Total</span>
+                <span class="font-weight-medium">{{ $t('auth.feature_badges.security') }}</span>
               </v-chip>
               <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
                 <v-icon start icon="mdi-chart-areaspline" color="#5CBBF6"></v-icon>
-                <span class="font-weight-medium">Análise Inteligente</span>
+                <span class="font-weight-medium">{{ $t('auth.feature_badges.analysis') }}</span>
               </v-chip>
             </v-row>
         </div>
@@ -42,8 +42,8 @@
 
         <v-card flat max-width="450" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent">
           <template v-if="!showVerification">
-            <div class="text-center text-md-left mb-10">
-              <div class="d-flex align-center justify-center justify-md-start mb-6 d-md-none">
+            <div class="text-center mb-10">
+              <div class="d-flex align-center justify-center mb-6">
                 <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
                 <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
               </div>
@@ -98,7 +98,9 @@ const authStore = useAuthStore()
 
 const form = ref({
   email: '',
-  senha: ''
+  senha: '',
+  aceita_termos: true, // Login doesn't need to check this, but good for shared model
+  aceita_notificacoes: true
 })
 
 const loading = ref(false)
@@ -191,13 +193,13 @@ const handleResend = async () => {
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #1867C0, #1A237E);
+  background: linear-gradient(90deg, #1867C0, #0288D1);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-[data-v-theme="dark"] .gradient-text {
+.v-theme--dark .gradient-text {
   background: linear-gradient(90deg, #5CBBF6, #A2D9FF);
   -webkit-background-clip: text;
   background-clip: text;
@@ -233,5 +235,12 @@ const handleResend = async () => {
 .logo-mobile {
   height: 48px;
   width: auto;
+  /* invert white logo to dark in light mode */
+  filter: invert(1) brightness(0);
+}
+
+:root[data-theme="dark"] .logo-mobile,
+.v-theme--dark .logo-mobile {
+  filter: none;
 }
 </style>

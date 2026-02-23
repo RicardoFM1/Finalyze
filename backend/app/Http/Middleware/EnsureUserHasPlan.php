@@ -8,16 +8,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserHasPlan
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || (!$user->admin && !$user->plano_id)) {
-            return response()->json(['message' => 'Forbidden: Plan required.'], 403);
+        $workspaceId = app()->bound('workspace_id') ? app('workspace_id') : ($user ? $user->id : null);
+
+        $targetUser = $user;
+        if ($workspaceId && $user && $user->id != $workspaceId) {
+            $targetUser = \App\Models\Usuario::find($workspaceId);
+        }
+
+        if (!$targetUser || (!$targetUser->admin && !$targetUser->plano_id)) {
+            return response()->json(['message' => 'Esta conta precisa de um plano ativo.'], 403);
         }
 
         return $next($request);

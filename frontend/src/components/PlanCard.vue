@@ -46,9 +46,9 @@
       </div>
 
       <div class="price-container my-4">
-        <span class="currency">{{ priceParts.symbol }}</span>
-        <span class="price-integer">{{ priceParts.integer }}</span>
-        <span class="price-decimal">{{ priceParts.decimalSeparator }}{{ priceParts.decimal }}</span>
+        <span class="currency">{{ currencySymbol }}</span>
+        <span class="price-integer">{{ formattedPriceInt }}</span>
+        <span class="price-decimal">{{ currencyDecimalSep }}{{ formattedPriceDec }}</span>
         <span class="interval text-medium-emphasis">/{{ selectedPeriodSlug }}</span>
       </div>
       
@@ -78,7 +78,9 @@
           <template v-slot:prepend>
             <v-icon color="success" icon="mdi-check-circle" size="18" class="mr-3"></v-icon>
           </template>
-          <span class="text-body-2 font-weight-medium text-grey-darken-3">{{ feature.nome }}</span>
+          <span class="text-body-2 font-weight-medium feature-text">
+            {{ $t('plans.feature_names.' + feature.nome, feature.nome) }}
+          </span>
         </v-list-item>
         <v-list-item 
           v-if="plan.limite_lancamentos"
@@ -118,11 +120,12 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
+const { fromBRL, currencySymbol, meta: currencyMeta } = useMoney()
 const router = useRouter()
 const authStore = useAuthStore()
-const { currency, locale, convert } = useCurrency()
 const props = defineProps({
   plan: {
     type: Object,
@@ -146,21 +149,24 @@ const currentPrice = computed(() => {
     return selectedPeriod.value?.pivot?.valor_centavos || 0
 })
 
-const convertedPrice = computed(() => {
-    return convert(currentPrice.value / 100, 'BRL', currency.value)
+// Convert BRL cents → selected currency, then split into int + dec parts
+const currentPriceConverted = computed(() => {
+    const brlReais = currentPrice.value / 100
+    return fromBRL(brlReais)
 })
 
-const priceParts = computed(() => {
-    const formatter = new Intl.NumberFormat(locale.value, {
-        style: 'currency',
-        currency: currency.value
-    })
-    const parts = formatter.formatToParts(convertedPrice.value)
-    const symbol = parts.find((part) => part.type === 'currency')?.value || currency.value
-    const integer = parts.filter((part) => part.type === 'integer' || part.type === 'group').map((part) => part.value).join('')
-    const decimalSeparator = parts.find((part) => part.type === 'decimal')?.value || ','
-    const decimal = parts.find((part) => part.type === 'fraction')?.value || '00'
-    return { symbol, integer, decimalSeparator, decimal }
+const formattedPriceInt = computed(() => {
+    return Math.floor(currentPriceConverted.value)
+})
+
+const formattedPriceDec = computed(() => {
+    const dec = Math.round((currentPriceConverted.value % 1) * 100)
+    return dec.toString().padStart(2, '0')
+})
+
+// Decimal separator: comma for pt-BR, period for others
+const currencyDecimalSep = computed(() => {
+    return currencyMeta.value.locale === 'pt-BR' ? ',' : '.'
 })
 
 const selectedPeriodSlug = computed(() => {
@@ -198,11 +204,12 @@ const clickEscolha = () => {
 }
 
 const formatPrice = (value) => {
-    if (!value && value !== 0) return t('common.currency') + ' 0,00';
-    return new Intl.NumberFormat(t('common.currency') === 'R$' ? 'pt-BR' : 'en-US', { 
-        style: 'currency', 
-        currency: t('common.currency') === 'R$' ? 'BRL' : 'USD' 
-    }).format(value)
+    if (!value && value !== 0) return currencySymbol.value + ' 0,00'
+    const converted = fromBRL((value || 0) / 100)
+    return new Intl.NumberFormat(currencyMeta.value.locale, {
+        style: 'currency',
+        currency: currencyMeta.value.code
+    }).format(converted)
 }
 </script>
 
@@ -212,6 +219,7 @@ const formatPrice = (value) => {
   border: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  background: rgb(var(--v-theme-surface));
 }
 
 .plan-card:hover {
@@ -222,7 +230,7 @@ const formatPrice = (value) => {
 
 .featured-card {
   border: 2px solid #1867C0;
-  background: linear-gradient(to bottom, #ffffff, #f8faff);
+  background: linear-gradient(to bottom, rgb(var(--v-theme-surface)), rgba(24, 103, 192, 0.05));
   transform: scale(1.05);
 }
 
@@ -244,7 +252,7 @@ const formatPrice = (value) => {
 }
 
 .plan-name {
-  color: #1a237e;
+  color: rgb(var(--v-theme-primary));
   letter-spacing: -0.5px;
 }
 
@@ -295,5 +303,10 @@ const formatPrice = (value) => {
 .action-btn:not(:disabled):hover {
   box-shadow: 0 6px 15px rgba(24, 103, 192, 0.2);
   transform: scale(1.02);
+}
+
+.feature-text {
+  color: rgb(var(--v-theme-on-surface)) !important;
+  opacity: 0.9;
 }
 </style>

@@ -1,10 +1,9 @@
 ﻿<template>
   <v-container class="lancamentos-wrapper">
-    <!-- Header Moderno -->
     <v-row class="mb-4 pt-4" align="center">
       <v-col cols="12" md="6">
         <div class="d-flex align-center">
-            <v-avatar color="#2962FF" size="64" class="mr-4 elevation-4 glass-icon">
+            <v-avatar color="primary" size="64" class="mr-4 elevation-4">
                 <v-icon icon="mdi-swap-horizontal" color="white" size="32"></v-icon>
             </v-avatar>
             <div>
@@ -40,6 +39,48 @@
       @apply="aplicarFiltros"
       @clear="limparFiltros"
     />
+    
+    <div v-if="!loading && (periodoInfo.label || activeFilterChips.length)" class="d-flex align-center mb-4 px-2 animate-fade-in flex-wrap gap-2">
+        <v-chip v-if="periodoInfo.label" size="small" color="primary" variant="tonal" class="rounded-lg px-3">
+            <v-icon icon="mdi-calendar-range" size="14" class="mr-2"></v-icon>
+            <span class="text-caption font-weight-bold">
+                {{ $t(periodoInfo.label) }}
+                <span v-if="periodoInfo.inicio" class="ml-1 opacity-70 font-weight-medium">
+                   ({{ formatDate(periodoInfo.inicio) }} {{ periodoInfo.fim && periodoInfo.fim !== periodoInfo.inicio ? '- ' + formatDate(periodoInfo.fim) : '' }})
+                </span>
+            </span>
+        </v-chip>
+
+        <!-- Active Filters Chips Grouped by Line -->
+        <div class="d-flex flex-column gap-2 w-100">
+            <div 
+                v-for="(group, key) in groupedActiveChips" 
+                :key="key" 
+                class="d-flex align-center flex-wrap gap-2 animate-fade-in"
+            >
+                <div class="d-flex align-center opacity-60 mr-2" style="min-width: 100px;">
+                    <v-icon :icon="group.icon" size="14" class="mr-1"></v-icon>
+                    <span class="text-caption font-weight-black text-uppercase letter-spacing-1">{{ group.label }}:</span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    <v-chip
+                        v-for="chip in group.chips"
+                        :key="chip.key + '-' + chip.value"
+                        size="small"
+                        color="secondary"
+                        variant="flat"
+                        class="rounded-lg px-3"
+                        closable
+                        @click:close="removeFilter(chip)"
+                        style="max-width: 300px;"
+                    >
+                        <span class="text-caption font-weight-bold text-truncate">{{ chip.value }}</span>
+                    </v-chip>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
@@ -51,6 +92,7 @@
       <v-divider></v-divider>
 
       <v-data-table-server
+        v-model:options="options"
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
         :items="serverItems"
@@ -73,17 +115,29 @@
             size="small"
             class="font-weight-bold text-uppercase"
           >
-            {{ item.tipo === 'receita' ? 'Receita' : 'Despesa' }}
+            {{ item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense') }}
           </v-chip>
         </template>
 
+        <template v-slot:item.forma_pagamento="{ item }">
+          <div class="d-flex align-center justify-center gap-1 opacity-80">
+            <v-icon size="16" :icon="getPaymentMethodIcon(item.forma_pagamento)"></v-icon>
+            <span class="text-caption font-weight-medium">
+              {{ $t('transactions.payment_methods.' + (item.forma_pagamento || 'other')) }}
+            </span>
+          </div>
+        </template>
+
         <template v-slot:item.categoria="{ item }">
-          {{ $t('categories.' + item.categoria) }}
+          <div class="d-flex align-center gap-2">
+            <v-icon size="20" :icon="getCategoryIcon(item.categoria)" color="primary" class="opacity-80"></v-icon>
+            <span class="font-weight-medium">{{ $t('categories.' + item.categoria) }}</span>
+          </div>
         </template>
 
         <template v-slot:item.valor="{ item }">
           <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="font-weight-bold">
-            {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
+            {{ item.tipo === 'receita' ? '+' : '-' }} {{ currencySymbol }} {{ formatNumber(item.valor) }}
           </span>
         </template>
 
@@ -101,9 +155,9 @@
     </v-card>
   </v-container>
 
-  <ModalNovoLancamento v-model="dialogNovo" @saved="buscarLancamentos" />
-  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="buscarLancamentos" />
-  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="buscarLancamentos" />
+  <ModalNovoLancamento v-model="dialogNovo" @saved="onLancamentoSalvo" />
+  <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="onLancamentoEditado" />
+  <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="onLancamentoExcluido" />
 </template>
 
 <script setup>
@@ -111,21 +165,157 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { useI18n } from 'vue-i18n'
-import { toast } from 'vue3-toastify'
-import { useCurrency } from '../composables/useCurrency'
-import * as XLSX from 'xlsx'
+import { useMoney } from '../composables/useMoney'
+import { categorias as categoriasConstantes } from '../constants/categorias'
+import * as XLSX from "xlsx"
 
+const { t } = useI18n()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
+const authStore = useAuthStore()
+const filterStore = useFilterStore()
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import Planilhas from '../components/Exportacoes/planilhas.vue'
 import PdfExport from '../components/Exportacoes/pdf.vue'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
-const { t } = useI18n()
-const authStore = useAuthStore()
-const filterStore = useFilterStore()
-const { formatCurrency, formatNumber, currency, convert } = useCurrency()
+const fileInput = ref(null)
+
+const handleImport = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const json = XLSX.utils.sheet_to_json(worksheet)
+
+        if (json.length === 0) {
+            alert('Arquivo vazio!')
+            return
+        }
+
+        loading.value = true
+        let count = 0
+        for (const row of json) {
+            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo, forma_pagamento
+            const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
+            const formaMap = {
+                'dinheiro': 'money', 'money': 'money', 'cash': 'money',
+                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card',
+                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card',
+                'pix': 'pix',
+                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer',
+                'boleto': 'boleto',
+                'outros': 'other', 'other': 'other'
+            }
+            
+            const normalizedForma = rawForma.toString().toLowerCase().trim()
+            const finalForma = formaMap[normalizedForma] || 'other'
+
+            const payload = {
+                descricao: row.Descrição || row.descricao || row.Description || 'Importado',
+                valor: row.Valor || row.valor || row.Value || 0,
+                categoria: row.Categoria || row.categoria || row.Category || 'Importado',
+                data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
+                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa',
+                forma_pagamento: finalForma
+            }
+
+            try {
+                await authStore.apiFetch('/lancamentos', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                })
+                count++
+            } catch (err) {
+                console.error('Erro ao importar linha:', row, err)
+            }
+        }
+
+        alert(`Sucesso! ${count} lançamentos importados.`)
+        buscarLancamentos()
+        loading.value = false
+    }
+    reader.readAsArrayBuffer(file)
+    event.target.value = '' // Clear input
+}
+
+const totais = ref({ receita: 0, despesa: 0 })
+const periodoInfo = ref({ label: '', inicio: '', fim: '' })
+
+const exportarExcel = () => {
+    loading.value = true
+    try {
+        const dataToExport = serverItems.value.map(item => ({
+            [t('transactions.table.date')]: formatDate(item.data),
+            [t('transactions.table.description')]: item.descricao,
+            [t('transactions.table.category')]: t('categories.' + item.categoria),
+            [t('transactions.table.type')]: item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+            [t('transactions.payment_methods.title')]: t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
+            [t('transactions.table.amount')]: item.valor
+        }))
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, t('sidebar.transactions'))
+        XLSX.writeFile(workbook, `finalyze_${t('sidebar.transactions').toLowerCase()}.xlsx`)
+    } catch (e) {
+        toast.error(t('toasts.error_generic'))
+    } finally {
+        loading.value = false
+    }
+}
+
+const exportarPdf = () => {
+    if (!serverItems.value || serverItems.value.length === 0) {
+        toast.info(t('transactions.no_data'))
+        return
+    }
+
+    loading.value = true
+    setTimeout(() => {
+        try {
+            const doc = new jsPDF()
+            const head = [[
+                t('transactions.table.date'), 
+                t('transactions.table.description'), 
+                t('transactions.table.category'), 
+                t('transactions.type.type') || t('transactions.table.type'), 
+                t('transactions.payment_methods.title'),
+                t('transactions.table.amount')
+            ]]
+            const data = serverItems.value.map(item => [
+                formatDate(item.data),
+                item.descricao || '',
+                t('categories.' + item.categoria) || item.categoria || '',
+                item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
+                t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
+                formatNumber(item.valor)
+            ])
+
+            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
+            autoTable(doc, {
+                head: head,
+                body: data,
+                startY: 20,
+                theme: 'striped',
+                headStyles: { fillColor: [24, 103, 192] },
+                styles: { font: 'Inter' }
+            })
+            doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
+        } catch (e) {
+            toast.error(t('toasts.error_generic'))
+        } finally {
+            loading.value = false
+        }
+    }, 100)
+}
 
 const loading = ref(false)
 const search = ref('')
@@ -137,112 +327,120 @@ const totais = ref({ receita: 0, despesa: 0 })
 const fileInput = ref(null)
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
+const deletedIds = ref(new Set())
 const dialogNovo = ref(false)
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
 
-const headers = [
-  { title: 'Data', key: 'data', align: 'start', sortable: false },
-  { title: 'Descrição', key: 'descricao', align: 'start', sortable: false },
-  { title: 'Categoria', key: 'categoria', align: 'start', sortable: false },
-  { title: 'Tipo', key: 'tipo', align: 'center', sortable: false },
-  { title: 'Valor', key: 'valor', align: 'end', sortable: false },
-  { title: 'Ações', key: 'acoes', align: 'end', sortable: false }
-]
 
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+
+
+const headers = computed(() => [
+  { title: t('transactions.table.date'), key: 'data', align: 'start', sortable: true },
+  { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
+  { title: t('transactions.table.category'), key: 'categoria', align: 'start', sortable: true },
+  { title: t('transactions.table.type'), key: 'tipo', align: 'center', sortable: true },
+  { title: t('transactions.table.payment_method'), key: 'forma_pagamento', align: 'center', sortable: true },
+  { title: t('transactions.table.amount'), key: 'valor', align: 'end', sortable: true },
+  { title: t('admin.actions'), key: 'acoes', align: 'end', sortable: false },
+])
+
+const formatNumber = (val) => fmtNum(val)
+const formatDate = (date) => {
+    if (!date) return ''
+    const { locale } = useI18n()
+    // parse YYYY-MM-DD as local date to avoid UTC offset shift
+    if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
+        const [y, m, d] = date.split('T')[0].split('-').map(Number)
+        return new Date(y, m - 1, d).toLocaleDateString(locale.value)
+    }
+    return new Date(date).toLocaleDateString(locale.value)
+}
+
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method] || icons.other
+}
+
+const getCategoryIcon = (catName) => {
+  const cat = categoriasConstantes.find(c => c.title === catName)
+  return cat ? cat.icon : 'mdi-tag-outline'
+}
 
 const categorias = computed(() => {
-  const set = new Set()
-  serverItems.value.forEach((l) => l.categoria && set.add(l.categoria))
-  return Array.from(set)
+  try {
+    return categoriasConstantes.map(c => c.title)
+  } catch (e) {
+    const set = new Set()
+    serverItems.value.forEach(l => l.categoria && set.add(l.categoria))
+    return Array.from(set)
+  }
 })
 
-const handleImport = async (event) => {
-  const file = event.target.files?.[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = async (e) => {
-    const data = new Uint8Array(e.target.result)
-    const workbook = XLSX.read(data, { type: 'array' })
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-    const json = XLSX.utils.sheet_to_json(worksheet)
-
-    if (!json.length) {
-      toast.warning('Arquivo vazio!')
-      return
-    }
-
-    loading.value = true
-    let count = 0
-    for (const row of json) {
-      const payload = {
-        descricao: row['Descrição'] || row.Descricao || row.descricao || row.Description || 'Importado',
-        valor: Number(row.Valor || row.valor || row.Value || 0),
-        categoria: row.Categoria || row.categoria || row.Category || 'Importado',
-        data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
-        tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa'
-      }
-
-      try {
-        await authStore.apiFetch('/lancamentos', {
-          method: 'POST',
-          body: JSON.stringify(payload)
+const activeFilterChips = computed(() => {
+    const chips = []
+    const f = filterStore.filters
+    if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
+    if (f.categoria && f.categoria.length) {
+        f.categoria.forEach(c => {
+            const catObj = categoriasConstantes.find(cat => cat.title === c)
+            chips.push({ 
+                key: 'categoria', 
+                label: t('filters.category'), 
+                value: t('categories.' + c), 
+                icon: catObj ? catObj.icon : 'mdi-tag', 
+                originalValue: c 
+            })
         })
-        count++
-      } catch (err) {
-        console.error('Erro ao importar linha:', row, err)
-      }
     }
+    if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })
+    if (f.valor) chips.push({ key: 'valor', label: t('filters.value'), value: f.valor, icon: 'mdi-currency-usd' })
+    return chips
+})
 
-    toast.success(`Sucesso! ${count} lançamentos importados.`)
-    buscarLancamentos()
-    loading.value = false
-  }
+const groupedActiveChips = computed(() => {
+    const groups = {}
+    activeFilterChips.value.forEach(chip => {
+        if (!groups[chip.key]) groups[chip.key] = { label: chip.label, icon: chip.icon, chips: [] }
+        groups[chip.key].chips.push(chip)
+    })
+    return groups
+})
 
-  reader.readAsArrayBuffer(file)
-  event.target.value = ''
+const removeFilter = (chip) => {
+    if (chip.key === 'categoria') {
+        filterStore.filters.categoria = filterStore.filters.categoria.filter(c => c !== chip.originalValue)
+    } else if (chip.key === 'tipo') {
+        filterStore.filters[chip.key] = 'todos'
+    } else {
+        filterStore.filters[chip.key] = ''
+    }
+    loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [] })
 }
 
-const exportarExcel = () => {
-  loading.value = true
-  try {
-    const dataToExport = serverItems.value.map((item) => ({
-      [t('transactions.table.date')]: formatDate(item.data),
-      [t('transactions.table.description')]: item.descricao,
-      [t('transactions.table.category')]: t(`categories.${item.categoria}`),
-      [t('transactions.table.type')]: item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
-      [t('transactions.table.amount')]: item.valor
-    }))
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, t('sidebar.transactions'))
-    XLSX.writeFile(workbook, `finalyze_${t('sidebar.transactions').toLowerCase()}.xlsx`)
-  } catch (e) {
-    console.error(e)
-    toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
-  }
-}
-
-const exportarPdf = () => {
-  toast.info('Exportação em PDF indisponível nesta build.')
-}
-
-const loadItems = async ({ page, itemsPerPage, search: tableSearch }) => {
-  loading.value = true
+const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSilent = false }) => {
+  if (!isSilent) loading.value = true
   try {
     const params = new URLSearchParams({
       page,
       per_page: itemsPerPage
     })
 
-    if (tableSearch) params.append('search', tableSearch)
+    if (sortBy && sortBy.length) {
+      params.append('sort_by', sortBy[0].key)
+      params.append('sort_order', sortBy[0].order)
+    }
 
+    if (tableSearch) params.append('search', tableSearch)
+    
     const f = filterStore.filters
     if (f.data) {
       if (f.data.includes(' to ')) {
@@ -261,27 +459,26 @@ const loadItems = async ({ page, itemsPerPage, search: tableSearch }) => {
 
     const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)
     if (response.ok) {
-      const data = await response.json()
-      serverItems.value = data.data
-      totalItems.value = data.total
-      if (data.totais) totais.value = data.totais
+        const data = await response.json()
+        serverItems.value = data.data.filter(i => !deletedIds.value.has(i.id))
+        totalItems.value = data.total
+        if (data.totais) {
+          totais.value = data.totais
+        }
+        periodoInfo.value = {
+            label: data.periodo_label,
+            inicio: data.data_inicio,
+            fim: data.data_fim
+        }
     }
   } catch (e) {
     console.error(e)
   } finally {
-    loading.value = false
+    if (!isSilent) loading.value = false
   }
 }
 
 const aplicarFiltros = () => {
-  search.value = filterStore.filters.descricao || ' '
-  setTimeout(() => {
-    search.value = filterStore.filters.descricao || ''
-  }, 10)
-}
-
-const limparFiltros = () => {
-  filterStore.clearFilters()
   loadItems({
     page: 1,
     itemsPerPage: itemsPerPage.value,
@@ -289,11 +486,97 @@ const limparFiltros = () => {
   })
 }
 
-const buscarLancamentos = () => {
-  search.value = `${search.value || ''} `
-  setTimeout(() => {
-    search.value = search.value.trim()
-  }, 10)
+
+const limparFiltros = () => {
+    filterStore.clearFilters()
+
+  loadItems({
+    page: 1,
+    itemsPerPage: itemsPerPage.value,
+    sortBy: []
+  })
+}
+
+
+
+
+const buscarLancamentos = (isSilent = false) => {
+    // Refresh manual mantendo página e filtros
+    loadItems({
+        page: Math.ceil((totalItems.value || 0) / itemsPerPage.value) > 0 ? 1 : 1, // Reset para o caso de novos
+        itemsPerPage: itemsPerPage.value,
+        sortBy: [],
+        search: search.value,
+        isSilent: isSilent
+    })
+}
+
+const options = ref({ page: 1, itemsPerPage: 10, sortBy: [] })
+
+const onLancamentoSalvo = (optimisticItem) => {
+    if (optimisticItem) {
+        // Só adicionamos na lista local se estivermos na página 1 e sem filtros restritivos (ou filtros que batam com o item)
+        const f = filterStore.filters
+        const isPage1 = options.value.page === 1
+        const matchesFilter = (!f.descricao || optimisticItem.descricao.toLowerCase().includes(f.descricao.toLowerCase())) &&
+                              (!f.categoria || optimisticItem.categoria === f.categoria) &&
+                              (!f.tipo || f.tipo === 'todos' || optimisticItem.tipo === f.tipo)
+
+        if (isPage1 && matchesFilter) {
+            const exists = serverItems.value.some(i => i.id === optimisticItem.id)
+            if (!exists) {
+                serverItems.value.unshift(optimisticItem)
+                totalItems.value++
+                
+                if (serverItems.value.length > itemsPerPage.value) {
+                    serverItems.value.pop()
+                }
+            }
+        }
+    }
+    // Sincronização silenciosa em background
+    buscarLancamentos(true)
+}
+
+const onLancamentoEditado = (updatedItem) => {
+    if (updatedItem && serverItems.value) {
+        const index = serverItems.value.findIndex(i => i.id === updatedItem.id)
+        if (index !== -1) {
+            const oldItem = serverItems.value[index]
+            
+            // Reverter valor antigo nos totais
+            if (oldItem.tipo === 'receita') totais.value.receita -= Number(oldItem.valor)
+            else totais.value.despesa -= Number(oldItem.valor)
+            
+            // Aplicar valor novo nos totais
+            if (updatedItem.tipo === 'receita') totais.value.receita += Number(updatedItem.valor)
+            else totais.value.despesa += Number(updatedItem.valor)
+            
+            // Atualizar o item na lista
+            serverItems.value[index] = { ...updatedItem }
+        }
+    }
+    buscarLancamentos(true)
+}
+
+const onLancamentoExcluido = (deletedId) => {
+    if (deletedId && serverItems.value) {
+        deletedIds.value.add(deletedId)
+        // Encontrar item para atualizar totais locais
+        const item = serverItems.value.find(i => i.id === deletedId)
+        if (item) {
+            if (item.tipo === 'receita') {
+                totais.value.receita -= Number(item.valor)
+            } else {
+                totais.value.despesa -= Number(item.valor)
+            }
+        }
+        
+        serverItems.value = serverItems.value.filter(i => i.id !== deletedId)
+        totalItems.value = Math.max(0, totalItems.value - 1)
+    }
+    // Refresh background, mas a ghost list vai proteger contra race conditions
+    buscarLancamentos(true)
 }
 
 const abrirNovo = () => { dialogNovo.value = true }
@@ -307,12 +590,12 @@ onMounted(() => {
 
 <style scoped>
 .lancamentos-wrapper {
-  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+  background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
   min-height: 100vh;
 }
 
 .gradient-text {
-  background: linear-gradient(90deg, #1867C0, #11998E);
+  background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #11998E);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -324,12 +607,12 @@ onMounted(() => {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .border-card {
-  border: 1px solid rgba(0,0,0,0.05) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .icon-circle-small {
@@ -368,8 +651,8 @@ onMounted(() => {
 
 <style scoped>
 .filter-bar {
-  background: #ffffff;
-  border: 1px solid #eef1f5;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .filter-bar .v-field {

@@ -21,8 +21,8 @@ class ConviteCompartilhamento extends Mailable
     public function __construct(Usuario $usuarioOrigem, ConviteEnviado $convite, string $linkConvite)
     {
         $this->usuarioOrigem = $usuarioOrigem;
-        $this->convite = $convite;
-        $this->linkConvite = $linkConvite;
+        $this->convite       = $convite;
+        $this->linkConvite   = $linkConvite;
     }
 
     public function envelope(): Envelope
@@ -44,4 +44,3 @@ class ConviteCompartilhamento extends Mailable
         return [];
     }
 }
-

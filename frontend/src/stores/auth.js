@@ -1,19 +1,32 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUiStore } from './ui';
+import { toast } from 'vue3-toastify';
 
 
 export const useAuthStore = defineStore('auth', () => {
 
     const user = ref(null);
+    const workspaceId = ref(localStorage.getItem('workspace_id') || null);
+    const sharedAccounts = ref([]);
 
     const token = ref(localStorage.getItem('token') || null);
-    const API_URL = 'http://localhost:8000/api';
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
+    const activeWorkspace = computed(() => {
+        return sharedAccounts.value.find(acc => acc.id == workspaceId.value);
+    });
+
+    const hasActivePlan = computed(() => {
+        if (user.value?.admin) return true;
+        return !!(user.value?.plano && user.value.plano.recursos && user.value.plano.recursos.length > 0);
+    });
 
     async function apiFetch(endpoint, options = {}) {
+        const ui = useUiStore();
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
 
         const headers = {
@@ -23,6 +36,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (token.value) {
             headers['Authorization'] = `Bearer ${token.value}`;
+        }
+
+        if (workspaceId.value) {
+            headers['X-Workspace-Id'] = workspaceId.value;
         }
 
         if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
@@ -77,6 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
+            await fetchSharedAccounts();
             return { success: true };
         } catch (error) {
             console.error(error);
@@ -84,11 +102,20 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento) {
+    async function register(nome, email, senha, password_confirmation, cpf, data_nascimento, aceita_termos = false, aceita_notificacoes = true) {
         try {
             const response = await apiFetch('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ nome, email, senha, senha_confirmation: password_confirmation, cpf, data_nascimento })
+                body: JSON.stringify({
+                    nome,
+                    email,
+                    senha,
+                    senha_confirmation: password_confirmation,
+                    cpf,
+                    data_nascimento,
+                    aceita_termos,
+                    aceita_notificacoes
+                })
             });
 
             const data = await response.json();
@@ -106,34 +133,75 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchUser() {
         if (!token.value) return;
+        const ui = useUiStore();
+        ui.setLoading(true);
         try {
             const response = await apiFetch('/usuario');
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Falha ao carregar usuário (${response.status})`);
+            if (response.ok) {
+                const data = await response.json();
+                user.value = data;
+                if (!workspaceId.value) {
+                    workspaceId.value = data.id;
+                    localStorage.setItem('workspace_id', data.id);
+                }
+                fetchSharedAccounts();
             }
-            const data = await response.json();
-            user.value = data;
         } catch (e) {
             console.error(e);
-            throw e;
+        } finally {
+            ui.setLoading(false);
         }
+    }
+
+    async function fetchSharedAccounts() {
+        try {
+            const response = await apiFetch('/colaboracoes');
+            if (response.ok) {
+                const data = await response.json();
+                if (!user.value) return;
+                sharedAccounts.value = [
+                    { id: user.value.id, owner: user.value, is_owner: true },
+                    ...data.shared_with_me.map(s => ({ ...s, id: s.proprietario_id, owner: s.proprietario, is_owner: false }))
+                ];
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function setWorkspace(id) {
+        workspaceId.value = id;
+        localStorage.setItem('workspace_id', id);
+        window.location.reload(); // Reload to refresh all data context
     }
 
     function logout() {
         token.value = null;
         user.value = null;
+        workspaceId.value = null;
         localStorage.removeItem('token');
-
+        localStorage.removeItem('workspace_id');
     }
 
     function hasFeature(featureSlug) {
-        if (user.value?.admin) return true;
+        const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
+        const target = normalize(featureSlug);
 
-        if (!user.value?.plano?.recursos) return false;
+        // Bloqueio explícito de Admin para colaboradores
+        const isShared = activeWorkspace.value && !activeWorkspace.value.is_owner;
+        if (target === 'admin' && isShared) return false;
 
-        const features = user.value.plano.recursos;
-        return features.some(f => f.slug === featureSlug || f.nome === featureSlug);
+        const targetUser = activeWorkspace.value?.owner || user.value;
+
+        if (targetUser?.admin) return true;
+
+        if (!targetUser?.plano?.recursos) return false;
+
+        const features = targetUser.plano.recursos;
+
+        return features.some(f => {
+            return normalize(f.slug) === target || normalize(f.nome) === target;
+        });
     }
 
     async function verifyCode(email, codigo) {
@@ -183,5 +251,17 @@ export const useAuthStore = defineStore('auth', () => {
         return `${baseUrl}/storage/${path}`;
     }
 
-    return { user, token, isAuthenticated, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl };
+    const ui = useUiStore();
+
+    function setLanguage(lang) {
+        ui.setLocale(lang);
+        localStorage.setItem('locale', lang);
+        if (typeof window !== 'undefined') {
+            // Optional: for fully reactive and persistent components that don't watch the store
+            const msg = lang === 'pt' ? 'Idioma alterado para Português' : 'Language changed to English';
+            toast.success(msg, { autoClose: 1000 });
+        }
+    }
+
+    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage };
 });

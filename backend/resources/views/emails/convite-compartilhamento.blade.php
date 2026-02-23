@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <style>
@@ -12,16 +13,19 @@
             padding: 24px;
             background: #f3f4f6;
         }
+
         .card {
             background: #ffffff;
             border-radius: 12px;
             padding: 24px;
             border: 1px solid #e5e7eb;
         }
+
         .title {
             font-size: 20px;
             margin-bottom: 12px;
         }
+
         .btn {
             display: inline-block;
             padding: 12px 18px;
@@ -32,6 +36,7 @@
             font-weight: 700;
             margin: 14px 0;
         }
+
         .meta {
             font-size: 12px;
             color: #6b7280;
@@ -39,13 +44,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="card">
         <div class="title">Convite de compartilhamento</div>
         <p><strong>{{ $usuarioOrigem->nome }}</strong> convidou você para acessar a conta compartilhada no Finalyze.</p>
 
         @if (!empty($convite->mensagem))
-            <p><strong>Mensagem:</strong> {{ $convite->mensagem }}</p>
+        <p><strong>Mensagem:</strong> {{ $convite->mensagem }}</p>
         @endif
 
         <p>Clique no link abaixo para aceitar o convite:</p>
@@ -58,5 +64,5 @@
         <p class="meta">Este link expira em {{ optional($convite->expira_em)->format('d/m/Y H:i') }}.</p>
     </div>
 </body>
-</html>
 
+</html>

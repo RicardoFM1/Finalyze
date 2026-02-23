@@ -23,7 +23,10 @@ class Usuario extends Authenticatable
         'cpf',
         'data_nascimento',
         'codigo_verificacao',
-        'codigo_expira_em'
+        'codigo_expira_em',
+        'idioma',
+        'aceita_termos',
+        'aceita_notificacoes'
     ];
 
     protected $hidden = [
@@ -31,11 +34,8 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the password for the user.
-     *
-     * @return string
-     */
+    protected $appends = ['avatar_url'];
+
     public function getAuthPassword()
     {
         return $this->senha;
@@ -49,6 +49,8 @@ class Usuario extends Authenticatable
             'admin' => 'boolean',
             'data_nascimento' => 'date',
             'codigo_expira_em' => 'datetime',
+            'aceita_termos' => 'boolean',
+            'aceita_notificacoes' => 'boolean',
         ];
     }
 
@@ -72,18 +74,33 @@ class Usuario extends Authenticatable
         return $this->hasMany(HistoricoPagamento::class, 'user_id');
     }
 
+    public function assinaturaAtiva()
+    {
+        return $this->assinaturas()
+            ->where('status', 'active')
+            ->where('termina_em', '>=', now())
+            ->orderByDesc('termina_em')
+            ->first();
+    }
+
+
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');
     }
 
-    public function avisos()
+    public function lembretes()
     {
         return $this->hasMany(Lembrete::class, 'usuario_id');
     }
 
-    public function convitesEnviados()
+    public function colaboracoes()
     {
-        return $this->hasMany(ConviteEnviado::class, 'usuario_id');
+        return $this->hasMany(Colaboracao::class, 'proprietario_id');
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar;
     }
 }

@@ -23,6 +23,86 @@
       macro
     />
 
+    <!-- Modal de Pagamento Pendente Otimizado -->
+    <ModalBase v-model="showPendingDialog" :title="$t('features.PPE')" maxWidth="500px" persistent>
+        <div class="text-center pa-4">
+            <v-avatar color="info-lighten-4" size="80" class="mb-4">
+                <v-icon icon="mdi-credit-card-clock-outline" color="info" size="40"></v-icon>
+            </v-avatar>
+            <h3 class="text-h5 font-weight-bold mb-2">{{ $t('features.PPE') }}</h3>
+            <p class="text-body-1 text-medium-emphasis mb-6">
+                {{ $t('features.VEIP', { pendingPlanName: $t('plans.plan_names.' + pendingPlanName, pendingPlanName) }) }}.<br>
+                {{ $t('features.continue_or_cancel') }}
+            </p>
+            
+            <div class="d-flex flex-column gap-3">
+                <v-btn
+                    block
+                    color="primary"
+                    size="large"
+                    class="rounded-xl font-weight-bold"
+                    :loading="continuing"
+                    @click="continuePayment"
+                >
+                    {{ $t('features.continue_payment') }}
+                </v-btn>
+                <v-btn
+                    block
+                    variant="text"
+                    color="error"
+                    class="font-weight-bold"
+                    :loading="cancelling"
+                    @click="cancelarPagamento"
+                >
+                    {{ $t('features.cancel_previous') }}
+                </v-btn>
+            </div>
+        </div>
+    </ModalBase>
+
+    <div v-if="!loading && (resumo.periodo_label || activeFilterChips.length)" class="d-flex align-center mb-4 px-2 animate-fade-in flex-wrap gap-2">
+        <!-- Period Chip -->
+        <v-chip v-if="resumo.periodo_label" size="small" color="primary" variant="tonal" class="rounded-lg px-3">
+            <v-icon icon="mdi-calendar-range" size="14" class="mr-2"></v-icon>
+            <span class="text-caption font-weight-bold">
+                {{ $t(resumo.periodo_label) }}
+                <span v-if="resumo.data_inicio" class="ml-1 opacity-70 font-weight-medium">
+                   ({{ formatDate(resumo.data_inicio) }} {{ resumo.data_fim && resumo.data_fim !== resumo.data_inicio ? '- ' + formatDate(resumo.data_fim) : '' }})
+                </span>
+            </span>
+        </v-chip>
+
+        <!-- Active Filters Chips Grouped by Line -->
+        <div class="d-flex flex-column gap-2 w-100">
+            <div 
+                v-for="(group, key) in groupedActiveChips" 
+                :key="key" 
+                class="d-flex align-center flex-wrap gap-2 animate-fade-in"
+            >
+                <div class="d-flex align-center opacity-60 mr-2" style="min-width: 100px;">
+                    <v-icon :icon="group.icon" size="14" class="mr-1"></v-icon>
+                    <span class="text-caption font-weight-black text-uppercase letter-spacing-1">{{ group.label }}:</span>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    <v-chip
+                        v-for="chip in group.chips"
+                        :key="chip.key + '-' + chip.value"
+                        size="small"
+                        color="secondary"
+                        variant="flat"
+                        class="rounded-lg px-3"
+                        closable
+                        @click:close="removeFilter(chip)"
+                        style="max-width: 300px;"
+                    >
+                        <span class="text-caption font-weight-bold text-truncate">{{ chip.value }}</span>
+                    </v-chip>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <v-row class="mb-8 px-2">
         <v-col v-if="loading" cols="12">
             <v-row>
@@ -43,7 +123,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.RE') }}</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.receita) }">
-                  <span class="currency-symbol">{{ currencyPrefix }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_income_month') }}</div>
@@ -61,7 +141,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.DS') }}</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.despesa) }">
-                  <span class="currency-symbol">{{ currencyPrefix }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.total_expense_month') }}</div>
@@ -79,7 +159,7 @@
                     <span class="text-overline font-weight-bold opacity-70">{{ $t('features.balance') }} ({{ $t('features.net') }})</span>
                 </div>
                 <div class="value-container font-weight-bold mb-1" :style="{ fontSize: dynamicFontSize(resumo.saldo) }">
-                  <span class="currency-symbol">{{ currencyPrefix }}</span>
+                  <span class="currency-symbol">{{ currencySymbol }}</span>
                   <span class="amount-value">{{ formatNumber(resumo.saldo) }}</span>
                 </div>
                 <div class="text-subtitle-2 opacity-80 font-weight-medium">{{ $t('features.net_worth_today') }}</div>
@@ -91,14 +171,13 @@
     </v-row>
 
     <v-row>
-      <!-- Saúde Financeira e Atividade -->
       <v-col cols="12" md="8">
         <v-card class="rounded-xl mb-8 glass-card border-card overflow-hidden" elevation="4">
           <v-card-title class="font-weight-bold pa-6 d-flex align-center">
             <v-icon icon="mdi-chart-donut" color="primary" class="mr-2"></v-icon>
             {{ $t('features.financial_health') }}
             <v-spacer></v-spacer>
-            <div class="text-caption text-medium-emphasis font-weight-medium">{{ $t('features.resource_distribution') }}</div>
+            <div class="text-caption text-medium-emphasis font-weight-medium d-none d-sm-block">{{ $t('features.resource_distribution') }}</div>
           </v-card-title>
           <v-card-text class="pa-6">
             <v-row class="align-center">
@@ -107,7 +186,13 @@
                   <Doughnut v-if="!loading" :data="chartData" :options="chartOptions" :key="JSON.stringify(chartData.datasets[0].data)" />
                   <div class="chart-center-text" v-if="!loading">
                     <div class="text-h5 font-weight-bold">{{ getMarginPercentage }}%</div>
-                    <div class="text-caption">{{ $t('features.margin') }}</div>
+                    <div class="text-caption d-flex align-center justify-center">
+                      {{ $t('features.margin') }}
+                      <v-tooltip activator="parent" location="bottom" max-width="250">
+                        {{ $t('features.margin_explanation') || 'Representa a porcentagem da receita que sobra após o pagamento de todas as despesas (Margem de Lucro Líquida).' }}
+                      </v-tooltip>
+                      <v-icon icon="mdi-help-circle-outline" size="12" class="ml-1 opacity-60"></v-icon>
+                    </div>
                   </div>
                 </div>
               </v-col>
@@ -117,7 +202,7 @@
                     <div class="dot receita-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.incomes') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">{{ formatCurrency(resumo.receita, 'BRL') }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.receita) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="mb-4 d-flex align-center justify-space-between">
@@ -125,7 +210,7 @@
                     <div class="dot despesa-dot mr-2"></div>
                     <span class="text-body-2">{{ $t('features.expenses') }}</span>
                   </div>
-                  <span class="text-body-2 font-weight-bold">{{ formatCurrency(resumo.despesa, 'BRL') }}</span>
+                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.despesa) }}</span>
                 </div>
                 <v-divider class="mb-4"></v-divider>
                 <div class="d-flex align-center justify-space-between">
@@ -134,7 +219,7 @@
                     <span class="text-body-2">{{ $t('features.net') }}</span>
                   </div>
                   <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
-                    {{ formatCurrency(resumo.saldo, 'BRL') }}
+                    {{ currencySymbol }} {{ formatNumber(resumo.saldo) }}
                   </span>
                 </div>
               </v-col>
@@ -143,29 +228,32 @@
         </v-card>
 
         <v-card class="rounded-xl recent-activity overflow-hidden glass-card border-card" elevation="4">
-           <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
-               <v-toolbar-title class="font-weight-bold">
+           <v-toolbar color="transparent" density="comfortable" class="px-2 px-sm-4 py-2">
+               <v-toolbar-title class="font-weight-bold card-title-responsive">
                     {{ filterStore.filters.data || filterStore.filters.descricao || filterStore.filters.categoria || (filterStore.filters.tipo && filterStore.filters.tipo !== 'todos') || filterStore.filters.valor ? $t('filters.movement_period') : $t('features.recent_transactions') }}
                 </v-toolbar-title>
                <v-spacer></v-spacer>
-               <v-btn variant="tonal" size="small" color="primary" class="rounded-lg" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
+               <v-btn variant="tonal" size="small" color="primary" class="rounded-lg text-none px-2" :to="{ name: 'Lancamentos' }">{{ $t('features.view_history') }}</v-btn>
            </v-toolbar>
            <v-list lines="two" class="pa-4 bg-transparent">
               <v-list-item v-for="item in resumo.atividades_recentes" :key="item.id" 
-                class="rounded-xl mb-3 hover-item border-item"
                 :title="item.descricao || $t('categories.' + item.categoria)" 
-                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)}`" 
+                :subtitle="`${item.tipo === 'receita' ? $t('transactions.type.income') : $t('transactions.type.expense')} • ${$t('categories.' + item.categoria)} • ${$t('transactions.payment_methods.' + (item.forma_pagamento || 'other'))}`" 
               >
                 <template v-slot:prepend>
                     <v-avatar :color="item.tipo === 'receita' ? 'success-lighten-5' : 'error-lighten-5'" rounded="lg" size="48">
-                        <v-icon :icon="item.tipo === 'receita' ? 'mdi-plus' : 'mdi-minus'" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
+                        <v-icon :icon="getCategoryIcon(item.categoria)" :color="item.tipo === 'receita' ? 'success' : 'error'"></v-icon>
                     </v-avatar>
                 </template>
                 <template v-slot:append>
                     <div class="d-flex align-center">
                         <span :class="item.tipo === 'receita' ? 'text-success' : 'text-error'" class="text-h6 font-weight-bold mr-4">
-                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ formatCurrency(item.valor, 'BRL') }}
+                            {{ item.tipo === 'receita' ? '+' : '-' }} {{ currencySymbol }} {{ formatNumber(item.valor) }}
                         </span>
+                        <div class="d-flex gap-1">
+                            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" @click="abrirEditar(item)"></v-btn>
+                            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click="abrirExcluir(item)"></v-btn>
+                        </div>
                     </div>
                 </template>
               </v-list-item>
@@ -177,7 +265,6 @@
         </v-card>
       </v-col>
 
-      <!-- Dashboard Lado Direito -->
       <v-col cols="12" md="4">
         <v-card class="rounded-xl mb-6 glass-card border-card quick-actions-gradient" elevation="4">
             <v-card-title class="font-weight-bold pa-6 pb-2 text-white">{{ $t('features.quick_access') }}</v-card-title>
@@ -232,28 +319,38 @@
       </v-col>
     </v-row>
 
-    <ModalNovoLancamento v-model="dialog" @saved="fetchSummary" />
-    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="fetchSummary" />
-    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="fetchSummary" />
+    <ModalNovoLancamento v-model="dialog" @saved="onLancamentoSalvo" />
+    <ModalEditarLancamento v-model="dialogEditar" :lancamento="itemAEditar" @updated="onLancamentoEditado" />
+    <ModalExcluirLancamento v-model="dialogExcluir" :lancamentoId="lancamentoIdExcluir" @deleted="onLancamentoExcluido" />
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
+import { toast } from 'vue3-toastify'
+import ModalBase from '../components/Modals/modalBase.vue'
+
+const router = useRouter()
+const showPendingDialog = ref(false)
+const pendingPlanName = ref('')
+const cancelling = ref(false)
+const continuing = ref(false)
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
-import { useCurrency } from '../composables/useCurrency'
-import { useI18n } from 'vue-i18n'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
+import { useI18n } from 'vue-i18n'
+import { watch } from 'vue'
+import { useMoney } from '../composables/useMoney'
 const { t } = useI18n()
-const { formatCurrency, formatNumber, currencyPrefix, convert } = useCurrency()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 
 
 import { categorias as categoriasConstantes } from '../constants/categorias'
@@ -272,8 +369,50 @@ const categorias = computed(() => {
   }
 })
 
+const activeFilterChips = computed(() => {
+    const chips = []
+    const f = filterStore.filters
+    if (f.descricao) chips.push({ key: 'descricao', label: t('filters.description'), value: f.descricao, icon: 'mdi-magnify' })
+    if (f.categoria && f.categoria.length) {
+        f.categoria.forEach(c => {
+            const catObj = categoriasConstantes.find(cat => cat.title === c)
+            chips.push({ 
+                key: 'categoria', 
+                label: t('filters.category'), 
+                value: t('categories.' + c), 
+                icon: catObj ? catObj.icon : 'mdi-tag', 
+                originalValue: c 
+            })
+        })
+    }
+    if (f.tipo && f.tipo !== 'todos') chips.push({ key: 'tipo', label: t('filters.type'), value: t('transactions.type.' + (f.tipo === 'receita' ? 'income' : 'expense')), icon: 'mdi-swap-horizontal' })
+    if (f.valor) chips.push({ key: 'valor', label: t('filters.value'), value: f.valor, icon: 'mdi-currency-usd' })
+    return chips
+})
+
+const removeFilter = (chip) => {
+    if (chip.key === 'categoria') {
+        filterStore.filters.categoria = filterStore.filters.categoria.filter(c => c !== chip.originalValue)
+    } else if (chip.key === 'tipo') {
+        filterStore.filters[chip.key] = 'todos'
+    } else {
+        filterStore.filters[chip.key] = ''
+    }
+    fetchSummary()
+}
+
+const groupedActiveChips = computed(() => {
+    const groups = {}
+    activeFilterChips.value.forEach(chip => {
+        if (!groups[chip.key]) groups[chip.key] = { label: chip.label, icon: chip.icon, chips: [] }
+        groups[chip.key].chips.push(chip)
+    })
+    return groups
+})
+
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
+const deletedIds = ref(new Set())
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
 
@@ -305,8 +444,39 @@ const getMarginPercentage = computed(() => {
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
 
+
+const formatNumber = (val) => fmtNum(val)
+
+const formatDate = (date) => {
+    if (!date) return ''
+    const dStr = typeof date === 'string' ? date.split('T')[0] : date
+    const { locale } = useI18n()
+    if (typeof dStr === 'string' && dStr.includes('-')) {
+        const [y, m, d] = dStr.split('-').map(Number)
+        return new Date(y, m - 1, d).toLocaleDateString(locale.value)
+    }
+    return new Date(date).toLocaleDateString(locale.value)
+}
+
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method] || icons.other
+}
+
+const getCategoryIcon = (catName) => {
+  const cat = categoriasConstantes.find(c => c.title === catName)
+  return cat ? cat.icon : 'mdi-tag-outline'
+}
 const chartData = computed(() => ({
-    labels: ['Receitas', 'Despesas', 'Líquido'],
+    labels: [t('features.incomes'), t('features.expenses'), t('features.net')],
     datasets: [{
         data: [resumo.value.receita, resumo.value.despesa, resumo.value.saldo > 0 ? resumo.value.saldo : 0],
         backgroundColor: ['#38ef7d', '#ff4b2b', '#0083b0'],
@@ -322,7 +492,10 @@ const chartOptions = {
         legend: { display: false },
         tooltip: {
             callbacks: {
-                label: (context) => ` ${formatCurrency(context.raw, 'BRL')}`
+                label: (context) => {
+                    const val = context.raw || 0
+                    return ` ${currencySymbol.value} ${fmtNum(fromBRL(val))}`
+                }
             }
         }
     },
@@ -336,9 +509,48 @@ const resumo = ref({
     atividades_recentes: []
 })
 
+const checkPendingPayment = async () => {
+    if (!authStore.isAuthenticated) return
+    try {
+        const prefResponse = await authStore.apiFetch('/checkout/preferencia')
+        if (prefResponse.ok) {
+            const data = await prefResponse.json()
+            if (data.id && data.plano) {
+                pendingPlanName.value = data.plano.nome
+                showPendingDialog.value = true
+            }
+        }
+    } catch (e) {
+        console.error('Erro ao buscar preferência:', e)
+    }
+}
+
+const continuePayment = () => {
+    continuing.value = true
+    router.push({ name: 'Checkout' })
+}
+
+const cancelarPagamento = async () => {
+    try {
+        cancelling.value = true
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
+            method: 'POST'
+        })
+        if (response.ok) {
+            toast.success(t('plans.toast_cancel_success'))
+            showPendingDialog.value = false
+        }
+    } catch (e) {
+        toast.error(t('plans.toast_cancel_error'))
+    } finally {
+        cancelling.value = false
+    }
+}
+
 onMounted(async () => {
     fetchSummary()
     fetchMetas()
+    checkPendingPayment()
 })
 
 const fetchMetas = async () => {
@@ -364,35 +576,121 @@ const calculatePercentage = (meta) => {
 }
 
 
-const fetchSummary = async () => {
-    loading.value = true
+const fetchSummary = async (isSilent = false) => {
+    if (!isSilent) loading.value = true
     try {
-        const params = new URLSearchParams()
-        const f = filterStore.filters
-        if (f.data) {
-            if (f.data.includes(' to ')) {
-                const [inicio, fim] = f.data.split(' to ')
-                params.append('data_inicio', inicio)
-                params.append('data_fim', fim)
-            } else {
-                params.append('data', f.data)
-            }
-        }
-        if (f.descricao) params.append('descricao', f.descricao)
-        if (f.categoria) params.append('categoria', f.categoria.value || f.categoria)
-        if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
-        if (f.valor) params.append('valor', convert(f.valor, 'BRL', 'BRL'))
-
-        const url = Array.from(params).length > 0 ? `/painel/resumo?${params.toString()}` : '/painel/resumo'
+        const url = `/painel/resumo?${filterStore.queryString}`
         const response = await authStore.apiFetch(url)
         if (response.ok) {
-            resumo.value = await response.json()
+            const data = await response.json()
+            // Filtro otimista: removemos itens que estão na ghost list
+            if (data.atividades_recentes) {
+                data.atividades_recentes = data.atividades_recentes.filter(i => !deletedIds.value.has(i.id))
+            }
+            resumo.value = data
         }
     } catch (e) {
         console.error(e)
     } finally {
-        loading.value = false
+        if (!isSilent) loading.value = false
     }
+}
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return '0,00'
+
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number(value))
+}
+
+const abrirEditar = (item) => { itemAEditar.value = { ...item }; dialogEditar.value = true }
+const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
+
+// Optimistic updates: atualiza a lista local imediatamente, depois busca do servidor
+const onLancamentoSalvo = (optimisticItem) => {
+    // 1. Atualização Otimista: Adiciona na lista e atualiza totais localmente
+    if (optimisticItem && resumo.value.atividades_recentes) {
+        // Inserir no início da lista (recentes)
+        resumo.value.atividades_recentes.unshift({
+            ...optimisticItem,
+            id: Date.now() // ID temporário para o v-for não reclamar
+        })
+        
+        // Limitar a lista a 5 itens se necessário
+        if (resumo.value.atividades_recentes.length > 5) {
+            resumo.value.atividades_recentes.pop()
+        }
+
+        // Atualizar Lógica dos totais
+        if (optimisticItem.tipo === 'receita') {
+            resumo.value.receita += Number(optimisticItem.valor)
+        } else {
+            resumo.value.despesa += Number(optimisticItem.valor)
+        }
+        resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+    }
+    
+    // 2. Sincronização em background - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
+}
+
+const onLancamentoEditado = (updatedItem) => {
+    if (resumo.value.atividades_recentes && updatedItem) {
+        const index = resumo.value.atividades_recentes.findIndex(a => a.id === updatedItem.id)
+        if (index !== -1) {
+            const oldItem = resumo.value.atividades_recentes[index]
+            
+            // Reverter valor antigo
+            if (oldItem.tipo === 'receita') resumo.value.receita -= Number(oldItem.valor)
+            else resumo.value.despesa -= Number(oldItem.valor)
+            
+            // Aplicar valor novo
+            if (updatedItem.tipo === 'receita') resumo.value.receita += Number(updatedItem.valor)
+            else resumo.value.despesa += Number(updatedItem.valor)
+            
+            resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+            
+            // Atualizar lista
+            resumo.value.atividades_recentes[index] = { ...updatedItem }
+        }
+    }
+    // Sincronização em segundo plano - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
+}
+
+const onLancamentoExcluido = (deletedId) => {
+    // 1. Encontrar o item ANTES de remover para atualizar os totais localmente
+    const item = resumo.value.atividades_recentes?.find(a => a.id === deletedId)
+    
+    if (deletedId) {
+        deletedIds.value.add(deletedId)
+    }
+
+    if (item) {
+        // 2. Atualização Lógica dos totais (Instantânea)
+        if (item.tipo === 'receita') {
+            resumo.value.receita -= Number(item.valor)
+        } else {
+            resumo.value.despesa -= Number(item.valor)
+        }
+        resumo.value.saldo = resumo.value.receita - resumo.value.despesa
+        
+        // 3. Remover da lista
+        resumo.value.atividades_recentes = resumo.value.atividades_recentes.filter(
+            a => a.id !== deletedId
+        )
+    }
+
+    // 4. Sincronização em segundo plano - delay para evitar dados obsoletos
+    setTimeout(() => {
+        fetchSummary(true)
+    }, 800)
 }
 
 </script>
@@ -400,13 +698,14 @@ const fetchSummary = async () => {
 <style scoped>
 
 .dashboard-wrapper {
-    background: linear-gradient(180deg, #f0f4f8 0%, #ffffff 100%);
+    background: linear-gradient(180deg, rgba(var(--v-theme-primary), 0.05) 0%, transparent 100%);
     min-height: 100vh;
 }
 
 .gradient-text {
-    background: linear-gradient(90deg, #1A237E, #1867C0);
+    background: linear-gradient(90deg, rgb(var(--v-theme-primary)), #5CBBF6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -417,9 +716,9 @@ const fetchSummary = async () => {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+  background: rgba(var(--v-theme-surface), 0.9) !important;
+  border: 1px solid rgba(var(--v-border-color), 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.07) !important;
 }
 
 .summary-card {
@@ -449,6 +748,13 @@ const fetchSummary = async () => {
   .summary-card:hover {
       transform: none;
   }
+  .card-title-responsive {
+      font-size: 0.95rem !important;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
 }
 
 .icon-circle {
@@ -458,7 +764,7 @@ const fetchSummary = async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(var(--v-theme-surface), 0.9);
     box-shadow: 0 8px 16px rgba(0,0,0,0.05);
 }
 
@@ -494,13 +800,13 @@ const fetchSummary = async () => {
 }
 
 .hover-item:hover {
-    background: rgba(24, 103, 192, 0.03) !important;
-    border-color: rgba(24, 103, 192, 0.1) !important;
+    background: rgba(var(--v-theme-primary), 0.05) !important;
+    border-color: rgba(var(--v-theme-primary), 0.1) !important;
     transform: translateX(5px);
 }
 
 .border-card {
-    border: 1px solid rgba(0,0,0,0.05) !important;
+    border: 1px solid rgba(var(--v-border-color), 0.05) !important;
 }
 
 .quick-actions-gradient {
@@ -566,4 +872,3 @@ const fetchSummary = async () => {
     max-width: none;
 }
 </style>
-

@@ -4,7 +4,7 @@
     <p class="text-caption text-medium-emphasis mt-2">{{ $t('metas.actions.inactivate_desc') }}</p>
     <template #actions>
       <v-btn variant="text" @click="internalValue = false">{{ $t('common.cancel') }}</v-btn>
-      <v-btn color="error" variant="flat" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">Desativar</v-btn>
+      <v-btn color="error" variant="flat" rounded="lg" @click="confirmDelete" :loading="loading" class="ml-2">{{ $t('metas.actions.inactivate_btn') }}</v-btn>
     </template>
   </ModalBase>
 </template>
@@ -20,10 +20,16 @@ const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
-  meta: Object
+  meta: Object,
+  // 'anotacoes' for Lembretes, 'metas' for Metas. Defaults to 'metas'.
+  resourceType: {
+    type: String,
+    default: 'metas',
+    validator: (v) => ['metas', 'lembretes'].includes(v)
+  }
 })
 
-const emit = defineEmits(['update:modelValue', 'deleted'])
+const emit = defineEmits(['update:modelValue', 'deleted', 'rollback'])
 
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -36,23 +42,26 @@ const internalValue = computed({
 const confirmDelete = async () => {
   if (!props.meta?.id) return
 
-  loading.value = true
+  const id = props.meta.id
+  const oldStatus = props.meta.status
+  const resource = props.resourceType  // 'metas' or 'anotacoes'
+  const endpoint = `/${resource}/${id}`
+
+  // Optimistic: close + notify immediately
+  internalValue.value = false
+  toast.success(t('toasts.success_inactivate'))
+  emit('deleted', { id, oldStatus })
+
   try {
-    const isAnotacao = !props.meta.tipo || props.meta.tipo === 'pessoal'
-    const endpoint = isAnotacao ? `/anotacoes/${props.meta.id}` : `/metas/${props.meta.id}`
-    
-    const response = await authStore.apiFetch(endpoint, {
-      method: 'DELETE'
-    })
-    if (response.ok) {
-      toast.success(t('toasts.success_inactivate'))
-      internalValue.value = false
-      emit('deleted')
+    const response = await authStore.apiFetch(endpoint, { method: 'DELETE' })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}))
+      throw new Error(body.message || 'Erro ao desativar')
     }
   } catch (e) {
+    console.error(`[ModalExcluirMeta] DELETE ${endpoint} falhou:`, e.message)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
+    emit('rollback', { id, oldStatus })
   }
 }
 </script>

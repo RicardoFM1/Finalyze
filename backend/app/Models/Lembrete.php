@@ -15,16 +15,19 @@ class Lembrete extends Model
         'usuario_id',
         'titulo',
         'descricao',
-        'categoria',
+        'icone',
         'cor',
-        'data_aviso',
-        'data_lembrete',
-        'status',
+        'prazo',
+        'hora',
+        'notificacao_site',
+        'notificacao_email',
+        'email_notified_at',
+        'site_notified_at',
+        'status'
     ];
 
     protected $casts = [
-        'data_aviso' => 'datetime',
-        'data_lembrete' => 'datetime',
+        'prazo' => 'date',
     ];
 
     public function usuario()

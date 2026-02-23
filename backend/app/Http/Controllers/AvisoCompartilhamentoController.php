@@ -24,7 +24,7 @@ class AvisoCompartilhamentoController extends Controller
     {
         $dados = $request->validate([
             'email_destino' => ['required', 'email', 'max:255', Rule::exists('usuarios', 'email')],
-            'mensagem' => 'nullable|string|max:1000',
+            'mensagem'      => 'nullable|string|max:1000',
         ], [
             'email_destino.exists' => 'O email destino precisa estar cadastrado no Finalyze.',
         ]);
@@ -35,18 +35,18 @@ class AvisoCompartilhamentoController extends Controller
             ], 422);
         }
 
-        $tokenRaw = Str::random(64);
+        $tokenRaw  = Str::random(64);
         $tokenHash = hash('sha256', $tokenRaw);
-        $expiraEm = now()->addHours(48);
+        $expiraEm  = now()->addHours(48);
 
         $convite = ConviteEnviado::create([
-            'usuario_id' => $request->user()->id,
+            'usuario_id'    => $request->user()->id,
             'email_destino' => $dados['email_destino'],
-            'mensagem' => $dados['mensagem'] ?? null,
-            'status' => 'pendente',
-            'token_hash' => $tokenHash,
-            'expira_em' => $expiraEm,
-            'aceito_em' => null,
+            'mensagem'      => $dados['mensagem'] ?? null,
+            'status'        => 'pendente',
+            'token_hash'    => $tokenHash,
+            'expira_em'     => $expiraEm,
+            'aceito_em'     => null,
         ]);
 
         $frontendUrl = rtrim((string) env('APP_FRONTEND_URL', config('app.url')), '/');
@@ -86,13 +86,13 @@ class AvisoCompartilhamentoController extends Controller
         }
 
         $convite->update([
-            'status' => 'aceito',
+            'status'    => 'aceito',
             'aceito_em' => now(),
         ]);
 
         return response()->json([
-            'message' => 'Convite aceito com sucesso.',
-            'convite_id' => $convite->id,
+            'message'           => 'Convite aceito com sucesso.',
+            'convite_id'        => $convite->id,
             'usuario_origem_id' => $convite->usuario_id,
         ]);
     }
@@ -101,8 +101,8 @@ class AvisoCompartilhamentoController extends Controller
     {
         $dados = $request->validate([
             'email_destino' => 'required|email|max:255',
-            'mensagem' => 'nullable|string|max:1000',
-            'status' => ['required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
+            'mensagem'      => 'nullable|string|max:1000',
+            'status'        => ['required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
         ]);
 
         $convite = ConviteEnviado::where('usuario_id', $request->user()->id)->findOrFail($id);
@@ -115,8 +115,8 @@ class AvisoCompartilhamentoController extends Controller
     {
         $dados = $request->validate([
             'email_destino' => 'sometimes|required|email|max:255',
-            'mensagem' => 'sometimes|nullable|string|max:1000',
-            'status' => ['sometimes|required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
+            'mensagem'      => 'sometimes|nullable|string|max:1000',
+            'status'        => ['sometimes', 'required', Rule::in(['pendente', 'aceito', 'recusado', 'cancelado'])],
         ]);
 
         $convite = ConviteEnviado::where('usuario_id', $request->user()->id)->findOrFail($id);

@@ -9,16 +9,7 @@
           </v-btn-toggle>
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field
-            v-model="form.valor"
-            :label="$t('modals.labels.value')"
-            :prefix="currencyPrefix"
-            type="number"
-            step="0.01"
-            variant="outlined"
-            rounded="lg"
-            required
-          />
+          <CurrencyInput v-model="form.valor" :label="$t('modals.labels.value')" :prefix="currencySymbol" variant="outlined" rounded="lg" required :disabled="loading" />
         </v-col>
         <v-col cols="12" md="6">
           <DateInput v-model="form.data" :label="$t('modals.labels.date')" required :disabled="loading" />
@@ -54,19 +45,33 @@
                                 </template>
                             </v-autocomplete>
                         </v-col>
+        <v-col cols="12" md="12">
+          <v-select
+            v-model="form.forma_pagamento"
+            :items="formasPagamento"
+            item-title="title"
+            item-value="value"
+            :label="$t('transactions.payment_methods.title')"
+            variant="outlined"
+            rounded="lg"
+            :disabled="loading"
+            prepend-inner-icon="mdi-credit-card-outline"
+          ></v-select>
+        </v-col>
         <v-col cols="12">
-          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" />
+          <v-textarea v-model="form.descricao" :label="$t('modals.labels.description')" variant="outlined" rounded="lg" rows="2" :disabled="loading"></v-textarea>
         </v-col>
       </v-row>
     </v-form>
     <template #actions>
-      <v-btn
-        color="primary"
-        block
-        variant="flat"
-        size="large"
-        rounded="lg"
-        :loading="loading"
+      <v-btn 
+        color="primary" 
+        block 
+        variant="flat" 
+        size="large" 
+        rounded="lg" 
+        :loading="loading || uiStore.loading" 
+        :disabled="loading || uiStore.loading"
         elevation="3"
         @click="salvarLancamento"
       >
@@ -79,15 +84,17 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
-import { useI18n } from 'vue-i18n'
+import CurrencyInput from '../../Common/CurrencyInput.vue'
 import { categorias } from '../../../constants/categorias'
-import { useCurrency } from '../../../composables/useCurrency'
+import { useI18n } from 'vue-i18n'
+import { useMoney } from '@/composables/useMoney'
 
 const { t } = useI18n()
-const { currencyPrefix, currency, convert } = useCurrency()
+const { currencySymbol } = useMoney()
 
 const props = defineProps({
   modelValue: Boolean
@@ -96,6 +103,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const loading = ref(false)
 
 const internalValue = computed({
@@ -111,13 +119,25 @@ const categoriasTraduzidas = computed(() => {
   }))
 })
 
+const formasPagamento = computed(() => [
+  { title: t('transactions.payment_methods.money'), value: 'money' },
+  { title: t('transactions.payment_methods.credit_card'), value: 'credit_card' },
+  { title: t('transactions.payment_methods.debit_card'), value: 'debit_card' },
+  { title: t('transactions.payment_methods.pix'), value: 'pix' },
+  { title: t('transactions.payment_methods.transfer'), value: 'transfer' },
+  { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
+  { title: t('transactions.payment_methods.other'), value: 'other' }
+])
+
 const form = ref({
   tipo: 'despesa',
   valor: '',
   categoria: '',
+  forma_pagamento: 'other',
   data: new Date().toLocaleDateString('en-CA'),
   descricao: ''
 })
+
 
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
@@ -125,6 +145,7 @@ watch(() => props.modelValue, (newVal) => {
       tipo: 'despesa',
       valor: '',
       categoria: '',
+      forma_pagamento: 'other',
       data: new Date().toLocaleDateString('en-CA'),
       descricao: ''
     }
@@ -132,38 +153,41 @@ watch(() => props.modelValue, (newVal) => {
 })
 
 const salvarLancamento = async () => {
-  loading.value = true
+  const valor = Number(form.value.valor)
+  if (isNaN(valor) || valor <= 0) {
+    toast.warning(t('validation.invalid_value'))
+    return
+  }
+
+  // Preparamos o item de forma otimista para o Dashboard
+  const optimisticItem = {
+      ...form.value,
+      id: Date.now(), // ID temporário
+      valor: valor
+  }
+
+  // Ação Instantânea: Fecha o modal e avisa o pai
+  internalValue.value = false
+  toast.success(t('toasts.success_add'))
+  emit('saved', optimisticItem)
+
   try {
-    const valor = Number(form.value.valor)
-    if (isNaN(valor) || valor <= 0) {
-      toast.warning(t('validation.invalid_value'))
-      loading.value = false
-      return
-    }
-
-    const valorEmBRL = convert(valor, currency.value, 'BRL')
-
     const response = await authStore.apiFetch('/lancamentos', {
       method: 'POST',
       body: JSON.stringify({
         ...form.value,
-        valor: valorEmBRL
+        valor: valor
       })
     })
 
-    if (response.ok) {
-      toast.success(t('toasts.success_add'))
-      internalValue.value = false
-      emit('saved')
-    } else {
+    if (!response.ok) {
       const data = await response.json()
-      toast.error(data.message || t('toasts.error_generic'))
+      throw new Error(data.message || 'Erro ao salvar')
     }
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-  } finally {
-    loading.value = false
+    // O silent refresh do pai cuidará do rollback se necessário
   }
 }
 </script>

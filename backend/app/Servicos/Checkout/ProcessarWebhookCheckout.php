@@ -32,9 +32,8 @@ class ProcessarWebhookCheckout
                 $payment = $client->get($paymentId);
                 Log::info("Payment Update (Webhook): ID {$paymentId} is now {$payment->status}");
 
-                if ($payment->status === 'approved') {
-                    $ativarPlanoServico->executar($payment);
-                }
+                // Agora chamamos o serviço para qualquer status, pois ele cuida de registrar no histórico
+                $ativarPlanoServico->executar($payment);
             } catch (\Exception $e) {
                 Log::error('Error processing webhook payment: ' . $e->getMessage());
             }

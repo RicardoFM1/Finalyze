@@ -57,15 +57,15 @@
             <div class="logo">Finalyze</div>
         </div>
 
-        <h2>Olá, {{ $usuario->nome }}!</h2>
-        <p>Use o código abaixo para verificar sua conta e começar sua jornada financeira:</p>
+        <h2>{{ __('Hello, :name!', ['name' => $usuario->nome]) }}</h2>
+        <p>{{ __('Use the code below to verify your account and start your financial journey:') }}</p>
 
         <div class="code">{{ $codigo }}</div>
 
-        <p>Se você não solicitou este código, por favor ignore este e-mail.</p>
+        <p>{{ __('If you did not request this code, please ignore this e-mail.') }}</p>
 
         <div class="footer">
-            &copy; {{ date('Y') }} Finalyze Finance. Todos os direitos reservados.
+            &copy; {{ date('Y') }} Finalyze Finance. {{ __('All rights reserved.') }}
         </div>
     </div>
 </body>

@@ -17,6 +17,7 @@ return new class extends Migration
                 $table->string('categoria', 80)->nullable();
                 $table->string('cor', 20)->nullable();
                 $table->dateTime('data_aviso');
+                $table->dateTime('data_lembrete')->nullable();
                 $table->enum('status', ['pendente', 'concluido', 'cancelado'])->default('pendente');
                 $table->softDeletes();
                 $table->timestamps();
@@ -26,10 +27,16 @@ return new class extends Migration
             return;
         }
 
-        // Legacy databases may already have the table but without this column.
+        // Legacy: a tabela pode existir sem data_aviso
         if (!Schema::hasColumn('lembretes', 'data_aviso')) {
             Schema::table('lembretes', function (Blueprint $table) {
                 $table->dateTime('data_aviso')->nullable();
+            });
+        }
+
+        if (!Schema::hasColumn('lembretes', 'data_lembrete')) {
+            Schema::table('lembretes', function (Blueprint $table) {
+                $table->dateTime('data_lembrete')->nullable();
             });
         }
     }

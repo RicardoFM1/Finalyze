@@ -1,5 +1,5 @@
 <template>
-  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : $t('modals.titles.edit_note')) : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : $t('modals.titles.new_note'))" v-model="internalValue" maxWidth="550px">
+  <ModalBase :title="form.id ? (form.tipo === 'financeira' ? $t('modals.titles.edit_goal') : $t('modals.titles.edit_reminder')) : (form.tipo === 'financeira' ? $t('modals.titles.new_goal') : $t('modals.titles.new_reminder'))" v-model="internalValue" maxWidth="550px">
     <v-form ref="metaForm" @submit.prevent="saveMeta">
 
       <v-text-field
@@ -10,6 +10,7 @@
         class="mb-2"
         rounded="lg"
         required
+        :disabled="loading"
       ></v-text-field>
 
       <v-textarea
@@ -21,30 +22,21 @@
         rounded="lg"
         :rows="form.tipo === 'pessoal' ? 6 : 2"
         auto-grow
+        :disabled="loading"
       ></v-textarea>
 
       <template v-if="form.tipo === 'financeira'">
         <v-row dense>
-          <v-col cols="6">
-            <v-text-field
-              v-model="form.valor_atual"
-              :label="$t('modals.labels.current_value')"
-              prefix="R$"
-              type="number"
-              variant="outlined"
-              rounded="lg"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="6">
-            <v-text-field
+          <v-col cols="12">
+            <CurrencyInput
               v-model="form.valor_objetivo"
               :label="$t('modals.labels.goal_value')"
-              prefix="R$"
-              type="number"
+              :prefix="$t('common.currency')"
               variant="outlined"
               rounded="lg"
               required
-            ></v-text-field>
+              :disabled="loading"
+            />
           </v-col>
         </v-row>
       </template>
@@ -120,23 +112,60 @@
       </template>
 
       <v-row dense>
-        <v-col :cols="form.tipo === 'financeira' ? 6 : 12">
+        <v-col :cols="form.tipo === 'publico' ? 12 : 6">
           <DateInput
             v-model="form.prazo"
-            :label="form.tipo === 'financeira' ? 'Prazo' : 'Data Limite (Opcional)'"
+            :label="form.tipo === 'financeira' ? $t('modals.labels.deadline') : $t('modals.labels.date_agenda')"
             clearable
           />
+        </v-col>
+        <v-col v-if="form.tipo === 'pessoal' || form.tipo === 'agenda'" cols="6">
+          <v-text-field
+            v-model="form.hora"
+            :label="$t('modals.labels.time')"
+            type="time"
+            variant="outlined"
+            rounded="lg"
+            prepend-inner-icon="mdi-clock-outline"
+            :disabled="loading"
+          ></v-text-field>
         </v-col>
         <v-col v-if="form.tipo === 'financeira'" cols="6">
           <v-text-field
             v-model="form.cor"
-            label="Cor (Hex)"
+            :label="$t('modals.labels.color') + ' (Hex)'"
             type="color"
             variant="outlined"
             rounded="lg"
+            :disabled="loading"
           ></v-text-field>
         </v-col>
       </v-row>
+
+      <template v-if="form.tipo === 'pessoal' || form.tipo === 'agenda'">
+        <v-divider class="my-4"></v-divider>
+        <p class="text-caption font-weight-bold mb-2 text-medium-emphasis">{{ $t('modals.labels.notifications') }}</p>
+        <v-row dense>
+            <v-col cols="6">
+                <v-switch
+                    v-model="form.notificacao_site"
+                    :label="$t('modals.labels.on_site')"
+                    color="primary"
+                    density="compact"
+                    hide-details
+                ></v-switch>
+            </v-col>
+            <v-col cols="6">
+                <v-switch
+                    v-model="form.notificacao_email"
+                    :label="$t('modals.labels.by_email')"
+                    color="primary"
+                    density="compact"
+                    hide-details
+                ></v-switch>
+            </v-col>
+        </v-row>
+      </template>
 
       <v-btn 
         type="submit" 
@@ -146,7 +175,7 @@
         rounded="lg" 
         class="mt-4" 
         variant="flat"
-        :loading="loading" 
+        :disabled="loading || uiStore.loading"
         elevation="2"
       >
         {{ $t('common.save') }}
@@ -158,9 +187,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../../stores/auth'
+import { useUiStore } from '../../../stores/ui'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../modalBase.vue'
 import DateInput from '../../Common/DateInput.vue'
+import CurrencyInput from '../../Common/CurrencyInput.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -177,6 +208,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const loading = ref(false)
 const emojiMenu = ref(false)
 const emojiSearch = ref('')
@@ -192,7 +224,7 @@ const emojiCategories = [
 
 const filterEmojis = (emojis) => {
   if (!emojiSearch.value) return emojis
-  return emojis.filter(e => e.includes(emojiSearch.value)) // Basic filter, would be better with names but emojis are just chars
+  return emojis.filter(e => e.includes(emojiSearch.value))
 }
 
 const selectEmoji = (emoji) => {
@@ -201,7 +233,9 @@ const selectEmoji = (emoji) => {
 }
 
 const isEmoji = (str) => {
-  const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/
+  if (!str) return true
+  // Allow multiple emojis or complex ones (like ZWJ sequences)
+  const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g
   return emojiRegex.test(str)
 }
 
@@ -216,11 +250,13 @@ const form = ref({
   titulo: '',
   descricao: '',
   valor_objetivo: null,
-  valor_atual: 0,
   meta_quantidade: null,
   atual_quantidade: 0,
   unidade: '',
   prazo: null,
+  hora: null,
+  notificacao_site: false,
+  notificacao_email: true,
   cor: '#1867C0',
   icone: ''
 })
@@ -228,9 +264,23 @@ const form = ref({
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     if (props.meta) {
+      // Fix date offset by ensuring we don't treat it as UTC
+      let formattedPrazo = null
+      if (props.meta.prazo) {
+          const d = new Date(props.meta.prazo)
+          // Se vier do banco como YYYY-MM-DD, o new Date() pode puxar UTC
+          // Vamos garantir que pegamos exatamente o que está escrito
+          formattedPrazo = typeof props.meta.prazo === 'string' ? props.meta.prazo.split('T')[0] : props.meta.prazo
+      }
+
       form.value = { 
         ...props.meta,
-        prazo: props.meta.prazo ? new Date(props.meta.prazo).toLocaleDateString('en-CA') : null
+        tipo: props.meta.tipo || props.initialTipo,
+        prazo: formattedPrazo,
+        notificacao_site: !!props.meta.notificacao_site,
+        notificacao_email: !!props.meta.notificacao_email,
+        cor: props.meta.cor || (props.meta.tipo === 'financeira' ? '#4CAF50' : '#FFF9BF'),
+        icone: props.meta.icone || ''
       }
     } else {
       form.value = {
@@ -239,11 +289,13 @@ watch(() => props.modelValue, (newVal) => {
         titulo: '',
         descricao: '',
         valor_objetivo: null,
-        valor_atual: 0,
         meta_quantidade: null,
         atual_quantidade: 0,
         unidade: props.initialTipo === 'financeira' ? 'BRL' : '',
         prazo: null,
+        hora: null,
+        notificacao_site: false,
+        notificacao_email: true,
         cor: props.initialTipo === 'financeira' ? '#4CAF50' : '#FFF9BF',
         icone: props.initialTipo === 'pessoal' ? '🎯' : ''
       }
@@ -252,30 +304,46 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 const saveMeta = async () => {
-  loading.value = true
+  const isEdit = !!form.value.id
+  const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
+  const isAnotacao = currentTipo === 'pessoal' || currentTipo === 'agenda'
+  
+  // Clean empty strings to null for backend
+  const cleanData = { ...form.value }
+  Object.keys(cleanData).forEach(key => {
+    if (cleanData[key] === '') cleanData[key] = null
+  })
+
+  // Perceived speed: Close and tell parent to refresh
+  const optimisticItem = {
+    ...cleanData,
+    id: isEdit ? cleanData.id : 'opt-' + Date.now(),
+    status: cleanData.status || 'andamento'
+  }
+  
+  internalValue.value = false
+  emit('saved', optimisticItem, isAnotacao) 
+
   try {
-    const isEdit = !!form.value.id
-    const isAnotacao = form.value.tipo === 'pessoal' || (!form.value.tipo && props.initialTipo === 'pessoal')
-    const endpointBase = isAnotacao ? '/anotacoes' : '/metas'
-    const endpoint = isEdit ? `${endpointBase}/${form.value.id}` : endpointBase
+    const endpointBase = isAnotacao ? '/lembretes' : '/metas'
+    const endpoint = isEdit ? `${endpointBase}/${cleanData.id}` : endpointBase
     
+    loading.value = true
     const response = await authStore.apiFetch(endpoint, {
       method: isEdit ? 'PUT' : 'POST',
-      body: JSON.stringify(form.value)
+      body: JSON.stringify(cleanData)
     })
 
-    if (response.ok) {
-      toast.success(isEdit ? (isAnotacao ? t('toasts.success_update') : t('toasts.success_update')) : (isAnotacao ? t('toasts.success_add') : t('toasts.success_add')))
-      internalValue.value = false
-      emit('saved')
-    } else {
-      const data = await response.json()
-      toast.error(data.message || t('toasts.error_generic'))
+    if (!response.ok) {
+        throw new Error('Erro ao salvar')
     }
+    
+    toast.success(isEdit ? t('toasts.success_update') : t('toasts.success_add'))
   } catch (e) {
+    console.error(e)
     toast.error(t('toasts.error_generic'))
   } finally {
-    loading.value = false
+      loading.value = false
   }
 }
 </script>

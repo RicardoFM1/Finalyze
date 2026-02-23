@@ -1,15 +1,13 @@
-<template>
+﻿<template>
   <v-container>
 
-    <!-- HEADER -->
+
     <div class="d-flex align-center mb-6">
-      <v-icon icon="mdi-account-circle" color="primary" size="32" class="mr-3" />
-      <h1 class="text-h4 font-weight-bold">{{ $t('profile.title') }}</h1>
+        <v-icon icon="mdi-account-circle" color="primary" size="32" class="mr-3"></v-icon>
+        <h1 class="text-h4 font-weight-bold">{{ $t('profile.title') }}</h1>
     </div>
 
     <v-card class="rounded-xl overflow-hidden" elevation="3">
-
-      <!-- TABS -->
       <v-tabs
         v-model="activeTab"
         bg-color="primary"
@@ -17,23 +15,20 @@
         grow
         class="profile-tabs"
       >
-        <v-tab value="personal">
-          <v-icon start icon="mdi-account-circle" />
+        <v-tab value="personal" class="text-none">
+          <v-icon start icon="mdi-account-circle" class="mr-2"></v-icon>
           {{ $t('profile.tabs.personal') }}
         </v-tab>
-
-        <v-tab value="assinatura">
-          <v-icon start icon="mdi-star-circle" />
+        <v-tab value="assinatura" class="text-none">
+          <v-icon start icon="mdi-star-circle" class="mr-2"></v-icon>
           {{ $t('profile.tabs.subscription') }}
         </v-tab>
-
-        <v-tab value="historico">
-          <v-icon start icon="mdi-receipt" />
+        <v-tab value="historico" class="text-none">
+          <v-icon start icon="mdi-receipt" class="mr-2"></v-icon>
           {{ $t('profile.tabs.history') }}
         </v-tab>
       </v-tabs>
 
-      <!-- WINDOWS -->
       <v-window v-model="activeTab">
         <v-window-item value="personal">
           <div v-if="loadingUser" class="pa-6 pa-md-10">
@@ -180,7 +175,19 @@
             <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
                 <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
                     <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
-                       {{ $t('profile.subscription.pending_payment') }}
+                       <div class="d-flex flex-column flex-sm-row align-center justify-space-between w-100">
+                           <div class="mb-2 mb-sm-0 text-center text-sm-left">
+                               {{ $t('profile.subscription.pending_payment') }}
+                           </div>
+                           <div class="d-flex gap-2">
+                               <v-btn size="small" variant="text" color="error" class="font-weight-bold" @click="cancelarPagamentoPerfil" :loading="cancelling">
+                                   {{ $t('plans.cancel_prev') }}
+                               </v-btn>
+                               <v-btn size="small" color="warning" class="font-weight-bold text-white" :to="{ name: 'Checkout' }">
+                                   {{ $t('plans.continue') }}
+                               </v-btn>
+                           </div>
+                       </div>
                     </v-alert>
                 </v-col>
                 <v-col cols="12" md="5">
@@ -219,44 +226,180 @@
                     </v-btn>
                   </v-card>
                 </v-col>
-              </v-row>
 
+                <v-col cols="12" md="7">
+                  <v-card class="rounded-xl pa-6 border" elevation="0">
+                    <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.manage') }}</h3>
+                    
+                    <div class="management-item d-flex align-center justify-space-between mb-8">
+                      <div>
+                        <div class="font-weight-bold">{{ $t('profile.subscription.auto_renewal') }}</div>
+                        <div class="text-body-2 text-medium-emphasis">{{ $t('profile.subscription.auto_renewal_desc') }}</div>
+                      </div>
+                      <div class="d-flex flex-column align-end">
+                        <v-switch
+                          :model-value="!!subscriptionData?.assinatura?.renovacao_automatica"
+                          color="primary"
+                          hide-details
+                          inset
+                          @update:model-value="ativarAutoRenovacao"
+                          :disabled="loadingSub || uiStore.loading"
+                        ></v-switch>
+                        <v-chip size="x-small" :color="subscriptionData?.assinatura?.renovacao_automatica ? 'success' : 'grey'" variant="tonal" class="mt-n1">
+                           {{ subscriptionData?.assinatura?.renovacao_automatica ? $t('profile.on') : $t('profile.off') }}
+                        </v-chip>
+                      </div>
+                    </div>
 
-            </v-container>
+                    <v-divider class="mb-8"></v-divider>
+
+                    <v-row>
+                      <v-col cols="12" sm="6">
+                        <v-btn
+                          block
+                          variant="outlined"
+                          color="primary"
+                          class="rounded-lg font-weight-bold"
+                          @click="payAhead"
+                          :disabled="loadingSub || saving || uiStore.loading"
+                        >
+                          {{ $t('profile.subscription.pay_ahead') }}
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-btn
+                          block
+                          variant="text"
+                          color="error"
+                          class="rounded-lg font-weight-bold"
+                          v-if="subscriptionData.assinatura && subscriptionData.assinatura.status === 'active'"
+                          @click="confirmCancel = true"
+                          :disabled="loadingSub || saving || uiStore.loading"
+                        >
+                          {{ $t('profile.subscription.cancel') }}
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </v-card>
+                </v-col>
+            </v-row>
+          </v-container>
         </v-window-item>
 
-        <!-- ================= HISTÃ“RICO ================= -->
         <v-window-item value="historico">
           <v-container class="pa-6 pa-md-10">
-            <h3 class="text-h6 font-weight-bold mb-6">{{ $t('profile.subscription.recent_payments') }}</h3>
-            <div v-if="loadingSub" class="pt-2">
-              <v-skeleton-loader type="table-row-divider@5"></v-skeleton-loader>
+            <div class="d-flex align-center justify-space-between mb-6">
+                <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.recent_payments') }}</h3>
             </div>
-            <v-table v-else-if="subscriptionData?.historico && subscriptionData.historico.length > 0 && !loadingSub" class="billing-table">
-              <thead>
-                <tr>
-                  <th class="text-left font-weight-bold">{{ $t('transactions.table.date') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.item') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('transactions.table.amount') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('admin.status') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in subscriptionData.historico" :key="item.id">
-                  <td class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</td>
-                  <td>
-                    <div class="d-flex align-center">
+
+            <v-card class="filter-card mb-6 pa-4 rounded-xl border" elevation="0">
+                <v-row dense align="center">
+                    <v-col cols="12" md="4">
+                        <DateInput
+                            v-model="historyFilters.data"
+                            :label="$t('filters.period')"
+                            hide-details
+                            clearable
+                            mode="range"
+                            density="compact"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                        <v-select
+                            v-model="historyFilters.status"
+                            :items="[
+                                { title: $t('common.all'), value: 'todos' },
+                                { title: $t('profile.subscription.paid'), value: 'pago' },
+                                { title: $t('profile.subscription.pending'), value: 'pendente' },
+                                { title: $t('profile.subscription.failed'), value: 'falhou' },
+                                { title: $t('profile.subscription.cancelled'), value: 'cancelado' }
+                            ]"
+                            :label="$t('admin.status')"
+                            density="compact"
+                            variant="outlined"
+                            hide-details
+                            rounded="lg"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="6" md="3">
+                        <v-select
+                            v-model="historyFilters.metodo"
+                            :items="[
+                                { title: $t('common.all'), value: 'todos' },
+                                { title: $t('transactions.payment_methods.credit_card'), value: 'credit_card' },
+                                { title: $t('transactions.payment_methods.pix'), value: 'pix' },
+                                { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
+                                { title: t('transactions.payment_methods.account_money'), value: 'account_money' },
+                                { title: t('transactions.payment_methods.other'), value: 'other' }
+                            ]"
+                            :label="$t('transactions.table.payment_method')"
+                            density="compact"
+                            variant="outlined"
+                            hide-details
+                            rounded="lg"
+                        />
+                    </v-col>
+                    <v-col cols="12" md="2" class="text-right">
+                        <v-btn
+                            variant="text"
+                            color="primary"
+                            size="small"
+                            @click="historyFilters = { data: '', status: 'todos', metodo: 'todos' }; historySearch = ''"
+                        >
+                            {{ $t('filters.clear') }}
+                        </v-btn>
+                    </v-col>
+                </v-row>
+            </v-card>
+
+            <v-data-table
+              :headers="historyHeaders"
+              :items="filteredHistory"
+              :loading="loadingSub"
+              :no-data-text="$t('profile.subscription.no_history')"
+              class="billing-table-v3 rounded-xl border"
+              hover
+            >
+                <!-- Custom item slots -->
+                <template v-slot:item.created_at="{ item }">
+                    <span class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</span>
+                </template>
+
+                <template v-slot:item.item="{ item }">
+                    <div class="d-flex align-center py-2">
                       <v-icon icon="mdi-package-variant" size="small" class="mr-2" color="primary"></v-icon>
-                      <span class="text-body-2">
-                        {{ $t('plans.plan_names.' + (item.assinatura?.plano?.nome || item.item_nome), item.assinatura?.plano?.nome || item.item_nome) }}
-                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70 ml-1">
-                          ({{ item.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (item.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : item.assinatura.periodo.nome) }})
+                      <div class="d-flex flex-column">
+                        <span class="text-body-2 font-weight-bold">
+                            {{ $t('plans.plan_names.' + (item.assinatura?.plano?.nome || item.item_nome), item.assinatura?.plano?.nome || item.item_nome) }}
                         </span>
-                      </span>
+                        <span v-if="item.assinatura?.periodo" class="text-caption opacity-70">
+                          {{ item.assinatura.periodo.slug === 'mensal' ? $t('admin.intervals.month') : (item.assinatura.periodo.slug === 'anual' ? $t('admin.intervals.year') : item.assinatura.periodo.nome) }}
+                        </span>
+                      </div>
                     </div>
-                  </td>
-                  <td class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</td>
-                  <td>
+                </template>
+
+                <template v-slot:item.metodo_pagamento="{ item }">
+                    <div class="d-flex align-center gap-1 opacity-80" v-if="item.metodo_pagamento">
+                        <v-icon size="16" :icon="getPaymentMethodIcon(item.metodo_pagamento)"></v-icon>
+                        <span class="text-caption font-weight-medium">
+                            {{ $t('transactions.payment_methods.' + (item.metodo_pagamento || 'other')) }}
+                        </span>
+                    </div>
+                    <span v-else>-</span>
+                </template>
+
+                <template v-slot:item.valor="{ item }">
+                    <div class="d-flex flex-column">
+                        <span class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</span>
+                        <!-- Mostrar valor original se for convertida -->
+                        <span v-if="currencySymbol !== 'R$'" class="text-caption opacity-60">
+                            (R$ {{ (item.valor_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }})
+                        </span>
+                    </div>
+                </template>
+
+                <template v-slot:item.status="{ item }">
                     <v-chip
                       :color="getStatusColor(item.status)"
                       size="x-small"
@@ -265,27 +408,16 @@
                     >
                       {{ getStatusText(item.status) }}
                     </v-chip>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-            
-            <div v-else-if="!loadingSub" class="text-center py-12 billing-empty opacity-60">
-              <v-icon icon="mdi-receipt-text-minus-outline" size="64" class="mb-4"></v-icon>
-              <h3 class="text-h6 font-weight-bold">{{ $t('profile.subscription.no_history') }}</h3>
-              <p class="text-body-2">{{ $t('profile.subscription.no_history_desc') }}</p>
-            </div>
-
+                </template>
+            </v-data-table>
           </v-container>
         </v-window-item>
-
       </v-window>
     </v-card>
     <ModalCancelarAssinatura v-model="confirmCancel" @cancelled="fetchSubscription" />
     <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null; user.avatar_url = null; authStore.user.avatar = null; authStore.user.avatar_url = null;" />
   </v-container>
 </template>
-
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
@@ -297,8 +429,10 @@ import { useI18n } from 'vue-i18n'
 import ModalCancelarAssinatura from '../components/Modals/Profile/ModalCancelarAssinatura.vue'
 import ModalRemoverAvatar from '../components/Modals/Profile/ModalRemoverAvatar.vue'
 import DateInput from '../components/Common/DateInput.vue'
+import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
+const { formatPrice, currencyLocale } = useMoney()
 
 const authStore = useAuthStore()
 const uiStore = useUiStore()
@@ -321,11 +455,82 @@ const subscriptionData = ref({
 
 const loadingSub = ref(true)
 const saving = ref(false)
-const confirmCancel = ref(false)
 const cancelling = ref(false)
-const subscriptionLoaded = ref(false)
-
+const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+const historySearch = ref('')
+const historyFilters = ref({
+    data: '',
+    status: 'todos',
+    metodo: 'todos'
+})
+
+const filteredHistory = computed(() => {
+    let list = subscriptionData.value.historico || []
+    
+    // Status Filter
+    if (historyFilters.value.status !== 'todos') {
+        list = list.filter(item => {
+            const s = item.status?.toLowerCase()
+            if (historyFilters.value.status === 'pago') return ['paid', 'pago', 'approved', 'active', 'authorized'].includes(s)
+            if (historyFilters.value.status === 'pendente') return ['pending', 'pendente', 'in_process'].includes(s)
+            if (historyFilters.value.status === 'falhou') return ['failed', 'falhou', 'rejected'].includes(s)
+            if (historyFilters.value.status === 'cancelado') return ['cancelled', 'cancelado'].includes(s)
+            return s === historyFilters.value.status
+        })
+    }
+
+    // Payment Method Filter
+    if (historyFilters.value.metodo !== 'todos') {
+        list = list.filter(item => item.metodo_pagamento?.toLowerCase() === historyFilters.value.metodo)
+    }
+
+    // Date Range Filter
+    if (historyFilters.value.data && historyFilters.value.data.includes(' to ')) {
+        const [startStr, endStr] = historyFilters.value.data.split(' to ')
+        const start = new Date(startStr + 'T00:00:00')
+        const end = new Date(endStr + 'T23:59:59')
+        
+        list = list.filter(item => {
+            const itemDate = new Date(item.pago_em || item.created_at)
+            return itemDate >= start && itemDate <= end
+        })
+    }
+
+    return list
+})
+
+const historyHeaders = computed(() => [
+  { title: t('transactions.table.date'), key: 'created_at', align: 'start', sortable: true },
+  { title: t('admin.item'), key: 'item', align: 'start', sortable: false },
+  { title: t('transactions.table.payment_method'), key: 'metodo_pagamento', align: 'start', sortable: false },
+  { title: t('transactions.table.amount'), key: 'valor', align: 'start', sortable: true },
+  { title: t('admin.status'), key: 'status', align: 'start', sortable: true },
+])
+
+const { formatMoney, fromBRL, currencySymbol, formatNumber } = useMoney()
+
+const cancelarPagamentoPerfil = async () => {
+    try {
+        cancelling.value = true
+        const response = await authStore.apiFetch('/checkout/cancelar_pagamento', {
+            method: 'POST'
+        })
+        if (response.ok) {
+            toast.success(t('plans.toast_cancel_success'))
+            await fetchSubscription()
+        }
+    } catch (e) {
+        toast.error(t('plans.toast_cancel_error'))
+    } finally {
+        cancelling.value = false
+    }
+}
+
+const cpfRules = [
+  v => !!v || t('validation.required'),
+  v => validateCPF(v) || t('validation.cpf_invalid')
+]
 
 onMounted(async () => {
    await fetchUser()
@@ -343,11 +548,6 @@ const fetchUser = async () => {
         const response = await authStore.apiFetch('/usuario')
         const data = await response.json()
         user.value = data
-        
-        
-        if (user.value.cpf) {
-          formatCPF({ target: { value: user.value.cpf } })
-        }
         
         
         if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
@@ -368,12 +568,8 @@ const fetchSubscription = async (force = false) => {
         const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
-            subscriptionLoaded.value = true
-        } else if (response.status === 404) {
-            subscriptionData.value = { assinatura: null, historico: [] }
-            subscriptionLoaded.value = true
         } else {
-            console.error(`Falha ao buscar assinatura (${response.status})`)
+            console.error('Error fetching subscription:', response.status)
         }
     } catch (e) {
         console.error(e)
@@ -388,38 +584,82 @@ const getStatusColor = (status) => {
         case 'pago':
         case 'approved':
         case 'active':
+        case 'authorized':
             return 'success'
         case 'pending':
         case 'pendente':
+        case 'in_process':
             return 'warning'
         case 'failed':
         case 'falhou':
+        case 'rejected':
+            return 'error'
         case 'cancelled':
         case 'cancelado':
-            return 'error'
+            return 'grey'
         default:
             return 'grey'
     }
 }
 
+const getPaymentMethodIcon = (method) => {
+  const icons = {
+    money: 'mdi-cash-multiple',
+    credit_card: 'mdi-credit-card',
+    debit_card: 'mdi-credit-card-outline',
+    pix: 'mdi-cellphone-check',
+    transfer: 'mdi-bank-transfer',
+    bank_transfer: 'mdi-bank-transfer',
+    boleto: 'mdi-barcode-scan',
+    ticket: 'mdi-barcode-scan',
+    // IDs vindos do Mercado Pago
+    visa: 'mdi-credit-card',
+    master: 'mdi-credit-card',
+    amex: 'mdi-credit-card',
+    elo: 'mdi-credit-card',
+    hipercard: 'mdi-credit-card',
+    account_money: 'mdi-wallet',
+    credits: 'mdi-star-circle',
+    prorrata_credit: 'mdi-star-circle',
+    other: 'mdi-dots-horizontal-circle-outline'
+  }
+  return icons[method?.toLowerCase()] || icons.other
+}
+
 const getStatusText = (status) => {
     if (!status) return '-'
     const s = status.toLowerCase()
-    if (s === 'paid' || s === 'pago' || s === 'approved') return t('profile.subscription.paid')
-    if (s === 'pending' || s === 'pendente') return t('profile.subscription.pending')
-    if (s === 'failed' || s === 'falhou') return t('profile.subscription.failed')
+    if (['paid', 'pago', 'approved', 'authorized', 'active'].includes(s)) return t('profile.subscription.paid')
+    if (['pending', 'pendente', 'in_process'].includes(s)) return t('profile.subscription.pending')
+    if (['failed', 'falhou', 'rejected'].includes(s)) return t('profile.subscription.failed')
+    if (['cancelled', 'cancelado'].includes(s)) return t('profile.subscription.cancelled')
     return status.toUpperCase()
 }
 
 const ativarAutoRenovacao = async () => {
+    const oldValue = !!subscriptionData.value.assinatura.renovacao_automatica
+    const newValue = !oldValue
+    
+    // Feedback imediato (Optimistic)
+    subscriptionData.value.assinatura.renovacao_automatica = newValue
+    
     try {
-        const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { method: 'POST' })
+        const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { 
+            method: 'POST',
+            body: JSON.stringify({ active: newValue }) // Envia o estado desejado explicitamente
+        })
+        
         if (response.ok) {
             const data = await response.json()
-            subscriptionData.value.assinatura.renovacao_automatica = data.active
-            toast.success(data.message)
+            // Sincroniza com o valor real do servidor
+            subscriptionData.value.assinatura.renovacao_automatica = !!data.active
+            toast.success(t('profile.toast_success'))
+        } else {
+            throw new Error('Erro no servidor')
         }
     } catch (e) {
+        // Rollback
+        subscriptionData.value.assinatura.renovacao_automatica = oldValue
         toast.error(t('profile.warnings.renewal_error'))
     }
 }
@@ -495,11 +735,22 @@ const removeAvatar = () => {
 
 
 const saveProfile = async () => {
-    saving.value = true
+    // Feedback imediato
+    toast.success(t('profile.toast_success'))
+    
+    // Atualização Otimista local
+    const optimisticUser = {
+        ...user.value,
+        // Se houver preview de avatar, usamos ele temporariamente
+        avatar_url: previewAvatar.value || user.value.avatar_url
+    }
+    authStore.user = { ...authStore.user, ...optimisticUser }
+
     try {
         const formData = new FormData()
         formData.append('nome', user.value.nome)
         formData.append('email', user.value.email)
+        // ... (rest of formData)
         if (user.value.cpf && typeof user.value.cpf === 'string') {
             formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
         }
@@ -518,35 +769,26 @@ const saveProfile = async () => {
         })
         
         if (response.ok) {
-            toast.success(t('profile.toast_success'))
             const updated = await response.json()
             authStore.user = updated
             user.value = { ...updated }
             
-           
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
             if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
               user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
-            } else {
-              user.value.data_nascimento = ''
             }
             
             previewAvatar.value = null 
             selectedFile.value = null 
         } else {
              const errorData = await response.json().catch(() => ({}))
-             if (errorData.errors) {
-               
-                 const firstErrorKey = Object.keys(errorData.errors)[0]
-                 toast.warning(errorData.errors[firstErrorKey][0])
-             } else {
-                 toast.error(errorData.message || t('profile.warnings.update_error'))
-             }
+             toast.error(errorData.message || t('profile.warnings.update_error'))
+             // Rollback em caso de erro crítico
+             fetchUser()
         }
     } catch (e) {
         toast.error(t('profile.toast_connection_error'))
-    } finally {
-        saving.value = false
+        fetchUser()
     }
 }
 
@@ -559,12 +801,13 @@ const getInitials = (name) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return new Date(dateString).toLocaleDateString(currencyLocale.value, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     })
 }
+
 
 const validateCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '')
@@ -582,15 +825,16 @@ const validateCPF = (cpf) => {
   return rev === parseInt(cpf.charAt(10))
 }
 
-const cpfRules = [
-  v => !v || validateCPF(v) || t('profile.warnings.invalid_cpf')
-]
-
 const ageRules = [
   v => {
-    if (!v || typeof v !== 'string' || !v.includes('-')) return true
-    const [year, month, day] = v.split('-').map(Number)
-    const birth = new Date(year, month - 1, day)
+    let birth
+    if (typeof v === 'string' && v.includes('-')) {
+      const [year, month, day] = v.split('-').map(Number)
+      birth = new Date(year, month - 1, day)
+    } else {
+      birth = new Date(v)
+    }
+    
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
     const m = today.getMonth() - birth.getMonth()
@@ -613,7 +857,6 @@ const formatCPF = (event) => {
   }
   user.value.cpf = value
 }
-
 </script>
 
 <style scoped>
@@ -626,7 +869,7 @@ const formatCPF = (event) => {
   position: absolute;
   bottom: 5px;
   right: 5px;
-  border: 4px solid white !important;
+  border: 4px solid rgb(var(--v-theme-surface)) !important;
   z-index: 2;
 }
 
@@ -634,7 +877,7 @@ const formatCPF = (event) => {
   position: absolute;
   bottom: 5px;
   left: 5px;
-  border: 2px solid white !important;
+  border: 2px solid rgb(var(--v-theme-surface)) !important;
   z-index: 2;
 }
 
@@ -675,11 +918,11 @@ const formatCPF = (event) => {
 }
 
 .border-left-lg {
-  border-left: 6px solid #1867c0;
+  border-left: 6px solid rgb(var(--v-theme-primary));
 }
 
 .billing-table :deep(th) {
-  color: #1867c0 !important;
+  color: rgb(var(--v-theme-primary)) !important;
   font-size: 0.8rem;
   text-transform: uppercase;
 }
