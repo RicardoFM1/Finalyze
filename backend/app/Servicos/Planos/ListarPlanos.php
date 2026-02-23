@@ -9,7 +9,7 @@ class ListarPlanos
     public function executar()
     {
         return Plano::with(['periodos', 'recursos'])
-            ->where('ativo', true)
+            ->whereRaw('ativo IS TRUE')
             ->orderByDesc('created_at')
             ->get();
     }

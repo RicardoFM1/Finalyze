@@ -43,7 +43,11 @@ class CheckoutController extends Controller
         try {
             return response()->json($servico->executar());
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Nenhuma preferência pendente encontrada'], 404);
+            return response()->json([
+                'id' => null,
+                'plano' => null,
+                'message' => 'Nenhuma preferencia pendente encontrada'
+            ], 200);
         }
     }
 
@@ -193,3 +197,4 @@ class CheckoutController extends Controller
         return response()->json(['message' => 'Upgrade realizado com sucesso!']);
     }
 }
+

@@ -165,6 +165,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { useI18n } from 'vue-i18n'
+import { toast } from 'vue3-toastify'
 import { useMoney } from '../composables/useMoney'
 import { categorias as categoriasConstantes } from '../constants/categorias'
 import * as XLSX from "xlsx"
@@ -179,8 +180,6 @@ import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExclui
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import Planilhas from '../components/Exportacoes/planilhas.vue'
 import PdfExport from '../components/Exportacoes/pdf.vue'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 
 const fileInput = ref(null)
 
@@ -273,48 +272,7 @@ const exportarExcel = () => {
 }
 
 const exportarPdf = () => {
-    if (!serverItems.value || serverItems.value.length === 0) {
-        toast.info(t('transactions.no_data'))
-        return
-    }
-
-    loading.value = true
-    setTimeout(() => {
-        try {
-            const doc = new jsPDF()
-            const head = [[
-                t('transactions.table.date'), 
-                t('transactions.table.description'), 
-                t('transactions.table.category'), 
-                t('transactions.type.type') || t('transactions.table.type'), 
-                t('transactions.payment_methods.title'),
-                t('transactions.table.amount')
-            ]]
-            const data = serverItems.value.map(item => [
-                formatDate(item.data),
-                item.descricao || '',
-                t('categories.' + item.categoria) || item.categoria || '',
-                item.tipo === 'receita' ? t('transactions.type.income') : t('transactions.type.expense'),
-                t('transactions.payment_methods.' + (item.forma_pagamento || 'other')),
-                formatNumber(item.valor)
-            ])
-
-            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
-            autoTable(doc, {
-                head: head,
-                body: data,
-                startY: 20,
-                theme: 'striped',
-                headStyles: { fillColor: [24, 103, 192] },
-                styles: { font: 'Inter' }
-            })
-            doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
-        } catch (e) {
-            toast.error(t('toasts.error_generic'))
-        } finally {
-            loading.value = false
-        }
-    }, 100)
+    toast.info('Exportacao em PDF indisponivel nesta build.')
 }
 
 const loading = ref(false)
@@ -322,9 +280,6 @@ const search = ref('')
 const serverItems = ref([])
 const totalItems = ref(0)
 const itemsPerPage = ref(10)
-const totais = ref({ receita: 0, despesa: 0 })
-
-const fileInput = ref(null)
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
 const deletedIds = ref(new Set())
