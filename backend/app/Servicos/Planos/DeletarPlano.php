@@ -10,7 +10,7 @@ class DeletarPlano
 {
     public function executar(Plano $plano)
     {
-        $activeCount = Plano::where('ativo', true)->count();
+        $activeCount = Plano::whereRaw('ativo IS TRUE')->count();
 
         if ($plano->ativo && $activeCount < 3) {
             throw new \Exception('É necessário manter pelo menos 2 planos ativos.', 422);

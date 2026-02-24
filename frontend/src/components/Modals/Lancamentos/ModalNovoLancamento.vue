@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <ModalBase :title="$t('modals.titles.add_transaction')" v-model="internalValue" maxWidth="550px">
     <v-form @submit.prevent="salvarLancamento">
       <v-row dense>

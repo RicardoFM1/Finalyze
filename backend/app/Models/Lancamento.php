@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class Lancamento extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
     protected $table = 'lancamentos';
 
     protected $fillable = [
@@ -26,7 +26,7 @@ class Lancamento extends Model
 
     protected $casts = [
         'data' => 'date',
-        'valor' => 'decimal:2'
+        'valor' => 'decimal:2',
     ];
 
     public static function validarLimiteLancamentos($userId)
@@ -36,7 +36,7 @@ class Lancamento extends Model
         $userPlanoLimiteLancamentos = Plano::where('id', $userPlanoId)->value('limite_lancamentos');
         if ($lancamentoUserCount >= $userPlanoLimiteLancamentos) {
             throw ValidationException::withMessages([
-                'message' => ['Você atingiu o limite de lançamentos do plano, atualize ou adquira um novo.']
+                'message' => ['Voce atingiu o limite de lancamentos do plano, atualize ou adquira um novo.'],
             ]);
         }
     }

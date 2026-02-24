@@ -256,6 +256,7 @@ onMounted(async () => {
             if (response.ok) {
                 const data = await response.json()
                 creditosRestantes.value = data.creditos_prorrata || 0
+                const selectedPlan = data.plano || data.plan
                 
                 // Safe check for data.plano and data.plano.id
                 if (data.plano && data.plano.id) {
@@ -288,6 +289,9 @@ onMounted(async () => {
 
         if (!preferenceId.value && planId.value) {
             const response = await authStore.apiFetch(`/planos`)
+            if (!response.ok) {
+                throw new Error(`Falha ao carregar planos (${response.status})`)
+            }
             const plans = await response.json()
             planInfo.value = plans.find(p => Number(p.id) === Number(planId.value))
             

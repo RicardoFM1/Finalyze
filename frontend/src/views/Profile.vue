@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container>
 
 
@@ -432,7 +432,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
@@ -470,6 +470,7 @@ const saving = ref(false)
 const cancelling = ref(false)
 const confirmCancel = ref(false)
 const confirmRemoveAvatarDialog = ref(false)
+const subscriptionLoaded = ref(false)
 const historySearch = ref('')
 const historyFilters = ref({
     data: '',
@@ -592,12 +593,17 @@ const fetchUser = async (silent = false) => {
         if (!silent) loadingUser.value = false
     }
 }
-const fetchSubscription = async () => {
+const fetchSubscription = async (force = false) => {
+    if (subscriptionLoaded.value && !force) return
     try {
         loadingSub.value = true
         const response = await authStore.apiFetch('/assinaturas')
         if (response.ok) {
             subscriptionData.value = await response.json()
+            subscriptionLoaded.value = true
+        } else if (response.status === 404) {
+            subscriptionData.value = { assinatura: null, historico: [] }
+            subscriptionLoaded.value = true
         } else {
             console.error('Error fetching subscription:', response.status)
         }
@@ -699,6 +705,12 @@ const payAhead = () => {
     router.push({ name: 'Plans' })
 }
 
+watch(activeTab, async (tab) => {
+  if ((tab === 'assinatura' || tab === 'historico') && (user.value?.plano_id || user.value?.plano?.id)) {
+    await fetchSubscription()
+  }
+})
+
 const progressPercentage = computed(() => {
     if (!subscriptionData.value.assinatura) return 0
     const start = new Date(subscriptionData.value.assinatura.inicia_em).getTime()
@@ -724,7 +736,7 @@ const hasActiveOrValidSubscription = computed(() => {
     // Consideramos ativa se o status for active ou authorized (MP)
     if (s.status === 'active' || s.status === 'authorized') return true
     
-    // Se estiver pendente, também queremos mostrar o card (embora com aviso)
+    // Se estiver pendente, tambÃ©m queremos mostrar o card (embora com aviso)
     if (s.status === 'pending') return true
 
     const end = new Date(s.termina_em).getTime()
@@ -984,3 +996,4 @@ const formatCPF = (event) => {
   transform: scale(1.02);
 }
 </style>
+

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container class="fill-height pa-0 auth-wrapper" fluid>
     <v-row no-gutters class="fill-height flex-row-reverse">
 
@@ -234,7 +234,7 @@ const handleVerify = async (code) => {
     toast.success(t('toasts.register_success'))
     router.push({ name: 'Dashboard' })
   } catch (err) {
-    error.value = err.message || 'Erro ao verificar código'
+    error.value = err.message || 'Erro ao verificar cÃ³digo'
     toast.error(error.value)
   } finally {
     loading.value = false
@@ -244,9 +244,9 @@ const handleVerify = async (code) => {
 const handleResend = async () => {
   try {
     await authStore.resendCode(form.value.email)
-    toast.success('Novo código enviado com sucesso!')
+    toast.success('Novo cÃ³digo enviado com sucesso!')
   } catch (err) {
-    toast.error(err.message || 'Erro ao reenviar código')
+    toast.error(err.message || 'Erro ao reenviar cÃ³digo')
   }
 }
 

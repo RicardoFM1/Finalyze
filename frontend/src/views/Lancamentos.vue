@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container class="lancamentos-wrapper">
     <v-row class="mb-4 pt-4" align="center">
       <v-col cols="12" md="6">
@@ -161,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
 import { useUiStore } from '../stores/ui'
@@ -326,7 +326,6 @@ const search = ref('')
 const serverItems = ref([])
 const totalItems = ref(0)
 const itemsPerPage = ref(10)
-
 const itemAEditar = ref(null)
 const lancamentoIdExcluir = ref(null)
 const deletedIds = ref(new Set())
@@ -376,8 +375,6 @@ const getCategoryIcon = (catName) => {
   const cat = categoriasConstantes.find(c => c.title === catName)
   return cat ? cat.icon : 'mdi-tag-outline'
 }
-
-
 
 const categorias = computed(() => {
   try {
@@ -435,7 +432,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSi
   try {
     const params = new URLSearchParams({
       page,
-      per_page: itemsPerPage,
+      per_page: itemsPerPage
     })
 
     if (sortBy && sortBy.length) {
@@ -447,18 +444,18 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search: tableSearch, isSi
     
     const f = filterStore.filters
     if (f.data) {
-        if (f.data.includes(' to ')) {
-            const [inicio, fim] = f.data.split(' to ')
-            params.append('data_inicio', inicio)
-            params.append('data_fim', fim)
-        } else {
-            params.append('data', f.data)
-        }
+      if (f.data.includes(' to ')) {
+        const [inicio, fim] = f.data.split(' to ')
+        params.append('data_inicio', inicio)
+        params.append('data_fim', fim)
+      } else {
+        params.append('data', f.data)
+      }
     }
-    
-    if (f.categoria) params.append('categoria', f.categoria)
+
+    if (f.categoria) params.append('categoria', f.categoria.value || f.categoria)
     if (f.tipo && f.tipo !== 'todos') params.append('tipo', f.tipo)
-    if (f.valor) params.append('valor', f.valor)
+    if (f.valor) params.append('valor', convert(f.valor, currency.value, 'BRL'))
     if (f.descricao) params.append('descricao', f.descricao)
 
     const response = await authStore.apiFetch(`/lancamentos?${params.toString()}`)
@@ -587,7 +584,9 @@ const abrirNovo = () => { dialogNovo.value = true }
 const abrirEditar = (item) => { itemAEditar.value = item; dialogEditar.value = true }
 const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
 
-
+onMounted(() => {
+  loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [] })
+})
 </script>
 
 <style scoped>
@@ -671,3 +670,4 @@ const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcl
 
 
 </style>
+

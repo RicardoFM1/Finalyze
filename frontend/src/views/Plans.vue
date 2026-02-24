@@ -195,11 +195,14 @@ onMounted(async () => {
         const prefResponse = await authStore.apiFetch('/checkout/preferencia')
         if (prefResponse.ok) {
             const data = await prefResponse.json()
-            if (data.id && data.plano) {
+            const selectedPlan = data.plano || data.plan
+            if (data.id && selectedPlan) {
                 currentSubscription.value = data
-                pendingPlanName.value = data.plano.nome
+                pendingPlanName.value = selectedPlan.nome
                 showPendingDialog.value = true
             }
+        } else if (prefResponse.status !== 404) {
+            console.error(`Falha ao buscar preferencia de checkout (${prefResponse.status})`)
         }
     } catch (e) {
         console.error('Erro ao buscar preferência:', e)
@@ -421,3 +424,4 @@ const cancelarPagamento = async () => {
     box-shadow: 0 8px 16px rgba(var(--v-theme-primary), 0.25) !important;
 }
 </style>
+
