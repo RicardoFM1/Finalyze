@@ -249,6 +249,22 @@
     "empty_filter": "No items found for this filter.",
     "notifications": {
       "reminder_alert": "⏰ You have {count} appointment(s) on your schedule now!"
+    },
+    "reminder": {
+      "title": "New Reminder",
+      "edit_title": "Edit Reminder",
+      "name_label": "Reminder Title",
+      "name_placeholder": "Ex: Planning Meeting",
+      "message_label": "Description / Notes",
+      "message_placeholder": "Details about the appointment...",
+      "date_label": "Date",
+      "time_label": "Time",
+      "category_label": "Category",
+      "save": "Save Appointment",
+      "default_name": "Reminder",
+      "past_error": "Date/time cannot be in the past!",
+      "saved_success": "Appointment scheduled successfully!",
+      "removed_success": "Reminder removed."
     }
   },
   "transactions": {

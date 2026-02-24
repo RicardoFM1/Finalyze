@@ -216,7 +216,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const anotacoes = ref([])
-const loading = ref(false)
+const loading = ref(true)
 const dialog = ref(false)
 const deleteDialog = ref(false)
 const dayDetailsDialog = ref(false)
@@ -295,7 +295,7 @@ const calendarAttributes = computed(() => {
             if (!dateStr) return null
             return {
                 key: `note-${n.id}`,
-                dot: { color: n.status === 'concluido' ? 'green' : 'blue' },
+                dot: { color: n.cor || (n.status === 'concluido' ? 'green' : 'blue') },
                 dates: dateStr,
                 popover: { label: n.titulo }
             }

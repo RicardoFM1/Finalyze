@@ -251,6 +251,22 @@
     "empty_filter": "Nenhum item encontrado para este filtro.",
     "notifications": {
       "reminder_alert": "⏰ Você tem {count} compromisso(s) na agenda para agora!"
+    },
+    "reminder": {
+      "title": "Novo Lembrete",
+      "edit_title": "Editar Lembrete",
+      "name_label": "Título do Lembrete",
+      "name_placeholder": "Ex: Reunião de Planejamento",
+      "message_label": "Descrição / Notas",
+      "message_placeholder": "Detalhes sobre o compromisso...",
+      "date_label": "Data",
+      "time_label": "Hora",
+      "category_label": "Categoria",
+      "save": "Salvar Compromisso",
+      "default_name": "Lembrete",
+      "past_error": "A data/hora não pode ser no passado!",
+      "saved_success": "Compromisso agendado com sucesso!",
+      "removed_success": "Lembrete removido."
     }
   },
   "transactions": {

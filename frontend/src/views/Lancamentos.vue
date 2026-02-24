@@ -164,25 +164,27 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useFilterStore } from '../stores/filters'
-import { useI18n } from 'vue-i18n'
-import { useMoney } from '../composables/useMoney'
-import { categorias as categoriasConstantes } from '../constants/categorias'
-import * as XLSX from "xlsx"
-
-const { t } = useI18n()
-const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
-const authStore = useAuthStore()
-const filterStore = useFilterStore()
+import { useUiStore } from '../stores/ui'
 import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLancamento.vue'
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import Planilhas from '../components/Exportacoes/planilhas.vue'
 import PdfExport from '../components/Exportacoes/pdf.vue'
+import { useI18n } from 'vue-i18n'
+import { useMoney } from '../composables/useMoney'
+import { categorias as categoriasConstantes } from '../constants/categorias'
+import * as XLSX from "xlsx"
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import toast from 'vue3-toastify'
+import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+
+const { t, locale: currentLocale } = useI18n()
+const uiStore = useUiStore()
+const authStore = useAuthStore()
+const filterStore = useFilterStore()
+const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 
 const fileInput = ref(null)
 
@@ -319,7 +321,7 @@ const exportarPdf = () => {
     }, 100)
 }
 
-const loading = ref(false)
+const loading = ref(true)
 const search = ref('')
 const serverItems = ref([])
 const totalItems = ref(0)
@@ -348,13 +350,13 @@ const headers = computed(() => [
 const formatNumber = (val) => fmtNum(val)
 const formatDate = (date) => {
     if (!date) return ''
-    const { locale } = useI18n()
+    const bcpLocale = currentLocale.value === 'pt' ? 'pt-BR' : 'en-US'
     // parse YYYY-MM-DD as local date to avoid UTC offset shift
     if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
         const [y, m, d] = date.split('T')[0].split('-').map(Number)
-        return new Date(y, m - 1, d).toLocaleDateString(locale.value)
+        return new Date(y, m - 1, d).toLocaleDateString(bcpLocale)
     }
-    return new Date(date).toLocaleDateString(locale.value)
+    return new Date(date).toLocaleDateString(bcpLocale)
 }
 
 const getPaymentMethodIcon = (method) => {
