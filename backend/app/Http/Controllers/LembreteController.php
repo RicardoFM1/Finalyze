@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Servicos\Lembretes\AtualizarLembrete;
 use App\Servicos\Lembretes\CriarLembrete;
-use App\Servicos\Lembretes\ExcluirLembrete;
+use App\Servicos\Lembretes\DesativarLembrete;
 use App\Servicos\Lembretes\ListarLembretes;
 use App\Servicos\Lembretes\ReativarLembrete;
 use Illuminate\Http\Request;
@@ -52,7 +52,7 @@ class LembreteController extends Controller
         return response()->json($servico->executar($id, $dados));
     }
 
-    public function destroy($id, ExcluirLembrete $servico)
+    public function destroy($id, DesativarLembrete $servico)
     {
         $servico->executar($id);
         return response()->json(['message' => 'Lembrete movido para inativos.']);
