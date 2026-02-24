@@ -304,6 +304,7 @@
       "other": "Other"
     },
     "type": {
+      "type": "Type",
       "income": "Income",
       "expense": "Expense"
     },

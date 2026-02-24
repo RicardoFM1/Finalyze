@@ -533,28 +533,40 @@ const cpfRules = [
 ]
 
 onMounted(async () => {
-   await fetchUser()
+   // Use cache if available
+   if (authStore.user) {
+       syncLocalUser(authStore.user)
+       // We can still fetch in background to ensure data is fresh, but silently
+       fetchUser(true) 
+   } else {
+       await fetchUser()
+   }
    await fetchSubscription()
 })
 
+const syncLocalUser = (data) => {
+    user.value = { ...data }
+    if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
+        user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
+    } else if (!user.value.data_nascimento) {
+        user.value.data_nascimento = '' 
+    }
+}
+
 const loadingUser = ref(false)
-const fetchUser = async () => {
+const fetchUser = async (silent = false) => {
     try {
-        loadingUser.value = true
+        if (!silent) loadingUser.value = true
         const response = await authStore.apiFetch('/usuario')
-        const data = await response.json()
-        user.value = data
-        
-        
-        if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
-          user.value.data_nascimento = user.value.data_nascimento.substring(0, 10)
-        } else {
-          user.value.data_nascimento = '' 
+        if (response.ok) {
+            const data = await response.json()
+            syncLocalUser(data)
+            authStore.user = data
         }
     } catch (e) {
         console.error(e)
-    }finally{
-      loadingUser.value = false
+    } finally {
+        if (!silent) loadingUser.value = false
     }
 }
 const fetchSubscription = async () => {
