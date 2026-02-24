@@ -34,7 +34,7 @@
     <div class="px-6 pb-6">
       <v-row dense align="center">
         <!-- Período -->
-        <v-col cols="12" :md="macro ? 8 : 12" :lg="macro ? 6 : 3">
+        <v-col cols="12" :md="macro ? 6 : 12" :lg="macro ? 5 : 3">
           <DateInput
             v-model="localFilters.data"
             :label="$t('filters.period')"
@@ -58,7 +58,7 @@
         </v-col>
 
         <!-- Categoria -->
-        <v-col cols="12" sm="6" :md="macro ? 4 : 4" :lg="macro ? 4 : 2">
+        <v-col cols="12" sm="6"  :md="macro ? 5 : 4" :lg="macro ? 5 : 2">
           <v-select
             v-model="localFilters.categoria"
             :items="formatCategorias"
@@ -79,13 +79,20 @@
               <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title" class="py-2"></v-list-item>
             </template>
             <template v-slot:chip="{ props, item }">
-              <v-chip v-bind="props" :prepend-icon="item.raw.icon" :text="item.raw.title" size="small"></v-chip>
+              <v-chip 
+                v-bind="props" 
+                :prepend-icon="item.raw.icon" 
+                :text="item.raw.title" 
+                size="medium"
+                variant="elevated"
+                class="categoria-chip"
+              ></v-chip>
             </template>
           </v-select>
         </v-col>
 
         <!-- Tipo -->
-        <v-col cols="12" sm="6" :md="macro ? 2 : 4" :lg="macro ? 3 : 2">
+        <v-col cols="12" sm="6" :md="macro ? 1 : 4" :lg="macro ? 2 : 2">
           <v-select
             v-model="localFilters.tipo"
             :items="tipos"
@@ -238,19 +245,47 @@ const limpar = () => emit('clear')
   font-weight: 600 !important;
 }
 
+.filter-select-multi :deep(.v-field) {
+
+  font-size:16px;
+}
+
 .filter-select-multi :deep(.v-field__input) {
-  flex-wrap: wrap !important;
-  padding-top: 14px !important;
-  padding-bottom: 4px !important;
-  max-height: 120px;
+  padding-top: 20px !important;
+  padding-bottom: 10px !important;
+  gap: 6px;
+}
+
+.filter-select-multi :deep(.v-list) {
+  max-height: 300px;
   overflow-y: auto;
 }
 
-.filter-select-multi :deep(.v-chip) {
-  margin: 1px !important;
-  height: 22px !important;
-  font-size: 0.7rem !important;
+.categoria-chip {
+  background-color: rgba(var(--v-theme-primary), 0.12) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  padding: 4px 8px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
 }
+
+.categoria-chip:hover {
+  background-color: rgba(var(--v-theme-primary), 0.2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(var(--v-theme-primary), 0.15) !important;
+}
+
+.categoria-item :deep(.v-list-item__prepend) .v-icon {
+  margin-inline-end: 12px !important;
+}
+
+.filter-select-multi :deep(.v-chip) {
+  margin: 2px !important;
+  height: auto !important;
+}
+
 
 
 </style>

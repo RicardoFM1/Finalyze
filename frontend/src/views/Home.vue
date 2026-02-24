@@ -15,9 +15,8 @@
               </div>
             </template>
             <template v-else>
-              <h1 class="text-h5 text-sm-h4 text-md-h2 font-weight-black mb-4 animate-fade-up" style="line-height: 1.1;">
-                <span class="gradient-text brand-title d-block mb-1">Finalyze</span>
-                <span class="mr-2">{{ $t('landing.hero_title_alt') }}</span>
+              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up" style="line-height: 1.1;">            
+                <span class="mr-3">{{ $t('landing.hero_title_alt') }}</span>
                 <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
               <p class="text-caption text-sm-body-1 text-md-h6 text-medium-emphasis mb-6 animate-fade-up-delay max-w-500 mx-auto mx-lg-0">
@@ -451,6 +450,11 @@ const features = computed(() => [
   backdrop-filter: blur(4px);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
   color: rgb(var(--v-theme-primary));
+  display: flex;
+  margin-left: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 @keyframes fadeInUp {
