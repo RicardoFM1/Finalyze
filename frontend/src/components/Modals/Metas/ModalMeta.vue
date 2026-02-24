@@ -258,7 +258,8 @@ const form = ref({
   notificacao_site: false,
   notificacao_email: true,
   cor: '#1867C0',
-  icone: ''
+  icone: '',
+  status: 'andamento'
 })
 
 watch(() => props.modelValue, (newVal) => {
@@ -297,7 +298,8 @@ watch(() => props.modelValue, (newVal) => {
         notificacao_site: false,
         notificacao_email: true,
         cor: props.initialTipo === 'financeira' ? '#4CAF50' : '#FFF9BF',
-        icone: props.initialTipo === 'pessoal' ? '🎯' : ''
+        icone: props.initialTipo === 'pessoal' ? '🎯' : '',
+        status: 'andamento'
       }
     }
   }
@@ -335,7 +337,9 @@ const saveMeta = async () => {
     })
 
     if (!response.ok) {
-        throw new Error('Erro ao salvar')
+        const errData = await response.json().catch(() => ({}))
+        console.error('Backend Error:', errData)
+        throw new Error(errData.message || 'Erro ao salvar')
     }
     
     toast.success(isEdit ? t('toasts.success_update') : t('toasts.success_add'))

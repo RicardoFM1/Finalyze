@@ -208,7 +208,7 @@ const onMetaSalva = (optimisticItem) => {
             }
         }
     }
-    setTimeout(() => { fetchMetas(true) }, 800)
+    setTimeout(() => { fetchMetas(true) }, 1500)
 }
 
 const onMetaExcluida = ({ id, oldStatus }) => {
@@ -216,7 +216,7 @@ const onMetaExcluida = ({ id, oldStatus }) => {
     if (index !== -1) {
         metas.value[index].status = 'inativo'
     }
-    setTimeout(() => { fetchMetas(true) }, 1500)
+    setTimeout(() => { fetchMetas(true) }, 2000)
 }
 
 const fetchMetas = async (isSilent = false) => {
@@ -357,7 +357,7 @@ const toggleStatusConcluido = async (item) => {
       item.status = oldStatus
       console.error(e) 
   } finally {
-      setTimeout(() => { fetchMetas(true) }, 800)
+      setTimeout(() => { fetchMetas(true) }, 1500)
   }
 }
 
@@ -379,7 +379,7 @@ const reativarItem = async (item) => {
       item.status = oldStatus
       console.error(e) 
   } finally {
-      setTimeout(() => { fetchMetas(true) }, 800)
+      setTimeout(() => { fetchMetas(true) }, 1500)
   }
 }
 

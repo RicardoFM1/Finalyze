@@ -129,7 +129,7 @@
         </template>
 
         <template v-slot:item.categoria="{ item }">
-          <div class="d-flex align-center gap-2">
+          <div class="d-flex align-center gap-4">
             <v-icon size="20" :icon="getCategoryIcon(item.categoria)" color="primary" class="opacity-80"></v-icon>
             <span class="font-weight-medium">{{ $t('categories.' + item.categoria) }}</span>
           </div>
@@ -179,8 +179,9 @@ import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExclui
 import FilterLancamentos from '../components/Filters/Filter.vue'
 import Planilhas from '../components/Exportacoes/planilhas.vue'
 import PdfExport from '../components/Exportacoes/pdf.vue'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { toast } from 'vue3-toastify'
 
 const fileInput = ref(null)
 
@@ -305,11 +306,11 @@ const exportarPdf = () => {
                 body: data,
                 startY: 20,
                 theme: 'striped',
-                headStyles: { fillColor: [24, 103, 192] },
-                styles: { font: 'Inter' }
+                headStyles: { fillColor: [24, 103, 192] }
             })
             doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
         } catch (e) {
+            console.error('PDF Export Error:', e)
             toast.error(t('toasts.error_generic'))
         } finally {
             loading.value = false

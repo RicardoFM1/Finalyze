@@ -4,12 +4,12 @@
     <section class="hero-section d-flex align-center">
       <div class="hero-bg-overlay"></div>
       <v-container fluid class="px-md-16">
-        <v-row align="center" no-gutters>
-          <v-col cols="12" md="6" class="text-center text-md-left hero-content pr-md-12">
+        <v-row align="center" no-gutters justify="center">
+          <v-col cols="12" md="10" lg="6" class="text-center text-lg-left hero-content pr-lg-12 mb-10 mb-lg-0">
             <template v-if="loading">
-              <v-skeleton-loader type="heading" width="80%" class="mb-6 bg-transparent"></v-skeleton-loader>
-              <v-skeleton-loader type="paragraph" width="90%" class="mb-8 bg-transparent"></v-skeleton-loader>
-              <div class="d-flex gap-4">
+              <v-skeleton-loader type="heading" width="80%" class="mb-6 bg-transparent mx-auto mx-lg-0"></v-skeleton-loader>
+              <v-skeleton-loader type="paragraph" width="90%" class="mb-8 bg-transparent mx-auto mx-lg-0"></v-skeleton-loader>
+              <div class="d-flex gap-4 justify-center justify-lg-start">
                 <v-skeleton-loader type="button" width="150" class="bg-transparent"></v-skeleton-loader>
                 <v-skeleton-loader type="button" width="150" class="bg-transparent"></v-skeleton-loader>
               </div>
@@ -20,21 +20,21 @@
                 <span class="mr-3">{{ $t('landing.hero_title_alt') }}</span>
                 <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
-              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-10 animate-fade-up-delay max-w-500">
+              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-10 animate-fade-up-delay max-w-500 mx-auto mx-lg-0">
                 {{ $t('landing.hero_subtitle_alt') }}
               </p>
-              <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
+              <div class="d-flex flex-wrap justify-center justify-lg-start animate-fade-up-delay-2 gap-btns">
                 <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold" :to="{ name: 'Plans' }" elevation="20">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-10 glass-btn ml-md-4" :to="{ name: 'Dashboard' }">
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-10 glass-btn ml-md-6 mt-4 mt-sm-0" :to="{ name: 'Dashboard' }">
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
             </template>
           </v-col>
 
-          <v-col cols="12" md="6" class="mt-12 mt-md-0 position-relative carousel-col overflow-visible">
+          <v-col cols="12" lg="6" class="mt-12 mt-lg-0 position-relative carousel-col overflow-visible">
              <div class="modern-carousel-wrapper animate-fade-in">
                 <!-- Navigation Buttons (Desktop) -->
                 <div class="carousel-nav-container d-none d-md-flex">

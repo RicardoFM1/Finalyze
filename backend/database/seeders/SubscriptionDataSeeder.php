@@ -33,7 +33,8 @@ class SubscriptionDataSeeder extends Seeder
             ['nome' => 'Lançamentos', 'slug' => 'lancamentos', 'descricao' => 'Registrar entradas e saídas'],
             ['nome' => 'Relatórios Gráficos', 'slug' => 'relatorios', 'descricao' => 'Visualização de gráficos'],
             ['nome' => 'Metas', 'slug' => 'metas', 'descricao' => 'Definir e acompanhar metas financeiras e pessoais'],
-
+            ['nome' => 'Lembretes', 'slug' => 'lembretes', 'descricao' => 'Sistema de avisos e notificações'],
+            ['nome' => 'Agenda', 'slug' => 'agenda', 'descricao' => 'Visualização de compromissos em calendário'],
         ];
 
         foreach ($recursosLista as $recurso) {

@@ -12,16 +12,16 @@
       class="compact-select"
     >
       <template v-slot:selection="{ item }">
-        <div class="d-flex align-center gap-3">
+        <div class="d-flex align-center gap-4">
           <img :src="item.raw.flag" class="coin-flag-img shadow-sm" />
-          <span class="coin-code">{{ item.value }}</span>
+          <span class="coin-code ml-2">{{ item.value }}</span>
         </div>
       </template>
 
       <template v-slot:item="{ item, props: itemProps }">
         <v-list-item v-bind="itemProps" :title="undefined" density="compact">
-          <div class="d-flex align-center gap-4 py-1">
-            <img :src="item.raw.flag" class="coin-flag-img mr-1" />
+          <div class="d-flex align-center gap-6 py-1">
+            <img :src="item.raw.flag" class="coin-flag-img mr-3" />
             <div>
               <div class="text-body-2 font-weight-bold">{{ item.value }}</div>
               <div class="text-caption opacity-60">{{ item.raw.name }}</div>

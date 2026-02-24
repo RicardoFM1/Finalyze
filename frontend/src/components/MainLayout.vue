@@ -1,7 +1,6 @@
 <template>
   <v-layout>
-    <template v-if="!uiAuthStore.loading">
-      <v-app-bar color="primary" elevation="2">
+    <v-app-bar color="primary" elevation="2">
         <!-- LAYOUT MOBILE/TABLET: Espaçado e Profissional -->
         <template v-if="!lgAndUp">
           <div class="d-flex align-center justify-space-between w-100 px-2 h-100">
@@ -55,26 +54,24 @@
 
                             <v-divider class="my-2"></v-divider>
 
-                            <!-- Workspace switcher -->
-                            <template v-if="authStore.sharedAccounts.length > 1">
-                                <v-list-subheader>Workspace</v-list-subheader>
-                                <v-list-item
-                                    v-for="acc in authStore.sharedAccounts"
-                                    :key="acc.id"
-                                    :active="authStore.workspaceId == acc.id"
-                                    color="primary"
-                                    @click="authStore.setWorkspace(acc.id)"
-                                    prepend-icon="mdi-office-building"
-                                >
-                                    <v-list-item-title class="font-weight-bold">{{ acc.is_owner ? ($t('common.my_account') || 'Minha Conta') : acc.owner?.nome }}</v-list-item-title>
-                                </v-list-item>
-                                <v-divider class="my-2"></v-divider>
-                            </template>
+                <template v-if="authStore.sharedAccounts.length > 1 && !uiAuthStore.loading">
+                    <v-list-subheader>Workspace</v-list-subheader>
+                    <v-list-item
+                        v-for="acc in authStore.sharedAccounts"
+                        :key="acc.id"
+                        :active="authStore.workspaceId == acc.id"
+                        color="primary"
+                        @click="authStore.setWorkspace(acc.id)"
+                        prepend-icon="mdi-office-building"
+                    >
+                        <v-list-item-title class="font-weight-bold">{{ acc.is_owner ? ($t('common.my_account') || 'Minha Conta') : acc.owner?.nome }}</v-list-item-title>
+                    </v-list-item>
+                    <v-divider class="my-2"></v-divider>
+                </template>
 
-                            <!-- Collaborators -->
-                            <v-list-item prepend-icon="mdi-account-group" @click="shareDialog = true">
-                                <v-list-item-title>{{ $t('footer.colaboradores') }}</v-list-item-title>
-                            </v-list-item>
+                <v-list-item v-if="!uiAuthStore.loading" prepend-icon="mdi-account-group" @click="shareDialog = true">
+                    <v-list-item-title>{{ $t('footer.colaboradores') }}</v-list-item-title>
+                </v-list-item>
 
                             <!-- Theme toggle -->
                             <v-list-item :prepend-icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" @click="uiAuthStore.toggleTheme">
@@ -192,6 +189,7 @@
             <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
                 <template v-slot:activator="{ props }">
                     <v-btn
+                        v-if="!uiAuthStore.loading"
                         v-bind="props"
                         variant="tonal"
                         color="white"
@@ -200,6 +198,7 @@
                     >
                         {{ activeWorkspaceName }}
                     </v-btn>
+                    <v-skeleton-loader v-else type="button" width="100" class="ml-2 bg-transparent"></v-skeleton-loader>
                 </template>
                 <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
                     <v-list-item
@@ -360,7 +359,6 @@
       <v-main>
         <router-view></router-view>
       </v-main>
-    </template>
     <ModalBase v-model="confirmLogout" :title="$t('landing.features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
@@ -454,6 +452,7 @@ watch(() => uiAuthStore.locale, (newLocale) => {
 }, { immediate: true })
 
 const activeWorkspaceName = computed(() => {
+    if (uiAuthStore.loading) return '...'
     const active = authStore.sharedAccounts.find(a => a.id == authStore.workspaceId)
     if (active?.is_owner) return t('common.my_account') || 'Minha Conta'
     return active?.owner?.nome || 'Workspace'
@@ -482,10 +481,12 @@ onMounted(async () => {
     await authStore.fetchUser();
   }
   if (authStore.isAuthenticated) {
-    checkReminders();
-    authStore.fetchSharedAccounts();
-    // Check every minute for precision
-    setInterval(checkReminders, 60 * 1000);
+    // Wait for initial load to finish before checking reminders to avoid multiple toasts
+    setTimeout(() => {
+        checkReminders();
+        authStore.fetchSharedAccounts();
+        setInterval(checkReminders, 60 * 1000);
+    }, 2000);
   }
   if (isDesktop.value && authStore.isAuthenticated) {
     drawer.value = true;
@@ -522,7 +523,7 @@ const checkReminders = async () => {
             
             if (pending.length > 0) {
                 pending.forEach(n => notifiedSession.add(n.id))
-                toast.info(`⏰ Você tem ${pending.length} compromisso(s) na agenda para agora!`, {
+                toast.info(t('metas.notifications.reminder_alert', { count: pending.length }), {
                     autoClose: 10000,
                     theme: uiAuthStore.theme,
                     onClick: () => router.push({ name: 'Lembretes' })

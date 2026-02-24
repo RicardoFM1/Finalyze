@@ -242,7 +242,7 @@ const onNoteSaved = (optimisticItem) => {
             anotacoes.value.unshift(optimisticItem)
         }
     }
-    setTimeout(() => { fetchNotes(true) }, 800)
+    setTimeout(() => { fetchNotes(true) }, 1500)
 }
 
 const onNoteDeleted = ({ id }) => {
@@ -413,7 +413,7 @@ const toggleStatusConcluido = async (item) => {
       item.status = oldStatus
       console.error(e) 
   } finally {
-      setTimeout(() => { fetchNotes(true) }, 800)
+      setTimeout(() => { fetchNotes(true) }, 1500)
   }
 }
 
@@ -430,7 +430,7 @@ const reativarItem = async (item) => {
       item.status = oldStatus
       console.error(e) 
   } finally {
-      setTimeout(() => { fetchNotes(true) }, 800)
+      setTimeout(() => { fetchNotes(true) }, 1500)
   }
 }
 

@@ -5,7 +5,7 @@ export const categorias = [
     { title: 'Vendas', icon: 'mdi-tag-text-outline' },
 
     { title: 'Aluguel', icon: 'mdi-home-city' },
-    { title: 'Condomínio', icon: 'mdi-building' },
+    { title: 'Condomínio', icon: 'mdi-office-building' },
     { title: 'Energia', icon: 'mdi-lightning-bolt' },
     { title: 'Água', icon: 'mdi-water' },
     { title: 'Internet', icon: 'mdi-wifi' },
@@ -23,7 +23,7 @@ export const categorias = [
     { title: 'Transporte Público', icon: 'mdi-bus' },
     { title: 'Estacionamento', icon: 'mdi-parking' },
     { title: 'Manutenção Veículo', icon: 'mdi-car-wrench' },
-    { title: 'Seguro Auto', icon: 'mdi-car-shield' },
+    { title: 'Seguro Auto', icon: 'mdi-shield-car' },
 
     { title: 'Saúde', icon: 'mdi-heart-pulse' },
     { title: 'Farmácia', icon: 'mdi-pill' },
@@ -46,7 +46,7 @@ export const categorias = [
     { title: 'Presentes', icon: 'mdi-gift' },
 
     { title: 'Cartão de Crédito', icon: 'mdi-credit-card' },
-    { title: 'Impostos', icon: 'mdi-file-document-percent' },
+    { title: 'Impostos', icon: 'mdi-receipt-text-check' },
     { title: 'Empréstimos', icon: 'mdi-bank-transfer' },
     { title: 'Taxas Bancárias', icon: 'mdi-bank-minus' },
     { title: 'Seguros (Vida/Resid)', icon: 'mdi-shield-check' },

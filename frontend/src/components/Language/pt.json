@@ -245,7 +245,10 @@
       "export_excel": "Exportar para Excel",
       "export_pdf": "Exportar para PDF"
     },
-    "empty_filter": "Nenhum item encontrado para este filtro."
+    "empty_filter": "Nenhum item encontrado para este filtro.",
+    "notifications": {
+      "reminder_alert": "⏰ Você tem {count} compromisso(s) na agenda para agora!"
+    }
   },
   "transactions": {
     "title": "Lançamentos",
