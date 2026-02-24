@@ -19,7 +19,7 @@
       :categorias="categorias"
       @apply="fetchSummary"
       @clear="limparFiltro"
-      class="mb-8"
+      class="mb-12"
       macro
     />
 

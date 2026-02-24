@@ -15,8 +15,7 @@
               </div>
             </template>
             <template v-else>
-              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up" style="line-height: 1.1;">
-                <span class="gradient-text brand-title d-block mb-2">Finalyze</span>
+              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up" style="line-height: 1.1;">            
                 <span class="mr-3">{{ $t('landing.hero_title_alt') }}</span>
                 <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
@@ -27,7 +26,9 @@
                 <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold" :to="{ name: 'Plans' }" elevation="20">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-10 glass-btn ml-md-4" :to="{ name: 'Dashboard' }">
+              </div>
+              <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-14 glass-btn ml-md-4 " :to="{ name: 'Dashboard' }">
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
@@ -408,6 +409,11 @@ const features = computed(() => [
   backdrop-filter: blur(4px);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
   color: rgb(var(--v-theme-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  margin-top: 16px;
 }
 
 @keyframes fadeInUp {
