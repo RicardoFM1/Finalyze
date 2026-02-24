@@ -181,6 +181,8 @@ import Planilhas from '../components/Exportacoes/planilhas.vue'
 import PdfExport from '../components/Exportacoes/pdf.vue'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import toast from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 const fileInput = ref(null)
 

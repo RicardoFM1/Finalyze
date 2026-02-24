@@ -58,7 +58,8 @@
                 
                 <div class="carousel-track" :style="{ left: '50%', transform: `translateX(calc(-${isMobile ? 140 : 250}px - ${currentSlide * (isMobile ? 280 : 500)}px))` }">
                     <div 
-                      v-for="(slide, i) in slides" 
+                      v-if="localStorage.getItem('locale') === 'en'"
+                       v-for="(slide, i) in slides"
                       :key="i"
                       class="loose-slide-v2"
                       :class="{ 'active': currentSlide === i }"
@@ -137,11 +138,19 @@ import { useAuthStore } from '../stores/auth'
 import { useUiStore } from '../stores/ui'
 import { useI18n } from 'vue-i18n'
 import { useDisplay } from 'vuetify'
-import slide1 from '@/assets/slide1.png'
-import slide2 from '@/assets/slide2.png'
-import slide3 from '@/assets/slide3.png'
-import slide4 from '@/assets/slide4.png'
-import logotipo from '@/assets/logotipo.png'
+import slidesBR1 from '@/assets/Painel-PT-BR.png'
+import slidesBR2 from '@/assets/Lancamentos-PT-BR.png'
+import slidesBR3 from '@/assets/Metas-PT-BR.png'
+import slidesBR4 from '@/assets/Relatorios-PT-BR.png'
+import slidesBR5 from '@/assets/Agenda-PT-BR.png'
+
+import slidesEN1 from '@/assets/Painel-EN-US.png'
+import slidesEN2 from '@/assets/Lancamentos-EN-US.png'
+import slidesEN3 from '@/assets/Goals-EN-US.png'
+import slidesEN4 from '@/assets/Reports-EN-US.png'
+import slidesEN5 from '@/assets/Schedule-EN-US.png'
+import { useLocale } from 'vuetify/lib/composables/locale.mjs'
+
 
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
@@ -168,25 +177,29 @@ const prevSlide = () => {
 
 const slides = computed(() => [
   {
-    image: slide1,
+    image: slidesBR1,
     title: t('landing.carousel.dashboard_title') || 'Dashboard Inteligente',
     description: t('landing.carousel.dashboard_desc') || t('landing.power_subtitle')
   },
   {
-    image: slide2,
-    title: t('landing.carousel.reports_title') || 'Relatórios Detalhados',
-    description: t('landing.carousel.reports_desc') || t('landing.features.analysis_text')
+    image: slidesBR2,
+    title: t('landing.carousel.transactions_title') || 'Lançamentos financeiros',
+    description: t('landing.carousel.transactions_text') || t('landing.features.transactions_text')
   },
-  
   {
-    image: slide3,
+    image: slidesBR3,
     title: t('landing.carousel.goals_title') || 'Metas e Objetivos',
     description: t('landing.carousel.goals_desc') || t('landing.features.goals_text')
   },
   {
-    image: slide4,
-    title: t('landing.carousel.transactions_title') || 'Lançamentos financeiros',
-    description: t('landing.carousel.transactions_text') || t('landing.features.transactions_text')
+    image: slidesBR4,
+    title: t('landing.carousel.reports_title') || 'Relatórios Detalhados',
+    description: t('landing.carousel.reports_desc') || t('landing.features.analysis_text')
+  },
+  {
+    image: slidesBR5,
+    title: t('landing.carousel.schedule_title') || 'Agenda de Lançamentos',
+    description: t('landing.carousel.schedule_desc') || t('landing.features.schedule_text')
   }
 ])
 

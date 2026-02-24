@@ -21,6 +21,8 @@
       "goals_text": "Define financial goals and track your progress automatically.",
       "transactions_title": "Financial Transactions",
       "transactions_text": "Generate and view your financial transactions simply and efficiently.",
+      "schedule_title": "Transaction Schedule",
+      "schedule_text": "Schedule your financial transactions in advance and never miss important dates.",
       "DS": "Do you want to log out?",
       "VDS": "You will need to log in again to access your data.",
       "stay_new": "Stay",
