@@ -246,7 +246,10 @@
       "export_excel": "Export to Excel",
       "export_pdf": "Export to PDF"
     },
-    "empty_filter": "No items found for this filter."
+    "empty_filter": "No items found for this filter.",
+    "notifications": {
+      "reminder_alert": "⏰ You have {count} appointment(s) on your schedule now!"
+    }
   },
   "transactions": {
     "title": "Transactions",

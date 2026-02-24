@@ -7,6 +7,7 @@
       auto-apply
       :enable-time-picker="false"
       :teleport="true"
+      :format="pickerFormat"
       @update:model-value="onDateChange"
       :placeholder="label"
       :disabled="disabled"
@@ -52,6 +53,7 @@ import { useMoney } from '../../composables/useMoney'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
+
 const props = defineProps({
   modelValue: [String, Date, Object, Array],
   label: String,
@@ -84,17 +86,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const uiStore = useUiStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { meta: currencyMeta } = useMoney()
 
 const menu = ref(false)
 const isDark = computed(() => uiStore.theme === 'dark')
 
-// VueDatePicker locale prop expects a BCP 47 string
-const localeString = computed(() => currencyMeta.value.locale)
+const bcpLocale = computed(() => locale.value === 'pt' ? 'pt-BR' : 'en-US')
 
 const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime())
 const internalDate = ref(null)
+
+const pickerFormat = computed(() => {
+  return locale.value === 'pt' ? 'dd/MM/yyyy' : 'MM/dd/yyyy'
+})
 
 const parseValue = (val) => {
   if (!val) return null
@@ -123,11 +128,11 @@ const parseValue = (val) => {
   const d = toLocalDate(val)
   return isValidDate(d) ? d : null
 }
-
 const formattedDisplayDate = computed(() => {
   if (!internalDate.value) return ''
   
-  const formatter = new Intl.DateTimeFormat(localeString.value, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const bcpLocale = locale.value === 'pt' ? 'pt-BR' : 'en-US'
+  const formatter = new Intl.DateTimeFormat(bcpLocale, { day: '2-digit', month: '2-digit', year: 'numeric' })
   
   if (props.mode === 'range' && Array.isArray(internalDate.value)) {
     const [start, end] = internalDate.value
@@ -137,6 +142,11 @@ const formattedDisplayDate = computed(() => {
   }
   
   return isValidDate(internalDate.value) ? formatter.format(internalDate.value) : ''
+})
+
+const formatDateLocale = computed(() => {
+  if (locale.value === 'pt') return 'pt-BR'
+  return 'en-US'
 })
 
 const formatDateISO = (date) => {

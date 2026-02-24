@@ -151,13 +151,25 @@ button:focus-visible {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hover-underline {
@@ -181,4 +193,15 @@ button:focus-visible {
 .hover-underline:hover:after {
   transform: scaleX(1);
   transform-origin: bottom left;
+}
+
+/* Global List Item Spacing */
+.v-list-item {
+  min-height: 44px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.v-list-item__prepend>.v-icon {
+  margin-inline-end: 12px !important;
 }

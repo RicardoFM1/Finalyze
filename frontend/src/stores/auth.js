@@ -131,8 +131,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function fetchUser() {
-        if (!token.value) return;
+    async function fetchUser(force = false) {
+        if (!token.value || (user.value && !force)) return;
         const ui = useUiStore();
         ui.setLoading(true);
         try {

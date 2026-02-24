@@ -76,7 +76,7 @@
             class="filter-select-multi"
           >
             <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title"></v-list-item>
+              <v-list-item v-bind="props" :prepend-icon="item.raw.icon" :title="item.raw.title" class="py-2"></v-list-item>
             </template>
             <template v-slot:chip="{ props, item }">
               <v-chip v-bind="props" :prepend-icon="item.raw.icon" :text="item.raw.title" size="small"></v-chip>
@@ -163,8 +163,10 @@ const tipos = computed(() => [
 
 const formatCategorias = computed(() => {
   if (!props.categorias) return []
+  const normalize = (str) => str?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || ''
+  
   return props.categorias.map(cat => {
-    const original = categoriasConstantes.find(c => c.title === cat)
+    const original = categoriasConstantes.find(c => normalize(c.title) === normalize(cat))
     return {
       title: t('categories.' + cat),
       value: cat,

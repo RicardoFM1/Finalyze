@@ -32,6 +32,7 @@
                                         v-bind="props" 
                                         :prepend-icon="item.raw.icon"
                                         :title="item.raw.displayTitle"
+                                        class="py-2"
                                     ></v-list-item>
                                 </template>
 
