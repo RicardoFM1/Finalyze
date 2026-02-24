@@ -15,7 +15,7 @@
           </p>
           
             <v-row class="mt-12 justify-center gap-4">
-              <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 text-white" size="large" variant="flat">
+              <v-chip color="rgba(255,255,255,0.15)" class="px-6 py-4 mr-2 text-white" size="large" variant="flat">
                 <v-icon start icon="mdi-check-decagram" color="#5CBBF6"></v-icon>
                 <span class="font-weight-medium">{{ $t('auth.feature_badges.security') }}</span>
               </v-chip>

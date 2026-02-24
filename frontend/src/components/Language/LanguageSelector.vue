@@ -8,14 +8,16 @@
     variant="outlined"
     density="compact"
     hide-details
-    style="max-width: 200px;"
+    style="width: 100%;"
   ></v-select>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { onMounted, ref, watch } from 'vue';
+import { useAuthStore } from '../../stores/auth'
 
+const authStore = useAuthStore();
 const { locale } = useI18n();
 
 const languages = [
@@ -26,19 +28,10 @@ const languages = [
 const selectedLanguage = ref(locale.value);
 
 watch(selectedLanguage, (newLang) => {
-  locale.value = newLang;
-  localStorage.setItem('language', newLang);
+  authStore.setLanguage(newLang);
 });
 
 watch(locale, (newLocale) => {
     selectedLanguage.value = newLocale;
-});
-
-onMounted(() => {
-  const savedLanguage = localStorage.getItem('language');
-  if (savedLanguage) {
-    selectedLanguage.value = savedLanguage;
-    locale.value = savedLanguage;
-  }
 });
 </script>

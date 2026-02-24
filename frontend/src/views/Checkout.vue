@@ -104,7 +104,7 @@
                     </div>
 
                     <div v-if="creditosRestantes > 0" class="d-flex justify-space-between text-body-2 mb-1 text-success">
-                      <span>Crédito do plano atual (-):</span>
+                      <span>{{ $t('checkout.current_credit') }}:</span>
                       <span>{{ renderPrice(creditosRestantes) }}</span>
                     </div>
 
@@ -489,9 +489,31 @@ const handleCpfInput = (event) => {
 }
 
 const validateAge = (v) => {
-  if (!v || typeof v !== 'string' || !v.includes('-')) return true
-  const [year, month, day] = v.split('-').map(Number)
-  const birth = new Date(year, month - 1, day)
+  if (!v) return true
+  let birth
+  if (typeof v === 'string') {
+    const parts = v.split(/[-/]/)
+    if (parts.length >= 3) {
+      let year, month, day
+      if (parts[0].length === 4) {
+        year = parseInt(parts[0])
+        month = parseInt(parts[1])
+        day = parseInt(parts[2])
+      } else {
+        day = parseInt(parts[0])
+        month = parseInt(parts[1])
+        year = parseInt(parts[2])
+      }
+      birth = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`)
+    } else {
+      birth = new Date(v)
+    }
+  } else {
+    birth = new Date(v)
+  }
+
+  if (!birth || isNaN(birth.getTime())) return false
+
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()

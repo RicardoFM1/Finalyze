@@ -159,14 +159,14 @@
     <v-btn
       color="primary"
       block
-      size="x-large"
-      class="mt-8 rounded-xl font-weight-bold py-4 text-none elevation-8"
+      :size="isMobile ? 'large' : 'x-large'"
+      class="mt-8 rounded-xl font-weight-bold py-4 text-none elevation-8 btn-auth"
       type="submit"
       :loading="loading"
       :disabled="buttonDisabled"
       :append-icon="mode === 'login' ? 'mdi-chevron-right' : 'mdi-account-check'"
     >
-      {{ mode === 'login' ? $t('login.btn_login') : $t('register.btn_submit') }}
+      <span class="text-truncate-max-2">{{ mode === 'login' ? $t('login.btn_login') : $t('register.btn_submit') }}</span>
     </v-btn>
 
     <v-btn
@@ -174,11 +174,11 @@
       variant="tonal"
       block
       :disabled="loading"
-      size="large"
-      class="mt-4 rounded-xl font-weight-medium text-none"
+      :size="isMobile ? 'default' : 'large'"
+      class="mt-4 rounded-xl font-weight-medium text-none btn-auth"
       :to="{ name: mode === 'login' ? 'Register' : 'Login' }"
     >
-      {{ mode === 'login' ? $t('login.register_link') : $t('register.login_link') }}
+      <span class="text-truncate-max-2">{{ mode === 'login' ? $t('login.register_link') : $t('register.login_link') }}</span>
     </v-btn>
   </v-form>
 
@@ -203,10 +203,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useDisplay } from 'vuetify'
 import ModalBase from '../Modals/modalBase.vue'
 import DateInput from '../Common/DateInput.vue'
 
 const { t } = useI18n()
+const { mobile: isMobile } = useDisplay()
 
 const showTermsModal = ref(false)
 
@@ -262,5 +264,23 @@ const buttonDisabled = computed(() => {
 
 .form-group :deep(.v-field--focused .v-field__outline) {
   --v-field-border-opacity: 1;
+}
+
+.btn-auth {
+    height: auto !important;
+    min-height: 48px;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+.text-truncate-max-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.2;
 }
 </style>

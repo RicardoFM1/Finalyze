@@ -2,18 +2,18 @@
   <v-dialog v-model="dialog" :max-width="maxWidth" :persistent="persistent" class="modal-base-dialog">
     <v-card class="rounded-xl overflow-hidden elevation-12">
       <!-- Custom header: avoids v-toolbar-title's internal overflow:hidden clipping on mobile -->
-      <div class="modal-header d-flex align-start py-3 px-4">
-        <span class="modal-header-title font-weight-bold text-white flex-grow-1">
+      <div class="modal-header d-flex align-center py-4 px-5">
+        <h2 class="modal-header-title font-weight-bold text-white flex-grow-1 mb-0">
           {{ title }}
-        </span>
-        <v-btn icon="mdi-close" variant="text" color="white" size="small" class="ml-2 flex-shrink-0" @click="close"></v-btn>
+        </h2>
+        <v-btn icon="mdi-close" variant="text" color="white" size="small" class="ml-4 flex-shrink-0" @click="close"></v-btn>
       </div>
 
-      <v-card-text class="pa-6 pb-2" style="max-height: 75vh; overflow-y: auto;">
+      <v-card-text class="pa-4 pa-sm-6 pb-2" style="max-height: 75vh; overflow-y: auto;">
         <slot></slot>
       </v-card-text>
 
-      <v-card-actions v-if="$slots.actions" class="pa-6 pt-2 d-flex flex-wrap">
+      <v-card-actions v-if="$slots.actions" class="pa-4 pa-sm-6 pt-2 d-flex flex-wrap">
         <slot name="actions"></slot>
       </v-card-actions>
     </v-card>
@@ -70,16 +70,15 @@ const close = () => {
 <style scoped>
 .modal-header {
   background-color: rgb(var(--v-theme-primary));
-  min-height: 56px;
+  width: 100%;
 }
 
 .modal-header-title {
-  font-size: 1.1rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.2;
   white-space: normal;
   word-break: break-word;
   overflow-wrap: break-word;
-  padding-top: 2px;
 }
 
 @media (min-width: 600px) {

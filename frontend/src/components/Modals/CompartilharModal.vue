@@ -1,13 +1,13 @@
 <template>
   <ModalBase :title="$t('modals.titles.share')" v-model="internalValue" maxWidth="600px">
     <div class="pa-0">
-      <div class="px-6 pt-6 pb-2">
+      <div class="pa-4 pa-sm-6 pb-2">
         <p class="text-body-2 text-medium-emphasis mb-6">
           {{ $t('share.subtitle') }}
         </p>
 
         <!-- Invite Section -->
-        <v-card variant="tonal" color="primary" class="pa-6 rounded-xl border-dashed mb-10" elevation="0">
+        <v-card variant="tonal" color="primary" class="pa-4 pa-sm-6 rounded-xl border-dashed mb-10" elevation="0">
           <v-form @submit.prevent="inviteUser">
             <div class="d-flex flex-column flex-sm-row gap-4 align-sm-center">
                 <v-text-field
@@ -39,8 +39,8 @@
 
       <v-divider></v-divider>
 
-      <div class="px-6 py-8 bg-surface-variant-light">
-        <!-- Collaborators List -->
+      <div class="pa-4 pa-sm-8 bg-surface-variant-light">
+        <!-- Collaborators List (People I invited) -->
         <h3 class="text-overline font-weight-black mb-4 d-flex align-center opacity-70">
           <v-icon icon="mdi-account-multiple-outline" size="18" class="mr-2"></v-icon>
           {{ $t('share.people_access') }}
@@ -49,7 +49,7 @@
         <v-list class="bg-transparent pa-0">
           <v-list-item class="bg-surface rounded-xl mb-4 border" elevation="1">
               <template v-slot:prepend>
-                  <v-avatar color="primary" class="mr-3" size="44">
+                  <v-avatar color="primary" class="mr-3" size="44" border>
                       <v-img v-if="authStore.user?.avatar" :src="authStore.getStorageUrl(authStore.user.avatar)" cover></v-img>
                       <span v-else class="text-caption font-weight-bold">{{ getInitials(authStore.user?.nome) }}</span>
                   </v-avatar>
@@ -83,12 +83,39 @@
               </template>
           </v-list-item>
         </v-list>
+
+        <template v-if="invitedMe.length">
+            <h3 class="text-overline font-weight-black mt-8 mb-4 d-flex align-center opacity-70">
+                <v-icon icon="mdi-handshake-outline" size="18" class="mr-2"></v-icon>
+                {{ $t('share.invited_me') || 'Acessos concedidos a mim' }}
+            </h3>
+            
+            <v-row class="px-0">
+                <v-col v-for="share in invitedMe" :key="share.id" cols="12" sm="6">
+                    <v-card variant="outlined" class="rounded-xl pa-4 bg-primary-lighten-5 border-dashed h-100" elevation="0">
+                        <div class="d-flex align-center mb-3">
+                            <v-avatar color="primary" size="48" class="mr-3">
+                                <v-img v-if="share.proprietario?.avatar" :src="authStore.getStorageUrl(share.proprietario.avatar)" cover></v-img>
+                                <span v-else class="text-h6 font-weight-bold">{{ getInitials(share.proprietario?.nome) }}</span>
+                            </v-avatar>
+                            <div class="overflow-hidden">
+                                <v-list-item-title class="font-weight-bold text-truncate">{{ share.proprietario?.nome }}</v-list-item-title>
+                                <v-chip variant="flat" color="primary" size="x-small" class="font-weight-bold px-2 mt-1">{{ $t('share.active_access') || 'ACESSO ATIVO' }}</v-chip>
+                            </div>
+                        </div>
+                        <div class="d-flex align-center text-caption opacity-70 bg-white pa-2 rounded-lg border">
+                           <v-icon icon="mdi-email-outline" size="14" class="mr-2"></v-icon>
+                           <span class="text-truncate">{{ share.proprietario?.email }}</span>
+                        </div>
+                    </v-card>
+                </v-col>
+            </v-row>
+        </template>
       </div>
 
       <!-- Social Share (Bottom) -->
-      <v-divider></v-divider>
-      <div class="pa-8 bg-surface text-center">
-        <p class="text-caption text-medium-emphasis mb-4 uppercase tracking-widest font-weight-bold">Convidar via redes sociais</p>
+      <div class="pa-4 pa-sm-8 bg-surface text-center">
+        <p class="text-caption text-medium-emphasis mb-4 uppercase tracking-widest font-weight-bold">{{ $t('share.social_share_title') || 'Convidar via redes sociais' }}</p>
         <div class="d-flex justify-center gap-6">
           <v-btn icon="mdi-whatsapp" color="success" variant="tonal" size="large" @click="shareSocial('whatsapp')"></v-btn>
           <v-btn icon="mdi-facebook" color="info" variant="tonal" size="large" @click="shareSocial('facebook')"></v-btn>
@@ -162,6 +189,7 @@ const inviteEmail = ref('')
 const loading = ref(false)
 const deleting = ref(false)
 const mySharedAccounts = ref([])
+const invitedMe = ref([])
 
 const showConfirmDelete = ref(false)
 const selectedShareToDelete = ref(null)
@@ -176,7 +204,10 @@ onMounted(() => {
 })
 
 watch(internalValue, (val) => {
-    if (val) fetchMyShares()
+    if (val) {
+        fetchMyShares()
+        authStore.fetchSharedAccounts() // Also refresh the switcher list
+    }
 })
 
 const fetchMyShares = async () => {
@@ -185,6 +216,7 @@ const fetchMyShares = async () => {
         if (response.ok) {
             const data = await response.json()
             mySharedAccounts.value = data.my_shares
+            invitedMe.value = data.shared_with_me || []
         }
     } catch (e) { console.error(e) }
 }
@@ -260,7 +292,7 @@ const getInitials = (name) => {
 
 const shareSocial = (platform) => {
   const url = window.location.origin
-  const text = 'Confira o Finalyze Finance!'
+  const text = t('share.social_share_msg') || 'Confira o Finalyze Finance!'
   let link = ''
 
   if (platform === 'whatsapp') link = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`

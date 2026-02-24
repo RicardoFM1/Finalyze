@@ -47,6 +47,8 @@
       "goals_desc": "Defina objetivos claros e acompanhe cada passo da sua jornada para realizá-los.",
       "transactions_title": "Lançamentos Financeiros",
       "transactions_text": "Gere e visualize seus lançamentos financeiros de forma simples e eficiente.",
+      "schedule_title": "Agenda de Lançamentos",
+      "schedule_desc": "Agende seus lançamentos financeiros e nunca perca um vencimento.",
       "premium_resource": "RECURSO PREMIUM"
     }
   },
@@ -74,7 +76,7 @@
     "terms_text": "Ao utilizar o Finalyze, você concorda que: 1. Seus dados financeiros são processados de forma segura e criptografada para gerar seus relatórios e análises. 2. Não realizamos reembolsos de planos após a confirmação do pagamento, dado o acesso imediato às ferramentas premium. 3. Você é responsável pela veracidade dos dados inseridos e pela segurança de sua senha. 4. Seus dados nunca serão compartilhados com terceiros sem sua autorização explícita (ex: através do módulo de Colaboração).",
     "placeholders": {
       "name": "Seu nome completo",
-      "email": "exemplo@email.com",
+      "email": "exemplo{'@'}email.com",
       "password": "********",
       "cpf": "000.000.000-00",
       "birthdate": "DD/MM/AAAA"
@@ -134,14 +136,16 @@
     "subtitle": "Escolha o plano que se adapta aos seus objetivos financeiros",
     "pending_title": "Pagamento Pendente Encontrado",
     "pending_desc": "Você já iniciou o pagamento para o plano {plan}. Deseja continuar de onde parou ou deseja cancelar esse pagamento para escolher um novo plano?",
-    "cancel_prev": "Cancelar Anterior",
+    "cancel_prev": "Cancelar anterior",
     "continue": "Continuar Pagamento",
-    "launch_limits": "Limite de {count} Lançamentos",
-    "launch_unlimited": "Lançamentos Ilimitados",
+    "launch_limits": "Limite de {count} lançamentos",
+    "launch_unlimited": "Lançamentos ilimitados",
     "plan_names": {
+      "Gratuito": "Gratuito",
       "Essencial": "Essencial",
       "Pro": "Pro",
-      "Elite": "Elite"
+      "Elite": "Elite",
+      "Premium": "Premium"
     },
     "toast_cancel_success": "Pagamento anterior cancelado.",
     "toast_cancel_error": "Erro ao cancelar assinatura.",
@@ -163,13 +167,13 @@
       "maybe_later": "Talvez depois"
     },
     "popular": "MAIS POPULAR",
-    "period": "Período",
-    "discount_label": "{amount}% de desconto",
-    "renew_extend": "Renovar / Estender",
+    "period": "PERÍODO",
+    "discount_label": "{amount}% DE DESCONTO",
+    "renew_extend": "Renovar / Estender Plano",
     "change_to": "Mudar para {plan}",
-    "choose": "Escolher {plan}",
+    "choose": "Escolher este Plano",
     "periods": {
-      "sem": "sem",
+      "sem": "semana",
       "mês": "mês",
       "tri": "tri",
       "ano": "ano"
@@ -183,7 +187,16 @@
       "Metas": "Metas",
       "Relatórios Gráficos": "Relatórios Gráficos",
       "Chat de suporte IA": "Chat de suporte IA",
-      "Exportação CSV": "Exportação CSV"
+      "Exportação CSV": "Exportação CSV",
+      "painel-financeiro": "Painel Financeiro",
+      "lancamentos": "Lançamentos Ilimitados",
+      "metas": "Gestão de Metas",
+      "relatorios-graficos": "Relatórios e Gráficos",
+      "agenda-financeira": "Agenda Financeira",
+      "suporte-prioritario": "Suporte Prioritário",
+      "lembretes-avisos": "Lembretes e Avisos",
+      "finn-ai": "Finn AI (Inteligência Artificial)",
+      "colaboracao-total": "Colaboração Total"
     }
   },
   "metas": {
@@ -508,7 +521,10 @@
     "search": "Buscar...",
     "all": "Todos",
     "items_per_page": "Itens por página",
+    "required": "Obrigatório",
     "welcome_fallback": "bem-vindo",
+    "active_workspace": "Área de Trabalho Ativa",
+    "my_account": "Minha Conta",
     "currency": "R$",
     "Date": "Data",
     "Time": "Hora",
@@ -521,8 +537,7 @@
       "usd": "Dólar Americano",
       "eur": "Euro",
       "gbp": "Libra Esterlina"
-    },
-    "my_account": "Minha Conta"
+    }
   },
   "register": {
     "title": "Criar Conta",
@@ -542,7 +557,7 @@
       "uppercase": "Deve conter uma letra maiúscula",
       "lowercase": "Deve conter uma letra minúscula",
       "number": "Deve conter um número",
-      "special_char": "Deve conter um caractere especial (!@#$%...)",
+      "special_char": "Deve conter um caractere especial (!{'@'}#$%...)",
       "passwords_match": "As senhas não coincidem",
       "name_required": "Nome é obrigatório",
       "email_required": "E-mail é obrigatório",
@@ -568,6 +583,7 @@
     "min_age": "Você deve ter pelo menos 18 anos."
   },
   "toasts": {
+    "import_success": "Importação realizada com sucesso!",
     "login_success": "Login realizado com sucesso!",
     "login_error": "Erro ao fazer login",
     "register_success": "Cadastro realizado com sucesso!",
@@ -583,9 +599,9 @@
   "modals": {
     "cancel_subscription": {
       "title": "Cancelar Assinatura",
-      "description": "Tem certeza que deseja cancelar sua assinatura? Você perderá acesso aos recursos premium ao final do período atual.",
-      "confirm": "Confirmar Cancelamento",
-      "keep": "Manter Assinatura"
+      "description": "Tem certeza que deseja cancelar sua assinatura? Você ainda terá acesso aos recursos premium até o final do período atual.",
+      "confirm": "Sim, Cancelar",
+      "keep": "Manter meu Plano"
     },
     "remove_avatar": {
       "title": "Remover Foto",
@@ -714,11 +730,13 @@
     "subtitle": "Convide outras pessoas para visualizar e editar seus dados financeiros, metas e agenda. Elas terão acesso total à sua conta.",
     "email_label": "E-mail do colaborador",
     "invite_btn": "Convidar",
-    "people_access": "Pessoas com acesso",
+    "people_access": "Quem pode acessar meus dados",
     "you": "Você",
     "owner": "Proprietário",
     "status_pending": "Pendente",
-    "status_accepted": "Convidado",
+    "status_accepted": "Ativo",
+    "invited_me": "Acessos concedidos a mim",
+    "active_access": "ACESSO ATIVO",
     "toast_invite_sent": "Convite de colaboração enviado!",
     "toast_invite_error": "Erro ao enviar convite",
     "toast_remove_success": "Acesso removido com sucesso",
@@ -727,7 +745,9 @@
     "confirm_remove": "Deseja realmente remover o acesso de {email}?",
     "confirm_remove_title": "Remover Acesso",
     "confirm_remove_desc": "Esta pessoa não terá mais acesso às suas informações financeiras, metas e agenda.",
-    "remove_btn": "Remover Acesso"
+    "remove_btn": "Remover Acesso",
+    "social_share_title": "Convidar via redes sociais",
+    "social_share_msg": "Confira o Finalyze Finance!"
   },
   "actions": {
     "import_excel": "Importar Excel",

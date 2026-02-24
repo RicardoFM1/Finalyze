@@ -120,7 +120,12 @@ Instruções de Comportamento:
         ]);
 
         if ($response->failed()) {
-            return "Não consegui gerar uma resposta. (Erro na API do Mistral)";
+            \Log::error('Mistral API Error', [
+                'status' => $response->status(),
+                'body' => $response->json(),
+                'messages' => $messages
+            ]);
+            return "Não consegui gerar uma resposta. (Erro: " . ($response->json()['message'] ?? 'API Indisponível') . ")";
         }
 
         $result = $response->json();

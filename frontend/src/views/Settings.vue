@@ -13,22 +13,22 @@
             <h3 class="text-h6 font-weight-bold">{{ $t('profile.settings.language') }}</h3>
           </div>
 
-          <div class="management-item d-flex flex-column flex-sm-row align-sm-start align-sm-center justify-space-between mb-2">
-            <div class="mb-4 mb-sm-0">
+          <div class="management-item d-flex flex-column mb-6">
+            <div class="mb-4">
               <div class="font-weight-bold">{{ $t('profile.settings.language') }}</div>
               <div class="text-body-2 text-medium-emphasis">{{ $t('profile.settings.language_desc') }}</div>
             </div>
-            <LanguageSelector />
+            <LanguageSelector class="w-100" style="max-width: 100% !important" />
           </div>
 
           <v-divider class="my-4 opacity-30" />
 
-          <div class="management-item d-flex align-center justify-space-between">
-            <div>
+          <div class="management-item d-flex flex-column">
+            <div class="mb-4">
               <div class="font-weight-bold">{{ $t('landing.select_currency') }}</div>
               <div class="text-body-2 text-medium-emphasis">{{ $t('settings.currency_desc') || 'Formato de exibição dos valores monetários' }}</div>
             </div>
-            <CurrencySelector />
+            <CurrencySelector class="w-100" style="max-width: 100% !important" />
           </div>
         </v-card>
       </v-col>

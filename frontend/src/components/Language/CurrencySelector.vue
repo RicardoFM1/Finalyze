@@ -8,7 +8,7 @@
     variant="outlined"
     density="compact"
     hide-details
-    style="min-width: 120px; max-width: 160px;"
+    style="width: 100%;"
     prepend-inner-icon="mdi-currency-usd"
     class="rounded-lg"
   >

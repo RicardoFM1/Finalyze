@@ -140,10 +140,15 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 user.value = data;
+
+                // Initialize sharedAccounts with self immediately
+                sharedAccounts.value = [{ id: data.id, owner: data, is_owner: true }];
+
                 if (!workspaceId.value) {
                     workspaceId.value = data.id;
                     localStorage.setItem('workspace_id', data.id);
                 }
+                // Fetch collaborations in background
                 fetchSharedAccounts();
             }
         } catch (e) {
@@ -159,10 +164,22 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
                 if (!user.value) return;
-                sharedAccounts.value = [
-                    { id: user.value.id, owner: user.value, is_owner: true },
-                    ...data.shared_with_me.map(s => ({ ...s, id: s.proprietario_id, owner: s.proprietario, is_owner: false }))
-                ];
+                const ownAccount = { id: user.value.id, owner: user.value, is_owner: true };
+                const otherAccounts = (data.shared_with_me || []).map(s => ({
+                    ...s,
+                    id: s.proprietario_id,
+                    owner: s.proprietario,
+                    is_owner: false
+                }));
+
+                sharedAccounts.value = [ownAccount, ...otherAccounts];
+
+                // Check if current workspace is still valid among all accounts
+                const stillExists = sharedAccounts.value.some(a => a.id == workspaceId.value);
+                if (!stillExists) {
+                    workspaceId.value = user.value.id;
+                    localStorage.setItem('workspace_id', user.value.id);
+                }
             }
         } catch (e) {
             console.error(e);

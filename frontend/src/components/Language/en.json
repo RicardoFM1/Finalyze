@@ -22,7 +22,7 @@
       "transactions_title": "Financial Transactions",
       "transactions_text": "Generate and view your financial transactions simply and efficiently.",
       "schedule_title": "Transaction Schedule",
-      "schedule_text": "Schedule your financial transactions in advance and never miss important dates.",
+      "schedule_desc": "Schedule your financial transactions in advance and never miss important dates.",
       "DS": "Do you want to log out?",
       "VDS": "You will need to log in again to access your data.",
       "stay_new": "Stay",
@@ -47,6 +47,8 @@
       "goals_desc": "Set clear objectives and track every step of your journey to achieve them.",
       "transactions_title": "Financial Transactions",
       "transactions_text": "Generate and view your financial transactions simply and efficiently.",
+      "schedule_title": "Transaction Schedule",
+      "schedule_desc": "Schedule your transactions in advance and never miss important dates.",
       "premium_resource": "PREMIUM FEATURE"
     }
   },
@@ -74,7 +76,7 @@
     "terms_text": "By using Finalyze, you agree that: 1. Your financial data is processed securely and encrypted to generate your reports and analyzes. 2. We do not provide refunds for plans after payment confirmation, given immediate access to premium tools. 3. You are responsible for the truthfulness of the data entered and the security of your password. 4. Your data will never be shared with third parties without your explicit authorization (e.g., through the Collaboration module).",
     "placeholders": {
       "name": "Your full name",
-      "email": "example@email.com",
+      "email": "example{'@'}email.com",
       "password": "********",
       "cpf": "000.000.000-00",
       "birthdate": "MM/DD/YYYY"
@@ -136,8 +138,8 @@
     "pending_desc": "You have already started payment for the {plan} plan. Do you want to continue where you left off or cancel this payment to choose a new plan?",
     "cancel_prev": "Cancel Previous",
     "continue": "Continue Payment",
-    "launch_limits": "{count} Transactions Limit",
-    "launch_unlimited": "Unlimited Transactions",
+    "launch_limits": "Limit of {count} launches",
+    "launch_unlimited": "Unlimited launches",
     "toast_cancel_success": "Previous payment canceled.",
     "toast_cancel_error": "Error canceling subscription.",
     "upgrade_tip": {
@@ -158,22 +160,24 @@
       "maybe_later": "Maybe later"
     },
     "popular": "MOST POPULAR",
-    "period": "Period",
-    "discount_label": "{amount}% off",
-    "renew_extend": "Renew / Extend",
+    "period": "PERIOD",
+    "discount_label": "{amount}% DISCOUNT",
+    "renew_extend": "Renew / Extend Plan",
     "change_to": "Change to {plan}",
-    "choose": "Choose {plan}",
+    "choose": "Choose this Plan",
     "periods": {
-      "sem": "wk",
-      "mês": "mo",
-      "tri": "tri",
-      "ano": "yr"
+      "sem": "week",
+      "mês": "month",
+      "tri": "quarter",
+      "ano": "year"
     },
     "toast_upgrade_success": "Upgrade successful! Enjoy your new plan.",
     "toast_upgrade_error": "Error processing upgrade.",
     "toast_connection_error": "Connection error.",
     "plan_names": {
+      "Gratuito": "Free",
       "Essencial": "Essential",
+      "Premium": "Premium",
       "Pro": "Pro",
       "Elite": "Elite"
     },
@@ -183,7 +187,16 @@
       "Metas": "Goals",
       "Relatórios Gráficos": "Graphical Reports",
       "Chat de suporte IA": "AI Support Chat",
-      "Exportação CSV": "CSV Export"
+      "Exportação CSV": "CSV Export",
+      "painel-financeiro": "Financial Dashboard",
+      "lancamentos": "Unlimited Transactions",
+      "metas": "Goal Management",
+      "relatorios-graficos": "Reports & Charts",
+      "agenda-financeira": "Financial Calendar",
+      "suporte-prioritario": "Priority Support",
+      "lembretes-avisos": "Reminders & Alerts",
+      "finn-ai": "Finn AI (Artificial Intelligence)",
+      "colaboracao-total": "Full Collaboration"
     }
   },
   "metas": {
@@ -419,6 +432,7 @@
     "try_again": "Try Again",
     "back_to_plans": "Back to Plans",
     "toasts": {
+      "import_success": "Import successful!",
       "upgrade_success": "Upgrade successful!",
       "upgrade_error": "Error processing free upgrade",
       "verify_success": "Account verified successfully!",
@@ -506,7 +520,9 @@
     "search": "Search...",
     "all": "All",
     "items_per_page": "Items per page",
+    "required": "Required",
     "welcome_fallback": "welcome",
+    "active_workspace": "Active Workspace",
     "currency": "$",
     "currencies": {
       "brl": "Brazilian Real",
@@ -534,7 +550,7 @@
       "uppercase": "Must contain an uppercase letter",
       "lowercase": "Must contain a lowercase letter",
       "number": "Must contain a number",
-      "special_char": "Must contain a special character (!@#$%...)",
+      "special_char": "Must contain a special character (!{'@'}#$%...)",
       "passwords_match": "Passwords do not match",
       "name_required": "Name is required",
       "email_required": "E-mail is required",
@@ -575,9 +591,9 @@
   "modals": {
     "cancel_subscription": {
       "title": "Cancel Subscription",
-      "description": "Are you sure you want to cancel your subscription? You will lose access to premium features at the end of the current period.",
-      "confirm": "Confirm Cancellation",
-      "keep": "Keep Subscription"
+      "description": "Are you sure you want to cancel your subscription? You will still have access to premium features until the end of the current period.",
+      "confirm": "Yes, Cancel",
+      "keep": "Keep my Plan"
     },
     "remove_avatar": {
       "title": "Remove Photo",
@@ -717,7 +733,10 @@
     "confirm_remove": "Are you sure you want to remove access for {email}?",
     "confirm_remove_title": "Remove Access",
     "confirm_remove_desc": "This person will no longer have access to your financial information, goals, and schedule.",
-    "remove_btn": "Remove Access"
+    "remove_btn": "Remove Access",
+    "invited_me": "Accesses granted to me",
+    "social_share_title": "Invite via social media",
+    "social_share_msg": "Check out Finalyze Finance!"
   },
   "actions": {
     "import_excel": "Import Excel",

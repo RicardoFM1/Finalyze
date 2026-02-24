@@ -15,12 +15,12 @@
               </div>
             </template>
             <template v-else>
-              <h1 class="text-h4 text-sm-h3 text-md-h2 font-weight-black mb-6 animate-fade-up" style="line-height: 1.1;">
-                <span class="gradient-text brand-title d-block mb-2">Finalyze</span>
-                <span class="mr-3">{{ $t('landing.hero_title_alt') }}</span>
+              <h1 class="text-h5 text-sm-h4 text-md-h2 font-weight-black mb-4 animate-fade-up" style="line-height: 1.1;">
+                <span class="gradient-text brand-title d-block mb-1">Finalyze</span>
+                <span class="mr-2">{{ $t('landing.hero_title_alt') }}</span>
                 <span class="gradient-text">{{ $t('landing.destiny') }}</span>
               </h1>
-              <p class="text-body-1 text-md-h6 text-medium-emphasis mb-10 animate-fade-up-delay max-w-500 mx-auto mx-lg-0">
+              <p class="text-caption text-sm-body-1 text-md-h6 text-medium-emphasis mb-6 animate-fade-up-delay max-w-500 mx-auto mx-lg-0">
                 {{ $t('landing.hero_subtitle_alt') }}
               </p>
               <div class="d-flex flex-wrap justify-center justify-lg-start animate-fade-up-delay-2 gap-btns">
@@ -37,12 +37,12 @@
           <v-col cols="12" lg="6" class="mt-12 mt-lg-0 position-relative carousel-col overflow-visible">
              <div class="modern-carousel-wrapper animate-fade-in">
                 <!-- Navigation Buttons (Desktop) -->
-                <div class="carousel-nav-container d-none d-md-flex">
+                <div class="carousel-nav-container">
                    <v-btn 
                     icon="mdi-arrow-left" 
                     variant="elevated" 
                     color="surface" 
-                    class="carousel-nav-btn" 
+                    class="carousel-nav-btn prev" 
                     elevation="8"
                     @click="prevSlide"
                   ></v-btn>
@@ -50,15 +50,14 @@
                     icon="mdi-arrow-right" 
                     variant="elevated" 
                     color="surface" 
-                    class="carousel-nav-btn" 
+                    class="carousel-nav-btn next" 
                     elevation="8"
                     @click="nextSlide"
                   ></v-btn>
                 </div>
                 
-                <div class="carousel-track" :style="{ left: '50%', transform: `translateX(calc(-${isMobile ? 140 : 250}px - ${currentSlide * (isMobile ? 280 : 500)}px))` }">
+                <div class="carousel-track" :style="{ left: '50%', transform: `translateX(calc(-${slideWidth/2}px - ${currentSlide * slideWidth}px))` }">
                     <div 
-                      v-if="localStorage.getItem('locale') === 'en'"
                        v-for="(slide, i) in slides"
                       :key="i"
                       class="loose-slide-v2"
@@ -87,11 +86,9 @@
 
                 <!-- Navigation Indicators -->
                 <div class="d-flex justify-center mt-8">
-                  <v-btn icon="mdi-chevron-left" variant="text" size="small" @click="prevSlide" class="d-md-none"></v-btn>
                   <div class="d-flex align-center px-4">
                      <div v-for="(_, i) in slides" :key="i" class="dot mx-1" :class="{ 'active': currentSlide === i }" @click="currentSlide = i"></div>
                   </div>
-                  <v-btn icon="mdi-chevron-right" variant="text" size="small" @click="nextSlide" class="d-md-none"></v-btn>
                 </div>
              </div>
           </v-col>
@@ -160,6 +157,11 @@ const loading = ref(true)
 const currentSlide = ref(0)
 
 const isMobile = computed(() => display.smAndDown.value)
+const slideWidth = computed(() => {
+  if (display.smAndDown.value) return 280
+  if (display.md.value) return 400
+  return 500
+})
 
 onMounted(() => {
   setTimeout(() => {
@@ -175,33 +177,36 @@ const prevSlide = () => {
   currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
 }
 
-const slides = computed(() => [
-  {
-    image: slidesBR1,
-    title: t('landing.carousel.dashboard_title') || 'Dashboard Inteligente',
-    description: t('landing.carousel.dashboard_desc') || t('landing.power_subtitle')
-  },
-  {
-    image: slidesBR2,
-    title: t('landing.carousel.transactions_title') || 'Lançamentos financeiros',
-    description: t('landing.carousel.transactions_text') || t('landing.features.transactions_text')
-  },
-  {
-    image: slidesBR3,
-    title: t('landing.carousel.goals_title') || 'Metas e Objetivos',
-    description: t('landing.carousel.goals_desc') || t('landing.features.goals_text')
-  },
-  {
-    image: slidesBR4,
-    title: t('landing.carousel.reports_title') || 'Relatórios Detalhados',
-    description: t('landing.carousel.reports_desc') || t('landing.features.analysis_text')
-  },
-  {
-    image: slidesBR5,
-    title: t('landing.carousel.schedule_title') || 'Agenda de Lançamentos',
-    description: t('landing.carousel.schedule_desc') || t('landing.features.schedule_text')
-  }
-])
+const slides = computed(() => {
+    const isEn = uiAuthStore.locale === 'en'
+    return [
+      {
+        image: isEn ? slidesEN1 : slidesBR1,
+        title: t('landing.carousel.dashboard_title') || 'Dashboard Inteligente',
+        description: t('landing.carousel.dashboard_desc') || t('landing.power_subtitle')
+      },
+      {
+        image: isEn ? slidesEN2 : slidesBR2,
+        title: t('landing.carousel.transactions_title') || 'Lançamentos financeiros',
+        description: t('landing.carousel.transactions_text') || t('landing.features.transactions_text')
+      },
+      {
+        image: isEn ? slidesEN3 : slidesBR3,
+        title: t('landing.carousel.goals_title') || 'Metas e Objetivos',
+        description: t('landing.carousel.goals_desc') || t('landing.features.goals_text')
+      },
+      {
+        image: isEn ? slidesEN4 : slidesBR4,
+        title: t('landing.carousel.reports_title') || 'Relatórios Detalhados',
+        description: t('landing.carousel.reports_desc') || t('landing.features.analysis_text')
+      },
+      {
+        image: isEn ? slidesEN5 : slidesBR5,
+        title: t('landing.carousel.schedule_title') || 'Agenda de Lançamentos',
+        description: t('landing.carousel.schedule_desc') || t('landing.features.schedule_desc')
+      }
+    ]
+})
 
 const features = computed(() => [
   {
@@ -290,14 +295,16 @@ const features = computed(() => [
 .carousel-track {
   display: flex;
   transition: transform 0.8s cubic-bezier(0.2, 0, 0, 1);
-  padding: 40px 0;
+  padding: 20px 0;
   width: max-content;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  margin-top: -150px; /* Center vertically if needed, or adjust based on slide height */
 }
 
 .loose-slide-v2 {
   flex: 0 0 500px;
-  padding: 0 20px;
+  padding: 0 10px;
   transition: all 0.7s cubic-bezier(0.2, 1, 0.2, 1);
   opacity: 0.5;
   transform: scale(0.85);
@@ -366,16 +373,39 @@ const features = computed(() => [
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 1264px) {
+  .loose-slide-v2 {
+    flex: 0 0 400px;
+  }
+}
+
 @media (max-width: 960px) {
+  .hero-section {
+    padding-top: 60px;
+    padding-bottom: 30px;
+  }
   .modern-carousel-wrapper {
-    height: 440px;
+    height: 380px;
     padding-left: 0 !important;
   }
   .carousel-track {
-    padding-left: calc(50% - 140px);
+    margin-top: -100px;
   }
   .loose-slide-v2 {
     flex: 0 0 280px;
+  }
+  .carousel-nav-container {
+    bottom: -15px;
+    top: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 140px;
+    justify-content: space-between;
+  }
+  .carousel-nav-btn {
+    width: 44px !important;
+    height: 44px !important;
   }
 }
 
@@ -451,28 +481,4 @@ const features = computed(() => [
   line-height: 1.7;
 }
 
-@media (max-width: 960px) {
-  .hero-section {
-    padding-top: 100px;
-    padding-bottom: 50px;
-  }
-  .modern-carousel-wrapper {
-    height: 400px;
-    padding-left: 0;
-    justify-content: center;
-  }
-  .loose-slide {
-    flex: 0 0 260px;
-    height: 350px;
-  }
-  .carousel-nav-btn {
-    bottom: -60px;
-  }
-  .carousel-nav-btn.prev {
-    left: calc(50% - 70px);
-  }
-  .carousel-nav-btn.next {
-    left: calc(50% + 10px);
-  }
-}
 </style>

@@ -212,7 +212,8 @@ const sendMessage = async () => {
     if (data.resposta) {
       messages.value.push({ role: 'bot', text: data.resposta, id: Date.now() + 1 })
     } else {
-      messages.value.push({ role: 'bot', text: data.error || t('finn.error_generic') })
+      const errorMsg = data.error || (data.debug ? `Finn AI Error: ${data.debug}` : t('finn.error_generic'))
+      messages.value.push({ role: 'bot', text: errorMsg })
     }
   } catch (e) {
     messages.value.push({ role: 'bot', text: t('finn.error_connection') })

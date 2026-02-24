@@ -100,7 +100,7 @@
     <v-card-actions class="pa-6 pt-2">
       <v-btn
         :disabled="disabled"
-        :loading="loadingEscolher"
+        :loading="loading"
         :color="isCurrentPlan ? 'success' : (isFeatured ? 'primary' : 'primary')"
         variant="flat"
         block

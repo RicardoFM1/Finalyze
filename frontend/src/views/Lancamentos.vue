@@ -243,7 +243,7 @@ const handleImport = async (event) => {
             }
         }
 
-        alert(`Sucesso! ${count} lançamentos importados.`)
+        toast.success($t('toasts.import_success', { count }))
         buscarLancamentos()
         loading.value = false
     }

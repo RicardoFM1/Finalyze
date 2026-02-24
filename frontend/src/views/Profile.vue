@@ -175,7 +175,7 @@
             <v-row v-else-if="hasActiveOrValidSubscription || subscriptionData?.assinatura?.status === 'pending'">
                 <v-col cols="12" md="12" v-if="subscriptionData?.assinatura?.status === 'pending'">
                     <v-alert type="warning" variant="tonal" class="mb-4 rounded-xl" icon="mdi-clock-outline">
-                       <div class="d-flex flex-column flex-sm-row align-center justify-space-between w-100">
+                       <div class="d-flex w-100 flex-column flex-sm-row justify-center gap-6 pa-6 pt-0">
                            <div class="mb-2 mb-sm-0 text-center text-sm-left">
                                {{ $t('profile.subscription.pending_payment') }}
                            </div>
@@ -253,8 +253,8 @@
 
                     <v-divider class="mb-8"></v-divider>
 
-                    <v-row>
-                      <v-col cols="12" sm="6">
+                    <v-row class="mt-2">
+                      <v-col cols="12" sm="6" class="pb-2 pb-sm-3">
                         <v-btn
                           block
                           variant="outlined"
@@ -266,16 +266,17 @@
                           {{ $t('profile.subscription.pay_ahead') }}
                         </v-btn>
                       </v-col>
-                      <v-col cols="12" sm="6">
+                      <v-col cols="12" sm="6" class="pb-2 pb-sm-3">
                         <v-btn
                           block
                           variant="text"
                           color="error"
                           class="rounded-lg font-weight-bold"
-                          v-if="subscriptionData.assinatura && subscriptionData.assinatura.status === 'active'"
+                          v-if="subscriptionData.assinatura && (subscriptionData.assinatura.status === 'active' || subscriptionData.assinatura.status === 'authorized')"
                           @click="confirmCancel = true"
                           :disabled="loadingSub || saving || uiStore.loading"
                         >
+                          <v-icon start icon="mdi-cancel" class="mr-1"></v-icon>
                           {{ $t('profile.subscription.cancel') }}
                         </v-btn>
                       </v-col>
@@ -328,9 +329,9 @@
                                 { title: $t('common.all'), value: 'todos' },
                                 { title: $t('transactions.payment_methods.credit_card'), value: 'credit_card' },
                                 { title: $t('transactions.payment_methods.pix'), value: 'pix' },
-                                { title: t('transactions.payment_methods.boleto'), value: 'boleto' },
-                                { title: t('transactions.payment_methods.account_money'), value: 'account_money' },
-                                { title: t('transactions.payment_methods.other'), value: 'other' }
+                                { title: $t('transactions.payment_methods.boleto'), value: 'boleto' },
+                                { title: $t('transactions.payment_methods.account_money'), value: 'account_money' },
+                                { title: $t('transactions.payment_methods.other'), value: 'other' }
                             ]"
                             :label="$t('transactions.table.payment_method')"
                             density="compact"
@@ -359,10 +360,11 @@
               :no-data-text="$t('profile.subscription.no_history')"
               class="billing-table-v3 rounded-xl border"
               hover
+              :items-per-page-text="$t('common.items_per_page')"
             >
                 <!-- Custom item slots -->
                 <template v-slot:item.created_at="{ item }">
-                    <span class="text-body-2">{{ formatDate(item.pago_em || item.created_at) }}</span>
+                    <span class="text-body-2 font-weight-medium text-uppercase">{{ formatDate(item.pago_em || item.created_at) }}</span>
                 </template>
 
                 <template v-slot:item.item="{ item }">
@@ -380,8 +382,8 @@
                 </template>
 
                 <template v-slot:item.metodo_pagamento="{ item }">
-                    <div class="d-flex align-center gap-1 opacity-80" v-if="item.metodo_pagamento">
-                        <v-icon size="16" :icon="getPaymentMethodIcon(item.metodo_pagamento)"></v-icon>
+                    <div class="d-flex align-center gap-1" v-if="item.metodo_pagamento">
+                        <v-icon size="16" color="medium-emphasis" :icon="getPaymentMethodIcon(item.metodo_pagamento)"></v-icon>
                         <span class="text-caption font-weight-medium">
                             {{ $t('transactions.payment_methods.' + (item.metodo_pagamento || 'other')) }}
                         </span>
@@ -414,8 +416,18 @@
         </v-window-item>
       </v-window>
     </v-card>
-    <ModalCancelarAssinatura v-model="confirmCancel" @cancelled="fetchSubscription" />
-    <ModalRemoverAvatar v-model="confirmRemoveAvatarDialog" :user="user" @removed="user.avatar = null; user.avatar_url = null; authStore.user.avatar = null; authStore.user.avatar_url = null;" />
+
+    <ModalCancelarAssinatura 
+      v-model="confirmCancel" 
+      :dataExpiracao="subscriptionData?.assinatura?.termina_em" 
+      @cancelled="fetchSubscription" 
+    />
+    
+    <ModalRemoverAvatar 
+      v-model="confirmRemoveAvatarDialog" 
+      :user="user" 
+      @removed="user.avatar = null; user.avatar_url = null; authStore.user.avatar = null; authStore.user.avatar_url = null;" 
+    />
   </v-container>
 </template>
 
@@ -533,15 +545,26 @@ const cpfRules = [
 ]
 
 onMounted(async () => {
+   loadingUser.value = true
+   loadingSub.value = true
+
    // Use cache if available
    if (authStore.user) {
        syncLocalUser(authStore.user)
-       // We can still fetch in background to ensure data is fresh, but silently
-       fetchUser(true) 
-   } else {
-       await fetchUser()
    }
-   await fetchSubscription()
+
+   try {
+       // Fetch both user and subscription in parallel for speed
+       await Promise.all([
+           fetchUser(true), 
+           fetchSubscription()
+       ])
+   } catch (e) {
+       console.error('Erro ao carregar dados do perfil:', e)
+   } finally {
+       loadingUser.value = false
+       loadingSub.value = false
+   }
 })
 
 const syncLocalUser = (data) => {
@@ -829,13 +852,34 @@ const validateCPF = (cpf) => {
 const ageRules = [
   v => {
     let birth
-    if (typeof v === 'string' && v.includes('-')) {
-      const [year, month, day] = v.split('-').map(Number)
-      birth = new Date(year, month - 1, day)
+    if (typeof v === 'string') {
+      const parts = v.split(/[-/]/)
+      if (parts.length >= 3) {
+        // Handle YYYY-MM-DD or DD/MM/YYYY
+        let year, month, day
+        if (parts[0].length === 4) { // YYYY-MM-DD
+          year = parseInt(parts[0])
+          month = parseInt(parts[1])
+          day = parseInt(parts[2])
+        } else { // DD/MM/YYYY
+          day = parseInt(parts[0])
+          month = parseInt(parts[1])
+          year = parseInt(parts[2])
+        }
+        // Construct a YYYY-MM-DD string to avoid locale issues with new Date()
+        const yyyy = year
+        const mm = String(month).padStart(2, '0')
+        const dd = String(day).padStart(2, '0')
+        birth = new Date(`${yyyy}-${mm}-${dd}T00:00:00`)
+      } else {
+        birth = new Date(v)
+      }
     } else {
       birth = new Date(v)
     }
     
+    if (!birth || isNaN(birth.getTime())) return false
+
     const today = new Date()
     let age = today.getFullYear() - birth.getFullYear()
     const m = today.getMonth() - birth.getMonth()

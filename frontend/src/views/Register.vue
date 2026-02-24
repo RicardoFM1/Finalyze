@@ -129,15 +129,41 @@ const passwordRules = [
 
 const validateAge = (v) => {
   if (!v) return true
-  // Handle both Date object and ISO string
   let birth
-  if (typeof v === 'string' && v.includes('-')) {
-    const [year, month, day] = v.split('-').map(Number)
-    birth = new Date(year, month - 1, day)
+  if (typeof v === 'string') {
+    const parts = v.split(/[-/]/)
+    if (parts.length >= 3) {
+      let year, month, day
+      if (parts[0].length === 4) { // YYYY-MM-DD
+        year = parseInt(parts[0])
+        month = parseInt(parts[1])
+        day = parseInt(parts[2])
+      } else { // DD/MM/YYYY
+        day = parseInt(parts[0])
+        month = parseInt(parts[1])
+        year = parseInt(parts[2])
+      }
+      // Construct date string with T00:00:00 to ensure local time interpretation
+      birth = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`)
+    } else {
+      // If it's a string but not in YYYY-MM-DD or DD/MM/YYYY format, try parsing as is, but be aware of potential issues.
+      // For robustness, it's better to always parse into year, month, day components.
+      // Assuming 'v' might be a simple YYYY-MM-DD string here, which new Date() can misinterpret as UTC.
+      // To avoid this, we can re-parse it into components if it looks like YYYY-MM-DD.
+      const simpleDateParts = v.split('-')
+      if (simpleDateParts.length === 3 && simpleDateParts[0].length === 4) {
+        birth = new Date(`${simpleDateParts[0]}-${simpleDateParts[1]}-${simpleDateParts[2]}T00:00:00`)
+      } else {
+        birth = new Date(v)
+      }
+    }
   } else {
+    // If 'v' is already a Date object or a number (timestamp), new Date(v) is fine.
     birth = new Date(v)
   }
   
+  if (!birth || isNaN(birth.getTime())) return false
+
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
