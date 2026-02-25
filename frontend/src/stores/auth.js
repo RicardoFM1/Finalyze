@@ -116,8 +116,8 @@ export const useAuthStore = defineStore('auth', () => {
                     senha_confirmation: password_confirmation,
                     cpf,
                     data_nascimento,
-                    aceita_termos,
-                    aceita_notificacoes
+                    aceita_termos: Boolean(aceita_termos),
+                    aceita_notificacoes: Boolean(aceita_notificacoes)
                 })
             });
 

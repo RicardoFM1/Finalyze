@@ -43,10 +43,6 @@
         <v-card flat max-width="500" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent my-auto">
           <template v-if="!showVerification">
             <div class="text-center mb-10">
-              <div class="d-flex align-center justify-center mb-6">
-                <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
-                <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
-              </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('register.title') }}</h2>
               <div>
                 <p class="text-body-2 text-medium-emphasis">
@@ -57,6 +53,19 @@
                 </p>
               </div>
             </div>
+
+            <v-btn
+              block
+              variant="outlined"
+              color="medium-emphasis"
+              size="large"
+              class="rounded-xl font-weight-bold text-none social-btn mb-6"
+              :disabled="loading"
+              @click="authStore.googleLogin()"
+            >
+              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+            </v-btn>
 
             <AuthForm 
               v-model="form"
@@ -71,24 +80,6 @@
               @update:cpf="handleCpfInput"
             />
 
-            <div class="d-flex align-center my-6">
-              <v-divider></v-divider>
-              <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
-              <v-divider></v-divider>
-            </div>
-
-            <v-btn
-              block
-              variant="outlined"
-              color="medium-emphasis"
-              size="large"
-              class="rounded-xl font-weight-bold text-none social-btn"
-              :disabled="loading"
-              @click="authStore.googleLogin()"
-            >
-              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
-              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
-            </v-btn>
           </template>
 
           <EmailVerification 
@@ -115,7 +106,6 @@ import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
-import logotipo from '../assets/logotipo.png'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -367,15 +357,4 @@ const handleCpfInput = (event) => {
   background: transparent !important;
 }
 
-.logo-mobile {
-  height: 48px;
-  width: auto;
-  /* invert white logo to dark in light mode */
-  filter: invert(1) brightness(0);
-}
-
-:root[data-theme="dark"] .logo-mobile,
-.v-theme--dark .logo-mobile {
-  filter: none;
-}
 </style>

@@ -9,6 +9,8 @@ class CompletarCadastroSocial
     public function executar(array $dados)
     {
         $usuario = Usuario::findOrFail($dados['usuario_id']);
+        $aceitaTermos = filter_var($dados['aceita_termos'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $aceitaNotificacoes = filter_var($dados['aceita_notificacoes'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
         if ($usuario->cpf) {
             throw new \Exception('O cadastro deste usuário já está completo.', 422);
@@ -27,8 +29,8 @@ class CompletarCadastroSocial
         $usuario->update([
             'cpf' => $dados['cpf'],
             'data_nascimento' => $dados['data_nascimento'],
-            'aceita_termos' => $dados['aceita_termos'] ?? false,
-            'aceita_notificacoes' => $dados['aceita_notificacoes'] ?? true,
+            'aceita_termos' => $aceitaTermos ? 'true' : 'false',
+            'aceita_notificacoes' => $aceitaNotificacoes ? 'true' : 'false',
             'email_verified_at' => now(),
             'codigo_verificacao' => null,
             'codigo_expira_em' => null

@@ -224,6 +224,7 @@
     "goal_late": "Goal Late!",
     "goal_remaining": "{amount} remaining for your goal",
     "goal_reached": "Goal reached! Congratulations!",
+    "goal_incomplete_error": "The goal can only be completed when it reaches 100% progress.",
     "edit": "Edit",
     "delete": "Deactivate",
     "no_goals_completed": "No completed goals found.",

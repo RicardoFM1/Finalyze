@@ -225,6 +225,7 @@
     "goal_late": "Meta Atrasada!",
     "goal_remaining": "Faltam {amount} para sua meta",
     "goal_reached": "Meta batida! Parabéns!",
+    "goal_incomplete_error": "A meta só pode ser finalizada quando atingir 100% de progresso.",
     "edit": "Editar",
     "deactivate": "Desativar",
     "no_goals_completed": "Nenhuma meta concluída encontrada.",
