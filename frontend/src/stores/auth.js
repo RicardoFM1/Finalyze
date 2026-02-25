@@ -28,26 +28,31 @@ export const useAuthStore = defineStore('auth', () => {
     async function apiFetch(endpoint, options = {}) {
         const ui = useUiStore();
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
+        const {
+            suppress403Redirect = false,
+            suppress403Toast = false,
+            ...fetchOptions
+        } = options;
 
         const headers = {
             'Accept': 'application/json',
-            ...options.headers
+            ...fetchOptions.headers
         };
 
         if (token.value) {
-            headers['Authorization'] = `Bearer ${token.value}`;
+            headers['Authorization'] = 'Bearer ' + token.value;
         }
 
         if (workspaceId.value) {
             headers['X-Workspace-Id'] = workspaceId.value;
         }
 
-        if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+        if (fetchOptions.body && !(fetchOptions.body instanceof FormData) && !headers['Content-Type']) {
             headers['Content-Type'] = 'application/json';
         }
 
         try {
-            const response = await fetch(url, { ...options, headers });
+            const response = await fetch(url, { ...fetchOptions, headers });
 
             if (response.status === 401) {
                 logout();
@@ -58,15 +63,17 @@ export const useAuthStore = defineStore('auth', () => {
                     router.push({ name: 'Login' });
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'SessÃ£o expirada. FaÃ§a login novamente.');
+                throw new Error(errorData.message || 'Sessão expirada. Faça login novamente.');
             }
 
             if (response.status === 403) {
                 const errorData = await response.json().catch(() => ({}));
-                const message = errorData.message || 'Seu plano atual nÃ£o possui acesso a este recurso.';
+                const message = errorData.message || 'Seu plano atual não possui acesso a este recurso.';
 
-                if (router.currentRoute.value.name !== 'Plans') {
+                if (!suppress403Toast && router.currentRoute.value.name !== 'Plans') {
                     toast.warning(message, { autoClose: 5000 });
+                }
+                if (!suppress403Redirect && router.currentRoute.value.name !== 'Plans') {
                     router.push({ name: 'Plans' });
                 }
                 throw new Error(message);
@@ -74,11 +81,10 @@ export const useAuthStore = defineStore('auth', () => {
 
             return response;
         } catch (error) {
-            console.error('Erro na requisiÃ§Ã£o API:', error);
+            console.error('Erro na requisição API:', error);
             throw error;
         }
     }
-
     async function login(email, senha) {
         try {
             const response = await apiFetch('/auth/login', {
@@ -352,3 +358,4 @@ export const useAuthStore = defineStore('auth', () => {
         googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword
     };
 });
+

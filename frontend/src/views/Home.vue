@@ -22,13 +22,17 @@
               <p class="text-caption text-sm-body-1 text-md-h6 text-medium-emphasis mb-6 animate-fade-up-delay max-w-500 mx-auto mx-lg-0">
                 {{ $t('landing.hero_subtitle_alt') }}
               </p>
-              <div class="d-flex flex-wrap justify-center justify-lg-start animate-fade-up-delay-2 gap-btns">
-                <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold" :to="{ name: 'Plans' }" elevation="20">
+              <div class="d-flex flex-wrap justify-center justify-lg-start align-center animate-fade-up-delay-2 gap-btns hero-actions">
+                <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold cta-btn" :to="{ name: 'Plans' }" elevation="20">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-              </div>
-              <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
-                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-14 glass-btn ml-md-4 " :to="{ name: 'Dashboard' }">
+                <v-btn
+                  v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')"
+                  variant="tonal"
+                  size="x-large"
+                  class="rounded-xl px-14 glass-btn cta-btn"
+                  :to="{ name: 'Dashboard' }"
+                >
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
@@ -265,6 +269,14 @@ const features = computed(() => [
   max-width: 500px;
 }
 
+.gap-btns {
+  gap: 14px;
+}
+
+.hero-actions .cta-btn {
+  min-width: 240px;
+}
+
 .modern-carousel-wrapper {
   position: relative;
   height: 520px;
@@ -407,6 +419,15 @@ const features = computed(() => [
   .carousel-nav-btn {
     width: 44px !important;
     height: 44px !important;
+  }
+
+  .hero-actions {
+    justify-content: center !important;
+  }
+
+  .hero-actions .cta-btn {
+    width: 100%;
+    min-width: 0;
   }
 }
 

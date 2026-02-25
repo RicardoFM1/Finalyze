@@ -10,7 +10,7 @@
           <v-text-field
             v-model="email"
             :label="$t('login.email_label')"
-            placeholder="exemplo@email.com"
+            :placeholder="$t('auth.placeholders.email')"
             variant="outlined"
             density="comfortable"
             prepend-inner-icon="mdi-email-outline"
@@ -40,7 +40,7 @@
           <v-text-field
             v-model="code"
             :label="$t('auth.verification_code_label') || 'Código de 6 dígitos'"
-            placeholder="000000"
+            :placeholder="$t('auth.verification_code_label') || 'Código de 6 dígitos'"
             variant="outlined"
             density="comfortable"
             prepend-inner-icon="mdi-numeric"
@@ -58,7 +58,7 @@
             :type="showPass ? 'text' : 'password'"
             :append-inner-icon="showPass ? 'mdi-eye-off' : 'mdi-eye'"
             @click:append-inner="showPass = !showPass"
-            :rules="[v => !!v || $t('validation.required'), v => v.length >= 6 || $t('register.rules.password_min')]"
+            :rules="[v => !!v || $t('validation.required'), v => v.length >= 6 || $t('validation.min_length', { min: 6 })]"
             :disabled="loading"
             class="mt-4"
           ></v-text-field>
@@ -134,7 +134,7 @@ const handleRequestCode = async () => {
   loading.value = true
   try {
     await authStore.forgotPassword(email.value)
-    toast.success('Se o e-mail estiver cadastrado, o código foi enviado!')
+    toast.success($t('auth.forgot_password.success_send'))
     step.value = 2
   } catch (e) {
     toast.error(e.message)
@@ -152,7 +152,7 @@ const handleResetPassword = async () => {
       senha: password.value,
       senha_confirmation: passwordConfirmation.value
     })
-    toast.success('Senha alterada com sucesso! Agora você pode fazer login.')
+    toast.success($t('auth.forgot_password.success_reset'))
     emit('update:modelValue', false)
     // Limpar campos
     step.value = 1

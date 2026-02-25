@@ -265,8 +265,12 @@ const openLembreteDialog = (meta) => {
 }
 
 const fetchLembretes = async () => {
+  if (!authStore.hasFeature('lembretes')) return
   try {
-    const res = await authStore.apiFetch('/lembretes')
+    const res = await authStore.apiFetch('/lembretes', {
+      suppress403Redirect: true,
+      suppress403Toast: true
+    })
     if (!res.ok) return
     const lista = await res.json()
     // Indexa por titulo da meta para associar (lembretes não têm meta_id na Eduardo)

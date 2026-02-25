@@ -398,7 +398,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
@@ -425,6 +425,7 @@ const confirmLogout = ref(false)
 const shareDialog = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
+const remindersIntervalId = ref(null)
 
 const { mdAndUp, lgAndUp, smAndDown } = useDisplay()
 const isDesktop = computed(() => lgAndUp.value)
@@ -489,8 +490,9 @@ onMounted(async () => {
     authStore.fetchSharedAccounts();
     // Wait for initial load to finish before checking reminders to avoid multiple toasts
     setTimeout(() => {
+        if (!authStore.hasFeature('lembretes')) return;
         checkReminders();
-        setInterval(checkReminders, 60 * 1000);
+        remindersIntervalId.value = setInterval(checkReminders, 60 * 1000);
     }, 2000);
   }
   if (isDesktop.value && authStore.isAuthenticated) {
@@ -498,11 +500,22 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+    if (remindersIntervalId.value) {
+        clearInterval(remindersIntervalId.value);
+        remindersIntervalId.value = null;
+    }
+})
+
 const notifiedSession = new Set()
 
 const checkReminders = async () => {
+    if (!authStore.hasFeature('lembretes')) return;
     try {
-        const response = await authStore.apiFetch('/lembretes')
+        const response = await authStore.apiFetch('/lembretes', {
+            suppress403Redirect: true,
+            suppress403Toast: true
+        })
         if (response.ok) {
             const list = await response.json()
             

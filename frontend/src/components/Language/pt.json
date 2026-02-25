@@ -99,7 +99,9 @@
       "btn_send": "Enviar Código",
       "reset_title": "Alterar Senha",
       "reset_desc": "Insira o código enviado para seu e-mail e sua nova senha.",
-      "btn_reset": "Alterar Senha"
+      "btn_reset": "Alterar Senha",
+      "success_send": "Se o e-mail estiver cadastrado, o código foi enviado!",
+      "success_reset": "Senha alterada com sucesso! Agora você pode fazer login."
     },
     "complete_registration": {
       "title": "Completar Cadastro",

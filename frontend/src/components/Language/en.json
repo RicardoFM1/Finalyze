@@ -99,7 +99,9 @@
       "btn_send": "Send Code",
       "reset_title": "Change Password",
       "reset_desc": "Enter the code sent to your email and your new password.",
-      "btn_reset": "Change Password"
+      "btn_reset": "Change Password",
+      "success_send": "If the e-mail is registered, the code has been sent!",
+      "success_reset": "Password changed successfully! You can now sign in."
     },
     "complete_registration": {
       "title": "Complete Registration",
