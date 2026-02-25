@@ -1,0 +1,113 @@
+<template>
+  <v-container class="fill-height justify-center align-center">
+    <div class="text-center">
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+      <p class="mt-4 text-h6">{{ $t('auth.processing_login') || 'Processando login...' }}</p>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <ModalCompleteSocialRegistration 
+        v-model="showOnboarding"
+        :usuario-id="usuarioId"
+        :email="email"
+        @complete="handleOnboardingComplete"
+    />
+
+    <!-- Verification Modal -->
+    <ModalBase v-model="showVerification" persistent maxWidth="450px" :title="$t('auth.verify_email_title') || 'Verifique seu e-mail'">
+        <div class="pa-6">
+            <EmailVerification 
+                :email="email"
+                :loading="loading"
+                @verify="handleVerify"
+                @resend="handleResend"
+                @back="router.push({ name: 'Login' })"
+            />
+        </div>
+    </ModalBase>
+  </v-container>
+</template>
+
+<script setup>
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { toast } from 'vue3-toastify'
+import ModalCompleteSocialRegistration from '../components/Auth/ModalCompleteSocialRegistration.vue'
+import EmailVerification from '../components/Auth/EmailVerification.vue'
+import ModalBase from '../components/Modals/modalBase.vue'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+const showOnboarding = ref(false)
+const showVerification = ref(false)
+const loading = ref(false)
+
+const usuarioId = ref(null)
+const email = ref('')
+
+onMounted(() => {
+    const q = route.query
+    
+    if (q.error) {
+        toast.error(q.error)
+        router.push({ name: 'Login' })
+        return
+    }
+
+    email.value = q.email
+    usuarioId.value = q.usuario_id
+
+    if (q.requer_cadastro_completo) {
+        showOnboarding.value = true
+    } else if (q.requer_verificacao) {
+        showVerification.value = true
+    } else if (q.access_token) {
+        // Fallback case if we decide to skip verification for some reason on BE
+        authStore.token = q.access_token
+        localStorage.setItem('token', q.access_token)
+        authStore.fetchUser(true).then(() => {
+            router.push({ name: 'Home' })
+        })
+    } else {
+        router.push({ name: 'Login' })
+    }
+})
+
+const handleOnboardingComplete = async (result) => {
+    showOnboarding.value = false
+    if (result.access_token) {
+        authStore.token = result.access_token
+        localStorage.setItem('token', result.access_token)
+        await authStore.fetchUser(true)
+        toast.success('Login realizado com sucesso!')
+        router.push({ name: 'Home' })
+    } else if (result.requer_verificacao) {
+        showVerification.value = true
+    }
+}
+
+const handleVerify = async (code) => {
+    loading.value = true
+    try {
+        await authStore.verifyCode(email.value, code)
+        toast.success('Login realizado com sucesso!')
+        router.push({ name: 'Home' })
+    } catch (e) {
+        toast.error(e.message)
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleResend = async () => {
+    try {
+        await authStore.resendCode(email.value)
+        toast.success('Código reenviado!')
+    } catch (e) {
+        toast.error(e.message)
+    }
+}
+</script>

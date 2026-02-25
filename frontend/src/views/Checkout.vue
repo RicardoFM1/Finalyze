@@ -33,6 +33,12 @@
                     hide-nav
                     @submit="handleLogin"
                   />
+
+                  <div v-if="authTab === 'login'" class="mt-2 text-right">
+                    <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" @click="showForgotModal = true">
+                      {{ $t('login.forgot_password') || 'Esqueceu a senha?' }}
+                    </v-btn>
+                  </div>
                   <AuthForm 
                     v-else
                     v-model="registerForm"
@@ -47,6 +53,25 @@
                     @submit="handleRegister"
                     @update:cpf="handleCpfInput"
                   />
+
+                  <div class="d-flex align-center my-6">
+                    <v-divider></v-divider>
+                    <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
+                    <v-divider></v-divider>
+                  </div>
+
+                  <v-btn
+                    block
+                    variant="outlined"
+                    color="medium-emphasis"
+                    size="large"
+                    class="rounded-xl font-weight-bold text-none social-btn mb-4"
+                    :disabled="loading"
+                    @click="authStore.googleLogin()"
+                  >
+                    <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+                    {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+                  </v-btn>
                 </div>
               </div>
               <div v-else class="text-center pa-10">
@@ -149,6 +174,7 @@
         </v-card>
       </v-col>
     </v-row>
+    <ModalForgotPassword v-model="showForgotModal" />
   </v-container>
 </template>
 
@@ -160,6 +186,7 @@ import { toast } from 'vue3-toastify'
 import PaymentBrick from '../components/PaymentBrick.vue'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
+import ModalForgotPassword from '../components/Auth/ModalForgotPassword.vue'
 import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
 
@@ -177,6 +204,7 @@ const loading = ref(false)
 const preferenceId = ref(null)
 const checkoutError = ref(null)
 const error = ref('')
+const showForgotModal = ref(false)
 
 const planId = ref(route.query.plan)
 const periodId = ref(route.query.period)

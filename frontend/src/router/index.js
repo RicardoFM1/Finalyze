@@ -25,6 +25,11 @@ const router = createRouter({
       meta: { RequiresNoAuth: true }
     },
     {
+      path: '/auth/callback',
+      name: 'SocialAuthCallback',
+      component: () => import('@/views/SocialAuthCallback.vue')
+    },
+    {
       path: '/planos',
       name: 'Plans',
       component: () => import('@/views/Plans.vue')

@@ -91,7 +91,24 @@
     "feature_badges": {
       "security": "Total Security",
       "analysis": "Smart Analysis"
-    }
+    },
+    "continue_with_google": "Continue with Google",
+    "forgot_password": {
+      "title": "Recover Password",
+      "desc": "Enter your email to receive a password recovery code.",
+      "btn_send": "Send Code",
+      "reset_title": "Change Password",
+      "reset_desc": "Enter the code sent to your email and your new password.",
+      "btn_reset": "Change Password"
+    },
+    "complete_registration": {
+      "title": "Complete Registration",
+      "desc": "For your security and compliance, we need a few more details."
+    },
+    "verification_code_label": "6-digit code",
+    "invalid_code": "Code must be 6 digits",
+    "processing_login": "Processing login...",
+    "verify_email_title": "Verify your email"
   },
   "sidebar": {
     "home": "Home",
@@ -125,6 +142,7 @@
     "btn_back_home": "Back to Home",
     "no_account": "Don't have an account?",
     "register_link": "Create account now",
+    "forgot_password": "Forgot password?",
     "rules": {
       "email_required": "Email is required for access",
       "password_required": "Password is required for your security"
@@ -530,7 +548,10 @@
       "eur": "Euro",
       "gbp": "British Pound"
     },
-    "my_account": "My Account"
+    "my_account": "My Account",
+    "or": "OR",
+    "continue": "Continue",
+    "back": "Back"
   },
   "register": {
     "title": "Create Account",
