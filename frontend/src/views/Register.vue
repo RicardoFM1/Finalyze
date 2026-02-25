@@ -70,6 +70,25 @@
               @submit="handleRegister"
               @update:cpf="handleCpfInput"
             />
+
+            <div class="d-flex align-center my-6">
+              <v-divider></v-divider>
+              <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
+              <v-divider></v-divider>
+            </div>
+
+            <v-btn
+              block
+              variant="outlined"
+              color="medium-emphasis"
+              size="large"
+              class="rounded-xl font-weight-bold text-none social-btn"
+              :disabled="loading"
+              @click="authStore.googleLogin()"
+            >
+              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+            </v-btn>
           </template>
 
           <EmailVerification 

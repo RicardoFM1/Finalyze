@@ -65,6 +65,31 @@
               :error="error"
               @submit="handleLogin"
             />
+
+            <div class="mt-2 text-right">
+              <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" @click="showForgotModal = true">
+                {{ $t('login.forgot_password') || 'Esqueceu a senha?' }}
+              </v-btn>
+            </div>
+
+            <div class="d-flex align-center my-6">
+              <v-divider></v-divider>
+              <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
+              <v-divider></v-divider>
+            </div>
+
+            <v-btn
+              block
+              variant="outlined"
+              color="medium-emphasis"
+              size="large"
+              class="rounded-xl font-weight-bold text-none social-btn"
+              :disabled="loading"
+              @click="handleGoogleLogin"
+            >
+              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+            </v-btn>
           </template>
 
           <EmailVerification 
@@ -79,21 +104,25 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <ModalForgotPassword v-model="showForgotModal" />
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
+import ModalForgotPassword from '../components/Auth/ModalForgotPassword.vue'
 import logotipo from '../assets/logotipo.png'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
@@ -106,6 +135,17 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 const showVerification = ref(false)
+const showForgotModal = ref(false)
+
+onMounted(() => {
+  if (route.query.error) {
+    toast.error(route.query.error)
+  }
+})
+
+const handleGoogleLogin = () => {
+  authStore.googleLogin()
+}
 
 const handleLogin = async () => {
   loading.value = true

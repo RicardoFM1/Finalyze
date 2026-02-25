@@ -14,7 +14,7 @@
 
     <v-card-item class="pt-8 pb-4 text-center">
       <v-card-title class="text-h5 font-weight-black mb-2 plan-name">
-        {{ $t('plans.plan_names.' + plan.nome, plan.nome) }}
+        {{ planDisplayName }}
       </v-card-title>
       
    
@@ -141,6 +141,7 @@ const props = defineProps({
   }
 })
 const selectedPeriodId = ref(props.plan.periodos?.[1]?.id || props.plan.periodos?.[0]?.id)
+const planDisplayName = computed(() => props.plan.nome_localizado || t('plans.plan_names.' + props.plan.nome, props.plan.nome))
 const selectedPeriod = computed(() => {
     return props.plan.periodos.find(p => p.id === selectedPeriodId.value)
 })
@@ -190,8 +191,8 @@ const isCurrentPlan = computed(() => {
 
 const buttonText = computed(() => {
     if (isCurrentPlan.value) return t('plans.renew_extend')
-    if (authStore.user?.plano_id) return t('plans.change_to', { plan: t('plans.plan_names.' + props.plan.nome, props.plan.nome) })
-    return t('plans.choose', { plan: t('plans.plan_names.' + props.plan.nome, props.plan.nome) })
+    if (authStore.user?.plano_id) return t('plans.change_to', { plan: planDisplayName.value })
+    return t('plans.choose', { plan: planDisplayName.value })
 })
 
 const emit = defineEmits(['select'])

@@ -62,11 +62,14 @@ export const useAuthStore = defineStore('auth', () => {
             }
 
             if (response.status === 403) {
+                const errorData = await response.json().catch(() => ({}));
+                const message = errorData.message || 'Seu plano atual não possui acesso a este recurso.';
+
                 if (router.currentRoute.value.name !== 'Plans') {
+                    toast.warning(message, { autoClose: 5000 });
                     router.push({ name: 'Plans' });
                 }
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Acesso negado. Verifique seu plano.');
+                throw new Error(message);
             }
 
             return response;
@@ -280,5 +283,72 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage };
+    async function googleLogin() {
+        window.location.href = `${API_URL}/auth/google`;
+    }
+
+    async function handleGoogleCallback() {
+        try {
+            const response = await apiFetch('/auth/google/callback');
+            if (response.ok) {
+                return await response.json();
+            }
+            throw new Error('Erro ao processar login com Google');
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async function completarCadastroSocial(dados) {
+        try {
+            const response = await apiFetch('/auth/google/completar', {
+                method: 'POST',
+                body: JSON.stringify(dados)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao completar cadastro');
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async function forgotPassword(email) {
+        try {
+            const response = await apiFetch('/auth/forgot-password', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao solicitar recuperação');
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async function resetPassword(dados) {
+        try {
+            const response = await apiFetch('/auth/reset-password', {
+                method: 'POST',
+                body: JSON.stringify(dados)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao redefinir senha');
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    return {
+        user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan,
+        login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature,
+        getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage,
+        googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword
+    };
 });
