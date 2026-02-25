@@ -26,7 +26,9 @@
                 <v-btn color="primary" size="x-large" class="rounded-xl px-10 hero-btn font-weight-bold" :to="{ name: 'Plans' }" elevation="20">
                   {{ $t('landing.btn_start') }}
                 </v-btn>
-                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-10 glass-btn ml-md-6 mt-4 mt-sm-0" :to="{ name: 'Dashboard' }">
+              </div>
+              <div class="d-flex flex-wrap justify-center justify-md-start animate-fade-up-delay-2 gap-btns">
+                <v-btn v-if="authStore.isAuthenticated && authStore.hasFeature('Painel Financeiro')" variant="tonal" size="x-large" class="rounded-xl px-14 glass-btn ml-md-4 " :to="{ name: 'Dashboard' }">
                   {{ $t('landing.btn_my_dashboard') }}
                 </v-btn>
               </div>
@@ -450,11 +452,12 @@ const features = computed(() => [
   backdrop-filter: blur(4px);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
   color: rgb(var(--v-theme-primary));
+  transition: all 0.3s ease;
   display: flex;
-  margin-left: 8px;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  margin-top: 16px;
 }
 
 @keyframes fadeInUp {
