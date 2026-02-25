@@ -62,11 +62,14 @@ export const useAuthStore = defineStore('auth', () => {
             }
 
             if (response.status === 403) {
+                const errorData = await response.json().catch(() => ({}));
+                const message = errorData.message || 'Seu plano atual não possui acesso a este recurso.';
+
                 if (router.currentRoute.value.name !== 'Plans') {
+                    toast.warning(message, { autoClose: 5000 });
                     router.push({ name: 'Plans' });
                 }
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Acesso negado. Verifique seu plano.');
+                throw new Error(message);
             }
 
             return response;

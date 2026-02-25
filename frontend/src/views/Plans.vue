@@ -242,6 +242,13 @@ const translatePlanNameOnline = async (name) => {
 
 const localizePlans = async () => {
   if (!plans.value.length) return
+  
+  // Set initial names from local storage or static translation if possible
+  plans.value = plans.value.map(plan => ({
+    ...plan,
+    nome_localizado: displayPlanName(plan.nome)
+  }))
+
   const localizedNames = await Promise.all(plans.value.map(plan => translatePlanNameOnline(plan.nome)))
   plans.value = plans.value.map((plan, idx) => ({
     ...plan,
