@@ -189,103 +189,112 @@ const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: curren
 const fileInput = ref(null)
 
 const handleImport = async (event) => {
-    const file = event.target.files[0]
-    if (!file) return
+  const file = event.target.files[0]
+  if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-        const data = new Uint8Array(e.target.result)
-        const workbook = XLSX.read(data, { type: 'array' })
-        const sheetName = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[sheetName]
-        const json = XLSX.utils.sheet_to_json(worksheet)
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    loading.value = true
+    try {
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetName]
+      const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
 
-        if (json.length === 0) {
-            alert('Arquivo vazio!')
-            return
+      if (rows.length === 0) {
+        toast.warning(t('transactions.no_data'))
+        return
+      }
+
+      const formaMap = {
+        'dinheiro': 'money', 'money': 'money', 'cash': 'money', 'espécie': 'money', 'especie': 'money',
+        'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card', 'crédito': 'credit_card',
+        'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card', 'débito': 'debit_card',
+        'pix': 'pix',
+        'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer', 'bank': 'transfer',
+        'boleto': 'boleto', 'ticket': 'boleto',
+        'outros': 'other', 'other': 'other'
+      }
+
+      let count = 0
+      for (const row of rows) {
+        // Mapeamento flexível de colunas
+        const getVal = (fields) => {
+          for (const f of fields) {
+            if (row[f] !== undefined && row[f] !== null) return row[f]
+          }
+          return null
         }
 
-        loading.value = true
-        let count = 0
-        for (const row of json) {
-            // Mapeamento flexível de colunas
-            const getVal = (fields) => {
-                for (const f of fields) {
-                    if (row[f] !== undefined && row[f] !== null) return row[f]
-                }
-                return null
-            }
+        const descricao = getVal(['Descrição', 'descricao', 'Description', 'Nome', 'name', 'item']) || 'Importado'
+        const valorRaw = getVal(['Valor', 'valor', 'Value', 'Amount', 'quantia', 'price']) || 0
+        const categoriaValue = getVal(['Categoria', 'categoria', 'Category', 'tipo_lancamento']) || 'Importado'
+        const dataRaw = getVal(['Data', 'data', 'Date', 'prazo', 'vencimento']) || new Date()
+        const tipoRaw = getVal(['Tipo', 'tipo', 'Type', 'natureza']) || 'despesa'
+        const formaRaw = getVal(['Forma de Pagamento', 'Forma', 'Payment Method', 'forma_pagamento', 'method', 'pagamento']) || 'other'
 
-            const descricao = getVal(['Descrição', 'descricao', 'Description', 'Nome', 'name', 'item']) || 'Importado'
-            const valorRaw = getVal(['Valor', 'valor', 'Value', 'Amount', 'quantia', 'price']) || 0
-            const categoria = getVal(['Categoria', 'categoria', 'Category', 'tipo_lancamento']) || 'Importado'
-            const dataRaw = getVal(['Data', 'data', 'Date', 'prazo', 'vencimento']) || new Date()
-            const tipoRaw = getVal(['Tipo', 'tipo', 'Type', 'natureza']) || 'despesa'
-            const formaRaw = getVal(['Forma de Pagamento', 'Forma', 'Payment Method', 'forma_pagamento', 'method', 'pagamento']) || 'other'
+        // Normalização de Forma de Pagamento
+        const normalizedForma = formaRaw.toString().toLowerCase().trim()
+        const finalForma = formaMap[normalizedForma] || 'other'
 
-            // Normalização de Forma de Pagamento
-            const formaMap = {
-                'dinheiro': 'money', 'money': 'money', 'cash': 'money', 'espécie': 'money', 'especie': 'money',
-                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card', 'crédito': 'credit_card',
-                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card', 'débito': 'debit_card',
-                'pix': 'pix',
-                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer', 'bank': 'transfer',
-                'boleto': 'boleto', 'ticket': 'boleto',
-                'outros': 'other', 'other': 'other'
-            }
-            
-            const normalizedForma = formaRaw.toString().toLowerCase().trim()
-            const finalForma = formaMap[normalizedForma] || 'other'
-
-            // Normalização de Valor (caso venha como string formatada)
-            let finalValor = valorRaw
-            if (typeof valorRaw === 'string') {
-                finalValor = parseFloat(valorRaw.replace(/[^\d.,-]/g, '').replace(',', '.'))
-            }
-
-            // Normalização de Data
-            let finalData = dataRaw
-            if (typeof dataRaw === 'string') {
-                // Tenta extrair YYYY-MM-DD
-                const match = dataRaw.match(/(\d{4})-(\d{2})-(\d{2})/)
-                if (match) finalData = match[0]
-                else {
-                    // Tenta DD/MM/YYYY
-                    const matchBR = dataRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/)
-                    if (matchBR) finalData = `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`
-                }
-            } else if (typeof dataRaw === 'number') {
-                // Excel date serial number
-                const date = XLSX.SSF.parse_date_code(dataRaw)
-                finalData = `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
-            }
-
-            const payload = {
-                descricao,
-                valor: isNaN(finalValor) ? 0 : finalValor,
-                categoria,
-                data: finalData instanceof Date ? finalData.toISOString().split('T')[0] : finalData,
-                tipo: tipoRaw.toString().toLowerCase().includes('receita') || tipoRaw.toString().toLowerCase().includes('income') || tipoRaw.toString().toLowerCase().includes('ganho') ? 'receita' : 'despesa',
-                forma_pagamento: finalForma
-            }
-
-            try {
-                await authStore.apiFetch('/lancamentos', {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                })
-                count++
-            } catch (err) {
-                console.error('Erro ao importar linha:', row, err)
-            }
+        // Normalização de Valor (caso venha como string formatada)
+        let finalValor = valorRaw
+        if (typeof valorRaw === 'string') {
+          finalValor = parseFloat(valorRaw.replace(/[^\d.,-]/g, '').replace(',', '.'))
         }
 
-        toast.success($t('toasts.import_success', { count }))
-        buscarLancamentos()
-        loading.value = false
+        // Normalização de Data
+        let finalData = dataRaw
+        if (typeof dataRaw === 'string') {
+          // Tenta extrair YYYY-MM-DD
+          const match = dataRaw.match(/(\d{4})-(\d{2})-(\d{2})/)
+          if (match) {
+            finalData = match[0]
+          } else {
+            // Tenta DD/MM/YYYY
+            const matchBR = dataRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/)
+            if (matchBR) finalData = `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`
+          }
+        } else if (typeof dataRaw === 'number') {
+          // Excel date serial number
+          const date = XLSX.SSF.parse_date_code(dataRaw)
+          finalData = `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+        }
+
+        const payload = {
+          descricao,
+          valor: isNaN(finalValor) ? 0 : finalValor,
+          categoria: categoriaValue,
+          data: finalData instanceof Date ? finalData.toISOString().split('T')[0] : finalData,
+          tipo: tipoRaw.toString().toLowerCase().includes('receita') || 
+                tipoRaw.toString().toLowerCase().includes('income') || 
+                tipoRaw.toString().toLowerCase().includes('ganho') ? 'receita' : 'despesa',
+          forma_pagamento: finalForma
+        }
+
+        try {
+          await authStore.apiFetch('/lancamentos', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          })
+          count++
+        } catch (err) {
+          console.error('Erro ao importar linha:', row, err)
+        }
+      }
+
+      toast.success(t('toasts.import_success', { count }))
+      buscarLancamentos()
+    } catch (err) {
+      console.error('Erro na importação:', err)
+      toast.error(t('toasts.error_generic'))
+    } finally {
+      loading.value = false
     }
-    reader.readAsArrayBuffer(file)
-    event.target.value = '' // Clear input
+  }
+
+  reader.readAsArrayBuffer(file)
 }
 
 const totais = ref({ receita: 0, despesa: 0 })

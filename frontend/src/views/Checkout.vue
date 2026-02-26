@@ -24,6 +24,20 @@
                 </v-tabs>
 
                 <div class="pa-4">
+                  <v-btn
+                    v-if="authTab === 'login'"
+                    block
+                    variant="outlined"
+                    color="medium-emphasis"
+                    size="large"
+                    class="rounded-xl font-weight-bold text-none social-btn mb-6"
+                    :disabled="loading"
+                    @click="authStore.googleLogin()"
+                  >
+                    <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+                    {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+                  </v-btn>
+
                   <AuthForm 
                     v-if="authTab === 'login'"
                     v-model="loginForm"
@@ -54,24 +68,6 @@
                     @update:cpf="handleCpfInput"
                   />
 
-                  <div class="d-flex align-center my-6">
-                    <v-divider></v-divider>
-                    <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
-                    <v-divider></v-divider>
-                  </div>
-
-                  <v-btn
-                    block
-                    variant="outlined"
-                    color="medium-emphasis"
-                    size="large"
-                    class="rounded-xl font-weight-bold text-none social-btn mb-4"
-                    :disabled="loading"
-                    @click="authStore.googleLogin()"
-                  >
-                    <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
-                    {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
-                  </v-btn>
                 </div>
               </div>
               <div v-else class="text-center pa-10">
@@ -259,7 +255,8 @@ const handleFreeUpgrade = async () => {
 const loginForm = ref({ email: '', senha: '' })
 const registerForm = ref({ 
     nome: '', email: '', senha: '', senha_confirmation: '', 
-    cpf: '', data_nascimento: '' 
+    cpf: '', data_nascimento: '',
+    aceita_termos: false, aceita_notificacoes: true
 })
 const errors = ref({})
 
@@ -418,7 +415,9 @@ const handleRegister = async () => {
             registerForm.value.senha,
             registerForm.value.senha_confirmation,
             cleanCpf,
-            registerForm.value.data_nascimento
+            registerForm.value.data_nascimento,
+            registerForm.value.aceita_termos,
+            registerForm.value.aceita_notificacoes
         )
         toast.success('Cadastro realizado! Por favor, verifique seu e-mail.')
         step.value = 2

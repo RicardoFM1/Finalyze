@@ -99,7 +99,9 @@
       "btn_send": "Send Code",
       "reset_title": "Change Password",
       "reset_desc": "Enter the code sent to your email and your new password.",
-      "btn_reset": "Change Password"
+      "btn_reset": "Change Password",
+      "success_send": "If the e-mail is registered, the code has been sent!",
+      "success_reset": "Password changed successfully! You can now sign in."
     },
     "complete_registration": {
       "title": "Complete Registration",
@@ -224,6 +226,7 @@
     "goal_late": "Goal Late!",
     "goal_remaining": "{amount} remaining for your goal",
     "goal_reached": "Goal reached! Congratulations!",
+    "goal_incomplete_error": "The goal can only be completed when it reaches 100% progress.",
     "edit": "Edit",
     "delete": "Deactivate",
     "no_goals_completed": "No completed goals found.",

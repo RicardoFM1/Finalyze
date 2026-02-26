@@ -15,6 +15,7 @@ use App\Servicos\Autenticacao\EnviarCodigoResetSenha;
 use App\Servicos\Autenticacao\RedefinirSenha;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -75,7 +76,26 @@ class AuthController extends Controller
 
     public function googleRedirect()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $redirect = config('services.google.redirect');
+
+        if (empty($clientId) || empty($clientSecret) || empty($redirect)) {
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode('Configuração de login Google incompleta. Verifique GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET e GOOGLE_REDIRECT_URL no backend.'));
+        }
+
+        try {
+            return Socialite::driver('google')->stateless()->redirect();
+        } catch (\Throwable $e) {
+            Log::error('Falha ao iniciar login social Google', [
+                'error' => $e->getMessage(),
+                'has_client_id' => !empty($clientId),
+                'has_client_secret' => !empty($clientSecret),
+                'redirect' => $redirect,
+            ]);
+
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode('Falha ao iniciar login com Google: ' . $e->getMessage()));
+        }
     }
 
     public function googleCallback(GoogleAuthCallback $servico)
@@ -93,9 +113,9 @@ class AuthController extends Controller
     {
         $dados = $request->validate([
             'usuario_id' => 'required|exists:usuarios,id',
+            'onboarding_token' => 'required|string',
             'cpf' => 'required|string', // A validação real pode ser feita via regex ou custom rule
             'data_nascimento' => 'required|date',
-            'codigo' => 'required|string|size:6',
             'aceita_termos' => 'required|accepted',
             'aceita_notificacoes' => 'boolean'
         ]);

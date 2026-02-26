@@ -43,10 +43,6 @@
         <v-card flat max-width="450" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent">
           <template v-if="!showVerification">
             <div class="text-center mb-10">
-              <div class="d-flex align-center justify-center mb-6">
-                <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
-                <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
-              </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
               <div>
                 <p class="text-body-2 text-medium-emphasis">
@@ -58,54 +54,47 @@
               </div>
             </div>
 
-            <AuthForm 
-              v-model="form"
-              mode="login"
-              :loading="loading"
-              :error="error"
-              @submit="handleLogin"
-            />
-
-            <div class="mt-2 text-right">
-              <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" @click="showForgotModal = true">
-                {{ $t('login.forgot_password') || 'Esqueceu a senha?' }}
-              </v-btn>
-            </div>
-
-            <div class="d-flex align-center my-6">
-              <v-divider></v-divider>
-              <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'OU' }}</span>
-              <v-divider></v-divider>
-            </div>
-
             <v-btn
               block
               variant="outlined"
               color="medium-emphasis"
               size="large"
-              class="rounded-xl font-weight-bold text-none social-btn"
+              class="rounded-xl font-weight-bold text-none social-btn mb-6"
               :disabled="loading"
               @click="handleGoogleLogin"
-            >
+              >
               <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
               {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
             </v-btn>
+            
+            
+            
+            <AuthForm 
+            v-model="form"
+            mode="login"
+            :loading="loading"
+            :error="error"
+            :showForgotPassword="true"
+            @forgot-password="showForgotModal = true"
+            @submit="handleLogin"
+            />
+            
           </template>
-
+          
           <EmailVerification 
-            v-else
-            :email="form.email"
+          v-else
+          :email="form.email"
             :loading="loading"
             :error="error"
             @verify="handleVerify"
             @resend="handleResend"
             @back="showVerification = false"
-          />
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <ModalForgotPassword v-model="showForgotModal" />
+            />
+          </v-card>
+        </v-col>
+      </v-row>
+      
+      <ModalForgotPassword v-model="showForgotModal" />
   </v-container>
 </template>
 
@@ -118,7 +107,6 @@ import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
 import ModalForgotPassword from '../components/Auth/ModalForgotPassword.vue'
-import logotipo from '../assets/logotipo.png'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -272,15 +260,4 @@ const handleResend = async () => {
   color: #5CBBF6 !important;
 }
 
-.logo-mobile {
-  height: 48px;
-  width: auto;
-  /* invert white logo to dark in light mode */
-  filter: invert(1) brightness(0);
-}
-
-:root[data-theme="dark"] .logo-mobile,
-.v-theme--dark .logo-mobile {
-  filter: none;
-}
 </style>

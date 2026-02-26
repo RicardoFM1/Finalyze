@@ -3,43 +3,39 @@
 namespace App\Servicos\Autenticacao;
 
 use App\Models\Usuario;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class CompletarCadastroSocial
 {
     public function executar(array $dados)
     {
         $usuario = Usuario::findOrFail($dados['usuario_id']);
+        $token = PersonalAccessToken::findToken($dados['onboarding_token']);
+        $aceitaTermos = filter_var($dados['aceita_termos'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $aceitaNotificacoes = filter_var($dados['aceita_notificacoes'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$token || (int) $token->tokenable_id !== (int) $usuario->id || $token->name !== 'social_onboarding') {
+            throw new \Exception('Token de onboarding invalido.', 422);
+        }
 
         if ($usuario->cpf) {
-            throw new \Exception('O cadastro deste usuário já está completo.', 422);
+            throw new \Exception('O cadastro deste usuario ja esta completo.', 422);
         }
 
-        // Validação do código
-        if ($usuario->codigo_verificacao !== $dados['codigo']) {
-            throw new \Exception('Código de verificação inválido.', 422);
-        }
-
-        if ($usuario->codigo_expira_em < now()) {
-            throw new \Exception('Código de verificação expirado.', 422);
-        }
-
-        // Se o código for válido, completa o cadastro e marca como verificado
         $usuario->update([
             'cpf' => $dados['cpf'],
             'data_nascimento' => $dados['data_nascimento'],
-            'aceita_termos' => $dados['aceita_termos'] ?? false,
-            'aceita_notificacoes' => $dados['aceita_notificacoes'] ?? true,
-            'email_verified_at' => now(),
-            'codigo_verificacao' => null,
-            'codigo_expira_em' => null
+            'aceita_termos' => $aceitaTermos,
+            'aceita_notificacoes' => $aceitaNotificacoes,
         ]);
 
-        $token = $usuario->createToken('auth_token')->plainTextToken;
+        app(GerarCodigoVerificacao::class)->executar($usuario);
+        $token->delete();
 
         return [
-            'requer_verificacao' => false,
-            'access_token' => $token,
-            'usuario' => $usuario->load('plano.recursos')
+            'requer_verificacao' => true,
+            'usuario_id' => $usuario->id,
+            'email' => $usuario->email,
         ];
     }
 }
