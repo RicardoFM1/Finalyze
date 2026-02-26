@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height justify-center align-center">
-    <div class="text-center">
+    <div v-if="!showOnboarding && !showVerification" class="text-center">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
       <p class="mt-4 text-h6">{{ $t('auth.processing_login') || 'Processando login...' }}</p>
     </div>
@@ -57,21 +57,26 @@ onMounted(() => {
         return
     }
 
-    email.value = q.email
-    usuarioId.value = q.usuario_id
+    console.log('SocialAuthCallback - Params:', q)
+    
+    email.value = q.email || ''
+    usuarioId.value = q.usuario_id || null
 
-    if (q.requer_cadastro_completo) {
+    if (q.requer_cadastro_completo == '1' || q.requer_cadastro_completo === 'true' || q.requer_cadastro_completo === true) {
+        console.log('Showing Onboarding')
         showOnboarding.value = true
-    } else if (q.requer_verificacao) {
+    } else if (q.requer_verificacao == '1' || q.requer_verificacao === 'true' || q.requer_verificacao === true) {
+        console.log('Showing Verification')
         showVerification.value = true
     } else if (q.access_token) {
-        // Fallback case if we decide to skip verification for some reason on BE
+        console.log('Direct Token Login')
         authStore.token = q.access_token
         localStorage.setItem('token', q.access_token)
         authStore.fetchUser(true).then(() => {
             router.push({ name: 'Home' })
         })
     } else {
+        console.warn('No valid social auth params found, redirecting to login')
         router.push({ name: 'Login' })
     }
 })

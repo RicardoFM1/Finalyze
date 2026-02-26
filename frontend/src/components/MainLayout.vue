@@ -54,7 +54,13 @@
 
                             <v-divider class="my-2"></v-divider>
 
-                <template v-if="authStore.sharedAccounts.length > 1 && !uiAuthStore.loading">
+                <template v-if="authStore.loadingSharedAccounts">
+                    <v-list-subheader>Workspace</v-list-subheader>
+                    <v-list-item v-for="i in 2" :key="i">
+                        <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                    </v-list-item>
+                </template>
+                <template v-else-if="authStore.sharedAccounts.length > 1">
                     <v-list-subheader>Workspace</v-list-subheader>
                     <v-list-item
                         v-for="acc in authStore.sharedAccounts"
@@ -192,34 +198,42 @@
               <!-- Workspace Switcher -->
               <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
                   <template v-slot:activator="{ props }">
-                      <v-btn
+                       <v-btn
                           v-bind="props"
                           variant="tonal"
                           color="white"
                           prepend-icon="mdi-office-building"
                           class="text-none ml-2 rounded-xl"
+                          :loading="authStore.loadingSharedAccounts"
                       >
                           {{ activeWorkspaceName }}
                       </v-btn>
                   </template>
-                  <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
-                      <v-list-item
-                          v-for="acc in authStore.sharedAccounts"
-                          :key="acc.id"
-                          :active="authStore.workspaceId == acc.id"
-                          @click="authStore.setWorkspace(acc.id)"
-                      >
-                          <template v-slot:prepend>
-                              <v-avatar size="32" class="mr-2" color="primary">
-                                  <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
-                              </v-avatar>
-                          </template>
-                          <v-list-item-title class="font-weight-bold">
-                              {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
-                          </v-list-item-title>
-                          <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
-                      </v-list-item>
-                  </v-list>
+                   <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4" min-width="220">
+                      <template v-if="authStore.loadingSharedAccounts">
+                          <v-list-item v-for="i in 2" :key="i">
+                              <v-skeleton-loader type="list-item-avatar-two-line"></v-skeleton-loader>
+                          </v-list-item>
+                      </template>
+                      <template v-else>
+                          <v-list-item
+                              v-for="acc in authStore.sharedAccounts"
+                              :key="acc.id"
+                              :active="authStore.workspaceId == acc.id"
+                              @click="authStore.setWorkspace(acc.id)"
+                          >
+                              <template v-slot:prepend>
+                                  <v-avatar size="32" class="mr-2" color="primary">
+                                      <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                                  </v-avatar>
+                              </template>
+                              <v-list-item-title class="font-weight-bold">
+                                  {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
+                              </v-list-item-title>
+                              <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
+                          </v-list-item>
+                      </template>
+                   </v-list>
               </v-menu>
 
               <Coinselector class="ml-2" />
@@ -325,8 +339,13 @@
                 :title="activeWorkspaceName"
                 :subtitle="t('common.active_workspace') || 'Área de Trabalho Ativa'"
                 color="secondary"
+                :disabled="authStore.loadingSharedAccounts"
                 :class="{ 'mb-2 bg-secondary-lighten-5 rounded-lg border-dashed': authStore.sharedAccounts.length > 1, 'mb-2 opacity-80': authStore.sharedAccounts.length <= 1 }"
             >
+                <template v-slot:append>
+                    <v-progress-circular v-if="authStore.loadingSharedAccounts" indeterminate size="16" width="2" color="primary"></v-progress-circular>
+                    <v-icon v-else-if="authStore.sharedAccounts.length > 1" icon="mdi-chevron-down" size="16"></v-icon>
+                </template>
                 <v-menu v-if="authStore.sharedAccounts.length > 1" activator="parent" class="rounded-xl mt-2 overflow-hidden" elevation="4">
                     <v-list>
                         <v-list-item 
@@ -456,9 +475,12 @@ watch(() => uiAuthStore.locale, (newLocale) => {
 }, { immediate: true })
 
 const activeWorkspaceName = computed(() => {
+    // Show spinner icon/placeholder if loading
+    if (authStore.loadingSharedAccounts || uiAuthStore.loading) return '...'
+    
     const active = authStore.sharedAccounts.find(a => a.id == authStore.workspaceId)
-    if (!active && uiAuthStore.loading) return '...'
     if (!active) return authStore.user?.nome || 'Workspace'
+    
     if (active?.is_owner) return t('common.my_account') || 'Minha Conta'
     return active?.owner?.nome || 'Workspace'
 })

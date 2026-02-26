@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref(null);
     const workspaceId = ref(localStorage.getItem('workspace_id') || null);
     const sharedAccounts = ref([]);
+    const loadingSharedAccounts = ref(false);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -162,11 +163,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function fetchSharedAccounts() {
+        if (!token.value || loadingSharedAccounts.value) return;
+        loadingSharedAccounts.value = true;
         try {
             const response = await apiFetch('/colaboracoes');
             if (response.ok) {
                 const data = await response.json();
-                if (!user.value) return;
+
+                // If user.value is not available yet, we skip populating but don't fail
+                if (!user.value) {
+                    sharedAccounts.value = [];
+                    return;
+                }
+
                 const ownAccount = { id: user.value.id, owner: user.value, is_owner: true };
                 const otherAccounts = (data.shared_with_me || []).map(s => ({
                     ...s,
@@ -185,7 +194,9 @@ export const useAuthStore = defineStore('auth', () => {
                 }
             }
         } catch (e) {
-            console.error(e);
+            console.error('Erro ao buscar contas compartilhadas:', e);
+        } finally {
+            loadingSharedAccounts.value = false;
         }
     }
 

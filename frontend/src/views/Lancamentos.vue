@@ -208,27 +208,64 @@ const handleImport = async (event) => {
         loading.value = true
         let count = 0
         for (const row of json) {
-            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo, forma_pagamento
-            const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
+            // Mapeamento flexível de colunas
+            const getVal = (fields) => {
+                for (const f of fields) {
+                    if (row[f] !== undefined && row[f] !== null) return row[f]
+                }
+                return null
+            }
+
+            const descricao = getVal(['Descrição', 'descricao', 'Description', 'Nome', 'name', 'item']) || 'Importado'
+            const valorRaw = getVal(['Valor', 'valor', 'Value', 'Amount', 'quantia', 'price']) || 0
+            const categoria = getVal(['Categoria', 'categoria', 'Category', 'tipo_lancamento']) || 'Importado'
+            const dataRaw = getVal(['Data', 'data', 'Date', 'prazo', 'vencimento']) || new Date()
+            const tipoRaw = getVal(['Tipo', 'tipo', 'Type', 'natureza']) || 'despesa'
+            const formaRaw = getVal(['Forma de Pagamento', 'Forma', 'Payment Method', 'forma_pagamento', 'method', 'pagamento']) || 'other'
+
+            // Normalização de Forma de Pagamento
             const formaMap = {
-                'dinheiro': 'money', 'money': 'money', 'cash': 'money',
-                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card',
-                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card',
+                'dinheiro': 'money', 'money': 'money', 'cash': 'money', 'espécie': 'money', 'especie': 'money',
+                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card', 'crédito': 'credit_card',
+                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card', 'débito': 'debit_card',
                 'pix': 'pix',
-                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer',
-                'boleto': 'boleto',
+                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer', 'bank': 'transfer',
+                'boleto': 'boleto', 'ticket': 'boleto',
                 'outros': 'other', 'other': 'other'
             }
             
-            const normalizedForma = rawForma.toString().toLowerCase().trim()
+            const normalizedForma = formaRaw.toString().toLowerCase().trim()
             const finalForma = formaMap[normalizedForma] || 'other'
 
+            // Normalização de Valor (caso venha como string formatada)
+            let finalValor = valorRaw
+            if (typeof valorRaw === 'string') {
+                finalValor = parseFloat(valorRaw.replace(/[^\d.,-]/g, '').replace(',', '.'))
+            }
+
+            // Normalização de Data
+            let finalData = dataRaw
+            if (typeof dataRaw === 'string') {
+                // Tenta extrair YYYY-MM-DD
+                const match = dataRaw.match(/(\d{4})-(\d{2})-(\d{2})/)
+                if (match) finalData = match[0]
+                else {
+                    // Tenta DD/MM/YYYY
+                    const matchBR = dataRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/)
+                    if (matchBR) finalData = `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`
+                }
+            } else if (typeof dataRaw === 'number') {
+                // Excel date serial number
+                const date = XLSX.SSF.parse_date_code(dataRaw)
+                finalData = `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+            }
+
             const payload = {
-                descricao: row.Descrição || row.descricao || row.Description || 'Importado',
-                valor: row.Valor || row.valor || row.Value || 0,
-                categoria: row.Categoria || row.categoria || row.Category || 'Importado',
-                data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
-                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa',
+                descricao,
+                valor: isNaN(finalValor) ? 0 : finalValor,
+                categoria,
+                data: finalData instanceof Date ? finalData.toISOString().split('T')[0] : finalData,
+                tipo: tipoRaw.toString().toLowerCase().includes('receita') || tipoRaw.toString().toLowerCase().includes('income') || tipoRaw.toString().toLowerCase().includes('ganho') ? 'receita' : 'despesa',
                 forma_pagamento: finalForma
             }
 
@@ -286,6 +323,22 @@ const exportarPdf = () => {
     setTimeout(() => {
         try {
             const doc = new jsPDF()
+            const now = new Date()
+            const bcpLocale = currentLocale.value === 'pt' ? 'pt-BR' : 'en-US'
+            const exportDate = now.toLocaleDateString(bcpLocale)
+            const exportTime = now.toLocaleTimeString(bcpLocale, { hour: '2-digit', minute: '2-digit' })
+            
+            // Header
+            doc.setFontSize(18)
+            doc.setTextColor(24, 103, 192)
+            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
+            
+            // Subtitle with export date
+            doc.setFontSize(10)
+            doc.setTextColor(100)
+            const exportLabel = currentLocale.value === 'pt' ? 'Exportado em' : 'Exported on'
+            doc.text(`${exportLabel}: ${exportDate} ${t('common.at') || 'às'} ${exportTime}`, 14, 22)
+
             const head = [[
                 t('transactions.table.date'), 
                 t('transactions.table.description'), 
@@ -303,13 +356,20 @@ const exportarPdf = () => {
                 formatNumber(item.valor)
             ])
 
-            doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
             autoTable(doc, {
                 head: head,
                 body: data,
-                startY: 20,
+                startY: 28,
                 theme: 'striped',
-                headStyles: { fillColor: [24, 103, 192] }
+                headStyles: { fillColor: [24, 103, 192] },
+                didDrawPage: (data) => {
+                    // Footer with page number
+                    const str = "Page " + doc.internal.getNumberOfPages();
+                    doc.setFontSize(10);
+                    const pageSize = doc.internal.pageSize;
+                    const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+                    doc.text(str, data.settings.margin.left, pageHeight - 10);
+                }
             })
             doc.save(`finalyze_${t('sidebar.transactions').toLowerCase()}.pdf`)
         } catch (e) {
