@@ -6,7 +6,7 @@
         <h2 class="modal-header-title font-weight-bold text-white flex-grow-1 mb-0">
           {{ title }}
         </h2>
-        <v-btn icon="mdi-close" variant="text" color="white" size="small" class="ml-4 flex-shrink-0" @click="close"></v-btn>
+        <v-btn v-if="!hideClose" icon="mdi-close" variant="text" color="white" size="small" class="ml-4 flex-shrink-0" @click="close"></v-btn>
       </div>
 
       <v-card-text class="pa-4 pa-sm-6 pb-2" style="max-height: 75vh; overflow-y: auto;">
@@ -41,6 +41,10 @@ const props = defineProps({
   persistent: {
     type: Boolean,
     default: true
+  },
+  hideClose: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -52,6 +56,7 @@ const dialog = computed({
 })
 
 const close = () => {
+  if (props.persistent && props.hideClose) return
   emit('update:modelValue', false)
 }
 </script>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container class="py-10">
     <v-row v-if="pageLoading" justify="center" align="center" style="min-height: 50vh;">
       <v-col cols="12" class="text-center">
@@ -175,6 +175,7 @@
 </template>
 
 <script setup>
+import { validateAge, validateCPF as utilValidateCPF } from '../utils/validation';
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -519,38 +520,8 @@ const handleCpfInput = (event) => {
   registerForm.value.cpf = value
 }
 
-const validateAge = (v) => {
-  if (!v) return true
-  let birth
-  if (typeof v === 'string') {
-    const parts = v.split(/[-/]/)
-    if (parts.length >= 3) {
-      let year, month, day
-      if (parts[0].length === 4) {
-        year = parseInt(parts[0])
-        month = parseInt(parts[1])
-        day = parseInt(parts[2])
-      } else {
-        day = parseInt(parts[0])
-        month = parseInt(parts[1])
-        year = parseInt(parts[2])
-      }
-      birth = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`)
-    } else {
-      birth = new Date(v)
-    }
-  } else {
-    birth = new Date(v)
-  }
-
-  if (!birth || isNaN(birth.getTime())) return false
-
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return age >= 18 || t('validation.age_restriction')
-}
+const validateAgeRule = (v) => validateAge(v, t);
+const validateCPFRule = (v) => utilValidateCPF(v, t);
 
 const validateCPF = (v) => {
     if (!v) return true
@@ -607,3 +578,4 @@ const validateCPF = (v) => {
     line-height: 1.2;
 }
 </style>
+

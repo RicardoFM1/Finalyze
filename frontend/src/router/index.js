@@ -4,7 +4,7 @@ import { useUiStore } from '@/stores/ui'
 import { toast } from 'vue3-toastify'
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',

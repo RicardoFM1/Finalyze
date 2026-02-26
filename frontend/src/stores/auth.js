@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+ï»¿import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUiStore } from './ui';
@@ -11,6 +11,8 @@ export const useAuthStore = defineStore('auth', () => {
     const workspaceId = ref(localStorage.getItem('workspace_id') || null);
     const sharedAccounts = ref([]);
     const loadingSharedAccounts = ref(false);
+    const mustVerifyEmail = ref(null);
+    const mustCompleteRegistration = ref(null);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -64,12 +66,12 @@ export const useAuthStore = defineStore('auth', () => {
                     router.push({ name: 'Login' });
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Sessão expirada. Faça login novamente.');
+                throw new Error(errorData.message || 'Sessï¿½o expirada. Faï¿½a login novamente.');
             }
 
             if (response.status === 403) {
                 const errorData = await response.json().catch(() => ({}));
-                const message = errorData.message || 'Seu plano atual não possui acesso a este recurso.';
+                const message = errorData.message || 'Seu plano atual nï¿½o possui acesso a este recurso.';
 
                 if (!suppress403Toast && router.currentRoute.value.name !== 'Plans') {
                     toast.warning(message, { autoClose: 5000 });
@@ -82,7 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
 
             return response;
         } catch (error) {
-            console.error('Erro na requisição API:', error);
+            console.error('Erro na requisiï¿½ï¿½o API:', error);
             throw error;
         }
     }
@@ -98,14 +100,24 @@ export const useAuthStore = defineStore('auth', () => {
             if (!response.ok) throw new Error(data.message || 'Falha no login');
 
             if (data.requer_verificacao) {
-                return { requer_verificacao: true, email: data.email };
+                const clearAuthModals = () => {
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
+    };
+
+    return { requer_verificacao: true, email: data.email };
             }
 
             token.value = data.access_token;
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
             await fetchSharedAccounts();
-            return { success: true };
+            const clearAuthModals = () => {
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
+    };
+
+    return { success: true };
         } catch (error) {
             console.error(error);
             throw error;
@@ -154,12 +166,12 @@ export const useAuthStore = defineStore('auth', () => {
                 // Initialize sharedAccounts with self immediately
                 sharedAccounts.value = [{ id: data.id, owner: data, is_owner: true }];
 
-                if (!workspaceId.value) {
+                if (!workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = data.id;
                     localStorage.setItem('workspace_id', data.id);
                 }
-                // Fetch collaborations in background
-                fetchSharedAccounts();
+                // Fetch collaborations and wait for it
+                await fetchSharedAccounts();
             }
         } catch (e) {
             console.error(e);
@@ -194,7 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
 
                 // Check if current workspace is still valid among all accounts
                 const stillExists = sharedAccounts.value.some(a => a.id == workspaceId.value);
-                if (!stillExists) {
+                if (!stillExists || !workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = user.value.id;
                     localStorage.setItem('workspace_id', user.value.id);
                 }
@@ -362,11 +374,18 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const clearAuthModals = () => {
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
+    };
+
     return {
         user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan,
         login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature,
         getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage,
-        googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword
+        googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword, mustVerifyEmail, mustCompleteRegistration, clearAuthModals
     };
 });
+
+
 

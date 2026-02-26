@@ -53,8 +53,6 @@ class Usuario extends Authenticatable
             'data_nascimento' => 'date',
             'codigo_expira_em' => 'datetime',
             'reset_code_expires_at' => 'datetime',
-            'aceita_termos' => 'boolean',
-            'aceita_notificacoes' => 'boolean',
         ];
     }
 

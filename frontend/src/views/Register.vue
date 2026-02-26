@@ -86,6 +86,7 @@
 </template>
 
 <script setup>
+import { validateAge, validateCPF as utilValidateCPF } from '../utils/validation';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -123,70 +124,8 @@ const passwordRules = [
   v => /[^A-Za-z0-9]/.test(v) || t('register.rules.special_char')
 ]
 
-const validateAge = (v) => {
-  if (!v) return true
-  let birth
-  if (typeof v === 'string') {
-    const parts = v.split(/[-/]/)
-    if (parts.length >= 3) {
-      let year, month, day
-      if (parts[0].length === 4) { // YYYY-MM-DD
-        year = parseInt(parts[0])
-        month = parseInt(parts[1])
-        day = parseInt(parts[2])
-      } else { // DD/MM/YYYY
-        day = parseInt(parts[0])
-        month = parseInt(parts[1])
-        year = parseInt(parts[2])
-      }
-      // Construct date string with T00:00:00 to ensure local time interpretation
-      birth = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`)
-    } else {
-      // If it's a string but not in YYYY-MM-DD or DD/MM/YYYY format, try parsing as is, but be aware of potential issues.
-      // For robustness, it's better to always parse into year, month, day components.
-      // Assuming 'v' might be a simple YYYY-MM-DD string here, which new Date() can misinterpret as UTC.
-      // To avoid this, we can re-parse it into components if it looks like YYYY-MM-DD.
-      const simpleDateParts = v.split('-')
-      if (simpleDateParts.length === 3 && simpleDateParts[0].length === 4) {
-        birth = new Date(`${simpleDateParts[0]}-${simpleDateParts[1]}-${simpleDateParts[2]}T00:00:00`)
-      } else {
-        birth = new Date(v)
-      }
-    }
-  } else {
-    // If 'v' is already a Date object or a number (timestamp), new Date(v) is fine.
-    birth = new Date(v)
-  }
-  
-  if (!birth || isNaN(birth.getTime())) return false
-
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-    age--
-  }
-  return age >= 18 || t('validation.age_restriction')
-}
-
-const validateCPF = (v) => {
-    if (!v) return true
-    const cpf = v.replace(/\D/g, '')
-    if (cpf.length !== 11) return t('validation.cpf_invalid')
-    if (/^(\d)\1+$/.test(cpf)) return t('validation.cpf_invalid')
-    let sum = 0
-    let remainder
-    for (let i = 1; i <= 9; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (11 - i)
-    remainder = (sum * 10) % 11
-    if ((remainder === 10) || (remainder === 11)) remainder = 0
-    if (remainder !== parseInt(cpf.substring(9, 10)) ) return t('validation.cpf_invalid')
-    sum = 0
-    for (let i = 1; i <= 10; i++) sum = sum + parseInt(cpf.substring(i-1, i)) * (12 - i)
-    remainder = (sum * 10) % 11
-    if ((remainder === 10) || (remainder === 11)) remainder = 0
-    if (remainder !== parseInt(cpf.substring(10, 11))) return t('validation.cpf_invalid')
-    return true
-}
+const validateAgeRule = (v) => validateAge(v, t);
+const validateCPFRule = (v) => utilValidateCPF(v, t);
 
 const handleRegister = async () => {
   loading.value = true
@@ -345,3 +284,4 @@ const handleCpfInput = (event) => {
 }
 
 </style>
+

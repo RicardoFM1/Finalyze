@@ -1,56 +1,25 @@
 <template>
   <v-container class="fill-height justify-center align-center">
-    <div v-if="!showOnboarding && !showVerification" class="text-center">
+    <div class="text-center">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
       <p class="mt-4 text-h6">{{ $t('auth.processing_login') || 'Processando login...' }}</p>
     </div>
-
-    <!-- Onboarding Modal -->
-    <ModalCompleteSocialRegistration 
-        v-model="showOnboarding"
-        :usuario-id="usuarioId"
-        :email="email"
-        :onboarding-token="onboardingToken"
-        @complete="handleOnboardingComplete"
-    />
-
-    <!-- Verification Modal -->
-    <ModalBase v-model="showVerification" persistent maxWidth="450px" :title="$t('auth.verify_email_title') || 'Verifique seu e-mail'">
-        <div class="pa-6">
-            <EmailVerification 
-                :email="email"
-                :loading="loading"
-                @verify="handleVerify"
-                @resend="handleResend"
-                @back="router.push({ name: 'Login' })"
-            />
-        </div>
-    </ModalBase>
   </v-container>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useUiStore } from '../stores/ui'
 import { toast } from 'vue3-toastify'
-import ModalCompleteSocialRegistration from '../components/Auth/ModalCompleteSocialRegistration.vue'
-import EmailVerification from '../components/Auth/EmailVerification.vue'
-import ModalBase from '../components/Modals/modalBase.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const ui = useUiStore()
 
-const showOnboarding = ref(false)
-const showVerification = ref(false)
-const loading = ref(false)
-
-const usuarioId = ref(null)
-const email = ref('')
-const onboardingToken = ref('')
-
-onMounted(() => {
+onMounted(async () => {
     const q = route.query
     
     if (q.error) {
@@ -61,59 +30,46 @@ onMounted(() => {
 
     console.log('SocialAuthCallback - Params:', q)
     
-    email.value = q.email || ''
-    usuarioId.value = q.usuario_id || null
+    // Clear any previous modal states
+    authStore.clearAuthModals()
 
     if (q.requer_cadastro_completo == '1' || q.requer_cadastro_completo === 'true' || q.requer_cadastro_completo === true) {
-        console.log('Showing Onboarding')
-        showOnboarding.value = true
+        console.log('Global Onboarding set')
+        authStore.mustCompleteRegistration = {
+            usuario_id: q.usuario_id,
+            email: q.email,
+            onboarding_token: q.onboarding_token
+        }
+        router.replace({ name: 'Home' })
     } else if (q.requer_verificacao == '1' || q.requer_verificacao === 'true' || q.requer_verificacao === true) {
-        console.log('Showing Verification')
-        showVerification.value = true
+        console.log('Global Verification set')
+        authStore.mustVerifyEmail = q.email
+        router.replace({ name: 'Home' })
     } else if (q.access_token) {
         console.log('Direct Token Login')
         authStore.token = q.access_token
         localStorage.setItem('token', q.access_token)
-        authStore.fetchUser(true).then(() => {
-            router.push({ name: 'Home' })
-        })
+        
+        ui.setLoading(true)
+        try {
+            await authStore.fetchUser(true)
+            await authStore.fetchSharedAccounts()
+            
+            // If admin, they shouldn't see these anyway, but let's be safe
+            if (authStore.user?.admin) {
+                authStore.clearAuthModals()
+            }
+            
+            router.replace({ name: 'Home' })
+        } catch (e) {
+            console.error('Error loading user data:', e)
+            router.replace({ name: 'Login' })
+        } finally {
+            ui.setLoading(false)
+        }
     } else {
         console.warn('No valid social auth params found, redirecting to login')
-        router.push({ name: 'Login' })
+        router.replace({ name: 'Login' })
     }
 })
-
-const handleOnboardingComplete = async (result) => {
-    showOnboarding.value = false
-    if (result.email) {
-        email.value = result.email
-    }
-    if (result.requer_verificacao) {
-        showVerification.value = true
-    } else {
-        router.push({ name: 'Login' })
-    }
-}
-
-const handleVerify = async (code) => {
-    loading.value = true
-    try {
-        await authStore.verifyCode(email.value, code)
-        toast.success('Login realizado com sucesso!')
-        router.push({ name: 'Home' })
-    } catch (e) {
-        toast.error(e.message)
-    } finally {
-        loading.value = false
-    }
-}
-
-const handleResend = async () => {
-    try {
-        await authStore.resendCode(email.value)
-        toast.success('Código reenviado!')
-    } catch (e) {
-        toast.error(e.message)
-    }
-}
 </script>

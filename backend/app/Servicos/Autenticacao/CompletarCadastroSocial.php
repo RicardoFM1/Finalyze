@@ -23,10 +23,10 @@ class CompletarCadastroSocial
         }
 
         $usuario->update([
-            'cpf' => $dados['cpf'],
+            'cpf' => (string) $dados['cpf'],
             'data_nascimento' => $dados['data_nascimento'],
-            'aceita_termos' => $aceitaTermos,
-            'aceita_notificacoes' => $aceitaNotificacoes,
+            'aceita_termos' => $aceitaTermos ? 'true' : 'false',
+            'aceita_notificacoes' => $aceitaNotificacoes ? 'true' : 'false',
         ]);
 
         app(GerarCodigoVerificacao::class)->executar($usuario);
