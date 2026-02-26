@@ -189,66 +189,73 @@ const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: curren
 const fileInput = ref(null)
 
 const handleImport = async (event) => {
-    const file = event.target.files[0]
-    if (!file) return
+  const file = event.target.files[0]
+  if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-        const data = new Uint8Array(e.target.result)
-        const workbook = XLSX.read(data, { type: 'array' })
-        const sheetName = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[sheetName]
-        const json = XLSX.utils.sheet_to_json(worksheet)
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, { type: 'array' })
+      const sheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[sheetName]
+      const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
 
-        if (json.length === 0) {
-            alert('Arquivo vazio!')
-            return
+      if (rows.length === 0) {
+        toast.warning(t('transactions.no_data'))
+        return
+      }
+
+      loading.value = true
+
+      const formaMap = {
+        dinheiro: 'money', money: 'money', cash: 'money',
+        'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', credito: 'credit_card',
+        'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', debito: 'debit_card',
+        pix: 'pix',
+        transferencia: 'transfer', transferência: 'transfer', transfer: 'transfer', ted: 'transfer', doc: 'transfer',
+        boleto: 'boleto',
+        outros: 'other', other: 'other'
+      }
+
+      const today = new Date().toISOString().split('T')[0]
+      const payloads = rows.map((row) => {
+        const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
+        const normalizedForma = rawForma.toString().toLowerCase().trim()
+        return {
+          descricao: row.Descrição || row.descricao || row.Description || 'Importado',
+          valor: row.Valor || row.valor || row.Value || 0,
+          categoria: row.Categoria || row.categoria || row.Category || 'Importado',
+          data: row.Data || row.data || row.Date || today,
+          tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toString().toLowerCase().includes('receita') ? 'receita' : 'despesa',
+          forma_pagamento: formaMap[normalizedForma] || 'other'
         }
+      })
 
-        loading.value = true
-        let count = 0
-        for (const row of json) {
-            // Tenta mapear colunas comuns: descricao, valor, categoria, data, tipo, forma_pagamento
-            const rawForma = row['Forma de Pagamento'] || row.Forma || row['Payment Method'] || row.forma_pagamento || 'other'
-            const formaMap = {
-                'dinheiro': 'money', 'money': 'money', 'cash': 'money',
-                'cartao de credito': 'credit_card', 'cartão de crédito': 'credit_card', 'credit card': 'credit_card', 'credito': 'credit_card',
-                'cartao de debito': 'debit_card', 'cartão de débito': 'debit_card', 'debit card': 'debit_card', 'debito': 'debit_card',
-                'pix': 'pix',
-                'transferencia': 'transfer', 'transferência': 'transfer', 'transfer': 'transfer', 'ted': 'transfer', 'doc': 'transfer',
-                'boleto': 'boleto',
-                'outros': 'other', 'other': 'other'
-            }
-            
-            const normalizedForma = rawForma.toString().toLowerCase().trim()
-            const finalForma = formaMap[normalizedForma] || 'other'
+      let count = 0
+      const concurrency = 8
+      for (let i = 0; i < payloads.length; i += concurrency) {
+        const chunk = payloads.slice(i, i + concurrency)
+        const results = await Promise.allSettled(
+          chunk.map((payload) => authStore.apiFetch('/lancamentos', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          }))
+        )
+        count += results.filter(r => r.status === 'fulfilled').length
+      }
 
-            const payload = {
-                descricao: row.Descrição || row.descricao || row.Description || 'Importado',
-                valor: row.Valor || row.valor || row.Value || 0,
-                categoria: row.Categoria || row.categoria || row.Category || 'Importado',
-                data: row.Data || row.data || row.Date || new Date().toISOString().split('T')[0],
-                tipo: (row.Tipo || row.tipo || row.Type || 'despesa').toLowerCase().includes('receita') ? 'receita' : 'despesa',
-                forma_pagamento: finalForma
-            }
-
-            try {
-                await authStore.apiFetch('/lancamentos', {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                })
-                count++
-            } catch (err) {
-                console.error('Erro ao importar linha:', row, err)
-            }
-        }
-
-        toast.success($t('toasts.import_success', { count }))
-        buscarLancamentos()
-        loading.value = false
+      toast.success(t('toasts.import_success', { count }))
+      await buscarLancamentos()
+    } catch (err) {
+      console.error('Erro ao importar arquivo:', err)
+      toast.error(t('toasts.error_generic'))
+    } finally {
+      loading.value = false
+      event.target.value = ''
     }
-    reader.readAsArrayBuffer(file)
-    event.target.value = '' // Clear input
+  }
+  reader.readAsArrayBuffer(file)
 }
 
 const totais = ref({ receita: 0, despesa: 0 })
