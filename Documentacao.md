@@ -2,9 +2,11 @@
 
 ## Documentação Técnica do Projeto (Implementações Recentes)
 
+Finalyze é uma plataforma robusta de controle financeiro pessoal, permitindo que usuários monitorem suas receitas, despesas e planejem seu futuro financeiro através de diversos planos de assinatura.
+
 ### 1. Sistema de Segurança e 2FA
 - **Fluxo**: Ao registrar, um código de 6 dígitos é enviado ao e-mail. O acesso total ao sistema só é liberado após a verificação desse código.
-- **Expiração**: O código tem validade de 15 minutos.
+- **Expiração**: O código tem validade de 5 minutos.
 - **Status**: O usuário é redirecionado para `EmailVerification.vue` até que a conta esteja ativa.
 
 ### 2. Gestão de Planos e Lançamentos
@@ -55,7 +57,7 @@
 
 ## Comandos Administrativos (CLI)
 
-### Designar Assidantura Manualmente
+### Designar Assinatura Manualmente
 Útil para assinaturas via Pix externo, cortesia ou testes.
 ```bash
 php artisan app:designar-assinatura {usuario_id} {plano_id}
@@ -75,9 +77,6 @@ php artisan app:designar-assinatura {usuario_id} {plano_id}
 - **Idade Mínima (+18)**: Cálculo dinâmico baseado na data atual (incluindo anos bissextos) em conformidade com as regras de negócio.
 - **PostgreSQL Compliance**: Booleans (como `aceita_termos`) são tratados explicitamente como literais de string `'true'/'false'` no envio para evitar erros de cast no banco de dados Supabase/PostgreSQL.
 - **Backend Validation**: Validação `email:strict` e `exists` no `RegisterRequest.php` e `CompletarCadastroSocial.php`.
-
-
-Finalyze é uma plataforma robusta de controle financeiro pessoal, permitindo que usuários monitorem suas receitas, despesas e planejem seu futuro financeiro através de diversos planos de assinatura.
 
 ## Funcionalidades Principais
 
@@ -132,7 +131,7 @@ Uma interface moderna, responsiva e dinâmica construída com Vue 3, Pinia para 
 ## Tecnologias Utilizadas
 
 - **Backend**: Laravel 11, PHP 8.2+, PostgreSQL, Mercado Pago SDK.
-- **Frontend**: Vue.js 3 (Composition API), Vite, Vuetify 3, Pinia, Vue Router, Vue3-Toastify.
+- **Frontend**: Vue.js 3 (Composition API), Vite, Vuetify 3, Pinia, e Router, VuVue3-Toastify.
 - **DevOps/Ferramentas**: Axios para requisições, NGROK (para testes de Webhook locais).
 - **RocketLog**: Análise e controle de logs.
 - **Supabase**: Banco de dados e armazenamento de avatares.
