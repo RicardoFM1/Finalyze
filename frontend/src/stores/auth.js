@@ -1,5 +1,5 @@
 ﻿import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUiStore } from './ui';
 import { toast } from 'vue3-toastify';
@@ -11,14 +11,26 @@ export const useAuthStore = defineStore('auth', () => {
     const workspaceId = ref(localStorage.getItem('workspace_id') || null);
     const sharedAccounts = ref([]);
     const loadingSharedAccounts = ref(false);
-    const mustVerifyEmail = ref(null);
-    const mustCompleteRegistration = ref(null);
+    const mustVerifyEmail = ref(localStorage.getItem('must_verify_email') || null);
+    const mustCompleteRegistration = ref(localStorage.getItem('must_complete_registration') ? JSON.parse(localStorage.getItem('must_complete_registration')) : null);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
+
+    // Watchers for persistent modal state
+    watch(mustVerifyEmail, (newVal) => {
+        if (newVal) localStorage.setItem('must_verify_email', newVal);
+        else localStorage.removeItem('must_verify_email');
+    });
+
+    watch(mustCompleteRegistration, (newVal) => {
+        if (newVal) localStorage.setItem('must_complete_registration', JSON.stringify(newVal));
+        else localStorage.removeItem('must_complete_registration');
+    });
+
     const activeWorkspace = computed(() => {
         return sharedAccounts.value.find(acc => acc.id == workspaceId.value);
     });
@@ -101,11 +113,11 @@ export const useAuthStore = defineStore('auth', () => {
 
             if (data.requer_verificacao) {
                 const clearAuthModals = () => {
-        mustVerifyEmail.value = null;
-        mustCompleteRegistration.value = null;
-    };
+                    mustVerifyEmail.value = null;
+                    mustCompleteRegistration.value = null;
+                };
 
-    return { requer_verificacao: true, email: data.email };
+                return { requer_verificacao: true, email: data.email };
             }
 
             token.value = data.access_token;
@@ -113,11 +125,11 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('token', token.value);
             await fetchSharedAccounts();
             const clearAuthModals = () => {
-        mustVerifyEmail.value = null;
-        mustCompleteRegistration.value = null;
-    };
+                mustVerifyEmail.value = null;
+                mustCompleteRegistration.value = null;
+            };
 
-    return { success: true };
+            return { success: true };
         } catch (error) {
             console.error(error);
             throw error;
@@ -228,8 +240,12 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         workspaceId.value = null;
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
         localStorage.removeItem('token');
         localStorage.removeItem('workspace_id');
+        localStorage.removeItem('must_verify_email');
+        localStorage.removeItem('must_complete_registration');
     }
 
     function hasFeature(featureSlug) {
@@ -377,6 +393,8 @@ export const useAuthStore = defineStore('auth', () => {
     const clearAuthModals = () => {
         mustVerifyEmail.value = null;
         mustCompleteRegistration.value = null;
+        localStorage.removeItem('must_verify_email');
+        localStorage.removeItem('must_complete_registration');
     };
 
     return {

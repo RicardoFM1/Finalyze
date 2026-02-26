@@ -22,22 +22,12 @@
 
 ### 5. Multi-Workspace e Colaboração (Collaboration System)
 - **Conceito de Workspace**: Cada usuário possui um "Workspace" (o ID do usuário é o ID do Workspace). Todos os dados (lançamentos, metas, lembretes) pertencem a esse ID.
-- **Fluxo de Convite**:
-    1. O **Proprietário** faz um convite via e-mail na aba de Colaboradores.
-    2. O sistema cria um registro na tabela `colaboracoes` com o `proprietario_id` e o `email_convidado`.
-    3. O Convidado recebe um e-mail de convite traduzido.
-- **Chaveamento de Contexto (Context Switching)**:
-    - O Convidado, ao selecionar um workspace compartilhado, faz o frontend enviar o header `X-Workspace-Id: [ID_DO_PROPRIETARIO]` em todas as requisições.
-- **Middleware de Contexto (`SetWorkspaceContext.php`)**:
-    - Valida se o usuário autenticado tem permissão para acessar o workspace solicitado (via tabela `colaboracoes`).
-    - Injeta o ID do dono em um Singleton: `app()->instance('workspace_id', $id)`.
-- **Lógica de Permissões Herdadass**:
-    - O colaborador herda **todas as funcionalidades do plano do proprietário** enquanto estiver em seu workspace.
-    - Se o dono for Premium, o colaborador tem acesso ao Finn AI e Relatórios, mesmo que o plano pessoal do colaborador seja Gratuito.
-    - **Restrição de Admin**: A página de Administração (`/admin`) é bloqueada explicitamente para colaboradores, mesmo que o proprietário seja um administrador. Apenas o dono real da conta acessa as funções administrativas.
-- **Arquitetura de Serviços e Middlewares**:
-    - **Middlewares (`CheckResource`, `EnsureUserHasPlan`)**: Atualizados para verificar o plano do **Dono do Workspace** em vez do usuário logado.
-    - **Serviços**: Utilizam `app('workspace_id')` para garantir que qualquer ação (Criar Lançamento, Editar Meta, etc.) seja persistida na conta do proprietário correta.
+- **Fluxo de Onboarding e Modais Globais**:
+    - O sistema utiliza estados globais no Pinia (`mustVerifyEmail` e `mustCompleteRegistration`) para controlar o fluxo inicial.
+    - **Modais Globais (`MainLayout.vue`)**: Se o estado estiver ativo, os modais de verificação ou cadastro completo aparecem sobre qualquer página.
+    - **Persistência Contra Refresh**: Esses estados são salvos no `localStorage` via watchers no store. Mesmo com F5, o usuário não escapa do onboarding.
+    - **Social Callback Flow**: O `SocialAuthCallback.vue` atua como interceptor, transfere parâmetros da URL para o store e limpa a barra de endereços via `router.replace` para melhor SEO e UX.
+    - **Bloqueio Visual**: Durante a verificação de e-mail, o `v-app-bar` e o `v-navigation-drawer` são ocultos para focar a atenção do usuário no processo obrigatório.
 - **Endpoints**: Substituídos `/shared-accounts` por `/colaboracoes` para manter a consistência com o idioma do projeto.
 
 > [!NOTE]
@@ -58,7 +48,7 @@
     - **Assinatura**: Detalhes do plano atual e data de renovação.
     - **Pagamentos**: Resumo dos últimos 3 pagamentos realizados.
     - **Upgrades**: Opções de planos disponíveis para facilitar a decisão do usuário.
-    - **Histórico**: As últimas 15 mensagens formatadas para manter o contexto da conversa.
+    - **Histórico**: As últimas 15 mensagens formatadas para manter o contexto sem exceder o limite de tokens da API.
 - **Cloud Storage**: Integração com **Supabase Storage** para persistência de avatares.
 
 ---
@@ -79,9 +69,12 @@ php artisan app:designar-assinatura {usuario_id} {plano_id}
 
 ---
 
-## Validações de E-mail
-- **Frontend**: Regex rigoroso impede e-mails mal formatados ou compostos apenas por números.
-- **Backend**: Validação `email:strict` configurada no `RegisterRequest.php`.
+### 8. Validações e Conformidade (Data & CPF)
+- **Centralização de Regras**: Utiliza o módulo `utils/validation.js` tanto no Registro normal quanto no Social Onboarding.
+- **Algoritmo de CPF**: Validação matemática completa de dígitos verificadores para impedir registros falsos.
+- **Idade Mínima (+18)**: Cálculo dinâmico baseado na data atual (incluindo anos bissextos) em conformidade com as regras de negócio.
+- **PostgreSQL Compliance**: Booleans (como `aceita_termos`) são tratados explicitamente como literais de string `'true'/'false'` no envio para evitar erros de cast no banco de dados Supabase/PostgreSQL.
+- **Backend Validation**: Validação `email:strict` e `exists` no `RegisterRequest.php` e `CompletarCadastroSocial.php`.
 
 
 Finalyze é uma plataforma robusta de controle financeiro pessoal, permitindo que usuários monitorem suas receitas, despesas e planejem seu futuro financeiro através de diversos planos de assinatura.
