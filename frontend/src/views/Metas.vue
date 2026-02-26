@@ -167,7 +167,7 @@ import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
-const { fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
+const { currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 const authStore = useAuthStore()
 
 const metas = ref([])
@@ -265,8 +265,12 @@ const openLembreteDialog = (meta) => {
 }
 
 const fetchLembretes = async () => {
+  if (!authStore.hasFeature('lembretes')) return
   try {
-    const res = await authStore.apiFetch('/lembretes')
+    const res = await authStore.apiFetch('/lembretes', {
+      suppress403Redirect: true,
+      suppress403Toast: true
+    })
     if (!res.ok) return
     const lista = await res.json()
     // Indexa por titulo da meta para associar (lembretes não têm meta_id na Eduardo)
@@ -385,17 +389,12 @@ const reativarItem = async (item) => {
 
 // Helpers
 const formatPrice = (value) => {
-    const converted = fromBRL(value || 0)
-    return new Intl.NumberFormat(currencyMeta.value.locale, {
-        style: 'currency',
-        currency: currencyMeta.value.code
-    }).format(converted)
+    return `${currencySymbol.value} ${fmtNum(value || 0)}`
 }
 const formatShortPrice = (value) => {
-  // Convert from BRL to selected currency first, then abbreviate
-  const converted = fromBRL(value || 0)
-  if (converted >= 1000000) return currencySymbol.value + (converted / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-  if (converted >= 1000) return currencySymbol.value + (converted / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  const amount = Number(value || 0)
+  if (amount >= 1000000) return currencySymbol.value + (amount / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (amount >= 1000) return currencySymbol.value + (amount / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
   return formatPrice(value)
 }
 const formatDate = (date) => {

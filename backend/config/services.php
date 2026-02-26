@@ -52,4 +52,10 @@ return [
     'mistral' => [
         'key' => env('MISTRAL_API_KEY'),
     ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID', env('GMAIL_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', env('GMAIL_CLIENT_SECRET')),
+        'redirect' => env('GOOGLE_REDIRECT_URL', rtrim(env('APP_URL', 'http://localhost:8000'), '/') . '/api/auth/google/callback'),
+    ],
 ];

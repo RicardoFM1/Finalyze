@@ -41,7 +41,7 @@
 
     <ModalBase v-model="showPendingDialog" :title="$t('plans.pending_title')" maxWidth="500px" persistent>
         <p class="text-body-1 text-center mb-4">
-          {{ $t('plans.pending_desc', { plan: $t('plans.plan_names.' + pendingPlanName, pendingPlanName) }) }}
+          {{ $t('plans.pending_desc', { plan: displayPlanName(pendingPlanName) }) }}
         </p>
         <template #actions>
           <div class="d-flex w-100 flex-column flex-sm-row justify-end gap-2">
@@ -97,7 +97,7 @@
                 <div class="d-flex justify-space-between align-center mb-3">
                     <span class="text-subtitle-2 opacity-70">{{ $t('plans.change_modal.new_plan') }}:</span>
                     <v-chip size="small" :color="selectedForUpgrade?.gratuito ? 'success' : 'primary'" class="font-weight-black">
-                        {{ $t('plans.plan_names.' + selectedForUpgrade?.plan.nome, selectedForUpgrade?.plan.nome) }} 
+                        {{ displayPlanName(selectedForUpgrade?.plan?.nome) }}
                         ({{ selectedForUpgrade?.period.slug === 'mensal' ? $t('admin.intervals.month') : (selectedForUpgrade?.period.slug === 'anual' ? $t('admin.intervals.year') : selectedForUpgrade?.period.nome) }})
                     </v-chip>
                 </div>
@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PlanCard from '../components/PlanCard.vue'
 import { useAuthStore } from '../stores/auth'
@@ -164,8 +164,8 @@ import ModalBase from '../components/Modals/modalBase.vue'
 import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
 
-const { t } = useI18n()
-const { currencySymbol, meta: currencyMeta, fromBRL } = useMoney()
+const { t, locale } = useI18n()
+const { meta: currencyMeta, fromBRL } = useMoney()
 const router = useRouter()
 const authStore = useAuthStore()
 const plans = ref([])
@@ -176,12 +176,93 @@ const pendingPlanName = ref('')
 const cancelling = ref(false)
 const continuing = ref(false)
 const currentSubscription = ref(null)
+const translatedPlanNames = ref({})
+
+const getTargetLanguage = () => (locale.value || '').toLowerCase().startsWith('en') ? 'en' : 'pt'
+const getTranslationStorageKey = () => 'finalyze_plan_name_translations_v1'
+
+const loadTranslationCache = () => {
+  try {
+    const raw = localStorage.getItem(getTranslationStorageKey())
+    if (raw) translatedPlanNames.value = JSON.parse(raw)
+  } catch (e) {
+    translatedPlanNames.value = {}
+  }
+}
+
+const persistTranslationCache = () => {
+  try {
+    localStorage.setItem(getTranslationStorageKey(), JSON.stringify(translatedPlanNames.value))
+  } catch (e) {
+    // ignore storage failures
+  }
+}
+
+const getStaticPlanTranslation = (name) => {
+  if (!name) return ''
+  const key = `plans.plan_names.${name}`
+  const translated = t(key)
+  return translated !== key ? translated : null
+}
+
+const displayPlanName = (name) => {
+  if (!name) return ''
+  const lang = getTargetLanguage()
+  const cacheKey = `${lang}:${name}`
+  return translatedPlanNames.value[cacheKey] || getStaticPlanTranslation(name) || name
+}
+
+const translatePlanNameOnline = async (name) => {
+  const lang = getTargetLanguage()
+  const cacheKey = `${lang}:${name}`
+  if (translatedPlanNames.value[cacheKey]) return translatedPlanNames.value[cacheKey]
+
+  const staticTranslation = getStaticPlanTranslation(name)
+  if (staticTranslation) {
+    translatedPlanNames.value[cacheKey] = staticTranslation
+    persistTranslationCache()
+    return staticTranslation
+  }
+
+  try {
+    const response = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(name)}`
+    )
+    if (!response.ok) return name
+    const data = await response.json()
+    const translated = Array.isArray(data?.[0]) ? data[0].map(part => part?.[0] || '').join('').trim() : ''
+    const result = translated || name
+    translatedPlanNames.value[cacheKey] = result
+    persistTranslationCache()
+    return result
+  } catch (e) {
+    return name
+  }
+}
+
+const localizePlans = async () => {
+  if (!plans.value.length) return
+  
+  // Set initial names from local storage or static translation if possible
+  plans.value = plans.value.map(plan => ({
+    ...plan,
+    nome_localizado: displayPlanName(plan.nome)
+  }))
+
+  const localizedNames = await Promise.all(plans.value.map(plan => translatePlanNameOnline(plan.nome)))
+  plans.value = plans.value.map((plan, idx) => ({
+    ...plan,
+    nome_localizado: localizedNames[idx] || plan.nome
+  }))
+}
 
 onMounted(async () => {
+  loadTranslationCache()
   try {
     const plansResponse = await authStore.apiFetch('/planos')
     if (plansResponse.ok) {
         plans.value = await plansResponse.json()
+        await localizePlans()
     }
   } catch (error) {
     console.error('Erro ao buscar planos:', error)
@@ -211,6 +292,10 @@ onMounted(async () => {
     }
   }
 
+})
+
+watch(locale, async () => {
+  await localizePlans()
 })
 
 const handleSelectPlan = async ({ plan, period }) => {

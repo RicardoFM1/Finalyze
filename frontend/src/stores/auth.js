@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+﻿import { defineStore } from 'pinia';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUiStore } from './ui';
 import { toast } from 'vue3-toastify';
@@ -10,12 +10,27 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref(null);
     const workspaceId = ref(localStorage.getItem('workspace_id') || null);
     const sharedAccounts = ref([]);
+    const loadingSharedAccounts = ref(false);
+    const mustVerifyEmail = ref(localStorage.getItem('must_verify_email') || null);
+    const mustCompleteRegistration = ref(localStorage.getItem('must_complete_registration') ? JSON.parse(localStorage.getItem('must_complete_registration')) : null);
 
     const token = ref(localStorage.getItem('token') || null);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const router = useRouter();
 
     const isAuthenticated = computed(() => !!token.value);
+
+    // Watchers for persistent modal state
+    watch(mustVerifyEmail, (newVal) => {
+        if (newVal) localStorage.setItem('must_verify_email', newVal);
+        else localStorage.removeItem('must_verify_email');
+    });
+
+    watch(mustCompleteRegistration, (newVal) => {
+        if (newVal) localStorage.setItem('must_complete_registration', JSON.stringify(newVal));
+        else localStorage.removeItem('must_complete_registration');
+    });
+
     const activeWorkspace = computed(() => {
         return sharedAccounts.value.find(acc => acc.id == workspaceId.value);
     });
@@ -28,26 +43,31 @@ export const useAuthStore = defineStore('auth', () => {
     async function apiFetch(endpoint, options = {}) {
         const ui = useUiStore();
         const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
+        const {
+            suppress403Redirect = false,
+            suppress403Toast = false,
+            ...fetchOptions
+        } = options;
 
         const headers = {
             'Accept': 'application/json',
-            ...options.headers
+            ...fetchOptions.headers
         };
 
         if (token.value) {
-            headers['Authorization'] = `Bearer ${token.value}`;
+            headers['Authorization'] = 'Bearer ' + token.value;
         }
 
         if (workspaceId.value) {
             headers['X-Workspace-Id'] = workspaceId.value;
         }
 
-        if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+        if (fetchOptions.body && !(fetchOptions.body instanceof FormData) && !headers['Content-Type']) {
             headers['Content-Type'] = 'application/json';
         }
 
         try {
-            const response = await fetch(url, { ...options, headers });
+            const response = await fetch(url, { ...fetchOptions, headers });
 
             if (response.status === 401) {
                 logout();
@@ -58,24 +78,28 @@ export const useAuthStore = defineStore('auth', () => {
                     router.push({ name: 'Login' });
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Sessão expirada. Faça login novamente.');
+                throw new Error(errorData.message || 'Sess�o expirada. Fa�a login novamente.');
             }
 
             if (response.status === 403) {
-                if (router.currentRoute.value.name !== 'Plans') {
+                const errorData = await response.json().catch(() => ({}));
+                const message = errorData.message || 'Seu plano atual n�o possui acesso a este recurso.';
+
+                if (!suppress403Toast && router.currentRoute.value.name !== 'Plans') {
+                    toast.warning(message, { autoClose: 5000 });
+                }
+                if (!suppress403Redirect && router.currentRoute.value.name !== 'Plans') {
                     router.push({ name: 'Plans' });
                 }
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Acesso negado. Verifique seu plano.');
+                throw new Error(message);
             }
 
             return response;
         } catch (error) {
-            console.error('Erro na requisição API:', error);
+            console.error('Erro na requisi��o API:', error);
             throw error;
         }
     }
-
     async function login(email, senha) {
         try {
             const response = await apiFetch('/auth/login', {
@@ -88,6 +112,11 @@ export const useAuthStore = defineStore('auth', () => {
             if (!response.ok) throw new Error(data.message || 'Falha no login');
 
             if (data.requer_verificacao) {
+                const clearAuthModals = () => {
+                    mustVerifyEmail.value = null;
+                    mustCompleteRegistration.value = null;
+                };
+
                 return { requer_verificacao: true, email: data.email };
             }
 
@@ -95,6 +124,11 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = data.usuario;
             localStorage.setItem('token', token.value);
             await fetchSharedAccounts();
+            const clearAuthModals = () => {
+                mustVerifyEmail.value = null;
+                mustCompleteRegistration.value = null;
+            };
+
             return { success: true };
         } catch (error) {
             console.error(error);
@@ -113,8 +147,8 @@ export const useAuthStore = defineStore('auth', () => {
                     senha_confirmation: password_confirmation,
                     cpf,
                     data_nascimento,
-                    aceita_termos,
-                    aceita_notificacoes
+                    aceita_termos: Boolean(aceita_termos),
+                    aceita_notificacoes: Boolean(aceita_notificacoes)
                 })
             });
 
@@ -144,12 +178,12 @@ export const useAuthStore = defineStore('auth', () => {
                 // Initialize sharedAccounts with self immediately
                 sharedAccounts.value = [{ id: data.id, owner: data, is_owner: true }];
 
-                if (!workspaceId.value) {
+                if (!workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = data.id;
                     localStorage.setItem('workspace_id', data.id);
                 }
-                // Fetch collaborations in background
-                fetchSharedAccounts();
+                // Fetch collaborations and wait for it
+                await fetchSharedAccounts();
             }
         } catch (e) {
             console.error(e);
@@ -159,11 +193,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function fetchSharedAccounts() {
+        if (!token.value || loadingSharedAccounts.value) return;
+        loadingSharedAccounts.value = true;
         try {
             const response = await apiFetch('/colaboracoes');
             if (response.ok) {
                 const data = await response.json();
-                if (!user.value) return;
+
+                // If user.value is not available yet, we skip populating but don't fail
+                if (!user.value) {
+                    sharedAccounts.value = [];
+                    return;
+                }
+
                 const ownAccount = { id: user.value.id, owner: user.value, is_owner: true };
                 const otherAccounts = (data.shared_with_me || []).map(s => ({
                     ...s,
@@ -176,13 +218,15 @@ export const useAuthStore = defineStore('auth', () => {
 
                 // Check if current workspace is still valid among all accounts
                 const stillExists = sharedAccounts.value.some(a => a.id == workspaceId.value);
-                if (!stillExists) {
+                if (!stillExists || !workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = user.value.id;
                     localStorage.setItem('workspace_id', user.value.id);
                 }
             }
         } catch (e) {
-            console.error(e);
+            console.error('Erro ao buscar contas compartilhadas:', e);
+        } finally {
+            loadingSharedAccounts.value = false;
         }
     }
 
@@ -196,8 +240,12 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null;
         user.value = null;
         workspaceId.value = null;
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
         localStorage.removeItem('token');
         localStorage.removeItem('workspace_id');
+        localStorage.removeItem('must_verify_email');
+        localStorage.removeItem('must_complete_registration');
     }
 
     function hasFeature(featureSlug) {
@@ -280,5 +328,82 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    return { user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan, login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature, getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage };
+    async function googleLogin() {
+        window.location.href = `${API_URL}/auth/google`;
+    }
+
+    async function handleGoogleCallback() {
+        try {
+            const response = await apiFetch('/auth/google/callback');
+            if (response.ok) {
+                return await response.json();
+            }
+            throw new Error('Erro ao processar login com Google');
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async function completarCadastroSocial(dados) {
+        try {
+            const response = await apiFetch('/auth/google/completar', {
+                method: 'POST',
+                body: JSON.stringify(dados)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao completar cadastro');
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async function forgotPassword(email) {
+        try {
+            const response = await apiFetch('/auth/forgot-password', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao solicitar recuperação');
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async function resetPassword(dados) {
+        try {
+            const response = await apiFetch('/auth/reset-password', {
+                method: 'POST',
+                body: JSON.stringify(dados)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Falha ao redefinir senha');
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    const clearAuthModals = () => {
+        mustVerifyEmail.value = null;
+        mustCompleteRegistration.value = null;
+        localStorage.removeItem('must_verify_email');
+        localStorage.removeItem('must_complete_registration');
+    };
+
+    return {
+        user, token, workspaceId, sharedAccounts, activeWorkspace, isAuthenticated, hasActivePlan,
+        login, register, verifyCode, resendCode, logout, fetchUser, apiFetch, hasFeature,
+        getStorageUrl, setWorkspace, fetchSharedAccounts, setLanguage,
+        googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword, mustVerifyEmail, mustCompleteRegistration, clearAuthModals
+    };
 });
+
+
+

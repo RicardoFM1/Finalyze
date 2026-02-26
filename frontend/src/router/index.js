@@ -4,7 +4,7 @@ import { useUiStore } from '@/stores/ui'
 import { toast } from 'vue3-toastify'
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',
@@ -23,6 +23,11 @@ const router = createRouter({
       name: 'Register',
       component: () => import('@/views/Register.vue'),
       meta: { RequiresNoAuth: true }
+    },
+    {
+      path: '/auth/callback',
+      name: 'SocialAuthCallback',
+      component: () => import('@/views/SocialAuthCallback.vue')
     },
     {
       path: '/planos',

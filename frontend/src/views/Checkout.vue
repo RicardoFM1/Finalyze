@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container class="py-10">
     <v-row v-if="pageLoading" justify="center" align="center" style="min-height: 50vh;">
       <v-col cols="12" class="text-center">
@@ -24,6 +24,20 @@
                 </v-tabs>
 
                 <div class="pa-4">
+                  <v-btn
+                    v-if="authTab === 'login'"
+                    block
+                    variant="outlined"
+                    color="medium-emphasis"
+                    size="large"
+                    class="rounded-xl font-weight-bold text-none social-btn mb-6"
+                    :disabled="loading"
+                    @click="authStore.googleLogin()"
+                  >
+                    <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+                    {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+                  </v-btn>
+
                   <AuthForm 
                     v-if="authTab === 'login'"
                     v-model="loginForm"
@@ -33,6 +47,12 @@
                     hide-nav
                     @submit="handleLogin"
                   />
+
+                  <div v-if="authTab === 'login'" class="mt-2 text-right">
+                    <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" @click="showForgotModal = true">
+                      {{ $t('login.forgot_password') || 'Esqueceu a senha?' }}
+                    </v-btn>
+                  </div>
                   <AuthForm 
                     v-else
                     v-model="registerForm"
@@ -47,6 +67,7 @@
                     @submit="handleRegister"
                     @update:cpf="handleCpfInput"
                   />
+
                 </div>
               </div>
               <div v-else class="text-center pa-10">
@@ -149,10 +170,12 @@
         </v-card>
       </v-col>
     </v-row>
+    <ModalForgotPassword v-model="showForgotModal" />
   </v-container>
 </template>
 
 <script setup>
+import { validateAge, validateCPF as utilValidateCPF } from '../utils/validation';
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
@@ -160,6 +183,7 @@ import { toast } from 'vue3-toastify'
 import PaymentBrick from '../components/PaymentBrick.vue'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
+import ModalForgotPassword from '../components/Auth/ModalForgotPassword.vue'
 import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
 
@@ -177,6 +201,7 @@ const loading = ref(false)
 const preferenceId = ref(null)
 const checkoutError = ref(null)
 const error = ref('')
+const showForgotModal = ref(false)
 
 const planId = ref(route.query.plan)
 const periodId = ref(route.query.period)
@@ -231,7 +256,8 @@ const handleFreeUpgrade = async () => {
 const loginForm = ref({ email: '', senha: '' })
 const registerForm = ref({ 
     nome: '', email: '', senha: '', senha_confirmation: '', 
-    cpf: '', data_nascimento: '' 
+    cpf: '', data_nascimento: '',
+    aceita_termos: false, aceita_notificacoes: true
 })
 const errors = ref({})
 
@@ -390,7 +416,9 @@ const handleRegister = async () => {
             registerForm.value.senha,
             registerForm.value.senha_confirmation,
             cleanCpf,
-            registerForm.value.data_nascimento
+            registerForm.value.data_nascimento,
+            registerForm.value.aceita_termos,
+            registerForm.value.aceita_notificacoes
         )
         toast.success('Cadastro realizado! Por favor, verifique seu e-mail.')
         step.value = 2
@@ -492,38 +520,8 @@ const handleCpfInput = (event) => {
   registerForm.value.cpf = value
 }
 
-const validateAge = (v) => {
-  if (!v) return true
-  let birth
-  if (typeof v === 'string') {
-    const parts = v.split(/[-/]/)
-    if (parts.length >= 3) {
-      let year, month, day
-      if (parts[0].length === 4) {
-        year = parseInt(parts[0])
-        month = parseInt(parts[1])
-        day = parseInt(parts[2])
-      } else {
-        day = parseInt(parts[0])
-        month = parseInt(parts[1])
-        year = parseInt(parts[2])
-      }
-      birth = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`)
-    } else {
-      birth = new Date(v)
-    }
-  } else {
-    birth = new Date(v)
-  }
-
-  if (!birth || isNaN(birth.getTime())) return false
-
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return age >= 18 || t('validation.age_restriction')
-}
+const validateAgeRule = (v) => validateAge(v, t);
+const validateCPFRule = (v) => utilValidateCPF(v, t);
 
 const validateCPF = (v) => {
     if (!v) return true
@@ -580,3 +578,4 @@ const validateCPF = (v) => {
     line-height: 1.2;
 }
 </style>
+

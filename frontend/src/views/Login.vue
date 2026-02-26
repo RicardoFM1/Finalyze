@@ -43,10 +43,6 @@
         <v-card flat max-width="450" width="100%" class="pa-4 pa-sm-8 pa-md-12 bg-transparent">
           <template v-if="!showVerification">
             <div class="text-center mb-10">
-              <div class="d-flex align-center justify-center mb-6">
-                <img :src="logotipo" alt="Logo" class="logo-mobile mb-2" />
-                <h1 class="text-h4 font-weight-black gradient-text ml-3">Finalyze</h1>
-              </div>
               <h2 class="text-h4 font-weight-bold mb-2">{{ $t('login.welcome_back') }}</h2>
               <div>
                 <p class="text-body-2 text-medium-emphasis">
@@ -58,42 +54,63 @@
               </div>
             </div>
 
+            <v-btn
+              block
+              variant="outlined"
+              color="medium-emphasis"
+              size="large"
+              class="rounded-xl font-weight-bold text-none social-btn mb-6"
+              :disabled="loading"
+              @click="handleGoogleLogin"
+              >
+              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+            </v-btn>
+            
+            
+            
             <AuthForm 
-              v-model="form"
-              mode="login"
-              :loading="loading"
-              :error="error"
-              @submit="handleLogin"
+            v-model="form"
+            mode="login"
+            :loading="loading"
+            :error="error"
+            :showForgotPassword="true"
+            @forgot-password="showForgotModal = true"
+            @submit="handleLogin"
             />
+            
           </template>
-
+          
           <EmailVerification 
-            v-else
-            :email="form.email"
+          v-else
+          :email="form.email"
             :loading="loading"
             :error="error"
             @verify="handleVerify"
             @resend="handleResend"
             @back="showVerification = false"
-          />
-        </v-card>
-      </v-col>
-    </v-row>
+            />
+          </v-card>
+        </v-col>
+      </v-row>
+      
+      <ModalForgotPassword v-model="showForgotModal" />
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 import AuthForm from '../components/Auth/AuthForm.vue'
 import EmailVerification from '../components/Auth/EmailVerification.vue'
-import logotipo from '../assets/logotipo.png'
+import ModalForgotPassword from '../components/Auth/ModalForgotPassword.vue'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const form = ref({
@@ -106,6 +123,17 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 const showVerification = ref(false)
+const showForgotModal = ref(false)
+
+onMounted(() => {
+  if (route.query.error) {
+    toast.error(route.query.error)
+  }
+})
+
+const handleGoogleLogin = () => {
+  authStore.googleLogin()
+}
 
 const handleLogin = async () => {
   loading.value = true
@@ -232,15 +260,4 @@ const handleResend = async () => {
   color: #5CBBF6 !important;
 }
 
-.logo-mobile {
-  height: 48px;
-  width: auto;
-  /* invert white logo to dark in light mode */
-  filter: invert(1) brightness(0);
-}
-
-:root[data-theme="dark"] .logo-mobile,
-.v-theme--dark .logo-mobile {
-  filter: none;
-}
 </style>

@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <v-layout>
-    <v-app-bar color="primary" elevation="2">
+    <v-app-bar v-if="!authStore.mustVerifyEmail" color="primary" elevation="2">
         <!-- LAYOUT MOBILE/TABLET: Espaçado e Profissional -->
         <template v-if="!lgAndUp">
           <div class="d-flex align-center justify-space-between w-100 px-2 h-100">
@@ -54,7 +54,13 @@
 
                             <v-divider class="my-2"></v-divider>
 
-                <template v-if="authStore.sharedAccounts.length > 1 && !uiAuthStore.loading">
+                <template v-if="authStore.loadingSharedAccounts">
+                    <v-list-subheader>Workspace</v-list-subheader>
+                    <v-list-item v-for="i in 2" :key="i">
+                        <v-skeleton-loader type="list-item-avatar"></v-skeleton-loader>
+                    </v-list-item>
+                </template>
+                <template v-else-if="authStore.sharedAccounts.length > 1">
                     <v-list-subheader>Workspace</v-list-subheader>
                     <v-list-item
                         v-for="acc in authStore.sharedAccounts"
@@ -86,7 +92,10 @@
 
               
                 <template v-else>
-                    <v-menu location="bottom end" class="rounded-xl">
+                    <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center">
+                        <v-skeleton-loader type="actions" class="bg-transparent" width="120"></v-skeleton-loader>
+                    </div>
+                    <v-menu v-else location="bottom end" class="rounded-xl">
                       <template v-slot:activator="{ props }">
                          <v-btn variant="text" color="white" v-bind="props" size="small" class="ml-1">
                              <v-icon>mdi-dots-vertical</v-icon>
@@ -132,6 +141,7 @@
                     </v-menu>
 
                     <v-btn
+                        v-if="!authStore.loadingSharedAccounts && !uiAuthStore.loading"
                         size="small"
                         v-bind="route.name === 'Register' ? { to: { name: 'Login' } } : { to: { name: 'Register' } }"
                         variant="elevated"
@@ -189,48 +199,63 @@
             </template>
 
             <template v-else>
-              <!-- Workspace Switcher -->
-              <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
-                  <template v-slot:activator="{ props }">
-                      <v-btn
-                          v-bind="props"
-                          variant="tonal"
-                          color="white"
-                          prepend-icon="mdi-office-building"
-                          class="text-none ml-2 rounded-xl"
-                      >
-                          {{ activeWorkspaceName }}
-                      </v-btn>
-                  </template>
-                  <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4">
-                      <v-list-item
-                          v-for="acc in authStore.sharedAccounts"
-                          :key="acc.id"
-                          :active="authStore.workspaceId == acc.id"
-                          @click="authStore.setWorkspace(acc.id)"
-                      >
-                          <template v-slot:prepend>
-                              <v-avatar size="32" class="mr-2" color="primary">
-                                  <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
-                              </v-avatar>
-                          </template>
-                          <v-list-item-title class="font-weight-bold">
-                              {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
-                          </v-list-item-title>
-                          <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
-                      </v-list-item>
-                  </v-list>
-              </v-menu>
+              <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center gap-2">
+                <v-skeleton-loader type="chip" class="bg-transparent" width="130"></v-skeleton-loader>
+                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
+                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
+              </div>
+              <template v-else>
+                <!-- Workspace Switcher -->
+                <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
+                    <template v-slot:activator="{ props }">
+                         <v-btn
+                            v-bind="props"
+                            variant="tonal"
+                            color="white"
+                            prepend-icon="mdi-office-building"
+                            class="text-none ml-2 rounded-xl"
+                            :loading="authStore.loadingSharedAccounts"
+                        >
+                            {{ activeWorkspaceName }}
+                        </v-btn>
+                    </template>
+                     <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4" min-width="220">
+                        <template v-if="authStore.loadingSharedAccounts">
+                            <v-list-item v-for="i in 2" :key="i">
+                                <v-skeleton-loader type="list-item-avatar-two-line"></v-skeleton-loader>
+                            </v-list-item>
+                        </template>
+                        <template v-else>
+                            <v-list-item
+                                v-for="acc in authStore.sharedAccounts"
+                                :key="acc.id"
+                                :active="authStore.workspaceId == acc.id"
+                                @click="authStore.setWorkspace(acc.id)"
+                            >
+                                <template v-slot:prepend>
+                                    <v-avatar size="32" class="mr-2" color="primary">
+                                        <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                                    </v-avatar>
+                                </template>
+                                <v-list-item-title class="font-weight-bold">
+                                    {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
+                                </v-list-item-title>
+                                <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
+                            </v-list-item>
+                        </template>
+                     </v-list>
+                </v-menu>
 
-              <Coinselector class="ml-2" />
-              <v-btn v-if="authStore.hasFeature('lembretes') && route.name !== 'Lembretes' && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
-                  <v-icon icon="mdi-bell-ring-outline"></v-icon>
-                  <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
-              </v-btn>
-              <v-btn v-if="authStore.isAuthenticated && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
-                  <v-icon icon="mdi-account-group"></v-icon>
-                  <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
-              </v-btn>
+                <Coinselector class="ml-2" />
+                <v-btn v-if="authStore.hasFeature('lembretes') && route.name !== 'Lembretes' && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
+                    <v-icon icon="mdi-bell-ring-outline"></v-icon>
+                    <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
+                </v-btn>
+                <v-btn v-if="authStore.isAuthenticated && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
+                    <v-icon icon="mdi-account-group"></v-icon>
+                    <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
+                </v-btn>
+              </template>
             </template>
 
             
@@ -284,7 +309,7 @@
     <v-navigation-drawer
       v-if="
         (authStore.isAuthenticated &&
-        !isAuthPage) && route.meta.hideNavBar !== true
+        !isAuthPage && !authStore.mustVerifyEmail) && route.meta.hideNavBar !== true
       "
       v-model="drawer"
       :rail="isDesktop && rail"
@@ -294,56 +319,74 @@
       elevation="6"
     >
 
-            <v-list>
-            <v-list-item v-if="authStore.user" class="px-2" :class="{ 'justify-center': rail && isDesktop }">
-                <div class="d-flex align-center cursor-pointer hover-bg py-2 rounded-xl" :class="{ 'px-2': !rail || !isDesktop, 'justify-center w-100': rail && isDesktop }">
-                    <v-avatar size="36" class="elevation-2 border-white" :class="{ 'mr-3': !rail || !isDesktop }">
-                        <v-img v-if="authStore.user?.avatar_url" :src="authStore.user.avatar_url" cover></v-img>
-                        <v-img v-else-if="authStore.user?.avatar" :src="authStore.getStorageUrl(authStore.user.avatar)" cover></v-img>
-                        <div v-else class="fill-height d-flex align-center justify-center bg-primary-lighten-4 text-primary text-caption font-weight-bold">
-                            {{ getInitials(authStore.user?.nome) }}
-                        </div>
-                    </v-avatar>
-                    <div v-if="!rail || !isDesktop" class="flex-column align-start d-flex">
-                        <span class="text-body-2 font-weight-bold text-truncate" style="max-width: 140px;">
-                            {{ authStore.user?.nome }}
-                        </span>
-                        <span class="text-caption opacity-60 mt-n1 text-truncate" style="max-width: 140px; font-size: 0.65rem !important;">
-                            {{ authStore.user?.email }}
-                        </span>
-                        
-                    </div>
-                </div>
+        <v-list v-if="authStore.loadingSharedAccounts || uiAuthStore.loading">
+            <v-list-item v-for="i in 3" :key="i">
+                <v-skeleton-loader type="list-item-avatar-two-line" class="bg-transparent"></v-skeleton-loader>
             </v-list-item>
         </v-list>
-        <v-divider></v-divider>
-        <v-list density="compact" nav>
-            <!-- Workspace Switcher in Sidebar -->
-            <v-list-item 
-                v-if="authStore.isAuthenticated"
-                prepend-icon="mdi-office-building" 
-                :title="activeWorkspaceName"
-                :subtitle="t('common.active_workspace') || 'Área de Trabalho Ativa'"
-                color="secondary"
-                :class="{ 'mb-2 bg-secondary-lighten-5 rounded-lg border-dashed': authStore.sharedAccounts.length > 1, 'mb-2 opacity-80': authStore.sharedAccounts.length <= 1 }"
-            >
-                <v-menu v-if="authStore.sharedAccounts.length > 1" activator="parent" class="rounded-xl mt-2 overflow-hidden" elevation="4">
-                    <v-list>
-                        <v-list-item 
-                            v-for="acc in authStore.sharedAccounts" 
-                            :key="acc.id"
-                            :active="authStore.workspaceId == acc.id"
-                            @click="authStore.setWorkspace(acc.id)"
-                        >
-                            <v-list-item-title class="font-weight-bold">
-                                {{ acc.is_owner ? $t('common.my_account') || 'Minha Conta' : acc.owner?.nome }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>{{ acc.owner?.email }}</v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
-                </v-menu>
-            </v-list-item>
+        <template v-else>
+            <v-list>
+                <v-list-item v-if="authStore.user" class="px-2" :class="{ 'justify-center': rail && isDesktop }">
+                    <div class="d-flex align-center cursor-pointer hover-bg py-2 rounded-xl" :class="{ 'px-2': !rail || !isDesktop, 'justify-center w-100': rail && isDesktop }">
+                        <v-avatar size="36" class="elevation-2 border-white" :class="{ 'mr-3': !rail || !isDesktop }">
+                            <v-img v-if="authStore.user?.avatar_url" :src="authStore.user.avatar_url" cover></v-img>
+                            <v-img v-else-if="authStore.user?.avatar" :src="authStore.getStorageUrl(authStore.user.avatar)" cover></v-img>
+                            <div v-else class="fill-height d-flex align-center justify-center bg-primary-lighten-4 text-primary text-caption font-weight-bold">
+                                {{ getInitials(authStore.user?.nome) }}
+                            </div>
+                        </v-avatar>
+                        <div v-if="!rail || !isDesktop" class="flex-column align-start d-flex">
+                            <span class="text-body-2 font-weight-bold text-truncate" style="max-width: 140px;">
+                                {{ authStore.user?.nome }}
+                            </span>
+                            <span class="text-caption opacity-60 mt-n1 text-truncate" style="max-width: 140px; font-size: 0.65rem !important;">
+                                {{ authStore.user?.email }}
+                            </span>
+                        </div>
+                    </div>
+                </v-list-item>
+            </v-list>
+            <v-divider></v-divider>
+            <v-list density="compact" nav>
+                <!-- Workspace Switcher in Sidebar -->
+                <v-list-item 
+                    v-if="authStore.isAuthenticated"
+                    prepend-icon="mdi-office-building" 
+                    :title="activeWorkspaceName"
+                    :subtitle="t('common.active_workspace') || 'Área de Trabalho Ativa'"
+                    color="secondary"
+                    :disabled="authStore.loadingSharedAccounts"
+                    :class="{ 'mb-2 bg-secondary-lighten-5 rounded-lg border-dashed': authStore.sharedAccounts.length > 1, 'mb-2 opacity-80': authStore.sharedAccounts.length <= 1 }"
+                >
+                    <template v-slot:append>
+                        <v-progress-circular v-if="authStore.loadingSharedAccounts" indeterminate size="16" width="2" color="primary"></v-progress-circular>
+                        <v-icon v-else-if="authStore.sharedAccounts.length > 1" icon="mdi-chevron-down" size="16"></v-icon>
+                    </template>
+                    <v-menu v-if="authStore.sharedAccounts.length > 1" activator="parent" class="rounded-xl mt-2 overflow-hidden" elevation="4">
+                        <v-list>
+                            <v-list-item 
+                                v-for="acc in authStore.sharedAccounts" 
+                                :key="acc.id"
+                                :active="authStore.workspaceId == acc.id"
+                                @click="authStore.setWorkspace(acc.id)"
+                            >
+                                <template v-slot:prepend>
+                                    <v-avatar size="32" class="mr-3" color="primary">
+                                        <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                                    </v-avatar>
+                                </template>
+                                <v-list-item-title class="font-weight-bold">
+                                    {{ acc.is_owner ? $t('common.my_account') || 'Minha Conta' : acc.owner?.nome }}
+                                </v-list-item-title>
+                                <v-list-item-subtitle>{{ acc.owner?.email }}</v-list-item-subtitle>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                </v-list-item>
+            </v-list>
+        </template>
 
+        <v-list density="compact" nav>
            <v-list-item prepend-icon="mdi-home" :title="$t('sidebar.home')" :to="{ name: 'Home' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Painel Financeiro')" prepend-icon="mdi-view-dashboard" :title="$t('sidebar.dashboard')" :to="{ name: 'Dashboard' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item v-if="authStore.hasFeature('Lançamentos')" prepend-icon="mdi-bank-transfer" :title="$t('sidebar.transactions')" :to="{ name: 'Lancamentos' }" @click="!isDesktop && (drawer = false)"></v-list-item>
@@ -356,13 +399,12 @@
             <v-list-item prepend-icon="mdi-cog" :title="$t('sidebar.settings') || 'Configurações'" :to="{ name: 'Settings' }" @click="!isDesktop && (drawer = false)"></v-list-item>
             <v-list-item color="error" class="text-error" variant="text" @click="confirmLogout = true" prepend-icon="mdi-logout" :title="$t('sidebar.logout')"></v-list-item>
         </v-list>
-
-        
     </v-navigation-drawer>
 
       <v-main>
         <router-view></router-view>
       </v-main>
+
     <ModalBase v-model="confirmLogout" :title="$t('landing.features.DS')" maxWidth="400px" persistent>
         <div class="text-center mb-4">
             <v-avatar color="error-lighten-4" size="70" class="mb-2">
@@ -392,13 +434,47 @@
             </v-btn>
         </template>
     </ModalBase>
+
     <FinnChat v-if="authStore.isAuthenticated && authStore.hasFeature('Finn AI') && route.name !== 'Checkout'" />
     <CompartilharModal v-model="shareDialog" />
+  
+    <!-- Modal Global: Completar Cadastro Social -->
+    <ModalCompleteSocialRegistration 
+        v-if="authStore.mustCompleteRegistration"
+        :modelValue="true"
+        :persistent="false"
+        @update:modelValue="v => { if (!v) authStore.mustCompleteRegistration = null }"
+        :usuario-id="authStore.mustCompleteRegistration.usuario_id"
+        :email="authStore.mustCompleteRegistration.email"
+        :onboarding-token="authStore.mustCompleteRegistration.onboarding_token"
+        @complete="handleGlobalOnboardingComplete"
+    />
+
+    <!-- Modal Global: Verificação de E-mail (Non-Closable) -->
+    <ModalBase 
+        v-if="authStore.mustVerifyEmail" 
+        :modelValue="true" 
+        persistent 
+        hide-close
+        maxWidth="450px" 
+        :title="$t('auth.verify_email_title') || 'Verifique seu e-mail'"
+    >
+        <div class="pa-6">
+            <EmailVerification 
+                :email="authStore.mustVerifyEmail"
+                :loading="globalVerifyLoading"
+                :error="globalVerifyError"
+                @verify="handleGlobalVerify"
+                @resend="handleGlobalResend"
+                @back="authStore.clearAuthModals(); $router.push({ name: 'Login' })"
+            />
+        </div>
+    </ModalBase>
   </v-layout>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAuthStore } from '../stores/auth'
@@ -415,6 +491,10 @@ import Coinselector from './Currency/Coinselector.vue'
 import { useCurrencyStore } from '../stores/currency'
 import { AVAILABLE_CURRENCIES } from '../composables/useMoney'
 
+// Global Auth Flow Components
+import ModalCompleteSocialRegistration from './Auth/ModalCompleteSocialRegistration.vue';
+import EmailVerification from './Auth/EmailVerification.vue';
+
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
 const router = useRouter()
@@ -425,9 +505,13 @@ const confirmLogout = ref(false)
 const shareDialog = ref(false)
 const drawer = ref(false)
 const rail = ref(false)
+const remindersIntervalId = ref(null)
 
 const { mdAndUp, lgAndUp, smAndDown } = useDisplay()
 const isDesktop = computed(() => lgAndUp.value)
+
+const globalVerifyLoading = ref(false)
+const globalVerifyError = ref('')
 
 // Mobile currency selector
 const currencyStore = useCurrencyStore()
@@ -456,9 +540,12 @@ watch(() => uiAuthStore.locale, (newLocale) => {
 }, { immediate: true })
 
 const activeWorkspaceName = computed(() => {
+    // Show spinner icon/placeholder if loading
+    if (authStore.loadingSharedAccounts || uiAuthStore.loading) return '...'
+    
     const active = authStore.sharedAccounts.find(a => a.id == authStore.workspaceId)
-    if (!active && uiAuthStore.loading) return '...'
     if (!active) return authStore.user?.nome || 'Workspace'
+    
     if (active?.is_owner) return t('common.my_account') || 'Minha Conta'
     return active?.owner?.nome || 'Workspace'
 })
@@ -489,8 +576,9 @@ onMounted(async () => {
     authStore.fetchSharedAccounts();
     // Wait for initial load to finish before checking reminders to avoid multiple toasts
     setTimeout(() => {
+        if (!authStore.hasFeature('lembretes')) return;
         checkReminders();
-        setInterval(checkReminders, 60 * 1000);
+        remindersIntervalId.value = setInterval(checkReminders, 60 * 1000);
     }, 2000);
   }
   if (isDesktop.value && authStore.isAuthenticated) {
@@ -498,11 +586,22 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+    if (remindersIntervalId.value) {
+        clearInterval(remindersIntervalId.value);
+        remindersIntervalId.value = null;
+    }
+})
+
 const notifiedSession = new Set()
 
 const checkReminders = async () => {
+    if (!authStore.hasFeature('lembretes')) return;
     try {
-        const response = await authStore.apiFetch('/lembretes')
+        const response = await authStore.apiFetch('/lembretes', {
+            suppress403Redirect: true,
+            suppress403Toast: true
+        })
         if (response.ok) {
             const list = await response.json()
             
@@ -551,6 +650,39 @@ watch(isDesktop, (desktop) => {
   drawer.value = desktop && authStore.isAuthenticated
   rail.value = false
 })
+
+const handleGlobalOnboardingComplete = (result) => {
+    if (result.requer_verificacao) {
+        authStore.mustCompleteRegistration = null
+        authStore.mustVerifyEmail = result.email
+    } else {
+        authStore.clearAuthModals()
+    }
+}
+
+const handleGlobalVerify = async (code) => {
+    globalVerifyLoading.value = true
+    globalVerifyError.value = ''
+    try {
+        await authStore.verifyCode(authStore.mustVerifyEmail, code)
+        authStore.clearAuthModals()
+        await authStore.fetchUser(true)
+        await authStore.fetchSharedAccounts()
+    } catch (e) {
+        globalVerifyError.value = e.message
+    } finally {
+        globalVerifyLoading.value = false
+    }
+}
+
+const handleGlobalResend = async () => {
+    try {
+        await authStore.resendCode(authStore.mustVerifyEmail)
+        toast.success(t('checkout.toasts.resend_success') || 'Código reenviado!')
+    } catch (e) {
+        toast.error(e.message)
+    }
+}
 </script>
 
 

@@ -91,7 +91,26 @@
     "feature_badges": {
       "security": "Segurança Total",
       "analysis": "Análise Inteligente"
-    }
+    },
+    "continue_with_google": "Continuar com Google",
+    "forgot_password": {
+      "title": "Recuperar Senha",
+      "desc": "Insira seu e-mail para receber um código de recuperação de senha.",
+      "btn_send": "Enviar Código",
+      "reset_title": "Alterar Senha",
+      "reset_desc": "Insira o código enviado para seu e-mail e sua nova senha.",
+      "btn_reset": "Alterar Senha",
+      "success_send": "Se o e-mail estiver cadastrado, o código foi enviado!",
+      "success_reset": "Senha alterada com sucesso! Agora você pode fazer login."
+    },
+    "complete_registration": {
+      "title": "Completar Cadastro",
+      "desc": "Para sua segurança e conformidade, precisamos de mais alguns dados."
+    },
+    "verification_code_label": "Código de 6 dígitos",
+    "invalid_code": "Código deve ter 6 dígitos",
+    "processing_login": "Processando login...",
+    "verify_email_title": "Verifique seu e-mail"
   },
   "sidebar": {
     "home": "Página inicial",
@@ -125,6 +144,7 @@
     "btn_back_home": "Voltar ao Início",
     "no_account": "Não tem uma conta?",
     "register_link": "Criar conta agora",
+    "forgot_password": "Esqueceu a senha?",
     "rules": {
       "email_required": "O e-mail é essencial para o acesso",
       "password_required": "A senha é necessária para sua segurança"
@@ -207,6 +227,7 @@
     "goal_late": "Meta Atrasada!",
     "goal_remaining": "Faltam {amount} para sua meta",
     "goal_reached": "Meta batida! Parabéns!",
+    "goal_incomplete_error": "A meta só pode ser finalizada quando atingir 100% de progresso.",
     "edit": "Editar",
     "deactivate": "Desativar",
     "no_goals_completed": "Nenhuma meta concluída encontrada.",
@@ -537,7 +558,10 @@
       "usd": "Dólar Americano",
       "eur": "Euro",
       "gbp": "Libra Esterlina"
-    }
+    },
+    "or": "OU",
+    "continue": "Continuar",
+    "back": "Voltar"
   },
   "register": {
     "title": "Criar Conta",

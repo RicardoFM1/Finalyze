@@ -169,13 +169,19 @@
       <span class="text-truncate-max-2">{{ mode === 'login' ? $t('login.btn_login') : $t('register.btn_submit') }}</span>
     </v-btn>
 
+    <div v-if="mode === 'login' && showForgotPassword" class="mt-2 text-right">
+      <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold" @click="$emit('forgot-password')">
+        {{ $t('login.forgot_password') || 'Esqueceu a senha?' }}
+      </v-btn>
+    </div>
+
     <v-btn
       v-if="!hideNav"
       variant="tonal"
       block
       :disabled="loading"
       :size="isMobile ? 'default' : 'large'"
-      class="mt-4 rounded-xl font-weight-medium text-none btn-auth"
+      class="mt-4 mb-4 rounded-xl font-weight-medium text-none btn-auth"
       :to="{ name: mode === 'login' ? 'Register' : 'Login' }"
     >
       <span class="text-truncate-max-2">{{ mode === 'login' ? $t('login.register_link') : $t('register.login_link') }}</span>
@@ -233,10 +239,14 @@ const props = defineProps({
   hideNav: {
     type: Boolean,
     default: false
+  },
+  showForgotPassword: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['submit', 'update:modelValue', 'update:cpf', 'update:valid'])
+const emit = defineEmits(['submit', 'update:modelValue', 'update:cpf', 'update:valid', 'forgot-password'])
 
 const formValid = ref(false)
 const showPass = ref(false)

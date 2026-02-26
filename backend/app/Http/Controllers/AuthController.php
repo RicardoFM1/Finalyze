@@ -9,7 +9,13 @@ use App\Servicos\Autenticacao\LoginUsuario;
 use App\Servicos\Autenticacao\LogoutUsuario;
 use App\Servicos\Autenticacao\VerificarCodigo;
 use App\Servicos\Autenticacao\ReenviarCodigo;
+use App\Servicos\Autenticacao\GoogleAuthCallback;
+use App\Servicos\Autenticacao\CompletarCadastroSocial;
+use App\Servicos\Autenticacao\EnviarCodigoResetSenha;
+use App\Servicos\Autenticacao\RedefinirSenha;
+use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -66,5 +72,81 @@ class AuthController extends Controller
     {
         $servico->executar($request);
         return response()->json(['message' => 'Logout realizado com sucesso.']);
+    }
+
+    public function googleRedirect()
+    {
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $redirect = config('services.google.redirect');
+
+        if (empty($clientId) || empty($clientSecret) || empty($redirect)) {
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode('Configuração de login Google incompleta. Verifique GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET e GOOGLE_REDIRECT_URL no backend.'));
+        }
+
+        try {
+            return Socialite::driver('google')->stateless()->redirect();
+        } catch (\Throwable $e) {
+            Log::error('Falha ao iniciar login social Google', [
+                'error' => $e->getMessage(),
+                'has_client_id' => !empty($clientId),
+                'has_client_secret' => !empty($clientSecret),
+                'redirect' => $redirect,
+            ]);
+
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode('Falha ao iniciar login com Google: ' . $e->getMessage()));
+        }
+    }
+
+    public function googleCallback(GoogleAuthCallback $servico)
+    {
+        try {
+            $resultado = $servico->executar();
+            $query = http_build_query($resultado);
+            return redirect(config('app.frontend_url') . '/auth/callback?' . $query);
+        } catch (\Exception $e) {
+            return redirect(config('app.frontend_url') . '/login?error=' . urlencode($e->getMessage()));
+        }
+    }
+
+    public function completarCadastroSocial(Request $request, CompletarCadastroSocial $servico)
+    {
+        $dados = $request->validate([
+            'usuario_id' => 'required|exists:usuarios,id',
+            'onboarding_token' => 'required|string',
+            'cpf' => 'required|string', // A validação real pode ser feita via regex ou custom rule
+            'data_nascimento' => 'required|date',
+            'aceita_termos' => 'required|accepted',
+            'aceita_notificacoes' => 'boolean'
+        ]);
+
+        try {
+            return response()->json($servico->executar($dados));
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function forgotPassword(Request $request, EnviarCodigoResetSenha $servico)
+    {
+        $request->validate(['email' => 'required|email']);
+        $servico->executar($request->email);
+        return response()->json(['message' => 'Se o e-mail estiver cadastrado, um código de recuperação será enviado.']);
+    }
+
+    public function resetPassword(Request $request, RedefinirSenha $servico)
+    {
+        $dados = $request->validate([
+            'email' => 'required|email',
+            'codigo' => 'required|string|size:6',
+            'senha' => 'required|min:6|confirmed'
+        ]);
+
+        try {
+            $servico->executar($dados);
+            return response()->json(['message' => 'Senha redefinida com sucesso.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 }

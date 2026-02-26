@@ -12,6 +12,13 @@ Route::post('/auth/login', [App\Http\Controllers\AuthController::class, 'login']
 Route::post('/auth/verificar', [App\Http\Controllers\AuthController::class, 'verificarCodigo']);
 Route::post('/auth/reenviar', [App\Http\Controllers\AuthController::class, 'reenviarCodigo']);
 
+Route::get('/auth/google', [App\Http\Controllers\AuthController::class, 'googleRedirect']);
+Route::get('/auth/google/callback', [App\Http\Controllers\AuthController::class, 'googleCallback']);
+Route::post('/auth/google/completar', [App\Http\Controllers\AuthController::class, 'completarCadastroSocial']);
+
+Route::post('/auth/forgot-password', [App\Http\Controllers\AuthController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [App\Http\Controllers\AuthController::class, 'resetPassword']);
+
 
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 

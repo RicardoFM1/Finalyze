@@ -22,6 +22,9 @@ class Usuario extends Authenticatable
         'avatar',
         'cpf',
         'data_nascimento',
+        'google_id',
+        'reset_code',
+        'reset_code_expires_at',
         'codigo_verificacao',
         'codigo_expira_em',
         'idioma',
@@ -49,8 +52,7 @@ class Usuario extends Authenticatable
             'admin' => 'boolean',
             'data_nascimento' => 'date',
             'codigo_expira_em' => 'datetime',
-            'aceita_termos' => 'boolean',
-            'aceita_notificacoes' => 'boolean',
+            'reset_code_expires_at' => 'datetime',
         ];
     }
 
