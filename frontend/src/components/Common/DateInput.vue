@@ -5,6 +5,7 @@
       :range="mode === 'range'"
       :dark="isDark"
       auto-apply
+      :locale="uiAuthStore.locale === 'pt' ? ptBR : undefined"
       :enable-time-picker="false"
       :teleport="true"
       :format="pickerFormat"
@@ -52,7 +53,8 @@ import { useI18n } from 'vue-i18n'
 import { useMoney } from '../../composables/useMoney'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-
+import { ptBR } from "date-fns/locale"
+const uiAuthStore = useUiStore()
 
 const props = defineProps({
   modelValue: [String, Date, Object, Array],
