@@ -54,19 +54,6 @@
               </div>
             </div>
 
-            <v-btn
-              block
-              variant="outlined"
-              color="medium-emphasis"
-              size="large"
-              class="rounded-xl font-weight-bold text-none social-btn mb-6"
-              :disabled="loading"
-              @click="authStore.googleLogin()"
-            >
-              <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
-              {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
-            </v-btn>
-
             <AuthForm 
               v-model="form"
               mode="register"

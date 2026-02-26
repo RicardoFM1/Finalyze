@@ -4,7 +4,6 @@ namespace App\Servicos\Autenticacao;
 
 use App\Models\Usuario;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Str;
 
 class GoogleAuthCallback
 {
@@ -13,7 +12,7 @@ class GoogleAuthCallback
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Exception $e) {
-            throw new \Exception('Falha na autenticação com o Google.', 422);
+            throw new \Exception('Falha na autenticacao com o Google.', 422);
         }
 
         $usuario = Usuario::where('google_id', $googleUser->id)
@@ -25,27 +24,28 @@ class GoogleAuthCallback
                 'nome' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
-                'senha' => null, // Não precisa de senha inicialmente
+                'senha' => null,
             ]);
-        } else if (!$usuario->google_id) {
+        } elseif (!$usuario->google_id) {
             $usuario->update(['google_id' => $googleUser->id]);
         }
 
-        // Sempre enviamos o código de verificação para garantir a posse do e-mail
         app(GerarCodigoVerificacao::class)->executar($usuario);
 
-        // Se faltar dados obrigatórios
         if (!$usuario->cpf || !$usuario->data_nascimento) {
+            $onboardingToken = $usuario->createToken('social_onboarding')->plainTextToken;
+
             return [
                 'requer_cadastro_completo' => true,
                 'usuario_id' => $usuario->id,
-                'email' => $usuario->email
+                'email' => $usuario->email,
+                'onboarding_token' => $onboardingToken,
             ];
         }
 
         return [
             'requer_verificacao' => true,
-            'email' => $usuario->email
+            'email' => $usuario->email,
         ];
     }
 }

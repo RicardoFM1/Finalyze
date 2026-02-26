@@ -10,6 +10,7 @@
         v-model="showOnboarding"
         :usuario-id="usuarioId"
         :email="email"
+        :onboarding-token="onboardingToken"
         @complete="handleOnboardingComplete"
     />
 
@@ -47,6 +48,7 @@ const loading = ref(false)
 
 const usuarioId = ref(null)
 const email = ref('')
+const onboardingToken = ref('')
 
 onMounted(() => {
     const q = route.query
@@ -59,6 +61,7 @@ onMounted(() => {
 
     email.value = q.email
     usuarioId.value = q.usuario_id
+    onboardingToken.value = q.onboarding_token || ''
 
     if (q.requer_cadastro_completo) {
         showOnboarding.value = true
@@ -78,14 +81,13 @@ onMounted(() => {
 
 const handleOnboardingComplete = async (result) => {
     showOnboarding.value = false
-    if (result.access_token) {
-        authStore.token = result.access_token
-        localStorage.setItem('token', result.access_token)
-        await authStore.fetchUser(true)
-        toast.success('Login realizado com sucesso!')
-        router.push({ name: 'Home' })
-    } else if (result.requer_verificacao) {
+    if (result.email) {
+        email.value = result.email
+    }
+    if (result.requer_verificacao) {
         showVerification.value = true
+    } else {
+        router.push({ name: 'Login' })
     }
 }
 

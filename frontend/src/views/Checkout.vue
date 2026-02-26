@@ -25,6 +25,7 @@
 
                 <div class="pa-4">
                   <v-btn
+                    v-if="authTab === 'login'"
                     block
                     variant="outlined"
                     color="medium-emphasis"

@@ -113,9 +113,9 @@ class AuthController extends Controller
     {
         $dados = $request->validate([
             'usuario_id' => 'required|exists:usuarios,id',
+            'onboarding_token' => 'required|string',
             'cpf' => 'required|string', // A validação real pode ser feita via regex ou custom rule
             'data_nascimento' => 'required|date',
-            'codigo' => 'required|string|size:6',
             'aceita_termos' => 'required|accepted',
             'aceita_notificacoes' => 'boolean'
         ]);
