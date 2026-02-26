@@ -92,7 +92,10 @@
 
               
                 <template v-else>
-                    <v-menu location="bottom end" class="rounded-xl">
+                    <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center">
+                        <v-skeleton-loader type="actions" class="bg-transparent" width="120"></v-skeleton-loader>
+                    </div>
+                    <v-menu v-else location="bottom end" class="rounded-xl">
                       <template v-slot:activator="{ props }">
                          <v-btn variant="text" color="white" v-bind="props" size="small" class="ml-1">
                              <v-icon>mdi-dots-vertical</v-icon>
@@ -138,6 +141,7 @@
                     </v-menu>
 
                     <v-btn
+                        v-if="!authStore.loadingSharedAccounts && !uiAuthStore.loading"
                         size="small"
                         v-bind="route.name === 'Register' ? { to: { name: 'Login' } } : { to: { name: 'Register' } }"
                         variant="elevated"
@@ -195,56 +199,63 @@
             </template>
 
             <template v-else>
-              <!-- Workspace Switcher -->
-              <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
-                  <template v-slot:activator="{ props }">
-                       <v-btn
-                          v-bind="props"
-                          variant="tonal"
-                          color="white"
-                          prepend-icon="mdi-office-building"
-                          class="text-none ml-2 rounded-xl"
-                          :loading="authStore.loadingSharedAccounts"
-                      >
-                          {{ activeWorkspaceName }}
-                      </v-btn>
-                  </template>
-                   <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4" min-width="220">
-                      <template v-if="authStore.loadingSharedAccounts">
-                          <v-list-item v-for="i in 2" :key="i">
-                              <v-skeleton-loader type="list-item-avatar-two-line"></v-skeleton-loader>
-                          </v-list-item>
-                      </template>
-                      <template v-else>
-                          <v-list-item
-                              v-for="acc in authStore.sharedAccounts"
-                              :key="acc.id"
-                              :active="authStore.workspaceId == acc.id"
-                              @click="authStore.setWorkspace(acc.id)"
-                          >
-                              <template v-slot:prepend>
-                                  <v-avatar size="32" class="mr-2" color="primary">
-                                      <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
-                                  </v-avatar>
-                              </template>
-                              <v-list-item-title class="font-weight-bold">
-                                  {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
-                              </v-list-item-title>
-                              <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
-                          </v-list-item>
-                      </template>
-                   </v-list>
-              </v-menu>
+              <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center gap-2">
+                <v-skeleton-loader type="chip" class="bg-transparent" width="130"></v-skeleton-loader>
+                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
+                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
+              </div>
+              <template v-else>
+                <!-- Workspace Switcher -->
+                <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
+                    <template v-slot:activator="{ props }">
+                         <v-btn
+                            v-bind="props"
+                            variant="tonal"
+                            color="white"
+                            prepend-icon="mdi-office-building"
+                            class="text-none ml-2 rounded-xl"
+                            :loading="authStore.loadingSharedAccounts"
+                        >
+                            {{ activeWorkspaceName }}
+                        </v-btn>
+                    </template>
+                     <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4" min-width="220">
+                        <template v-if="authStore.loadingSharedAccounts">
+                            <v-list-item v-for="i in 2" :key="i">
+                                <v-skeleton-loader type="list-item-avatar-two-line"></v-skeleton-loader>
+                            </v-list-item>
+                        </template>
+                        <template v-else>
+                            <v-list-item
+                                v-for="acc in authStore.sharedAccounts"
+                                :key="acc.id"
+                                :active="authStore.workspaceId == acc.id"
+                                @click="authStore.setWorkspace(acc.id)"
+                            >
+                                <template v-slot:prepend>
+                                    <v-avatar size="32" class="mr-2" color="primary">
+                                        <span class="text-caption">{{ getInitials(acc.owner?.nome || 'User') }}</span>
+                                    </v-avatar>
+                                </template>
+                                <v-list-item-title class="font-weight-bold">
+                                    {{ acc.is_owner ? 'Minha Conta' : acc.owner?.nome }}
+                                </v-list-item-title>
+                                <v-list-item-subtitle v-if="!acc.is_owner">{{ acc.owner?.email }}</v-list-item-subtitle>
+                            </v-list-item>
+                        </template>
+                     </v-list>
+                </v-menu>
 
-              <Coinselector class="ml-2" />
-              <v-btn v-if="authStore.hasFeature('lembretes') && route.name !== 'Lembretes' && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
-                  <v-icon icon="mdi-bell-ring-outline"></v-icon>
-                  <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
-              </v-btn>
-              <v-btn v-if="authStore.isAuthenticated && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
-                  <v-icon icon="mdi-account-group"></v-icon>
-                  <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
-              </v-btn>
+                <Coinselector class="ml-2" />
+                <v-btn v-if="authStore.hasFeature('lembretes') && route.name !== 'Lembretes' && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="$router.push({ name: 'Lembretes' })">
+                    <v-icon icon="mdi-bell-ring-outline"></v-icon>
+                    <v-tooltip activator="parent" location="bottom">{{ $t('sidebar.reminders') }}</v-tooltip>
+                </v-btn>
+                <v-btn v-if="authStore.isAuthenticated && route.name !== 'Checkout'" icon variant="text" color="white" class="ml-2" @click="shareDialog = true">
+                    <v-icon icon="mdi-account-group"></v-icon>
+                    <v-tooltip activator="parent" location="bottom">{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-tooltip>
+                </v-btn>
+              </template>
             </template>
 
             
