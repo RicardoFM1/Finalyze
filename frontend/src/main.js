@@ -32,7 +32,7 @@ const i18n = createI18n({
 
 const app = createApp(App)
 
-LogRocket.init('x6etoi/finalyze')
+// LogRocket.init('x6etoi/finalyze')
 
 app.use(pinia)
 app.use(router)

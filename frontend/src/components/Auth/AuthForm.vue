@@ -98,7 +98,7 @@
             @input="$emit('update:cpf', $event)"
             maxlength="14"
             :disabled="loading"
-            :rules="[v => !!v || $t('validation.required'), validateCPF]"
+            :rules="[v => !!v || $t('validation.required'), validateCPFRule]"
             :error-messages="errors.cpf"
             hide-details="auto"
           ></v-text-field>
@@ -112,7 +112,7 @@
             :placeholder="$t('auth.placeholders.birthdate')"
             :disabled="loading"
             class="rounded-lg"
-            :rules="[v => !!v || $t('validation.required'), validateAge]"
+            :rules="[v => !!v || $t('validation.required'), validateAgeRule]"
             hide-details="auto"
           />
         </v-col>
@@ -250,6 +250,16 @@ const emit = defineEmits(['submit', 'update:modelValue', 'update:cpf', 'update:v
 const formValid = ref(false)
 const showPass = ref(false)
 const showConfirmPass = ref(false)
+
+const validateAgeRule = (value) => {
+  if (!props.validateAge) return true
+  return props.validateAge(value, t)
+}
+
+const validateCPFRule = (value) => {
+  if (!props.validateCPF) return true
+  return props.validateCPF(value, t)
+}
 
 const buttonDisabled = computed(() => {
   if (props.loading) return true
