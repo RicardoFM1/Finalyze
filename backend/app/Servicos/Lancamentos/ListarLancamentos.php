@@ -11,7 +11,7 @@ class ListarLancamentos
     {
         $workspaceId = app('workspace_id');
         $usuario = Usuario::findOrFail($workspaceId);
-        $query = $usuario->lancamentos()->latest();
+        $query = $usuario->lancamentos()->orderBy('data', 'desc')->orderBy('id', 'desc');
 
         if (!empty($filtros['search'])) {
             $search = $filtros['search'];
@@ -54,8 +54,11 @@ class ListarLancamentos
         }
 
         if (!empty($filtros['sort_by'])) {
-            $order = !empty($filtros['sort_order']) ? strtoupper($filtros['sort_order']) : 'DESC';
-            $query->orderBy($filtros['sort_by'], $order);
+            $allowedSortBy = ['id', 'data', 'descricao', 'categoria', 'tipo', 'valor', 'forma_pagamento', 'created_at', 'updated_at'];
+            if (in_array($filtros['sort_by'], $allowedSortBy, true)) {
+                $order = !empty($filtros['sort_order']) ? strtoupper($filtros['sort_order']) : 'DESC';
+                $query->reorder()->orderBy($filtros['sort_by'], $order === 'ASC' ? 'ASC' : 'DESC');
+            }
         }
 
         $queryFiltered = clone $query;
@@ -64,10 +67,16 @@ class ListarLancamentos
             'despesa' => (clone $queryFiltered)->where('tipo', 'despesa')->sum('valor'),
         ];
 
-        $perPage = $filtros['per_page'] ?? 10;
-        $page = $filtros['page'] ?? 1;
+        $perPage = isset($filtros['per_page']) ? (int) $filtros['per_page'] : 10;
+        $perPage = max(5, min(50, $perPage));
+        $page = isset($filtros['page']) ? max(1, (int) $filtros['page']) : 1;
 
-        $paginated = $query->paginate($perPage, ['*'], 'page', $page);
+        $paginated = $query->paginate(
+            $perPage,
+            ['id', 'descricao', 'categoria', 'tipo', 'valor', 'data', 'forma_pagamento', 'created_at', 'updated_at'],
+            'page',
+            $page
+        );
 
         $data_inicio = $filtros['data_inicio'] ?? null;
         $data_fim = $filtros['data_fim'] ?? null;

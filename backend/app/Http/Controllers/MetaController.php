@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Auth;
 
 class MetaController extends Controller
 {
-    public function index(ListarMetas $servico)
+    public function index(Request $request, ListarMetas $servico)
     {
-        return $servico->executar();
+        return $servico->executar($request->all());
     }
 
     public function store(StoreMetaRequest $request, CriarMeta $servico)

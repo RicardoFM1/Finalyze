@@ -7,7 +7,7 @@ use App\Models\Usuario;
 
 class ListarMetas
 {
-    public function executar()
+    public function executar(array $filtros = [])
     {
         $workspaceId = app('workspace_id');
         $usuario = Usuario::findOrFail($workspaceId);
@@ -16,7 +16,17 @@ class ListarMetas
         $despesa = $usuario->lancamentos()->where('tipo', 'despesa')->sum('valor');
         $saldo = (float)($receita - $despesa);
 
-        $metas = $usuario->metas()->orderBy('created_at', 'desc')->get();
+        $query = $usuario->metas()->orderBy('created_at', 'desc');
+        if (($filtros['status'] ?? null) === 'ativos') {
+            $query->where('status', '!=', 'inativo');
+        }
+
+        if (!empty($filtros['limit'])) {
+            $limit = max(1, min(100, (int) $filtros['limit']));
+            $query->limit($limit);
+        }
+
+        $metas = $query->get();
 
         $metas->map(function ($meta) use ($saldo) {
             if ($meta->tipo === 'financeira') {

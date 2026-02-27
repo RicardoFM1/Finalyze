@@ -20,11 +20,13 @@ class GerarResumoPainel
     {
         $workspaceId = app('workspace_id');
         $usuario = \App\Models\Usuario::findOrFail($workspaceId);
+        $limitRecent = isset($filtros['limit_recent']) ? (int) $filtros['limit_recent'] : 100;
+        $limitRecent = max(5, min(200, $limitRecent));
 
         $filtrosHash = md5(json_encode($filtros));
         $cacheKey = "user_summary_{$workspaceId}_{$filtrosHash}";
 
-        $calc = function () use ($usuario, $filtros) {
+        $calc = function () use ($usuario, $filtros, $limitRecent) {
             $query = $usuario->lancamentos();
 
             if (!empty($filtros['descricao'])) {
@@ -82,11 +84,16 @@ class GerarResumoPainel
             $despesa = (clone $query)->where('tipo', 'despesa')->sum('valor');
             $saldo = $receita - $despesa;
 
-            // If no filters at all, limit to 5, otherwise show filtered
+            $recentesQuery = $query
+                ->orderBy('data', 'desc')
+                ->orderBy('id', 'desc')
+                ->select(['id', 'descricao', 'categoria', 'tipo', 'valor', 'data', 'forma_pagamento']);
+
+            // If no filters at all, limit to 5; for filtered requests, cap result size.
             if (empty($filtros)) {
-                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->take(5)->get();
+                $recentes = $recentesQuery->take(5)->get();
             } else {
-                $recentes = $query->orderBy('data', 'desc')->orderBy('id', 'desc')->get();
+                $recentes = $recentesQuery->take($limitRecent)->get();
             }
 
             return [
