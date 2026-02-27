@@ -84,6 +84,56 @@ class GerarResumoPainel
             $despesa = (clone $query)->where('tipo', 'despesa')->sum('valor');
             $saldo = $receita - $despesa;
 
+            // Evolução Mensal baseada nos filtros (ou últimos 6 meses se sem filtro de data)
+            $evolucaoQuery = $usuario->lancamentos();
+            // Reaplicar mesmos filtros exceto data
+            if (!empty($filtros['descricao'])) $evolucaoQuery->where('descricao', 'like', '%' . $filtros['descricao'] . '%');
+            if (!empty($filtros['categoria'])) {
+                if (is_array($filtros['categoria'])) $evolucaoQuery->whereIn('categoria', $filtros['categoria']);
+                else $evolucaoQuery->where('categoria', $filtros['categoria']);
+            }
+            if (!empty($filtros['valor'])) $evolucaoQuery->where('valor', $filtros['valor']);
+
+            // Determinar o range para a evolução
+            if (isset($data_inicio) && isset($data_fim)) {
+                $evolStart = \Carbon\Carbon::parse($data_inicio)->startOfMonth();
+                $evolEnd = \Carbon\Carbon::parse($data_fim)->endOfMonth();
+            } else {
+                $evolStart = \Carbon\Carbon::now()->subMonths(5)->startOfMonth();
+                $evolEnd = \Carbon\Carbon::now()->endOfMonth();
+            }
+
+            $evolucaoQuery->whereBetween('data', [$evolStart->toDateString(), $evolEnd->toDateString()]);
+
+            $multiMeses = $evolucaoQuery
+                ->selectRaw("TO_CHAR(data, 'YYYY-MM') as month_key, tipo, SUM(valor) as total")
+                ->groupBy('month_key', 'tipo')
+                ->get();
+
+            $evolData = [];
+            $tempDate = clone $evolStart;
+            while ($tempDate <= $evolEnd) {
+                $key = $tempDate->format('Y-m');
+                $evolData[$key] = [
+                    'label' => $tempDate->translatedFormat('M Y'),
+                    'receita' => 0.0,
+                    'despesa' => 0.0,
+                    'saldo' => 0.0
+                ];
+                $tempDate->addMonth();
+            }
+
+            foreach ($multiMeses as $row) {
+                if (isset($evolData[$row->month_key])) {
+                    $evolData[$row->month_key][$row->tipo] = (float) $row->total;
+                }
+            }
+
+            // Calcular saldo mensal
+            foreach ($evolData as &$ed) {
+                $ed['saldo'] = $ed['receita'] - $ed['despesa'];
+            }
+
             $recentesQuery = $query
                 ->orderBy('data', 'desc')
                 ->orderBy('id', 'desc')
@@ -103,7 +153,8 @@ class GerarResumoPainel
                 'atividades_recentes' => $recentes,
                 'periodo_label' => $periodo_label,
                 'data_inicio' => $data_inicio,
-                'data_fim' => $data_fim
+                'data_fim' => $data_fim,
+                'evolucao_mensal' => array_values($evolData)
             ];
         };
 

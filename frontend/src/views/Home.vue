@@ -473,12 +473,10 @@ const features = computed(() => [
   backdrop-filter: blur(4px);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
   color: rgb(var(--v-theme-primary));
-  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  margin-top: 16px;
 }
 
 @keyframes fadeInUp {

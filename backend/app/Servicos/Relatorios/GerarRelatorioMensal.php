@@ -18,10 +18,10 @@ class GerarRelatorioMensal
         }
 
         $cacheKey = "monthly_report_{$user->id}_{$mesesCount}";
-        $cached = cache()->remember($cacheKey, now()->addMinutes(5), function () use ($user, $months) {
-            $startMonth = Carbon::createFromFormat('Y-m', $months[0])->startOfMonth();
-            $endMonth = Carbon::createFromFormat('Y-m', $months[count($months) - 1])->endOfMonth();
+        $startMonth = Carbon::createFromFormat('Y-m', $months[0])->startOfMonth();
+        $endMonth = Carbon::createFromFormat('Y-m', $months[count($months) - 1])->endOfMonth();
 
+        $cached = cache()->remember($cacheKey, now()->addMinutes(5), function () use ($user, $months, $startMonth, $endMonth) {
             $rows = $user->lancamentos()
                 ->selectRaw("TO_CHAR(data, 'YYYY-MM') as month_key, tipo, SUM(valor) as total")
                 ->whereBetween('data', [$startMonth->toDateString(), $endMonth->toDateString()])
@@ -36,30 +36,42 @@ class GerarRelatorioMensal
 
             $incomeData = [];
             $expenseData = [];
+            $balanceData = [];
             foreach ($months as $month) {
-                $incomeData[] = $totals[$month]['receita'] ?? 0.0;
-                $expenseData[] = $totals[$month]['despesa'] ?? 0.0;
+                $inc = $totals[$month]['receita'] ?? 0.0;
+                $exp = $totals[$month]['despesa'] ?? 0.0;
+                $incomeData[] = $inc;
+                $expenseData[] = $exp;
+                $balanceData[] = $inc - $exp;
             }
 
-            return [$incomeData, $expenseData];
+            // Breakdown por categoria (Despesas)
+            $categories = $user->lancamentos()
+                ->where('tipo', 'despesa')
+                ->whereBetween('data', [$startMonth->toDateString(), $endMonth->toDateString()])
+                ->selectRaw("categoria, SUM(valor) as total")
+                ->groupBy('categoria')
+                ->orderByDesc('total')
+                ->get();
+
+            return [
+                'incomeData' => $incomeData,
+                'expenseData' => $expenseData,
+                'balanceData' => $balanceData,
+                'categories' => $categories
+            ];
         });
 
-        [$incomeData, $expenseData] = $cached;
+        $data = $cached;
 
         return [
-            'labels' => array_map(fn($m) => Carbon::createFromFormat('Y-m', $m)->format('M Y'), $months),
+            'labels' => array_map(fn($m) => Carbon::createFromFormat('Y-m', $m)->translatedFormat('M Y'), $months),
             'datasets' => [
-                [
-                    'label' => 'Receitas',
-                    'backgroundColor' => '#4CAF50',
-                    'data' => $incomeData
-                ],
-                [
-                    'label' => 'Despesas',
-                    'backgroundColor' => '#F44336',
-                    'data' => $expenseData
-                ]
-            ]
+                'income' => $data['incomeData'],
+                'expense' => $data['expenseData'],
+                'balance' => $data['balanceData']
+            ],
+            'categories' => $data['categories']
         ];
     }
 }

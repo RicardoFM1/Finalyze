@@ -422,7 +422,12 @@
     "loading": "Loading data...",
     "restricted_access": "Restricted Access",
     "restricted_subtitle": "Your current plan does not include advanced reports.",
-    "view_plans": "View Plans"
+    "view_plans": "View Plans",
+    "evolution_title": "Cash Flow",
+    "categories_title": "Spending Distribution",
+    "net_balance_title": "Monthly Balance",
+    "no_expenses": "No expenses in the period",
+    "no_data": "No data for the period"
   },
   "checkout": {
     "price_per_period": "{period}: {price}",
@@ -532,7 +537,8 @@
     "continue_or_cancel": "Do you want to continue from where you left off or cancel this payment to choose a new plan?",
     "cancel_previous": "Cancel Previous",
     "continue_payment": "Continue Payment",
-    "leave_new": "Leave Now"
+    "leave_new": "Leave Now",
+    "monthly_evolution": "Monthly Evolution"
   },
   "common": {
     "save": "Save",

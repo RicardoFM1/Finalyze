@@ -174,54 +174,55 @@
       <v-col cols="12" md="8">
         <v-card class="rounded-xl mb-8 glass-card border-card overflow-hidden" elevation="4">
           <v-card-title class="font-weight-bold pa-6 d-flex align-center">
-            <v-icon icon="mdi-chart-donut" color="primary" class="mr-2"></v-icon>
+            <v-icon icon="mdi-chart-bar" color="primary" class="mr-2"></v-icon>
             {{ $t('features.financial_health') }}
             <v-spacer></v-spacer>
-            <div class="text-caption text-medium-emphasis font-weight-medium d-none d-sm-block">{{ $t('features.resource_distribution') }}</div>
+            <div class="text-caption text-medium-emphasis font-weight-medium d-none d-sm-block">{{ $t('features.monthly_evolution') || 'Evolução Mensal' }}</div>
           </v-card-title>
           <v-card-text class="pa-6">
             <v-row class="align-center">
-              <v-col cols="12" md="5" class="d-flex justify-center">
-                <div style="max-width: 250px; position: relative;">
-                  <Doughnut v-if="!loading" :data="chartData" :options="chartOptions" :key="JSON.stringify(chartData.datasets[0].data)" />
-                  <div class="chart-center-text" v-if="!loading">
-                    <div class="text-h5 font-weight-bold">{{ getMarginPercentage }}%</div>
-                    <div class="text-caption d-flex align-center justify-center">
-                      {{ $t('features.margin') }}
-                      <v-tooltip activator="parent" location="bottom" max-width="250">
-                        {{ $t('features.margin_explanation') || 'Representa a porcentagem da receita que sobra após o pagamento de todas as despesas (Margem de Lucro Líquida).' }}
-                      </v-tooltip>
-                      <v-icon icon="mdi-help-circle-outline" size="12" class="ml-1 opacity-60"></v-icon>
-                    </div>
+              <v-col cols="12" class="d-flex justify-center">
+                <div style="width: 100%; height: 350px; position: relative;">
+                  <Bar v-if="!loading && resumo.evolucao_mensal?.length" :data="chartData" :options="chartOptions" :key="JSON.stringify(resumo.evolucao_mensal)" />
+                  <div v-else-if="!loading" class="d-flex flex-column align-center justify-center h-100 opacity-30">
+                    <v-icon icon="mdi-chart-bar" size="64"></v-icon>
+                    <p>{{ $t('reports.no_data') || 'Sem dados para o período' }}</p>
                   </div>
                 </div>
               </v-col>
-              <v-col cols="12" md="7">
-                <div class="mb-4 d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <div class="dot receita-dot mr-2"></div>
-                    <span class="text-body-2">{{ $t('features.incomes') }}</span>
-                  </div>
-                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.receita) }}</span>
-                </div>
+              <v-col cols="12">
                 <v-divider class="mb-4"></v-divider>
-                <div class="mb-4 d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <div class="dot despesa-dot mr-2"></div>
-                    <span class="text-body-2">{{ $t('features.expenses') }}</span>
-                  </div>
-                  <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.despesa) }}</span>
-                </div>
-                <v-divider class="mb-4"></v-divider>
-                <div class="d-flex align-center justify-space-between">
-                  <div class="d-flex align-center">
-                    <div class="dot saldo-dot mr-2"></div>
-                    <span class="text-body-2">{{ $t('features.net') }}</span>
-                  </div>
-                  <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
-                    {{ currencySymbol }} {{ formatNumber(resumo.saldo) }}
-                  </span>
-                </div>
+                <v-row>
+                  <v-col cols="12" sm="4">
+                    <div class="d-flex align-center justify-space-between mb-2 mb-sm-0">
+                      <div class="d-flex align-center">
+                        <div class="dot receita-dot mr-2"></div>
+                        <span class="text-body-2">{{ $t('features.incomes') }}</span>
+                      </div>
+                      <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.receita) }}</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <div class="d-flex align-center justify-space-between mb-2 mb-sm-0">
+                      <div class="d-flex align-center">
+                        <div class="dot despesa-dot mr-2"></div>
+                        <span class="text-body-2">{{ $t('features.expenses') }}</span>
+                      </div>
+                      <span class="text-body-2 font-weight-bold">{{ currencySymbol }} {{ formatNumber(resumo.despesa) }}</span>
+                    </div>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <div class="d-flex align-center justify-space-between">
+                      <div class="d-flex align-center">
+                        <div class="dot saldo-dot mr-2"></div>
+                        <span class="text-body-2">{{ $t('features.net') }}</span>
+                      </div>
+                      <span class="text-body-2 font-weight-bold" :class="resumo.saldo >= 0 ? 'text-success' : 'text-error'">
+                        {{ currencySymbol }} {{ formatNumber(resumo.saldo) }}
+                      </span>
+                    </div>
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
           </v-card-text>
@@ -342,10 +343,10 @@ import ModalNovoLancamento from '../components/Modals/Lancamentos/ModalNovoLanca
 import ModalEditarLancamento from '../components/Modals/Lancamentos/ModalEditarLancamento.vue'
 import ModalExcluirLancamento from '../components/Modals/Lancamentos/ModalExcluirLancamento.vue'
 import FilterLancamentos from '../components/Filters/Filter.vue'
-import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend)
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
 import { useMoney } from '../composables/useMoney'
@@ -475,31 +476,83 @@ const getCategoryIcon = (catName) => {
   const cat = categoriasConstantes.find(c => c.title === catName)
   return cat ? cat.icon : 'mdi-tag-outline'
 }
-const chartData = computed(() => ({
-    labels: [t('features.incomes'), t('features.expenses'), t('features.net')],
-    datasets: [{
-        data: [resumo.value.receita, resumo.value.despesa, resumo.value.saldo > 0 ? resumo.value.saldo : 0],
-        backgroundColor: ['#38ef7d', '#ff4b2b', '#0083b0'],
-        borderWidth: 0,
-        hoverOffset: 10
-    }]
-}))
+const chartData = computed(() => {
+    const evol = resumo.value.evolucao_mensal || []
+    return {
+        labels: evol.map(e => e.label),
+        datasets: [
+            {
+                label: t('features.incomes'),
+                data: evol.map(e => e.receita),
+                backgroundColor: '#38ef7d',
+                borderRadius: 8,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8
+            },
+            {
+                label: t('features.expenses'),
+                data: evol.map(e => e.despesa),
+                backgroundColor: '#ff4b2b',
+                borderRadius: 8,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8
+            },
+            {
+                label: t('features.net'),
+                data: evol.map(e => e.saldo),
+                backgroundColor: '#0083b0',
+                borderRadius: 8,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8
+            }
+        ]
+    }
+})
 
 const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { display: false },
+        legend: { 
+            display: true,
+            position: 'bottom',
+            labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: { family: 'Inter', size: 11, weight: 'bold' }
+            }
+        },
         tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            titleColor: '#1a1a1a',
+            bodyColor: '#4a4a4a',
+            borderColor: 'rgba(0,0,0,0.1)',
+            borderWidth: 1,
+            padding: 12,
             callbacks: {
                 label: (context) => {
                     const val = context.raw || 0
-                    return ` ${currencySymbol.value} ${fmtNum(fromBRL(val))}`
+                    return ` ${context.dataset.label}: ${currencySymbol.value} ${fmtNum(fromBRL(val))}`
                 }
             }
         }
     },
-    cutout: '80%'
+    scales: {
+        x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Inter', size: 10 } }
+        },
+        y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)', drawBorder: false },
+            ticks: { 
+                font: { family: 'Inter', size: 10 },
+                callback: (value) => `${currencySymbol.value} ${fmtNum(fromBRL(value))}`
+            }
+        }
+    }
 }
 
 const resumo = ref({
