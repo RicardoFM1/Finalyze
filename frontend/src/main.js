@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import LogRocket from 'logrocket'
 
 import vuetify from './plugins/vuetify'
 import router from './router'
@@ -30,6 +31,8 @@ const i18n = createI18n({
 })
 
 const app = createApp(App)
+
+LogRocket.init('x6etoi/finalyze')
 
 app.use(pinia)
 app.use(router)
