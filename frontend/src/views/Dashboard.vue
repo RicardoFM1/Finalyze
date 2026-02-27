@@ -556,7 +556,7 @@ onMounted(async () => {
 const fetchMetas = async () => {
     if (!authStore.hasFeature('Metas')) return
     try {
-        const response = await authStore.apiFetch('/metas')
+        const response = await authStore.apiFetch('/metas?status=ativos&limit=3')
         if (response.ok) {
             const data = await response.json()
             metasSummary.value = data

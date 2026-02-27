@@ -217,7 +217,26 @@ const handleImport = async (event) => {
         'outros': 'other', 'other': 'other'
       }
 
+      const parseAmount = (raw) => {
+        if (typeof raw === 'number') return raw
+        if (raw === null || raw === undefined) return 0
+        let s = String(raw).trim()
+        if (!s) return 0
+        s = s.replace(/\s/g, '').replace(/[R$€£]/g, '')
+        if (s.includes(',') && s.includes('.')) {
+          // "1.234,56" -> "1234.56"
+          s = s.replace(/\./g, '').replace(',', '.')
+        } else if (s.includes(',')) {
+          // "1234,56" -> "1234.56"
+          s = s.replace(',', '.')
+        }
+        s = s.replace(/[^\d.-]/g, '')
+        const n = parseFloat(s)
+        return Number.isFinite(n) ? n : 0
+      }
+
       let count = 0
+      let failed = 0
       for (const row of rows) {
         // Mapeamento flexível de colunas
         const getVal = (fields) => {
@@ -239,10 +258,7 @@ const handleImport = async (event) => {
         const finalForma = formaMap[normalizedForma] || 'other'
 
         // Normalização de Valor (caso venha como string formatada)
-        let finalValor = valorRaw
-        if (typeof valorRaw === 'string') {
-          finalValor = parseFloat(valorRaw.replace(/[^\d.,-]/g, '').replace(',', '.'))
-        }
+        const finalValor = parseAmount(valorRaw)
 
         // Normalização de Data
         let finalData = dataRaw
@@ -274,23 +290,37 @@ const handleImport = async (event) => {
         }
 
         try {
-          await authStore.apiFetch('/lancamentos', {
+          const response = await authStore.apiFetch('/lancamentos', {
             method: 'POST',
             body: JSON.stringify(payload)
           })
-          count++
+          if (response.ok) {
+            count++
+          } else {
+            failed++
+            let body = null
+            try { body = await response.json() } catch (_) {}
+            console.error('Falha ao importar linha:', { row, payload, status: response.status, body })
+          }
         } catch (err) {
+          failed++
           console.error('Erro ao importar linha:', row, err)
         }
       }
 
-      toast.success(t('toasts.import_success', { count }))
+      if (count > 0) {
+        toast.success(t('toasts.import_success', { count }))
+      }
+      if (failed > 0) {
+        toast.warning(`${failed} linha(s) não foram importadas. Veja o console para detalhes.`)
+      }
       buscarLancamentos()
     } catch (err) {
       console.error('Erro na importação:', err)
       toast.error(t('toasts.error_generic'))
     } finally {
       loading.value = false
+      event.target.value = ''
     }
   }
 
