@@ -3,7 +3,7 @@
     <v-row align="center" class="mb-6 pt-4">
       <v-col cols="12">
         <div class="d-flex flex-column gap-6">
-          <!-- Top Row: Title & New Button -->
+          
           <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
             <div class="d-flex align-center">
               <v-avatar color="secondary" size="48" class="mr-3 elevation-2">
@@ -41,7 +41,6 @@
             </div>
           </div>
 
-          <!-- Bottom Row: Status Filters -->
           <div v-if="viewMode === 'list'" class="filter-wrapper d-flex justify-center justify-md-start">
             <v-btn-toggle
               v-model="statusFilter"
@@ -78,7 +77,7 @@
     </div>
 
     <template v-else>
-      <!-- List View -->
+      
       <v-row v-if="viewMode === 'list' && filteredNotes.length">
         <v-col v-for="note in filteredNotes" :key="note.id" cols="12" sm="6" md="4" lg="3">
           <v-card 
@@ -135,7 +134,6 @@
         </v-col>
       </v-row>
 
-      <!-- FullCalendar View -->
       <div v-else-if="viewMode === 'calendar'" class="fullcalendar-wrapper mt-2">
         <v-card class="rounded-xl overflow-hidden fc-card" elevation="2">
           <FullCalendar :options="calendarOptions" ref="fcRef" />
@@ -157,7 +155,6 @@
       @rollback="({ id, oldStatus }) => { const i = anotacoes.value.findIndex(a => a.id === id); if(i !== -1) anotacoes.value[i].status = oldStatus; fetchNotes(true) }"
     />
 
-    <!-- Day Details Dialog -->
     <v-dialog v-model="dayDetailsDialog" maxWidth="500px">
         <v-card class="rounded-xl pa-4">
             <v-card-title class="d-flex justify-space-between align-center">
@@ -224,7 +221,6 @@ const noteToDelete = ref(null)
 const itemAEditar = ref(null)
 const fcRef = ref(null)
 
-// UI State
 const statusFilter = ref('andamento')
 const viewMode = ref('calendar')
 const calendarDate = ref(new Date())
@@ -273,7 +269,6 @@ const filteredNotes = computed(() => {
   return anotacoes.value.filter(n => n.status === statusFilter.value)
 })
 
-// Calendar Logic
 const notesForCalendarDate = computed(() => {
     if (!calendarDate.value) return []
     const d = new Date(calendarDate.value)
@@ -290,7 +285,7 @@ const calendarAttributes = computed(() => {
     return anotacoes.value
         .filter(n => n.prazo && n.status !== 'inativo')
         .map(n => {
-            // Guaranteeing YYYY-MM-DD format for V-Calendar
+            
             const dateStr = typeof n.prazo === 'string' ? n.prazo.split('T')[0] : null
             if (!dateStr) return null
             return {
@@ -326,7 +321,7 @@ const calendarOptions = computed(() => ({
   events: anotacoes.value
     .filter(n => n.prazo && n.status !== 'inativo')
     .map(n => {
-      // Fix: parse date string as local date (YYYY-MM-DD) to avoid UTC shift
+      
       const dateStr = typeof n.prazo === 'string' ? n.prazo.split('T')[0] : null
       if (!dateStr) return null
       return {
@@ -338,7 +333,7 @@ const calendarOptions = computed(() => ({
         borderColor: 'transparent',
         textColor: '#fff',
         extendedProps: { note: n },
-        // Mark overdue events so CSS can style them
+        
         classNames: (() => {
           if (n.status === 'concluido') return ['fc-event-done']
           const eventDate = n.hora ? new Date(dateStr + 'T' + n.hora) : new Date(dateStr + 'T23:59:59')
@@ -347,7 +342,7 @@ const calendarOptions = computed(() => ({
       }
     }).filter(Boolean),
   select: (info) => {
-    // Click on empty day → open new note dialog
+    
     openDialogWithDate(info.startStr)
   },
   eventClick: (info) => {
@@ -370,13 +365,13 @@ const onDateClick = (day) => {
 }
 
 const openDialogWithDate = (date) => {
-    // Accept either a YYYY-MM-DD string (from FullCalendar) or a Date object
+    
     let prazo = null
     if (date) {
         if (typeof date === 'string') {
-            prazo = date.split('T')[0]  // already YYYY-MM-DD, no UTC conversion
+            prazo = date.split('T')[0]
         } else {
-            // Date object: use local date parts to avoid UTC offset
+            
             const d = date instanceof Date ? date : new Date(date)
             prazo = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
         }
@@ -437,8 +432,7 @@ const reativarItem = async (item) => {
 const formatDate = (date) => {
     if (!date) return ''
     const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    
-    // Fix for the -1 day offset bug
+
     const dStr = typeof date === 'string' ? date.split('T')[0] : null
     if (dStr && dStr.includes('-')) {
         const [y, m, d] = dStr.split('-').map(Number)
@@ -451,8 +445,7 @@ const formatDate = (date) => {
 const formatDateShort = (date) => {
     if (!date) return ''
     const locale = t('common.currency') === 'R$' ? 'pt-BR' : 'en-US'
-    
-    // Fix for the -1 day offset bug
+
     const dStr = typeof date === 'string' ? date.split('T')[0] : null
     if (dStr && dStr.includes('-')) {
         const [y, m, d] = dStr.split('-').map(Number)
@@ -464,7 +457,7 @@ const formatDateShort = (date) => {
 
 const formatTime = (time) => {
     if (!time) return ''
-    return time.substring(0, 5) // HH:mm
+    return time.substring(0, 5)
 }
 
 const isToday = (date) => {
@@ -575,7 +568,6 @@ const isToday = (date) => {
     color: rgb(var(--v-theme-error)) !important;
 }
 
-/* ─── FullCalendar custom theme ──────────────────────────────── */
 .fullcalendar-wrapper {
   width: 100%;
 }
@@ -584,7 +576,6 @@ const isToday = (date) => {
   padding: 0 !important;
 }
 
-/* Toolbar */
 :deep(.fc .fc-toolbar.fc-header-toolbar) {
   padding: 16px 20px 12px;
   margin-bottom: 0;
@@ -624,7 +615,6 @@ const isToday = (date) => {
   color: white !important;
 }
 
-/* Day header */
 :deep(.fc .fc-col-header-cell-cushion) {
   font-size: 0.78rem;
   font-weight: 700;
@@ -636,7 +626,6 @@ const isToday = (date) => {
   text-decoration: none !important;
 }
 
-/* Day number */
 :deep(.fc .fc-daygrid-day-number) {
   font-size: 0.85rem;
   font-weight: 600;
@@ -645,7 +634,6 @@ const isToday = (date) => {
   text-decoration: none !important;
 }
 
-/* Today highlight */
 :deep(.fc .fc-day-today) {
   background: rgba(var(--v-theme-secondary), 0.08) !important;
 }
@@ -662,7 +650,6 @@ const isToday = (date) => {
   margin: 4px;
 }
 
-/* Events */
 :deep(.fc .fc-event) {
   border-radius: 6px !important;
   padding: 2px 6px !important;
@@ -683,7 +670,6 @@ const isToday = (date) => {
   text-overflow: ellipsis;
 }
 
-/* Grid lines */
 :deep(.fc .fc-scrollgrid) {
   border: none !important;
 }
@@ -693,14 +679,12 @@ const isToday = (date) => {
   border-color: rgba(var(--v-border-color), 0.12) !important;
 }
 
-/* More link */
 :deep(.fc .fc-more-link) {
   color: rgb(var(--v-theme-secondary)) !important;
   font-weight: 700 !important;
   font-size: 0.75rem !important;
 }
 
-/* List view */
 :deep(.fc .fc-list-event-title a) {
   color: rgb(var(--v-theme-on-surface)) !important;
   text-decoration: none;
@@ -717,13 +701,11 @@ const isToday = (date) => {
   text-decoration: none !important;
 }
 
-/* Remove hover highlight na view lista (ocultava o texto) */
 :deep(.fc .fc-list-event:hover td) {
   background: transparent !important;
   cursor: pointer;
 }
 
-/* FullCalendar Dark Mode Fixes */
 :deep(.fc) {
   --fc-button-text-color: #fff;
   --fc-button-bg-color: #1867C0;

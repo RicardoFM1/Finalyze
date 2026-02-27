@@ -41,7 +41,7 @@
 
           <v-col cols="12" lg="6" class="mt-12 mt-lg-0 position-relative carousel-col overflow-visible">
              <div class="modern-carousel-wrapper animate-fade-in">
-                <!-- Navigation Buttons (Desktop) -->
+                
                 <div class="carousel-nav-container">
                    <v-btn 
                     icon="mdi-arrow-left" 
@@ -89,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- Navigation Indicators -->
                 <div class="d-flex justify-center mt-8">
                   <div class="d-flex align-center px-4">
                      <div v-for="(_, i) in slides" :key="i" class="dot mx-1" :class="{ 'active': currentSlide === i }" @click="currentSlide = i"></div>
@@ -130,7 +129,6 @@
       </v-row>
     </v-container>
 
-    
   </div>
 </template>
 
@@ -152,7 +150,6 @@ import slidesEN3 from '@/assets/Goals-EN-US.png'
 import slidesEN4 from '@/assets/Reports-EN-US.png'
 import slidesEN5 from '@/assets/Schedule-EN-US.png'
 import { useLocale } from 'vuetify/lib/composables/locale.mjs'
-
 
 const authStore = useAuthStore()
 const uiAuthStore = useUiStore()
@@ -312,7 +309,7 @@ const features = computed(() => [
   width: max-content;
   position: absolute;
   top: 50%;
-  margin-top: -150px; /* Center vertically if needed, or adjust based on slide height */
+  margin-top: -150px; 
 }
 
 .loose-slide-v2 {

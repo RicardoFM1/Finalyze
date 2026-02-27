@@ -1,7 +1,7 @@
 <template>
   <ModalBase :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" :title="step === 1 ? $t('auth.forgot_password.title') : $t('auth.forgot_password.reset_title')" maxWidth="450px">
     <div class="pa-6">
-      <!-- Step 1: Request Code -->
+      
       <template v-if="step === 1">
         <p class="text-body-2 text-medium-emphasis mb-6">
           {{ $t('auth.forgot_password.desc') || 'Insira seu e-mail para receber um código de recuperação de senha.' }}
@@ -31,7 +31,6 @@
         </v-form>
       </template>
 
-      <!-- Step 2: Reset Password -->
       <template v-else>
         <p class="text-body-2 text-medium-emphasis mb-6">
           {{ $t('auth.forgot_password.reset_desc') || 'Insira o código enviado para seu e-mail e sua nova senha.' }}
@@ -154,7 +153,7 @@ const handleResetPassword = async () => {
     })
     toast.success($t('auth.forgot_password.success_reset'))
     emit('update:modelValue', false)
-    // Limpar campos
+    
     step.value = 1
     code.value = ''
     password.value = ''

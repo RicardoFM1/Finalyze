@@ -1,7 +1,6 @@
 ﻿<template>
   <v-container>
 
-
     <div class="d-flex align-center mb-6">
         <v-icon icon="mdi-account-circle" color="primary" size="32" class="mr-3"></v-icon>
         <h1 class="text-h4 font-weight-bold">{{ $t('profile.title') }}</h1>
@@ -362,7 +361,7 @@
               hover
               :items-per-page-text="$t('common.items_per_page')"
             >
-                <!-- Custom item slots -->
+                
                 <template v-slot:item.created_at="{ item }">
                     <span class="text-body-2 font-weight-medium text-uppercase">{{ formatDate(item.pago_em || item.created_at) }}</span>
                 </template>
@@ -394,7 +393,7 @@
                 <template v-slot:item.valor="{ item }">
                     <div class="d-flex flex-column">
                         <span class="font-weight-bold text-body-2">{{ formatPrice(item.valor_centavos / 100) }}</span>
-                        <!-- Mostrar valor original se for convertida -->
+                        
                         <span v-if="currencySymbol !== 'R$'" class="text-caption opacity-60">
                             (R$ {{ (item.valor_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }})
                         </span>
@@ -480,8 +479,7 @@ const historyFilters = ref({
 
 const filteredHistory = computed(() => {
     let list = subscriptionData.value.historico || []
-    
-    // Status Filter
+
     if (historyFilters.value.status !== 'todos') {
         list = list.filter(item => {
             const s = item.status?.toLowerCase()
@@ -493,12 +491,10 @@ const filteredHistory = computed(() => {
         })
     }
 
-    // Payment Method Filter
     if (historyFilters.value.metodo !== 'todos') {
         list = list.filter(item => item.metodo_pagamento?.toLowerCase() === historyFilters.value.metodo)
     }
 
-    // Date Range Filter
     if (historyFilters.value.data && historyFilters.value.data.includes(' to ')) {
         const [startStr, endStr] = historyFilters.value.data.split(' to ')
         const start = new Date(startStr + 'T00:00:00')
@@ -549,13 +545,12 @@ onMounted(async () => {
    loadingUser.value = true
    loadingSub.value = true
 
-   // Use cache if available
    if (authStore.user) {
        syncLocalUser(authStore.user)
    }
 
    try {
-       // Fetch both user and subscription in parallel for speed
+       
        await Promise.all([
            fetchUser(true), 
            fetchSubscription()
@@ -648,7 +643,7 @@ const getPaymentMethodIcon = (method) => {
     bank_transfer: 'mdi-bank-transfer',
     boleto: 'mdi-barcode-scan',
     ticket: 'mdi-barcode-scan',
-    // IDs vindos do Mercado Pago
+    
     visa: 'mdi-credit-card',
     master: 'mdi-credit-card',
     amex: 'mdi-credit-card',
@@ -675,31 +670,29 @@ const getStatusText = (status) => {
 const ativarAutoRenovacao = async () => {
     const oldValue = !!subscriptionData.value.assinatura.renovacao_automatica
     const newValue = !oldValue
-    
-    // Feedback imediato (Optimistic)
+
     subscriptionData.value.assinatura.renovacao_automatica = newValue
     
     try {
         const response = await authStore.apiFetch('/assinaturas/ligar-auto-renovacao', { 
             method: 'POST',
-            body: JSON.stringify({ active: newValue }) // Envia o estado desejado explicitamente
+            body: JSON.stringify({ active: newValue })
         })
         
         if (response.ok) {
             const data = await response.json()
-            // Sincroniza com o valor real do servidor
+            
             subscriptionData.value.assinatura.renovacao_automatica = !!data.active
             toast.success(t('profile.toast_success'))
         } else {
             throw new Error('Erro no servidor')
         }
     } catch (e) {
-        // Rollback
+        
         subscriptionData.value.assinatura.renovacao_automatica = oldValue
         toast.error(t('profile.warnings.renewal_error'))
     }
 }
-
 
 const payAhead = () => {
     router.push({ name: 'Plans' })
@@ -732,11 +725,9 @@ const daysRemaining = computed(() => {
 const hasActiveOrValidSubscription = computed(() => {
     if (!subscriptionData.value.assinatura) return false
     const s = subscriptionData.value.assinatura
-    
-    // Consideramos ativa se o status for active ou authorized (MP)
+
     if (s.status === 'active' || s.status === 'authorized') return true
-    
-    // Se estiver pendente, tambÃ©m queremos mostrar o card (embora com aviso)
+
     if (s.status === 'pending') return true
 
     const end = new Date(s.termina_em).getTime()
@@ -769,15 +760,13 @@ const removeAvatar = () => {
     confirmRemoveAvatarDialog.value = true
 }
 
-
 const saveProfile = async () => {
-    // Feedback imediato
-    toast.success(t('profile.toast_success'))
     
-    // Atualização Otimista local
+    toast.success(t('profile.toast_success'))
+
     const optimisticUser = {
         ...user.value,
-        // Se houver preview de avatar, usamos ele temporariamente
+        
         avatar_url: previewAvatar.value || user.value.avatar_url
     }
     authStore.user = { ...authStore.user, ...optimisticUser }
@@ -786,7 +775,7 @@ const saveProfile = async () => {
         const formData = new FormData()
         formData.append('nome', user.value.nome)
         formData.append('email', user.value.email)
-        // ... (rest of formData)
+        
         if (user.value.cpf && typeof user.value.cpf === 'string') {
             formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
         }
@@ -819,7 +808,7 @@ const saveProfile = async () => {
         } else {
              const errorData = await response.json().catch(() => ({}))
              toast.error(errorData.message || t('profile.warnings.update_error'))
-             // Rollback em caso de erro crítico
+             
              fetchUser()
         }
     } catch (e) {
@@ -833,8 +822,6 @@ const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase()
 }
 
-// getStorageUrl removed as it is now in authStore
-
 const formatDate = (dateString) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleDateString(currencyLocale.value, {
@@ -843,7 +830,6 @@ const formatDate = (dateString) => {
         year: 'numeric'
     })
 }
-
 
 const validateCPF = (cpf) => {
   cpf = cpf.replace(/\D/g, '')
@@ -867,18 +853,18 @@ const ageRules = [
     if (typeof v === 'string') {
       const parts = v.split(/[-/]/)
       if (parts.length >= 3) {
-        // Handle YYYY-MM-DD or DD/MM/YYYY
+        
         let year, month, day
-        if (parts[0].length === 4) { // YYYY-MM-DD
+        if (parts[0].length === 4) {
           year = parseInt(parts[0])
           month = parseInt(parts[1])
           day = parseInt(parts[2])
-        } else { // DD/MM/YYYY
+        } else {
           day = parseInt(parts[0])
           month = parseInt(parts[1])
           year = parseInt(parts[2])
         }
-        // Construct a YYYY-MM-DD string to avoid locale issues with new Date()
+        
         const yyyy = year
         const mm = String(month).padStart(2, '0')
         const dd = String(day).padStart(2, '0')
@@ -946,7 +932,6 @@ const formatCPF = (event) => {
   height: 4px;
   border-radius: 4px 4px 0 0;
 }
-
 
 .profile-tabs :deep(.v-tab) {
   outline: none !important;

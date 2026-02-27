@@ -11,10 +11,9 @@ class AtivarPlanoUsuario
 {
     public function executar($payment)
     {
-        // 1. Sempre registrar ou atualizar o histórico de pagamento
+        
         $this->registrarHistorico($payment);
 
-        // 2. Se o status for aprovado, ativar o plano
         if ($payment->status === 'approved') {
             $this->ativar($payment);
         }
@@ -34,10 +33,8 @@ class AtivarPlanoUsuario
         $assinatura = Assinatura::find($assinaturaId);
         if (!$assinatura) return;
 
-        // Tenta encontrar por payment ID real primeiro
         $historico = HistoricoPagamento::where('mercado_pago_id', (string)$payment->id)->first();
 
-        // Se não achou, tenta achar o registro de "preferência" daquela assinatura para converter
         if (!$historico) {
             $historico = HistoricoPagamento::where('assinatura_id', $assinatura->id)
                 ->where('metodo_pagamento', 'preferência')
@@ -80,7 +77,6 @@ class AtivarPlanoUsuario
 
         $quantidadeDias = $metadata->quantidade_dias ?? $assinatura->periodo->quantidade_dias ?? 30;
 
-        // Busca assinatura ATIVA atual
         $activeSub = Assinatura::where('user_id', $assinatura->user_id)
             ->where('status', 'active')
             ->where('termina_em', '>', now())
@@ -97,12 +93,10 @@ class AtivarPlanoUsuario
 
         $newEndsAt = $baseDate->copy()->addDays((int)$quantidadeDias);
 
-        // Cancela assinatura antiga se for diferente
         if ($activeSub && $activeSub->id !== $assinatura->id) {
             $activeSub->update(['status' => 'cancelled']);
         }
 
-        // Limpa outras pendentes
         Assinatura::where('user_id', $assinatura->user_id)
             ->where('status', 'pending')
             ->where('id', '!=', $assinatura->id)

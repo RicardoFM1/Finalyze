@@ -10,8 +10,7 @@
       <v-col cols="12" md="10" lg="8">
         <v-card class="rounded-xl overflow-hidden" elevation="12">
           <v-stepper v-model="step" :items="[$t('checkout.steps.identification'), 'Verificação', $t('checkout.steps.payment')]" hide-actions>
-            
-            <!-- Step 1: Identification -->
+
             <template v-slot:item.1>
               <div v-if="!authStore.isAuthenticated">
                 <div class="d-flex align-center mb-6 pa-2">
@@ -90,7 +89,6 @@
               </div>
             </template>
 
-            <!-- Step 2: Verification -->
             <template v-slot:item.2>
               <div class="pa-10">
                 <EmailVerification 
@@ -104,7 +102,6 @@
               </div>
             </template>
 
-            <!-- Step 3: Payment -->
             <template v-slot:item.3>
                <div class="pa-4">
                   <div class="d-flex align-center mb-6">
@@ -283,8 +280,7 @@ onMounted(async () => {
                 const data = await response.json()
                 creditosRestantes.value = data.creditos_prorrata || 0
                 const selectedPlan = data.plano || data.plan
-                
-                // Safe check for data.plano and data.plano.id
+
                 if (data.plano && data.plano.id) {
                     if (route.query.plan && Number(data.plano.id) !== Number(route.query.plan)) {
                         preferenceId.value = null
@@ -358,8 +354,7 @@ watch(() => route.query, async (newQuery) => {
         preferenceId.value = null
         planInfo.value = null
         periodInfo.value = null
-        
-        // Recarrega informações do plano e inicia novo pagamento
+
         try {
             pageLoading.value = true
             const response = await authStore.apiFetch(`/planos`)
@@ -487,7 +482,6 @@ const initPayment = async () => {
     }
 }
 
-
 const cancelling = ref(false)
 const cancelPendingPayment = async () => {
     cancelling.value = true
@@ -503,8 +497,6 @@ const cancelPendingPayment = async () => {
         cancelling.value = false
     }
 }
-
-// renderPrice helper defined at the top
 
 const handleCpfInput = (event) => {
   errors.value.cpf = '' 
@@ -571,7 +563,7 @@ const validateCPF = (v) => {
 .unique-tabs-no-outline .v-tab__overlay {
     opacity: 0 !important;
 }
-/* Fix for button text overflow */
+
 .v-btn .v-btn__content {
     white-space: normal !important;
     width: 100%;

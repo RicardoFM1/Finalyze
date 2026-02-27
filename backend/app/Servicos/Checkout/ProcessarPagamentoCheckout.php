@@ -22,7 +22,7 @@ class ProcessarPagamentoCheckout
 
     public function executar(array $dados)
     {
-        /** @var \App\Models\Usuario $usuario */
+        
         $usuario = auth()->user();
         if (!$usuario) {
             throw new \Exception('Usuário não autenticado', 401);
@@ -37,19 +37,16 @@ class ProcessarPagamentoCheckout
         $plano = Plano::findOrFail($plano_id);
         $periodo = $plano->periodos()->where('periodos.id', $periodo_id)->firstOrFail();
 
-        // Cálculo de Prorrata - SÓ APLICA SE ESTIVER MUDANDO DE PLANO (ID DIFERENTE)
         $assinaturaAtiva = $usuario->assinaturaAtiva();
         $creditos = 0;
         $transactionAmount = $periodo->pivot->valor_centavos / 100;
 
-        // Regra do usuário: "só deve aparecer o desconto quando está mudando de plano"
         if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
             $calculadora = new CalculadoraProrata();
             $creditos = $calculadora->calcularCredito($assinaturaAtiva);
             $transactionAmount = max(0, $transactionAmount - $creditos);
         }
 
-        // Tenta reaproveitar a assinatura pendente criada em CriarPreferenciaCheckout
         $assinatura = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->where('plano_id', (int) $plano_id)
@@ -58,7 +55,7 @@ class ProcessarPagamentoCheckout
             ->first();
 
         if (!$assinatura) {
-            // Se não encontrou uma compatível, cancela as outras e cria uma nova
+            
             Assinatura::where('user_id', $usuario->id)
                 ->where('status', 'pending')
                 ->update(['status' => 'cancelled']);
@@ -71,11 +68,10 @@ class ProcessarPagamentoCheckout
                 'inicia_em'  => now(),
             ]);
         } else {
-            // Se reaproveitou, garante que a data de início seja atualizada para agora
+            
             $assinatura->update(['inicia_em' => now()]);
         }
 
-        // Se o valor for zero, ativamos direto (Simulando aprovação)
         if ($transactionAmount <= 0) {
             $ativarServico = new AtivarPlanoUsuario();
             $ativarServico->executar((object)[
@@ -101,7 +97,6 @@ class ProcessarPagamentoCheckout
             ];
         }
 
-
         $payer = $dados['payer'] ?? [];
         $payerIdNumber = ($payer['identification']['number'] ?? null) ?: $usuario->cpf;
 
@@ -110,8 +105,6 @@ class ProcessarPagamentoCheckout
             $payer['identification']['type'] = 'CPF';
         }
 
-        // --- LÓGICA DE AUTO-RENOVAÇÃO (ASSINATURA MP) ---
-        // Se for cartão de crédito/débito, usamos o SubscriptionService para criar uma renovação automática
         $isCard = in_array($dados['payment_method_id'], ['credit_card', 'debit_card', 'visa', 'master', 'amex', 'elo', 'hipercard']);
 
         if ($isCard && isset($dados['token'])) {
@@ -127,13 +120,12 @@ class ProcessarPagamentoCheckout
                 );
 
                 if (isset($mpSubscription->id)) {
-                    // Vinculamos o preapproval_id à assinatura
+                    
                     $assinatura->update([
                         'preapproval_id' => $mpSubscription->id,
                         'renovacao_automatica' => true
                     ]);
 
-                    // Ativamos o plano imediatamente
                     $ativarServico = new AtivarPlanoUsuario();
                     $ativarServico->executar((object)[
                         'id' => $mpSubscription->id,
@@ -159,7 +151,7 @@ class ProcessarPagamentoCheckout
                 }
             } catch (\Exception $e) {
                 Log::error("Erro ao criar assinatura no Mercado Pago: " . $e->getMessage());
-                // Se falhar a assinatura, tentamos como pagamento normal abaixo (fallback)
+                
             }
         }
 
@@ -204,9 +196,8 @@ class ProcessarPagamentoCheckout
 
         $response = $client->create($paymentData);
 
-        // Registrar ou atualizar no histórico
         try {
-            // Tenta encontrar o registro de "intenção" criado na preferência
+            
             $historico = \App\Models\HistoricoPagamento::where('assinatura_id', $assinatura->id)
                 ->where('status', 'pending')
                 ->first();
@@ -234,7 +225,6 @@ class ProcessarPagamentoCheckout
             Log::error("Erro ao salvar histórico de pagamento: " . $e->getMessage());
         }
 
-        // Ativação automática se for aprovado (comum em cartão)
         if (isset($response->status) && $response->status === 'approved') {
             try {
                 $ativarServico = new AtivarPlanoUsuario();

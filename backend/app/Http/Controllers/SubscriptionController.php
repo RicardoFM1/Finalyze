@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assinatura;
+use App\Models\Usuario;
 use App\Servicos\Assinaturas\ObterDadosAssinatura;
 use App\Servicos\Checkout\SubscriptionService;
 use Illuminate\Http\Request;
@@ -17,16 +18,15 @@ class SubscriptionController extends Controller
         $this->subscriptionService = $subscriptionService;
     }
 
-    /**
-     * Retorna assinatura e historico de pagamentos do usuario.
-     */
-    public function index(ObterDadosAssinatura $servico)
+    public function index(Request $request, ObterDadosAssinatura $servico)
     {
         try {
             return response()->json($servico->executar());
         } catch (\Exception $e) {
+            /** @var Usuario $user */
+            $user = $request->user();
             Log::error('Erro ao buscar assinaturas: ' . $e->getMessage(), [
-                'user_id' => auth()->id(),
+                'user_id' => $user?->id,
                 'trace' => $e->getTraceAsString(),
             ]);
 
@@ -34,14 +34,11 @@ class SubscriptionController extends Controller
         }
     }
 
-    /**
-     * Alterna renovacao automatica da assinatura.
-     */
     public function ativarAutoRenovacao(Request $request)
     {
         try {
-            /** @var \App\Models\Usuario $user */
-            $user = auth()->user();
+            /** @var Usuario $user */
+            $user = $request->user();
 
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->whereIn('status', ['active', 'authorized'])
@@ -62,7 +59,7 @@ class SubscriptionController extends Controller
 
             $assinatura->update(['renovacao_automatica' => $newState]);
 
-            Log::info("Auto-renovacao alterada pelo usuario #{$user->id}: " . ($newState ? 'ON' : 'OFF'));
+            Log::info('Auto-renovacao alterada pelo usuario: ' . $user->id . ', novo estado: ' . ($newState ? 'ativo' : 'inativo'));
 
             return response()->json([
                 'message' => 'Renovacao automatica alterada com sucesso.',
@@ -74,14 +71,11 @@ class SubscriptionController extends Controller
         }
     }
 
-    /**
-     * Cancela assinatura ativa.
-     */
-    public function cancelar()
+    public function cancelar(Request $request)
     {
         try {
-            /** @var \App\Models\Usuario $user */
-            $user = auth()->user();
+            /** @var Usuario $user */
+            $user = $request->user();
 
             $assinatura = Assinatura::where('user_id', $user->id)
                 ->where('status', 'active')
@@ -104,54 +98,6 @@ class SubscriptionController extends Controller
         } catch (\Exception $e) {
             Log::error('Erro ao cancelar assinatura: ' . $e->getMessage());
             return response()->json(['error' => 'Falha ao cancelar assinatura.'], 500);
-        }
-    }
-
-    /**
-     * Inicia um periodo de teste de 1 dia.
-     */
-    public function startTrial(Request $request)
-    {
-        try {
-            /** @var \App\Models\Usuario $user */
-            $user = auth()->user();
-
-            if ($user->trial_used_at) {
-                return response()->json(['error' => 'Você já utilizou seu período de teste grátis.'], 422);
-            }
-
-            if ($user->plano_id || $user->assinaturas()->where('status', 'active')->exists()) {
-                return response()->json(['error' => 'Você já possui um plano ativo e não pode iniciar um período de teste.'], 422);
-            }
-
-            $request->validate([
-                'plano_id' => 'required|exists:planos,id'
-            ]);
-
-            $plano = \App\Models\Plano::findOrFail($request->plano_id);
-
-            // Trial de 1 dia
-            $assinatura = Assinatura::create([
-                'user_id' => $user->id,
-                'plano_id' => $plano->id,
-                'status' => 'active',
-                'inicia_em' => now(),
-                'termina_em' => now()->addDay(),
-                'renovacao_automatica' => false
-            ]);
-
-            $user->update([
-                'plano_id' => $plano->id,
-                'trial_used_at' => now()
-            ]);
-
-            return response()->json([
-                'message' => 'Período de teste iniciado! Aproveite por 24 horas.',
-                'termina_em' => $assinatura->termina_em
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erro ao iniciar trial: ' . $e->getMessage());
-            return response()->json(['error' => 'Falha ao iniciar período de teste.'], 500);
         }
     }
 }

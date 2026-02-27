@@ -1,10 +1,10 @@
 ﻿<template>
   <v-layout>
     <v-app-bar v-if="!authStore.mustVerifyEmail" color="primary" elevation="2">
-        <!-- LAYOUT MOBILE/TABLET: Espaçado e Profissional -->
+        
         <template v-if="!lgAndUp">
           <div class="d-flex align-center justify-space-between w-100 px-2 h-100">
-            <!-- Left: Menu + Logo -->
+            
             <div class="d-flex align-center">
                 <v-app-bar-nav-icon
                     v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
@@ -19,16 +19,13 @@
 
             </div>
 
-            <!-- Right: Action Icons -->
             <div class="d-flex align-center gap-2">
 
-                <!-- AUTHENTICATED: bell + overflow menu -->
                 <template v-if="authStore.isAuthenticated">
                     <v-btn v-if="authStore.hasFeature('lembretes')" icon variant="text" color="white" size="small" @click="$router.push({ name: 'Lembretes' })">
                         <v-icon icon="mdi-bell-ring-outline"></v-icon>
                     </v-btn>
 
-                    <!-- Overflow "more" menu -->
                     <v-menu location="bottom end" class="rounded-xl">
                         <template v-slot:activator="{ props }">
                             <v-btn variant="text" color="white" v-bind="props" size="small">
@@ -36,7 +33,7 @@
                             </v-btn>
                         </template>
                         <v-list class="rounded-lg" density="compact" min-width="200">
-                            <!-- Currency -->
+                            
                             <v-list-subheader>{{ $t('landing.select_currency') }}</v-list-subheader>
                             <v-list-item
                                 v-for="coin in mobileCoins"
@@ -79,10 +76,6 @@
                     <v-list-item-title>{{ $t('footer.colaboradores') || 'Colaboradores' }}</v-list-item-title>
                 </v-list-item>
 
-                            
-                       
-
-                            
                             <v-list-item :prepend-icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" @click="uiAuthStore.toggleTheme">
                                 <v-list-item-title>{{ uiAuthStore.theme === 'light' ? $t('settings.dark_mode_active') : $t('settings.light_mode_active') }}</v-list-item-title>
                             </v-list-item>
@@ -90,7 +83,6 @@
                     </v-menu>
                 </template>
 
-              
                 <template v-else>
                     <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center">
                         <v-skeleton-loader type="actions" class="bg-transparent" width="120"></v-skeleton-loader>
@@ -102,7 +94,7 @@
                          </v-btn>
                       </template>
                       <v-list density="compact" class="rounded-lg" min-width="200">
-                        <!-- Language -->
+                        
                         <v-list-subheader>Idioma / Language</v-list-subheader>
                         <v-list-item @click="authStore.setLanguage('pt')" :active="uiAuthStore.locale === 'pt'">
                           <template v-slot:prepend>🇧🇷</template>
@@ -115,7 +107,6 @@
 
                         <v-divider class="my-2"></v-divider>
 
-                        <!-- Currency -->
                         <v-list-subheader>{{ $t('landing.select_currency') }}</v-list-subheader>
                         <v-list-item
                             v-for="coin in mobileCoins"
@@ -133,7 +124,6 @@
 
                         <v-divider class="my-2"></v-divider>
 
-                        <!-- Theme -->
                         <v-list-item :prepend-icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" @click="uiAuthStore.toggleTheme">
                             <v-list-item-title>{{ uiAuthStore.theme === 'light' ? $t('settings.dark_mode_active') : $t('settings.light_mode_active') }}</v-list-item-title>
                         </v-list-item>
@@ -162,7 +152,6 @@
           </div>
         </template>
 
-        <!-- LAYOUT DESKTOP -->
         <template v-else>
           <v-app-bar-nav-icon
             v-if="authStore.isAuthenticated && route.meta.hideNavBar !== true"
@@ -206,14 +195,14 @@
 
             <template v-else>
               <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center gap-2">
-                <v-skeleton-loader type="button" class="bg-primary-lighten-2" width="130" height="36" color="primary"></v-skeleton-loader>
+                <v-skeleton-loader type="button" class="bg-primary-lighten-2 ml-2 rounded-xl" width="130" height="36" color="primary"></v-skeleton-loader>
                 <div class="d-flex gap-1">
                     <v-skeleton-loader type="avatar" class="bg-primary-lighten-2" size="32" color="primary"></v-skeleton-loader>
                     <v-skeleton-loader type="avatar" class="bg-primary-lighten-2" size="32" color="primary"></v-skeleton-loader>
                 </div>
               </div>
               <template v-else>
-                <!-- Workspace Switcher -->
+                
                 <v-menu v-if="authStore.isAuthenticated && authStore.sharedAccounts.length > 1">
                     <template v-slot:activator="{ props }">
                          <v-btn
@@ -266,8 +255,6 @@
                 </v-btn>
               </template>
             </template>
-
-            
 
             <v-btn icon variant="text" color="white" class="ml-2" @click="uiAuthStore.toggleTheme">
               <v-icon :icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'"></v-icon>
@@ -357,7 +344,7 @@
             </v-list>
             <v-divider></v-divider>
             <v-list density="compact" nav>
-                <!-- Workspace Switcher in Sidebar -->
+                
                 <v-list-item 
                     v-if="authStore.isAuthenticated"
                     prepend-icon="mdi-office-building" 
@@ -446,8 +433,7 @@
 
     <FinnChat v-if="authStore.isAuthenticated && authStore.hasFeature('Finn AI') && route.name !== 'Checkout'" />
     <CompartilharModal v-model="shareDialog" />
-  
-    <!-- Modal Global: Completar Cadastro Social -->
+
     <ModalCompleteSocialRegistration 
         v-if="authStore.mustCompleteRegistration"
         :modelValue="true"
@@ -459,7 +445,6 @@
         @complete="handleGlobalOnboardingComplete"
     />
 
-    <!-- Modal Global: Verificação de E-mail (Non-Closable) -->
     <ModalBase 
         v-if="authStore.mustVerifyEmail" 
         :modelValue="true" 
@@ -500,7 +485,6 @@ import Coinselector from './Currency/Coinselector.vue'
 import { useCurrencyStore } from '../stores/currency'
 import { AVAILABLE_CURRENCIES } from '../composables/useMoney'
 
-// Global Auth Flow Components
 import ModalCompleteSocialRegistration from './Auth/ModalCompleteSocialRegistration.vue';
 import EmailVerification from './Auth/EmailVerification.vue';
 
@@ -522,7 +506,6 @@ const isDesktop = computed(() => lgAndUp.value)
 const globalVerifyLoading = ref(false)
 const globalVerifyError = ref('')
 
-// Mobile currency selector
 const currencyStore = useCurrencyStore()
 const mobileCurrency = ref(currencyStore.currency)
 const mobileCoins = computed(() => 
@@ -549,7 +532,7 @@ watch(() => uiAuthStore.locale, (newLocale) => {
 }, { immediate: true })
 
 const activeWorkspaceName = computed(() => {
-    // Show spinner icon/placeholder if loading
+    
     if (authStore.loadingSharedAccounts || uiAuthStore.loading) return '...'
     
     const active = authStore.sharedAccounts.find(a => a.id == authStore.workspaceId)
@@ -576,14 +559,13 @@ const handleLogout = () => {
   router.push({ name: 'Home' })
 }
 
-
 onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {
     await authStore.fetchUser();
   }
   if (authStore.isAuthenticated) {
     authStore.fetchSharedAccounts();
-    // Wait for initial load to finish before checking reminders to avoid multiple toasts
+    
     setTimeout(() => {
         if (!authStore.hasFeature('lembretes')) return;
         checkReminders();
@@ -592,7 +574,7 @@ onMounted(async () => {
   }
   if (isDesktop.value && authStore.isAuthenticated) {
     drawer.value = true;
-    rail.value = false; // Garante que abra expandido na Home/Dashboard
+    rail.value = false;
   }
 })
 
@@ -631,12 +613,11 @@ const checkReminders = async () => {
                                 String(now.getMinutes()).padStart(2, '0')
             
             const pending = list.filter(n => {
-                // Pege apenas os primeiros 10 caracteres (YYYY-MM-DD)
+                
                 const itemDate = n.prazo ? n.prazo.substring(0, 10) : ''
                 const isToday = itemDate === today
                 const isAfterTime = !n.hora || currentTime >= n.hora
-                
-                // Converte notificacao_site para booleano caso venha como 1/0
+
                 const notifySite = !!n.notificacao_site
 
                 return n.status === 'andamento' && 
@@ -659,8 +640,6 @@ const checkReminders = async () => {
         console.error('Erro ao verificar agenda:', e)
     }
 }
-
-
 
 const getInitials = (name) => {
     if (!name) return 'U'
@@ -706,7 +685,6 @@ const handleGlobalResend = async () => {
 }
 </script>
 
-
 <style scoped>
 
 .animated-drawer {
@@ -724,7 +702,7 @@ const handleGlobalResend = async () => {
 .app-title {
   display: flex !important;
   align-items: center;
-  max-width: 250px; /* Limita a largura do título */
+  max-width: 250px; 
 }
 
 .brand-wrapper {
@@ -732,7 +710,7 @@ const handleGlobalResend = async () => {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  height: 48px; /* Altura fixa para alinhar */
+  height: 48px; 
   overflow: hidden;
 }
 
@@ -743,13 +721,13 @@ const handleGlobalResend = async () => {
   object-fit: contain;
   display: block;
   flex-shrink: 0;
-  /* Always white - sits on primary-colored header */
+  
   filter: brightness(10);
 }
 
 .brand-name {
   font-weight: 800;
-  font-size: 1.4rem !important; /* Ligeiramente menor para caber melhor */
+  font-size: 1.4rem !important; 
   letter-spacing: 0.5px;
   color: white;
   flex-shrink: 0;
@@ -780,7 +758,7 @@ const handleGlobalResend = async () => {
     max-width: 140px;
   }
   .brand-name {
-    display: none; /* Esconde nome no mobile para sobrar espaço pros ícones */
+    display: none; 
   }
   .logo {
     height: 28px !important;
@@ -798,7 +776,7 @@ const handleGlobalResend = async () => {
     height: 36px;
     width: auto;
     flex-shrink: 0;
-    /* Always white - sits on primary-colored header */
+    
     filter: brightness(10);
   }
 
@@ -809,6 +787,5 @@ const handleGlobalResend = async () => {
     color: white;
     white-space: nowrap;
   }
-
 
 </style>

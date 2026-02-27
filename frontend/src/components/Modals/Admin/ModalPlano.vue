@@ -201,10 +201,10 @@ const calculatePeriodPrices = () => {
       p.price = base.toFixed(2)
       p.discount = 0
     } else if (p.slug === 'trimestral') {
-      p.price = (base * 3 * 0.9).toFixed(2) // 10% desconto
+      p.price = (base * 3 * 0.9).toFixed(2)
       p.discount = 10
     } else if (p.slug === 'anual') {
-      p.price = (base * 12 * 0.8).toFixed(2) // 20% desconto
+      p.price = (base * 12 * 0.8).toFixed(2)
       p.discount = 20
     }
   })

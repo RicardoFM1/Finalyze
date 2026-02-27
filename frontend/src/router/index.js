@@ -98,7 +98,6 @@ const router = createRouter({
   ]
 })
 
-
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   const ui = useUiStore();

@@ -17,7 +17,7 @@ class ChatIaController extends Controller
         $usuario = $request->user();
 
         try {
-            // Pegamos o histórico e o locale enviados pelo frontend
+            
             $historico = $request->historico ?? [];
             $locale = $request->locale ?? 'pt-BR';
 

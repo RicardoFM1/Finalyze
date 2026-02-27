@@ -27,28 +27,19 @@ class SubscriptionService
         try {
             $this->setupMercadoPago();
 
-            // 1. Get or Create Customer
             $customerId = $this->getOrCreateCustomer($usuario);
 
-            // 2. Create Preapproval (Subscription)
             $preApprovalClient = new PreApprovalClient();
 
             $frequency = $this->mapPeriodToFrequency($periodo);
 
             $basePrice = ($periodo->pivot->valor_centavos / 100);
 
-            // Valor com desconto (Prorrata)
-            // IMPORTANTE: Se o Mercado Pago Preapproval recebe um transaction_amount, ele cobra esse valor EM TODAS AS RENOVAÇÕES.
-            // Para assinaturas recorrentes, o ideal é que o desconto seja apenas no primeiro mês.
-            // No entanto, para evitar que o usuário pague o valor cheio no primeiro mês quando deveria ter desconto,
-            // vamos aplicar o desconto agora. Se o usuário quiser cobrar valor cheio na renovação, 
-            // precisaríamos de um fluxo de upgrade mais complexo (Payment + Subscription futura).
             $transactionAmount = max(0, $basePrice - $creditos);
 
-            // Prepare payer identification
             $cpfNumber = str_replace(['.', '-', ' '], '', $usuario->cpf ?? '');
             if (empty($cpfNumber) && config('app.env') !== 'production') {
-                $cpfNumber = '19119119100'; // Test CPF
+                $cpfNumber = '19119119100';
             }
 
             $firstName = explode(' ', $usuario->nome)[0] ?? 'Usuario';
@@ -125,7 +116,7 @@ class SubscriptionService
             try {
                 return $client->get($usuario->mercado_pago_customer_id)->id;
             } catch (\Exception $e) {
-                // Se não encontrar, segue para criar um novo
+                
             }
         }
 
@@ -146,7 +137,7 @@ class SubscriptionService
 
         switch ($slug) {
             case 'semanal':
-                return ['value' => 1, 'type' => 'days']; // Ajustar se necessário
+                return ['value' => 1, 'type' => 'days'];
             case 'mensal':
                 return ['value' => 1, 'type' => 'months'];
             case 'trimestral':

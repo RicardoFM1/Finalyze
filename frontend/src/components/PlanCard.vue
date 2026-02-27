@@ -16,8 +16,7 @@
       <v-card-title class="text-h5 font-weight-black mb-2 plan-name">
         {{ planDisplayName }}
       </v-card-title>
-      
-   
+
       <div v-if="plan.periodos.length" class="text-center my-3">
         <div class="text-caption text-medium-emphasis mb-2 font-weight-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.7rem !important;">
           {{ $t('plans.period') }}
@@ -96,7 +95,6 @@
         </v-list-item>
       </v-list>
     </v-card-text>
-
     <v-card-actions class="px-4 pb-4 flex-column">
       <v-btn
         :disabled="disabled"
@@ -109,20 +107,6 @@
       >
         <v-icon v-if="isCurrentPlan" start icon="mdi-refresh" class="mr-2"></v-icon>
         {{ buttonText }}
-      </v-btn>
-
-      <v-btn
-        v-if="showTrialButton"
-        :disabled="disabled"
-        variant="flat"
-        block
-        min-height="36"
-        color="secondary"
-        class="mt-3 text-none font-weight-bold rounded-lg trial-btn-premium"
-        @click="clickTrial"
-      >
-        <v-icon start icon="mdi-star-face" size="small" class="mr-1"></v-icon>
-        {{ $t('plans.start_trial') }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -163,7 +147,6 @@ const currentPrice = computed(() => {
     return selectedPeriod.value?.pivot?.valor_centavos || 0
 })
 
-// Convert BRL cents → selected currency, then split into int + dec parts
 const currentPriceConverted = computed(() => {
     const brlReais = currentPrice.value / 100
     return fromBRL(brlReais)
@@ -178,7 +161,6 @@ const formattedPriceDec = computed(() => {
     return dec.toString().padStart(2, '0')
 })
 
-// Decimal separator: comma for pt-BR, period for others
 const currencyDecimalSep = computed(() => {
     return currencyMeta.value.locale === 'pt-BR' ? ',' : '.'
 })
@@ -208,17 +190,7 @@ const buttonText = computed(() => {
     return t('plans.choose', { plan: planDisplayName.value })
 })
 
-const showTrialButton = computed(() => {
-    // Only show if not authenticated OR if authenticated but hasn't used trial and has no subscription
-    if (!authStore.isAuthenticated) return true;
-    return !authStore.user?.trial_used_at && !authStore.user?.plano_id;
-})
-
-const emit = defineEmits(['select', 'start-trial'])
-
-const clickTrial = () => {
-    emit('start-trial', props.plan)
-}
+const emit = defineEmits(['select'])
 
 const clickEscolha = () => {
     emit('select', { 
@@ -238,38 +210,6 @@ const formatPrice = (value) => {
 </script>
 
 <style scoped>
-.trial-btn-premium {
-  background: linear-gradient(45deg, rgb(var(--v-theme-secondary)), #5CBBF6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1) !important;
-  color: white !important;
-  opacity: 1 !important;
-  box-shadow: 0 4px 10px rgba(var(--v-theme-secondary), 0.3) !important;
-  position: relative;
-  overflow: hidden;
-}
-
-.trial-btn-premium:hover {
-  background: linear-gradient(45deg, #5CBBF6, rgb(var(--v-theme-secondary))) !important;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(var(--v-theme-secondary), 0.5) !important;
-}
-
-.trial-btn-premium::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: 0.5s;
-}
-
-.trial-btn-premium:hover::after {
-  left: 100%;
-}
-
 .plan-card {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid rgba(0, 0, 0, 0.05);

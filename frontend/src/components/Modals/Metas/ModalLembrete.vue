@@ -18,7 +18,7 @@
       <v-divider opacity="0.1" class="mx-4"></v-divider>
 
       <v-card-text class="px-5 pt-4 pb-2">
-        <!-- Título do lembrete -->
+        
         <v-text-field
           v-model="form.titulo"
           :label="$t('metas.reminder.name_label')"
@@ -31,7 +31,6 @@
           :placeholder="$t('metas.reminder.name_placeholder')"
         ></v-text-field>
 
-        <!-- Descrição -->
         <v-textarea
           v-model="form.descricao"
           :label="$t('metas.reminder.message_label')"
@@ -46,7 +45,6 @@
           :disabled="loading"
         ></v-textarea>
 
-        <!-- Data e Hora lado a lado -->
         <v-row dense class="mb-1">
           <v-col cols="7">
             <div class="text-caption text-medium-emphasis font-weight-medium mb-1">{{ $t('metas.reminder.date_label') }}</div>
@@ -75,7 +73,6 @@
           </v-col>
         </v-row>
 
-        <!-- Categoria -->
         <v-select
           v-model="form.categoria"
           :label="$t('metas.reminder.category_label')"
@@ -175,7 +172,7 @@ watch(() => props.modelValue, (newVal) => {
   if (!newVal) return
 
   if (props.reminder?.id) {
-    // Editar lembrete existente
+    
     const d = new Date(props.reminder.data_aviso)
     form.value.titulo    = props.reminder.titulo    || ''
     form.value.descricao = props.reminder.descricao || ''
@@ -184,7 +181,7 @@ watch(() => props.modelValue, (newVal) => {
     form.value.data      = d.toISOString().split('T')[0]
     form.value.hora      = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
   } else {
-    // Novo lembrete — titulo padrão baseado na meta
+    
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     form.value.titulo    = props.meta?.titulo ? `${t('metas.reminder.default_name')}: ${props.meta.titulo}` : ''

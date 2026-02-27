@@ -17,7 +17,6 @@
 import { computed } from 'vue';
 import { differenceInDays, startOfDay} from 'date-fns'
 
-
 const props = defineProps({
     type:Object,
     require: true

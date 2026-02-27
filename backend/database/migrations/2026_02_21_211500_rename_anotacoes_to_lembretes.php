@@ -6,18 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::dropIfExists('lembretes');
         Schema::rename('anotacoes', 'lembretes');
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::rename('lembretes', 'anotacoes');

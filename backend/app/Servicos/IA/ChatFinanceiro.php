@@ -61,9 +61,6 @@ Instruções de Comportamento:
 8. IMPORTANTE: Priorize SEMPRE os dados do 'Contexto do Usuário' e 'Últimos Lançamentos' acima em vez de dados citados no histórico de mensagens. O saldo geral é a soma de TUDO o que o usuário já lançou menos despesas.
 ";
 
-        /*
-         * Montar mensagens
-         */
         $messages = [
             [
                 'role' => 'system',
@@ -71,9 +68,6 @@ Instruções de Comportamento:
             ]
         ];
 
-        /*
-         * Histórico (resiliente)
-         */
         foreach ($historico as $item) {
 
             if (!isset($item['role'])) {
@@ -98,17 +92,11 @@ Instruções de Comportamento:
             }
         }
 
-        /*
-         * Mensagem atual
-         */
         $messages[] = [
             'role' => 'user',
             'content' => $mensagem
         ];
 
-        /*
-         * Chamada MistralAI
-         */
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . config('services.mistral.key'),
             'Content-Type' => 'application/json',

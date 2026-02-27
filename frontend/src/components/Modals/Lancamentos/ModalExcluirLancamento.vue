@@ -61,16 +61,12 @@ const internalValue = computed({
 const excluir = async () => {
   if (!props.lancamentoId) return
 
-  // Pegamos o ID para emitir antes de fechar
   const id = props.lancamentoId
-  
-  // Fechamos o modal IMEDIATAMENTE para dar sensação de velocidade
+
   internalValue.value = false
-  
-  // Feedback imediato
+
   toast.success(t('toasts.success_delete'))
-  
-  // Emitimos o evento de exclusão para o pai tratar de forma otimista
+
   emit('deleted', id)
 
   try {
@@ -84,7 +80,7 @@ const excluir = async () => {
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-    // O silent refresh do pai cuidará de restaurar se necessário
+    
   }
 }
 </script>

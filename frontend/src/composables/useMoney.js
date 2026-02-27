@@ -1,12 +1,8 @@
-/**
- * useMoney.js
- * Central composable for currency formatting and BRL conversion.
- */
+
 
 import { ref, computed } from 'vue'
 import { useCurrencyStore } from '../stores/currency'
 
-// static fallback rates relative to BRL
 const FALLBACK_RATES = {
     BRL: 1,
     USD: 0.18,
@@ -14,7 +10,6 @@ const FALLBACK_RATES = {
     GBP: 0.14,
 }
 
-// singleton: shared across all instances
 const rates = ref({ ...FALLBACK_RATES })
 const ratesFetched = ref(false)
 
@@ -43,7 +38,7 @@ async function fetchRates() {
             ratesFetched.value = true
         }
     } catch {
-        // fallback
+        
     }
 }
 

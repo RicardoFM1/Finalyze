@@ -13,7 +13,6 @@ class EnviarCodigoResetSenha
     {
         $usuario = Usuario::where('email', $email)->first();
 
-        // Por segurança, se o usuário não existir, não avisamos (evita enumeração de e-mails)
         if (!$usuario) {
             return;
         }

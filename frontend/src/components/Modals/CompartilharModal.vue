@@ -6,7 +6,6 @@
           {{ $t('share.subtitle') }}
         </p>
 
-        <!-- Invite Section -->
         <v-card variant="tonal" color="primary" class="pa-4 pa-sm-6 rounded-xl border-dashed mb-10" elevation="0">
           <v-form @submit.prevent="inviteUser">
             <div class="d-flex flex-column flex-sm-row gap-4 align-sm-center">
@@ -40,7 +39,7 @@
       <v-divider></v-divider>
 
       <div class="pa-4 pa-sm-8 bg-surface-variant-light">
-        <!-- Collaborators List (People I invited) -->
+        
         <h3 class="text-overline font-weight-black mb-4 d-flex align-center opacity-70">
           <v-icon icon="mdi-account-multiple-outline" size="18" class="mr-2"></v-icon>
           {{ $t('share.people_access') }}
@@ -113,7 +112,6 @@
         </template>
       </div>
 
-      <!-- Social Share (Bottom) -->
       <div class="pa-4 pa-sm-8 bg-surface text-center">
         <p class="text-caption text-medium-emphasis mb-4 uppercase tracking-widest font-weight-bold">{{ $t('share.social_share_title') || 'Convidar via redes sociais' }}</p>
         <div class="d-flex justify-center gap-6">
@@ -126,7 +124,6 @@
     </div>
   </ModalBase>
 
-  <!-- Confirmation Modal for Removing Access -->
   <ModalBase 
     v-model="showConfirmDelete" 
     :title="$t('share.confirm_remove_title') || 'Remover Acesso'" 
@@ -206,7 +203,7 @@ onMounted(() => {
 watch(internalValue, (val) => {
     if (val) {
         fetchMyShares()
-        authStore.fetchSharedAccounts() // Also refresh the switcher list
+        authStore.fetchSharedAccounts()
     }
 })
 

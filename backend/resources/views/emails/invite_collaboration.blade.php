@@ -6,19 +6,19 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color:
         }
 
         .container {
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
-            border: 1px solid #eee;
+            border: 1px solid
             border-radius: 10px;
         }
 
         .header {
-            background: #673AB7;
+            background:
             color: white;
             padding: 20px;
             text-align: center;
@@ -32,7 +32,7 @@
 
         .footer {
             font-size: 12px;
-            color: #888;
+            color:
             text-align: center;
             padding: 20px;
         }
@@ -40,7 +40,7 @@
         .btn {
             display: inline-block;
             padding: 12px 24px;
-            background: #673AB7;
+            background:
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -60,7 +60,7 @@
             <p><strong>{{ $owner->nome }}</strong> {{ __('has invited you to collaborate on their Finalyze Finance account.') }}</p>
             <p>{{ __('As a collaborator, you can view and edit transactions, goals, and the agenda of this workspace.') }}</p>
             <p>{{ __('To start, simply access your account (or create one if you do not have one yet).') }}</p>
-            <p style="color: #673AB7; font-weight: bold;">{{ __('IMPORTANT: You must log in or register using the EXACT same e-mail address that received this invitation.') }}</p>
+            <p style="color:
             <a href="https://finalyze-6gw9.onrender.com/#/login" class="btn">{{ __('Access Finalyze') }}</a>
         </div>
         <div class="footer">

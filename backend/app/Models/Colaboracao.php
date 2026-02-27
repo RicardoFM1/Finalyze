@@ -24,7 +24,6 @@ class Colaboracao extends Model
         return $this->belongsTo(Usuario::class, 'email_convidado', 'email');
     }
 
-    // Alias para compatibilidade ou legibilidade se necessário
     public function owner()
     {
         return $this->proprietario();

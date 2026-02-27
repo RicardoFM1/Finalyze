@@ -1,13 +1,7 @@
-/**
- * Utility for common validation logic across the application
- */
+
 
 import { parse, isValid, differenceInYears } from 'date-fns';
 
-/**
- * Validates if the user is at least 18 years old.
- * Handles strings in YYYY-MM-DD or DD/MM/YYYY format, or Date objects.
- */
 export const validateAge = (v, t = (s) => s) => {
     if (!v) return true;
 
@@ -16,16 +10,16 @@ export const validateAge = (v, t = (s) => s) => {
     if (v instanceof Date) {
         birthDate = v;
     } else if (typeof v === 'string') {
-        // Try YYYY-MM-DD (ISO) first as it's the most reliable for new Date()
+        
         if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
             birthDate = new Date(v + 'T00:00:00');
         }
-        // Try DD/MM/YYYY
+        
         else if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) {
             const [day, month, year] = v.split('/').map(Number);
             birthDate = new Date(year, month - 1, day);
         }
-        // Fallback
+        
         else {
             birthDate = new Date(v);
         }
@@ -39,9 +33,6 @@ export const validateAge = (v, t = (s) => s) => {
     return age >= 18 || t('validation.age_restriction') || 'Você deve ter pelo menos 18 anos';
 };
 
-/**
- * Validates CPF mathematical validity
- */
 export const validateCPF = (v, t = (s) => s) => {
     if (!v) return true;
     const cpf = v.replace(/\D/g, '');

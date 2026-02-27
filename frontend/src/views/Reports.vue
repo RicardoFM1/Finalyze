@@ -21,7 +21,7 @@
     </v-row>
 
     <v-row>
-        <!-- Gráfico de Evolução (Área) -->
+        
         <v-col cols="12" lg="8">
             <v-card class="rounded-xl glass-card border-card pa-6 h-100" elevation="8">
                 <v-card-title class="px-0 pb-4 font-weight-bold d-flex align-center">
@@ -38,7 +38,6 @@
             </v-card>
         </v-col>
 
-        <!-- Gráfico de Categorias (Rosquinha) -->
         <v-col cols="12" lg="4">
             <v-card class="rounded-xl glass-card border-card pa-6 h-100" elevation="8">
                 <v-card-title class="px-0 pb-4 font-weight-bold d-flex align-center">
@@ -66,7 +65,6 @@
             </v-card>
         </v-col>
 
-        <!-- Gráfico de Balanço Líquido -->
         <v-col cols="12">
             <v-card class="rounded-xl glass-card border-card pa-6" elevation="8">
                 <v-card-title class="px-0 pb-4 font-weight-bold d-flex align-center">

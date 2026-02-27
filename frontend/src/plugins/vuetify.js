@@ -3,9 +3,7 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import 'vue3-toastify/dist/index.css'
 
-
 import { createVuetify } from 'vuetify'
-
 
 export default createVuetify({
   theme: {

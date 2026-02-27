@@ -1,6 +1,4 @@
 <?php
-// Forced sync comment
-
 
 namespace App\Mail\Transport;
 

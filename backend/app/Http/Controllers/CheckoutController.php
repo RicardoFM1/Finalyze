@@ -56,7 +56,6 @@ class CheckoutController extends Controller
         try {
             $payment = $servico->executar($request->all());
 
-            // Extrai dados do QR Code com segurança (pode não existir em cartão)
             $qrCode = $payment->point_of_interaction?->transaction_data?->qr_code ?? null;
             $qrCodeBase64 = $payment->point_of_interaction?->transaction_data?->qr_code_base64 ?? null;
             $ticketUrl = $payment->point_of_interaction?->transaction_data?->ticket_url ?? $payment->transaction_details?->external_resource_url ?? null;
@@ -166,8 +165,6 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Saldo insuficiente para upgrade gratuito.'], 422);
         }
 
-        // Criar a assinatura pendente se necessário (ou usar AtivarPlanoSubscriber logic)
-        // Para simplificar, vamos criar a assinatura e ativar
         $assinatura = \App\Models\Assinatura::create([
             'user_id' => $usuario->id,
             'plano_id' => $plano->id,
@@ -176,7 +173,6 @@ class CheckoutController extends Controller
             'valor_original_centavos' => $periodo->pivot->valor_centavos,
         ]);
 
-        // Mock payment object for AtivarPlanoUsuario
         $mockPayment = (object)[
             'id' => 'FREE-UP-' . time(),
             'transaction_amount' => 0,

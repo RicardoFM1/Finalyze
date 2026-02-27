@@ -41,7 +41,6 @@
           class="plan-card" 
           :disabled="checkingPreference" 
           @select="handleSelectPlan" 
-          @start-trial="handleStartTrial"
         />
       </v-col>
     </v-row>
@@ -77,7 +76,6 @@
         </template>
     </ModalBase>
 
-    <!-- Modal para Upgrade Gratuito (Prorrata) -->
     <ModalBase v-model="showFreeUpgradeModal" :title="selectedForUpgrade?.gratuito ? $t('common.gift') || 'Presente Pra Você!' : $t('plans.change_modal.title')" maxWidth="500px">
         <div class="text-center pa-4">
             <template v-if="selectedForUpgrade?.gratuito">
@@ -212,7 +210,7 @@ const persistTranslationCache = () => {
   try {
     localStorage.setItem(getTranslationStorageKey(), JSON.stringify(translatedPlanNames.value))
   } catch (e) {
-    // ignore storage failures
+    
   }
 }
 
@@ -260,8 +258,7 @@ const translatePlanNameOnline = async (name) => {
 
 const localizePlans = async () => {
   if (!plans.value.length) return
-  
-  // Set initial names from local storage or static translation if possible
+
   plans.value = plans.value.map(plan => ({
     ...plan,
     nome_localizado: displayPlanName(plan.nome)
@@ -324,7 +321,6 @@ const handleSelectPlan = async ({ plan, period }) => {
         return
     }
 
-    // Verificamos se é um plano diferente do atual para oferecer o upgrade grátis
     const isDifferentPlan = authStore.user?.plano_id && authStore.user.plano_id != plan.id
 
     if (isDifferentPlan) {
@@ -359,50 +355,9 @@ const handleSelectPlan = async ({ plan, period }) => {
     })
 }
 
-const handleStartTrial = async (plan) => {
-    if (!authStore.isAuthenticated) {
-        pendingAction.value = { type: 'trial', plan }
-        authModalMode.value = 'register'
-        showAuthModal.value = true
-        return
-    }
-
-    if (authStore.user?.plano_id) {
-        toast.info(t('plans.already_has_plan_no_trial'))
-        return
-    }
-
-    if (authStore.user?.trial_used_at) {
-        toast.error(t('plans.already_trialed'))
-        return
-    }
-
-    try {
-        loading.value = true
-        const response = await authStore.apiFetch('/assinaturas/start-trial', {
-            method: 'POST',
-            body: JSON.stringify({ plano_id: plan.id })
-        })
-
-        if (response.ok) {
-            toast.success(t('plans.toast_upgrade_success'))
-            await authStore.fetchUser()
-            router.push({ name: 'Dashboard' })
-        } else {
-            const data = await response.json()
-            toast.error(data.error || t('plans.toast_upgrade_error'))
-        }
-    } catch (e) {
-        toast.error(t('plans.toast_connection_error'))
-    } finally {
-        loading.value = false
-    }
-}
-
 const handleAuthSuccess = async () => {
     showAuthModal.value = false
-    
-    // Força atualização completa do usuário e workspace após login/cadastro no modal
+
     try {
         await authStore.fetchUser(true)
     } catch (e) {
@@ -410,9 +365,7 @@ const handleAuthSuccess = async () => {
     }
 
     if (pendingAction.value) {
-        if (pendingAction.value.type === 'trial') {
-            await handleStartTrial(pendingAction.value.plan)
-        } else if (pendingAction.value.type === 'select') {
+        if (pendingAction.value.type === 'select') {
             await handleSelectPlan({ plan: pendingAction.value.plan, period: pendingAction.value.period })
         }
         pendingAction.value = null
@@ -425,8 +378,7 @@ const upgrading = ref(false)
 
 const applyFreeUpgrade = async () => {
     if (!selectedForUpgrade.value) return
-    
-    // Se não for gratuito, redireciona para o checkout onde o desconto já é aplicado
+
     if (!selectedForUpgrade.value.gratuito) {
         router.push({ 
             name: 'Checkout', 
@@ -465,7 +417,7 @@ const applyFreeUpgrade = async () => {
 }
 
 const formatPrice = (value) => {
-    // Plans are stored in BRL; convert to selected currency for display
+    
     const converted = fromBRL(value || 0)
     return new Intl.NumberFormat(currencyMeta.value.locale, {
         style: 'currency',
@@ -496,8 +448,6 @@ const cancelarPagamento = async () => {
     }
 }
 </script>
-
-
 
 <style scoped> 
 .bg-surface {
@@ -537,7 +487,6 @@ const cancelarPagamento = async () => {
   width: 100%;
   max-width: 420px;
 }
-
 
 .plan-card.featured {
   transform: scale(1.05);

@@ -84,9 +84,8 @@ class GerarResumoPainel
             $despesa = (clone $query)->where('tipo', 'despesa')->sum('valor');
             $saldo = $receita - $despesa;
 
-            // Evolução Mensal baseada nos filtros (ou últimos 6 meses se sem filtro de data)
             $evolucaoQuery = $usuario->lancamentos();
-            // Reaplicar mesmos filtros exceto data
+            
             if (!empty($filtros['descricao'])) $evolucaoQuery->where('descricao', 'like', '%' . $filtros['descricao'] . '%');
             if (!empty($filtros['categoria'])) {
                 if (is_array($filtros['categoria'])) $evolucaoQuery->whereIn('categoria', $filtros['categoria']);
@@ -94,7 +93,6 @@ class GerarResumoPainel
             }
             if (!empty($filtros['valor'])) $evolucaoQuery->where('valor', $filtros['valor']);
 
-            // Determinar o range para a evolução
             if (isset($data_inicio) && isset($data_fim)) {
                 $evolStart = \Carbon\Carbon::parse($data_inicio)->startOfMonth();
                 $evolEnd = \Carbon\Carbon::parse($data_fim)->endOfMonth();
@@ -129,7 +127,6 @@ class GerarResumoPainel
                 }
             }
 
-            // Calcular saldo mensal
             foreach ($evolData as &$ed) {
                 $ed['saldo'] = $ed['receita'] - $ed['despesa'];
             }
@@ -139,7 +136,6 @@ class GerarResumoPainel
                 ->orderBy('id', 'desc')
                 ->select(['id', 'descricao', 'categoria', 'tipo', 'valor', 'data', 'forma_pagamento']);
 
-            // If no filters at all, limit to 5; for filtered requests, cap result size.
             if (empty($filtros)) {
                 $recentes = $recentesQuery->take(5)->get();
             } else {

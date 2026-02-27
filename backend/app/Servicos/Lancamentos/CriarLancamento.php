@@ -17,7 +17,6 @@ class CriarLancamento
 
         $lancamento = $usuario->lancamentos()->create($dados);
 
-        // Limpa todos os caches de resumo do usuário do workspace
         GerarResumoPainel::limparCacheUsuario($workspaceId);
 
         return $lancamento;

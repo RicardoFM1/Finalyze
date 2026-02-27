@@ -36,7 +36,7 @@ class EnviarLembretesPessoais extends Command
             try {
                 if ($lembrete->usuario && $lembrete->usuario->email) {
                     $userLocale = $lembrete->usuario->idioma ?? config('app.locale');
-                    Log::info("Enviando lembrete #{$lembrete->id} para {$lembrete->usuario->email} (Locale: {$userLocale})");
+                    Log::info("Enviando lembrete
 
                     Mail::to($lembrete->usuario->email)
                         ->locale($userLocale)
@@ -45,7 +45,7 @@ class EnviarLembretesPessoais extends Command
                     $lembrete->update(['email_notified_at' => now()]);
                     $contagem++;
                 } else {
-                    Log::warning("Lembrete #{$lembrete->id} sem usuário ou e-mail válido.");
+                    Log::warning("Lembrete
                 }
             } catch (\Exception $e) {
                 $this->error("Erro ao enviar para {$lembrete->usuario->email}: {$e->getMessage()}");

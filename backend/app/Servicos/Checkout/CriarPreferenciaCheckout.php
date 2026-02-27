@@ -31,14 +31,11 @@ class CriarPreferenciaCheckout
         $plano = Plano::findOrFail($planoId);
         $periodo = $plano->periodos()->where('periodos.id', $periodoId)->firstOrFail();
 
-        // Cálculo de Prorrata
-        /** @var \App\Models\Usuario $usuario */
         $usuario = auth()->user();
         $assinaturaAtiva = $usuario->assinaturaAtiva();
         $creditos = 0;
         $totalPagar = $periodo->pivot->valor_centavos / 100;
 
-        // Cálculo de Prorrata - SÓ APLICA SE ESTIVER MUDANDO DE PLANO (ID DIFERENTE)
         if ($assinaturaAtiva && $assinaturaAtiva->plano_id != $plano->id) {
             $calculadora = new CalculadoraProrata();
             $creditos = $calculadora->calcularCredito($assinaturaAtiva);
@@ -62,7 +59,6 @@ class CriarPreferenciaCheckout
             'creditos_aplicados' => $creditos
         ]);
 
-        // Tenta reaproveitar assinatura pendente compatível
         $assinatura = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->where('plano_id', $plano->id)
@@ -89,16 +85,14 @@ class CriarPreferenciaCheckout
                 "quantidade_dias" => $periodo->quantidade_dias,
                 "creditos_prorrata" => $creditos
             ],
-            // notification_url sugerido: https://seudominio.com/api/webhook/mercadopago
+            
             "notification_url" => $backendUrl . "/api/webhook/mercadopago"
         ];
 
         $preference = $client->create($preferenceData);
 
-        // Atualizamos a assinatura com o ID da preferência
         $assinatura->update(['mercado_pago_id' => $preference->id]);
 
-        // Gerenciamento de histórico: evita duplicados na mesma assinatura
         $historico = \App\Models\HistoricoPagamento::where('assinatura_id', $assinatura->id)->first();
 
         if ($historico) {
@@ -119,7 +113,6 @@ class CriarPreferenciaCheckout
             ]);
         }
 
-        // Cancelamos outras assinaturas pendentes e SEUS históricos para evitar duplicidade na lista principal
         $outrasPendentes = Assinatura::where('user_id', $usuario->id)
             ->where('status', 'pending')
             ->where('id', '!=', $assinatura->id)

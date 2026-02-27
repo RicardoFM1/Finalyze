@@ -25,12 +25,11 @@ return new class extends Migration
             ]);
         }
 
-        // Optional: Remove from metas table after moving
         DB::table('metas')->where('tipo', 'pessoal')->delete();
     }
 
     public function down(): void
     {
-        // Reverse is harder but we can try to move back if needed
+        
     }
 };

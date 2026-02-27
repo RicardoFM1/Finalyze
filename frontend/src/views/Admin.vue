@@ -98,7 +98,6 @@ const { formatPrice } = useMoney()
 
 const authStore = useAuthStore()
 
-
 const plans = ref([])
 const dbPeriods = ref([])
 const dbFeatures = ref([])
@@ -107,7 +106,6 @@ const deleteDialog = ref(false)
 const loadingPlans = ref(false)
 const itemAEditar = ref(null)
 const planToDelete = ref(null)
-
 
 onMounted(async () => {
     fetchBaseData()
@@ -138,7 +136,6 @@ const fetchPlans = async () => {
     }   
 }
 
-
 const openDialog = (item = null) => {
     itemAEditar.value = item
     dialog.value = true
@@ -148,7 +145,5 @@ const confirmDelete = (item) => {
     planToDelete.value = item
     deleteDialog.value = true
 }
-
-// formatPrice is from useMoney composable (imported above)
 
 </script>

@@ -160,14 +160,12 @@ const editar = async () => {
     return
   }
 
-  // Preparamos o objeto para atualização otimista
   const optimisticItem = {
     ...props.lancamento,
     ...localForm.value,
     valor: valor
   }
 
-  // Fechamos e emitimos IMEDIATAMENTE
   internalValue.value = false
   toast.success(t('toasts.success_update'))
   emit('updated', optimisticItem)

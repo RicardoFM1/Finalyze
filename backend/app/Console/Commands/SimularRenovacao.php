@@ -11,23 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class SimularRenovacao extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'subscription:simular-renovacao {email}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Simula uma renovação automática do Mercado Pago para um usuário';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $email = $this->argument('email');
@@ -49,27 +37,25 @@ class SimularRenovacao extends Command
         $this->info("Plano atual: {$assinaturaAtiva->plano->nome}");
         $this->info("Vencimento atual: " . $assinaturaAtiva->termina_em->format('d/m/Y H:i:s'));
 
-        // Busca o valor do plano/período (pivot)
         $valorEmCentavos = \DB::table('plano_periodo')
             ->where('plano_id', $assinaturaAtiva->plano_id)
             ->where('periodo_id', $assinaturaAtiva->periodo_id)
             ->value('valor_centavos') ?? 0;
 
-        // Mock do objeto de pagamento que o Mercado Pago enviaria no Webhook
         $mockPayment = (object)[
             'id' => 'SIM-RENOV-' . time(),
             'transaction_amount' => (float)($valorEmCentavos / 100),
             'payment_method_id' => 'credit_card',
             'status' => 'approved',
             'status_detail' => 'accredited',
-            'external_reference' => (string)$assinaturaAtiva->id, // Referência à assinatura ID
+            'external_reference' => (string)$assinaturaAtiva->id,
             'metadata' => [
                 'user_id' => $usuario->id,
                 'plano_id' => $assinaturaAtiva->plano_id,
                 'periodo_id' => $assinaturaAtiva->periodo_id,
                 'assinatura_id' => $assinaturaAtiva->id,
                 'quantidade_dias' => $assinaturaAtiva->periodo->quantidade_dias ?? 30,
-                'creditos_prorrata' => 0 // Renovação não tem prorrata
+                'creditos_prorrata' => 0
             ]
         ];
 
@@ -77,7 +63,6 @@ class SimularRenovacao extends Command
             $ativarServico = new AtivarPlanoUsuario();
             $ativarServico->executar($mockPayment);
 
-            // Refetch para mostrar o novo vencimento
             $assinaturaAtiva->refresh();
 
             $this->success("Renovação processada com sucesso!");

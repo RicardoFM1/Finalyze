@@ -9,8 +9,8 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
+            color:
+            background-color:
             margin: 0;
             padding: 0;
         }
@@ -18,15 +18,15 @@
         .container {
             max-width: 600px;
             margin: 20px auto;
-            background: #ffffff;
+            background:
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .header {
-            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg,
+            color:
             padding: 30px;
             text-align: center;
         }
@@ -37,7 +37,7 @@
         }
 
         .urgent-badge {
-            background: #ff4444;
+            background:
             color: white;
             padding: 5px 15px;
             border-radius: 20px;
@@ -52,9 +52,9 @@
         }
 
         .highlight-box {
-            background: #fff3cd;
-            border: 2px solid #ff4444;
-            border-left: 6px solid #ff4444;
+            background:
+            border: 2px solid
+            border-left: 6px solid
             padding: 20px;
             margin: 20px 0;
             border-radius: 4px;
@@ -62,8 +62,8 @@
 
         .button {
             display: inline-block;
-            background: #ff4444;
-            color: #ffffff;
+            background:
+            color:
             padding: 15px 40px;
             text-decoration: none;
             border-radius: 5px;
@@ -75,15 +75,15 @@
         }
 
         .button:hover {
-            background: #e63939;
+            background:
         }
 
         .footer {
-            background: #f8f9fa;
+            background:
             padding: 20px;
             text-align: center;
             font-size: 12px;
-            color: #666;
+            color:
         }
 
         .info-row {
@@ -93,13 +93,13 @@
 
         .info-label {
             font-weight: bold;
-            color: #ff4444;
+            color:
         }
 
         .timer {
             font-size: 32px;
             font-weight: bold;
-            color: #ff4444;
+            color:
             text-align: center;
             margin: 20px 0;
         }
@@ -116,7 +116,7 @@
         <div class="content">
             <p>Olá, <strong>{{ $usuario->nome }}</strong>!</p>
 
-            <p style="font-size: 18px; color: #ff4444; font-weight: bold;">
+            <p style="font-size: 18px; color:
                 ⚠️ Sua assinatura do Finalyze expira em menos de 24 horas!
             </p>
 
@@ -145,7 +145,7 @@
                 </a>
             </center>
 
-            <p style="margin-top: 30px; padding: 15px; background: #e3f2fd; border-radius: 5px; font-size: 14px;">
+            <p style="margin-top: 30px; padding: 15px; background:
                 💡 <strong>Dica:</strong> Após a expiração, você perderá acesso a todas as funcionalidades premium do Finalyze.
             </p>
         </div>

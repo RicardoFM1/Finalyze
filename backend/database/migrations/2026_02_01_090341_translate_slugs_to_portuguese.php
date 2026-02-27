@@ -7,28 +7,22 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
-        // Atualizar slugs de períodos
+        
         DB::table('periodos')->where('slug', 'semanal')->update(['slug' => 'semanal']);
         DB::table('periodos')->where('slug', 'mensal')->update(['slug' => 'mensal']);
         DB::table('periodos')->where('slug', 'trimestral')->update(['slug' => 'trimestral']);
         DB::table('periodos')->where('slug', 'anual')->update(['slug' => 'anual']);
 
-        // Atualizar slugs de recursos
         DB::table('recursos')->where('slug', 'painel')->update(['slug' => 'painel']);
         DB::table('recursos')->where('slug', 'relatorios')->update(['slug' => 'relatorios']);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        // Reverter para inglês
+        
         DB::table('periodos')->where('slug', 'semanal')->update(['slug' => 'weekly']);
         DB::table('periodos')->where('slug', 'mensal')->update(['slug' => 'monthly']);
         DB::table('periodos')->where('slug', 'trimestral')->update(['slug' => 'quarterly']);

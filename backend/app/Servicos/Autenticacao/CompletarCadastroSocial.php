@@ -14,6 +14,14 @@ class CompletarCadastroSocial
         $aceitaTermos = filter_var($dados['aceita_termos'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $aceitaNotificacoes = filter_var($dados['aceita_notificacoes'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
+        $dataNascimento = new \DateTime($dados['data_nascimento']);
+        $hoje = new \DateTime();
+        $idade = $hoje->diff($dataNascimento)->y;
+
+        if ($idade < 18) {
+            throw new \Exception('Você deve ter pelo menos 18 anos para usar este serviço.', 422);
+        }
+
         if (!$token || (int) $token->tokenable_id !== (int) $usuario->id || $token->name !== 'social_onboarding') {
             throw new \Exception('Token de onboarding invalido.', 422);
         }

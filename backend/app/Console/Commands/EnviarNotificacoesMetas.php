@@ -18,7 +18,6 @@ class EnviarNotificacoesMetas extends Command
 
         $hoje = now()->format('Y-m-d');
 
-        // Selecionamos metas em andamento que venceram ou vencem hoje, e que ainda não foram notificadas
         $metas = Meta::where('status', 'andamento')
             ->whereDate('prazo', '<=', $hoje)
             ->whereNull('email_notified_at')

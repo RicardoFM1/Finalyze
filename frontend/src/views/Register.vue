@@ -31,7 +31,6 @@
         </div>
       </v-col>
 
-    
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface scroll-y">
         <v-btn
           icon="mdi-tag-multiple-outline"
@@ -167,21 +166,6 @@ const handleVerify = async (code) => {
   try {
     await authStore.verifyCode(form.value.email, code)
     toast.success(t('toasts.register_success'))
-
-    // Iniciar trial se houver intenção
-    const { intent, plan } = router.currentRoute.value.query
-    if (intent === 'trial' && plan) {
-      try {
-        await authStore.apiFetch('/assinaturas/start-trial', {
-          method: 'POST',
-          body: JSON.stringify({ plano_id: plan })
-        })
-        toast.success(t('plans.toast_upgrade_success'))
-      } catch (e) {
-        console.error('Falha ao iniciar trial após registro', e)
-      }
-    }
-
     const targetRoute = authStore.hasFeature('Painel Financeiro') ? 'Dashboard' : 'Home'
     router.push({ name: targetRoute })
   } catch (err) {

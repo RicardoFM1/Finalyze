@@ -7,14 +7,14 @@
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: #333;
+            color:
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .container {
-            background-color: #f9f9f9;
+            background-color:
             border-radius: 16px;
             padding: 40px;
             text-align: center;
@@ -27,17 +27,17 @@
         .logo {
             font-size: 24px;
             font-weight: bold;
-            color: #1867C0;
+            color:
         }
 
         .code {
             font-size: 48px;
             font-weight: bold;
-            color: #1867C0;
+            color:
             letter-spacing: 10px;
             margin: 30px 0;
             padding: 20px;
-            background: #fff;
+            background:
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             display: inline-block;
@@ -46,7 +46,7 @@
         .footer {
             margin-top: 40px;
             font-size: 12px;
-            color: #666;
+            color:
         }
     </style>
 </head>

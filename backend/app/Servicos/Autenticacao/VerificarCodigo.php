@@ -18,7 +18,6 @@ class VerificarCodigo
             throw new \Exception('Código inválido ou expirado.', 422);
         }
 
-        // Limpa o código após verificação e marca como verificado
         $usuario->update([
             'codigo_verificacao' => null,
             'codigo_expira_em' => null,

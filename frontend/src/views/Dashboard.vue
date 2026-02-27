@@ -23,7 +23,6 @@
       macro
     />
 
-    <!-- Modal de Pagamento Pendente Otimizado -->
     <ModalBase v-model="showPendingDialog" :title="$t('features.PPE')" maxWidth="500px" persistent>
         <div class="text-center pa-4">
             <v-avatar color="info-lighten-4" size="80" class="mb-4">
@@ -61,7 +60,7 @@
     </ModalBase>
 
     <div v-if="!loading && (resumo.periodo_label || activeFilterChips.length)" class="d-flex align-center mb-4 px-2 animate-fade-in flex-wrap gap-2">
-        <!-- Period Chip -->
+        
         <v-chip v-if="resumo.periodo_label" size="small" color="primary" variant="tonal" class="rounded-lg px-3">
             <v-icon icon="mdi-calendar-range" size="14" class="mr-2"></v-icon>
             <span class="text-caption font-weight-bold">
@@ -72,7 +71,6 @@
             </span>
         </v-chip>
 
-        <!-- Active Filters Chips Grouped by Line -->
         <div class="d-flex flex-column gap-2 w-100">
             <div 
                 v-for="(group, key) in groupedActiveChips" 
@@ -353,7 +351,6 @@ import { useMoney } from '../composables/useMoney'
 const { t } = useI18n()
 const { formatMoney, fromBRL, currencySymbol, formatNumber: fmtNum, meta: currencyMeta } = useMoney()
 
-
 import { categorias as categoriasConstantes } from '../constants/categorias'
 
 const authStore = useAuthStore()
@@ -433,8 +430,7 @@ const dynamicFontSize = (val) => {
     if (val === undefined || val === null) return '2rem'
     const strVal = formatNumber(val)
     const len = strVal.length
-    
-    // Mais inteligente: reduz mais cedo se estiver apertado
+
     if (len > 15) return '1.5rem'
     if (len > 10) return '2rem'
     return '2.5rem'
@@ -444,7 +440,6 @@ const getMarginPercentage = computed(() => {
     if (resumo.value.receita === 0) return 0
     return Math.max(0, Math.round((resumo.value.saldo / resumo.value.receita) * 100))
 })
-
 
 const formatNumber = (val) => fmtNum(val)
 
@@ -628,7 +623,6 @@ const calculatePercentage = (meta) => {
     return Math.min(100, Math.round((meta.atual_quantidade / meta.meta_quantidade) * 100))
 }
 
-
 const fetchSummary = async (isSilent = false) => {
     if (!isSilent) loading.value = true
     try {
@@ -636,7 +630,7 @@ const fetchSummary = async (isSilent = false) => {
         const response = await authStore.apiFetch(url)
         if (response.ok) {
             const data = await response.json()
-            // Filtro otimista: removemos itens que estão na ghost list
+            
             if (data.atividades_recentes) {
                 data.atividades_recentes = data.atividades_recentes.filter(i => !deletedIds.value.has(i.id))
             }
@@ -661,22 +655,19 @@ const formatCurrency = (value) => {
 const abrirEditar = (item) => { itemAEditar.value = { ...item }; dialogEditar.value = true }
 const abrirExcluir = (item) => { lancamentoIdExcluir.value = item.id; dialogExcluir.value = true }
 
-// Optimistic updates: atualiza a lista local imediatamente, depois busca do servidor
 const onLancamentoSalvo = (optimisticItem) => {
-    // 1. Atualização Otimista: Adiciona na lista e atualiza totais localmente
+    
     if (optimisticItem && resumo.value.atividades_recentes) {
-        // Inserir no início da lista (recentes)
+        
         resumo.value.atividades_recentes.unshift({
             ...optimisticItem,
-            id: Date.now() // ID temporário para o v-for não reclamar
+            id: Date.now()
         })
-        
-        // Limitar a lista a 5 itens se necessário
+
         if (resumo.value.atividades_recentes.length > 5) {
             resumo.value.atividades_recentes.pop()
         }
 
-        // Atualizar Lógica dos totais
         if (optimisticItem.tipo === 'receita') {
             resumo.value.receita += Number(optimisticItem.valor)
         } else {
@@ -684,8 +675,7 @@ const onLancamentoSalvo = (optimisticItem) => {
         }
         resumo.value.saldo = resumo.value.receita - resumo.value.despesa
     }
-    
-    // 2. Sincronização em background - delay para evitar dados obsoletos
+
     setTimeout(() => {
         fetchSummary(true)
     }, 800)
@@ -696,29 +686,26 @@ const onLancamentoEditado = (updatedItem) => {
         const index = resumo.value.atividades_recentes.findIndex(a => a.id === updatedItem.id)
         if (index !== -1) {
             const oldItem = resumo.value.atividades_recentes[index]
-            
-            // Reverter valor antigo
+
             if (oldItem.tipo === 'receita') resumo.value.receita -= Number(oldItem.valor)
             else resumo.value.despesa -= Number(oldItem.valor)
-            
-            // Aplicar valor novo
+
             if (updatedItem.tipo === 'receita') resumo.value.receita += Number(updatedItem.valor)
             else resumo.value.despesa += Number(updatedItem.valor)
             
             resumo.value.saldo = resumo.value.receita - resumo.value.despesa
-            
-            // Atualizar lista
+
             resumo.value.atividades_recentes[index] = { ...updatedItem }
         }
     }
-    // Sincronização em segundo plano - delay para evitar dados obsoletos
+    
     setTimeout(() => {
         fetchSummary(true)
     }, 800)
 }
 
 const onLancamentoExcluido = (deletedId) => {
-    // 1. Encontrar o item ANTES de remover para atualizar os totais localmente
+    
     const item = resumo.value.atividades_recentes?.find(a => a.id === deletedId)
     
     if (deletedId) {
@@ -726,21 +713,19 @@ const onLancamentoExcluido = (deletedId) => {
     }
 
     if (item) {
-        // 2. Atualização Lógica dos totais (Instantânea)
+        
         if (item.tipo === 'receita') {
             resumo.value.receita -= Number(item.valor)
         } else {
             resumo.value.despesa -= Number(item.valor)
         }
         resumo.value.saldo = resumo.value.receita - resumo.value.despesa
-        
-        // 3. Remover da lista
+
         resumo.value.atividades_recentes = resumo.value.atividades_recentes.filter(
             a => a.id !== deletedId
         )
     }
 
-    // 4. Sincronização em segundo plano - delay para evitar dados obsoletos
     setTimeout(() => {
         fetchSummary(true)
     }, 800)

@@ -33,7 +33,7 @@
 
     <div class="px-6 pb-6">
       <v-row dense align="center">
-        <!-- Período -->
+        
         <v-col cols="12" :md="macro ? 6 : 12" :lg="macro ? 5 : 3">
           <DateInput
             v-model="localFilters.data"
@@ -45,7 +45,6 @@
           />
         </v-col>
 
-        <!-- Descrição -->
         <v-col v-if="!macro" cols="12" sm="6" md="4" lg="3">
           <v-text-field
             v-model="localFilters.descricao"
@@ -57,7 +56,6 @@
           />
         </v-col>
 
-        <!-- Categoria -->
         <v-col cols="12" sm="6"  :md="macro ? 5 : 4" :lg="macro ? 5 : 2">
           <v-select
             v-model="localFilters.categoria"
@@ -91,7 +89,6 @@
           </v-select>
         </v-col>
 
-        <!-- Tipo -->
         <v-col cols="12" sm="6" :md="macro ? 1 : 4" :lg="macro ? 2 : 2">
           <v-select
             v-model="localFilters.tipo"
@@ -104,7 +101,6 @@
           />
         </v-col>
 
-        <!-- Valor -->
         <v-col v-if="!macro" cols="12" sm="6" md="4" lg="2">
           <v-text-field
             v-model="localFilters.valor"
@@ -121,7 +117,6 @@
 
   </v-card>
 </template>
-
 
 <script setup>
 import { computed, reactive, watch, ref } from 'vue'
@@ -285,7 +280,5 @@ const limpar = () => emit('clear')
   margin: 2px !important;
   height: auto !important;
 }
-
-
 
 </style>

@@ -188,7 +188,6 @@
     </v-btn>
   </v-form>
 
-  <!-- Terms and Conditions Modal -->
   <ModalBase v-model="showTermsModal" :title="$t('auth.terms_title') || 'Termos e Condições'" maxWidth="500px">
     <div class="pa-6">
       <div class="bg-primary-lighten-5 pa-6 rounded-xl mb-6 text-center border">

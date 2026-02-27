@@ -42,8 +42,6 @@ import { ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import { useAuthStore } from '../../stores/auth'
 
-
-
 const props = defineProps({
     title: {
         type: String,

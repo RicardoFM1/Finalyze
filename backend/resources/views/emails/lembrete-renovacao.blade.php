@@ -9,8 +9,8 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
+            color:
+            background-color:
             margin: 0;
             padding: 0;
         }
@@ -18,15 +18,15 @@
         .container {
             max-width: 600px;
             margin: 20px auto;
-            background: #ffffff;
+            background:
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg,
+            color:
             padding: 30px;
             text-align: center;
         }
@@ -41,8 +41,8 @@
         }
 
         .highlight-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
+            background:
+            border-left: 4px solid
             padding: 15px;
             margin: 20px 0;
             border-radius: 4px;
@@ -50,8 +50,8 @@
 
         .button {
             display: inline-block;
-            background: #667eea;
-            color: #ffffff;
+            background:
+            color:
             padding: 12px 30px;
             text-decoration: none;
             border-radius: 5px;
@@ -61,15 +61,15 @@
         }
 
         .button:hover {
-            background: #5568d3;
+            background:
         }
 
         .footer {
-            background: #f8f9fa;
+            background:
             padding: 20px;
             text-align: center;
             font-size: 12px;
-            color: #666;
+            color:
         }
 
         .info-row {
@@ -78,7 +78,7 @@
 
         .info-label {
             font-weight: bold;
-            color: #667eea;
+            color:
         }
     </style>
 </head>
@@ -114,7 +114,7 @@
                 </a>
             </center>
 
-            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+            <p style="margin-top: 30px; font-size: 14px; color:
                 Se você já renovou, por favor desconsidere este e-mail.
             </p>
         </div>

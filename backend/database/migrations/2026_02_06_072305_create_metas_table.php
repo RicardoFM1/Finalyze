@@ -18,10 +18,10 @@ return new class extends Migration
             $table->decimal('valor_atual', 15, 2)->nullable()->default(0);
             $table->integer('meta_quantidade')->nullable();
             $table->integer('atual_quantidade')->nullable()->default(0);
-            $table->string('unidade')->nullable(); // BRL, %, km, livros, etc
+            $table->string('unidade')->nullable();
             $table->date('prazo')->nullable();
             $table->enum('status', ['andamento', 'concluido', 'pausado', 'atrasado'])->default('andamento');
-            $table->string('cor')->nullable(); // Para categorias coloridas
+            $table->string('cor')->nullable();
             $table->string('icone')->nullable();
             $table->timestamps();
         });

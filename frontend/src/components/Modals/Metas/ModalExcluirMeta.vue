@@ -21,7 +21,7 @@ const { t } = useI18n()
 const props = defineProps({
   modelValue: Boolean,
   meta: Object,
-  // 'anotacoes' for Lembretes, 'metas' for Metas. Defaults to 'metas'.
+  
   resourceType: {
     type: String,
     default: 'metas',
@@ -44,10 +44,9 @@ const confirmDelete = async () => {
 
   const id = props.meta.id
   const oldStatus = props.meta.status
-  const resource = props.resourceType  // 'metas' or 'anotacoes'
+  const resource = props.resourceType
   const endpoint = `/${resource}/${id}`
 
-  // Optimistic: close + notify immediately
   internalValue.value = false
   toast.success(t('toasts.success_inactivate'))
   emit('deleted', { id, oldStatus })

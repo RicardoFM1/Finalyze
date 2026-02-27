@@ -12,7 +12,7 @@ class GerarRelatorioMensal
         $workspaceId = app('workspace_id');
         $user = \App\Models\Usuario::findOrFail($workspaceId);
 
-        $mesesCount = max(1, min(24, $mesesCount)); // Entre 1 e 24 meses
+        $mesesCount = max(1, min(24, $mesesCount));
         $months = [];
         for ($i = $mesesCount - 1; $i >= 0; $i--) {
             $months[] = Carbon::now()->subMonths($i)->format('Y-m');
@@ -46,7 +46,6 @@ class GerarRelatorioMensal
                 $balanceData[] = $inc - $exp;
             }
 
-            // Breakdown por categoria (Despesas) - No período selecionado
             $categories = $user->lancamentos()
                 ->where('tipo', 'despesa')
                 ->whereBetween('data', [$startMonth->toDateString(), $endMonth->toDateString()])

@@ -26,6 +26,25 @@
       </div>
 
       <template v-if="!showVerification">
+        <v-btn
+          block
+          variant="outlined"
+          color="medium-emphasis"
+          size="large"
+          class="rounded-xl font-weight-bold text-none social-btn mb-6"
+          :disabled="loading"
+          @click="handleGoogleLogin"
+        >
+          <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
+          {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
+        </v-btn>
+
+        <div class="d-flex align-center mb-6">
+          <v-divider></v-divider>
+          <span class="mx-4 text-caption text-medium-emphasis text-uppercase font-weight-bold">{{ $t('common.or') || 'ou' }}</span>
+          <v-divider></v-divider>
+        </div>
+
         <AuthForm 
           v-model="form"
           :mode="mode"
@@ -33,8 +52,10 @@
           :error="error"
           :errors="errors"
           hide-nav
+          show-forgot-password
           @submit="handleSubmit"
           @update:cpf="handleCpfInput"
+          @forgot-password="showForgotModal = true"
         />
       </template>
 
@@ -53,6 +74,8 @@
         />
       </div>
     </div>
+
+    <ModalForgotPassword v-model="showForgotModal" />
   </ModalBase>
 </template>
 
@@ -64,6 +87,7 @@ import { toast } from 'vue3-toastify'
 import ModalBase from '../Modals/modalBase.vue'
 import AuthForm from './AuthForm.vue'
 import EmailVerification from './EmailVerification.vue'
+import ModalForgotPassword from './ModalForgotPassword.vue'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -87,6 +111,7 @@ const loading = ref(false)
 const error = ref('')
 const errors = ref({})
 const showVerification = ref(false)
+const showForgotModal = ref(false)
 
 const form = ref({
   nome: '',
@@ -182,6 +207,10 @@ const handleResend = async () => {
     } catch (err) {
         toast.error(err.message || 'Erro ao reenviar código')
     }
+}
+
+const handleGoogleLogin = () => {
+    authStore.googleLogin()
 }
 
 </script>

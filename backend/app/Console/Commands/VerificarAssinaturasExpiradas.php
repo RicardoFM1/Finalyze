@@ -38,10 +38,10 @@ class VerificarAssinaturasExpiradas extends Command
                 $count++;
 
                 Log::info("Assinatura {$assinatura->id} expirada. Usuário {$assinatura->user_id} teve plano removido.");
-                $this->line("✓ Assinatura #{$assinatura->id} expirada (Usuário: {$assinatura->user_id})");
+                $this->line("✓ Assinatura
             } catch (\Exception $e) {
                 Log::error("Erro ao expirar assinatura {$assinatura->id}: {$e->getMessage()}");
-                $this->error("✗ Erro ao processar assinatura #{$assinatura->id}");
+                $this->error("✗ Erro ao processar assinatura
             }
         }
 

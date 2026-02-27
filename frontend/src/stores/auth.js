@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router';
 import { useUiStore } from './ui';
 import { toast } from 'vue3-toastify';
 
-
 export const useAuthStore = defineStore('auth', () => {
 
     const user = ref(null);
@@ -20,7 +19,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     const isAuthenticated = computed(() => !!token.value);
 
-    // Watchers for persistent modal state
     watch(mustVerifyEmail, (newVal) => {
         if (newVal) localStorage.setItem('must_verify_email', newVal);
         else localStorage.removeItem('must_verify_email');
@@ -71,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await fetch(url, { ...fetchOptions, headers });
 
             if (response.status === 401) {
-                // S faz logout e redireciona se no for um endpoint de login/cadastro
+                
                 if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
                     logout();
                 }
@@ -181,14 +179,13 @@ export const useAuthStore = defineStore('auth', () => {
                 const data = await response.json();
                 user.value = data;
 
-                // Initialize sharedAccounts with self immediately
                 sharedAccounts.value = [{ id: data.id, owner: data, is_owner: true }];
 
                 if (!workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = data.id;
                     localStorage.setItem('workspace_id', data.id);
                 }
-                // Fetch collaborations and wait for it
+                
                 await fetchSharedAccounts();
             }
         } catch (e) {
@@ -206,7 +203,6 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.ok) {
                 const data = await response.json();
 
-                // If user.value is not available yet, we skip populating but don't fail
                 if (!user.value) {
                     sharedAccounts.value = [];
                     return;
@@ -222,7 +218,6 @@ export const useAuthStore = defineStore('auth', () => {
 
                 sharedAccounts.value = [ownAccount, ...otherAccounts];
 
-                // Check if current workspace is still valid among all accounts
                 const stillExists = sharedAccounts.value.some(a => a.id == workspaceId.value);
                 if (!stillExists || !workspaceId.value || workspaceId.value == 'null') {
                     workspaceId.value = user.value.id;
@@ -239,7 +234,7 @@ export const useAuthStore = defineStore('auth', () => {
     function setWorkspace(id) {
         workspaceId.value = id;
         localStorage.setItem('workspace_id', id);
-        window.location.reload(); // Reload to refresh all data context
+        window.location.reload();
     }
 
     function logout() {
@@ -258,7 +253,6 @@ export const useAuthStore = defineStore('auth', () => {
         const normalize = str => str?.toString().toLowerCase().normalize('NFD').replace(/[^\w]/g, '');
         const target = normalize(featureSlug);
 
-        // Bloqueio explícito de Admin para colaboradores
         const isShared = activeWorkspace.value && !activeWorkspace.value.is_owner;
         if (target === 'admin' && isShared) return false;
 
@@ -317,7 +311,7 @@ export const useAuthStore = defineStore('auth', () => {
     const getStorageUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        if (path.startsWith('data:')) return path; // Base64
+        if (path.startsWith('data:')) return path;
         const baseUrl = API_URL.replace('/api', '');
         return `${baseUrl}/storage/${path}`;
     }
@@ -328,7 +322,7 @@ export const useAuthStore = defineStore('auth', () => {
         ui.setLocale(lang);
         localStorage.setItem('locale', lang);
         if (typeof window !== 'undefined') {
-            // Optional: for fully reactive and persistent components that don't watch the store
+            
             const msg = lang === 'pt' ? 'Idioma alterado para Português' : 'Language changed to English';
             toast.success(msg, { autoClose: 1000 });
         }
@@ -410,6 +404,4 @@ export const useAuthStore = defineStore('auth', () => {
         googleLogin, handleGoogleCallback, completarCadastroSocial, forgotPassword, resetPassword, mustVerifyEmail, mustCompleteRegistration, clearAuthModals
     };
 });
-
-
 

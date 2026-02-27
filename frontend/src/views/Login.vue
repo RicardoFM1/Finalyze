@@ -31,7 +31,6 @@
         </div>
       </v-col>
 
-     
       <v-col cols="12" md="6" lg="5" class="d-flex align-center justify-center relative bg-surface">
         <v-btn
           icon="mdi-tag-multiple-outline"
@@ -66,9 +65,7 @@
               <img src="https://authjs.dev/img/providers/google.svg" width="20" class="me-3" alt="Google" />
               {{ $t('auth.continue_with_google') || 'Continuar com Google' }}
             </v-btn>
-            
-            
-            
+
             <AuthForm 
             v-model="form"
             mode="login"
@@ -116,7 +113,7 @@ const authStore = useAuthStore()
 const form = ref({
   email: '',
   senha: '',
-  aceita_termos: true, // Login doesn't need to check this, but good for shared model
+  aceita_termos: true,
   aceita_notificacoes: true
 })
 
@@ -146,21 +143,6 @@ const handleLogin = async () => {
       showVerification.value = true
     } else {
       toast.success(t('toasts.login_success'))
-      
-      // Iniciar trial se houver intenção
-      const { intent, plan } = route.query
-      if (intent === 'trial' && plan) {
-        try {
-          await authStore.apiFetch('/assinaturas/start-trial', {
-            method: 'POST',
-            body: JSON.stringify({ plano_id: plan })
-          })
-          toast.success(t('plans.toast_upgrade_success'))
-        } catch (e) {
-          console.error('Falha ao iniciar trial após login', e)
-        }
-      }
-
       const targetRoute = authStore.hasFeature('Painel Financeiro') ? 'Dashboard' : 'Home'
       router.push({ name: targetRoute })
     }
@@ -178,21 +160,6 @@ const handleVerify = async (code) => {
   try {
     await authStore.verifyCode(form.value.email, code)
     toast.success(t('toasts.login_success'))
-
-    // Iniciar trial se houver intenção
-    const { intent, plan } = route.query
-    if (intent === 'trial' && plan) {
-      try {
-        await authStore.apiFetch('/assinaturas/start-trial', {
-          method: 'POST',
-          body: JSON.stringify({ plano_id: plan })
-        })
-        toast.success(t('plans.toast_upgrade_success'))
-      } catch (e) {
-        console.error('Falha ao iniciar trial após verificação no login', e)
-      }
-    }
-
     router.push({ name: 'Dashboard' })
   } catch (err) {
     error.value = err.message || 'Erro ao verificar código'

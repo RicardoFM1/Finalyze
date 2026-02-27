@@ -32,7 +32,6 @@ class LembreteController extends Controller
 
         $dados['usuario_id'] = app('workspace_id');
 
-        // Garante booleanos para PostgreSQL
         if (isset($dados['notificacao_site'])) $dados['notificacao_site'] = $dados['notificacao_site'] ? 'true' : 'false';
         if (isset($dados['notificacao_email'])) $dados['notificacao_email'] = $dados['notificacao_email'] ? 'true' : 'false';
 
@@ -53,7 +52,6 @@ class LembreteController extends Controller
             'status' => 'nullable|in:andamento,concluido'
         ]);
 
-        // Garante booleanos para PostgreSQL
         if (isset($dados['notificacao_site'])) $dados['notificacao_site'] = $dados['notificacao_site'] ? 'true' : 'false';
         if (isset($dados['notificacao_email'])) $dados['notificacao_email'] = $dados['notificacao_email'] ? 'true' : 'false';
 

@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="dialog" :max-width="maxWidth" :persistent="persistent" class="modal-base-dialog">
     <v-card class="rounded-xl overflow-hidden elevation-12">
-      <!-- Custom header: avoids v-toolbar-title's internal overflow:hidden clipping on mobile -->
+      
       <div class="modal-header d-flex align-center py-4 px-5">
         <h2 class="modal-header-title font-weight-bold text-white flex-grow-1 mb-0">
           {{ title }}

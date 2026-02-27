@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('usuarios')->onDelete('cascade');
             $table->foreignId('plano_id')->constrained('planos');
             $table->string('mercado_pago_id')->nullable();
-            $table->string('status')->default('pending'); // pending, active, cancelled
+            $table->string('status')->default('pending');
             $table->timestamp('inicia_em')->nullable();
             $table->timestamp('termina_em')->nullable();
             $table->timestamps();

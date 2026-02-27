@@ -29,8 +29,7 @@ onMounted(async () => {
     }
 
     console.log('SocialAuthCallback - Params:', q)
-    
-    // Clear any previous modal states
+
     authStore.clearAuthModals()
 
     if (q.requer_cadastro_completo == '1' || q.requer_cadastro_completo === 'true' || q.requer_cadastro_completo === true) {
@@ -54,8 +53,7 @@ onMounted(async () => {
         try {
             await authStore.fetchUser(true)
             await authStore.fetchSharedAccounts()
-            
-            // If admin, they shouldn't see these anyway, but let's be safe
+
             if (authStore.user?.admin) {
                 authStore.clearAuthModals()
             }

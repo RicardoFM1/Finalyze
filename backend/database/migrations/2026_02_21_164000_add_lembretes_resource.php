@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         DB::table('recursos')->insertOrIgnore([
@@ -22,8 +20,6 @@ return new class extends Migration
             ]
         ]);
 
-        // Atribuir ao plano de graça (Essencial) se quiser, ou só Pro/Premium
-        // Vamos colocar em todos por enquanto para o usuário ver, ou seguir a lógica do seeder.
         $recursoId = DB::table('recursos')->where('slug', 'lembretes-avisos')->value('id');
         if ($recursoId) {
             $planosIds = DB::table('planos')->pluck('id');
@@ -38,9 +34,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         $recursoId = DB::table('recursos')->where('slug', 'lembretes-avisos')->value('id');

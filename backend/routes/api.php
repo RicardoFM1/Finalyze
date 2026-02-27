@@ -19,7 +19,6 @@ Route::post('/auth/google/completar', [App\Http\Controllers\AuthController::clas
 Route::post('/auth/forgot-password', [App\Http\Controllers\AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [App\Http\Controllers\AuthController::class, 'resetPassword']);
 
-
 Route::get('/planos', [App\Http\Controllers\PlanController::class, 'index']);
 
 Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function () {
@@ -37,19 +36,14 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
-    Route::post('/assinaturas/start-trial', [App\Http\Controllers\SubscriptionController::class, 'startTrial']);
-
-
 
     Route::middleware('has_plan')->group(function () {
         Route::get('/painel/resumo', [App\Http\Controllers\DashboardController::class, 'resumo']);
-
 
         Route::get('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'mostrar']);
         Route::post('/lancamentos', [App\Http\Controllers\LancamentoController::class, 'criar']);
         Route::put('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'editar']);
         Route::delete('/lancamentos/{lancamentoId}', [App\Http\Controllers\LancamentoController::class, 'deletar']);
-
 
         Route::get('/relatorios/mensal', [App\Http\Controllers\ReportController::class, 'mensal']);
 
@@ -74,7 +68,6 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
     Route::post('/colaboracoes', [App\Http\Controllers\ColaboracaoController::class, 'store']);
     Route::delete('/colaboracoes/{id}', [App\Http\Controllers\ColaboracaoController::class, 'destroy']);
 
-
     Route::middleware('admin')->group(function () {
         Route::get('/admin/planos', [App\Http\Controllers\PlanController::class, 'adminIndex']);
         Route::get('/admin/periodos', function () {
@@ -92,7 +85,6 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
         Route::post('/chat/pergunta', [App\Http\Controllers\ChatIaController::class, 'perguntar']);
     });
 });
-
 
 Route::any('/webhook/mercadopago', [App\Http\Controllers\CheckoutController::class, 'handleWebhook']);
 

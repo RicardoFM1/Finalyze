@@ -3,7 +3,7 @@
     <v-row align="center" class="mb-6 pt-4">
       <v-col cols="12">
         <div class="d-flex flex-column gap-6">
-          <!-- Top Row: Main View Tabs & New Button -->
+          
           <div class="d-flex flex-column flex-md-row justify-space-between align-md-center gap-4">
             <div class="d-flex align-center">
               <v-avatar color="primary" size="48" class="mr-3 elevation-2">
@@ -27,7 +27,6 @@
             </v-btn>
           </div>
 
-          <!-- Bottom Row: Status Filters -->
           <div class="filter-wrapper d-flex justify-center justify-md-start">
             <v-btn-toggle
               v-model="statusFilter"
@@ -180,10 +179,9 @@ const initialTipo = ref('financeira')
 const lembreteDialog = ref(false)
 const metaParaLembrete = ref(null)
 const compartilharDialog = ref(false)
-// Lembretes carregados do backend, indexados por meta id
+
 const lembretesPorMeta = ref({})
 
-// UI State
 const activeTab = ref('metas')
 const statusFilter = ref('andamento')
 
@@ -273,11 +271,10 @@ const fetchLembretes = async () => {
     })
     if (!res.ok) return
     const lista = await res.json()
-    // Indexa por titulo da meta para associar (lembretes não têm meta_id na Eduardo)
-    // Usa a lista flat e deixa o ModalLembrete buscar pelo id do lembrete
+
     const mapa = {}
     lista.forEach(l => {
-      // Associamos pelo meta_id se existir, ou mantemos lista flat
+      
       const key = l.meta_id || null
       if (key) {
         mapa[key] = l
@@ -296,7 +293,7 @@ const reminderParaMeta = (meta) => {
 
 const onLembreteSalvo = (lembrete) => {
   if (!lembrete?.id) return
-  // Atualiza o mapa — usa meta_id se disponível
+  
   const key = lembrete.meta_id
   if (key) {
     lembretesPorMeta.value = { ...lembretesPorMeta.value, [key]: lembrete }
@@ -305,7 +302,7 @@ const onLembreteSalvo = (lembrete) => {
 }
 
 const onLembreteExcluido = (id) => {
-  // Remove do mapa
+  
   const mapa = { ...lembretesPorMeta.value }
   for (const key of Object.keys(mapa)) {
     if (mapa[key]?.id === id) delete mapa[key]
@@ -343,8 +340,7 @@ const toggleStatusConcluido = async (item) => {
   const endpoint = isAnotacao ? `/anotacoes/${item.id}` : `/metas/${item.id}`
   const oldStatus = item.status
   const newStatus = item.status === 'concluido' ? 'andamento' : 'concluido'
-  
-  // Optimistic update
+
   item.status = newStatus
   toast.success(newStatus === 'concluido' ? t('toasts.success_update') : t('toasts.success_restore'))
 
@@ -357,7 +353,7 @@ const toggleStatusConcluido = async (item) => {
         throw new Error('Erro ao atualizar status')
     }
   } catch (e) { 
-      // Rollback
+      
       item.status = oldStatus
       console.error(e) 
   } finally {
@@ -370,7 +366,6 @@ const reativarItem = async (item) => {
   const endpoint = isAnotacao ? `/anotacoes/${item.id}/reativar` : `/metas/${item.id}/reativar`
   const oldStatus = item.status
 
-  // Optimistic update
   item.status = 'andamento'
   toast.success(t('metas.actions.reactivate_success'))
   
@@ -387,7 +382,6 @@ const reativarItem = async (item) => {
   }
 }
 
-// Helpers
 const formatPrice = (value) => {
     return `${currencySymbol.value} ${fmtNum(value || 0)}`
 }
@@ -399,7 +393,7 @@ const formatShortPrice = (value) => {
 }
 const formatDate = (date) => {
     if (!date) return ''
-    // parse YYYY-MM-DD as local time to avoid UTC offset (-1 day bug)
+    
     if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
         const [y, mo, d] = date.split('T')[0].split('-').map(Number)
         return new Date(y, mo - 1, d).toLocaleDateString(currencyMeta.value.locale)

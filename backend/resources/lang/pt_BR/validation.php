@@ -78,6 +78,6 @@ return [
 
     'attributes' => [
         'descricao' => 'descrição',
-        // adicione outros campos customizados aqui se necessário
+        
     ],
 ];

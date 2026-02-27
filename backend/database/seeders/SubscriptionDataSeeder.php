@@ -12,10 +12,9 @@ class SubscriptionDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Deactivate all existing plans (don't delete due to foreign keys)
+        
         Plano::query()->update(['ativo' => false]);
 
-        // Periods
         $periodos = [
             ['nome' => 'Semanal', 'slug' => 'semanal', 'quantidade_dias' => 7],
             ['nome' => 'Mensal', 'slug' => 'mensal', 'quantidade_dias' => 30],
@@ -26,7 +25,6 @@ class SubscriptionDataSeeder extends Seeder
         foreach ($periodos as $periodo) {
             Periodo::updateOrCreate(['slug' => $periodo['slug']], $periodo);
         }
-
 
         $recursosLista = [
             ['nome' => 'Painel Financeiro', 'slug' => 'painel', 'descricao' => 'Acesso ao painel completo'],
@@ -41,7 +39,6 @@ class SubscriptionDataSeeder extends Seeder
             Recurso::updateOrCreate(['slug' => $recurso['slug']], $recurso);
         }
 
-        // Plans
         $planoDados = [
             [
                 'nome' => 'Essencial',
@@ -66,7 +63,6 @@ class SubscriptionDataSeeder extends Seeder
         foreach ($planoDados as $dados) {
             $plano = Plano::updateOrCreate(['nome' => $dados['nome']], $dados);
 
-
             foreach (Periodo::all() as $periodo) {
                 $basePrice = $plano->nome === 'Essencial' ? 1990 : ($plano->nome === 'Pro' ? 4990 : 9990);
 
@@ -90,7 +86,6 @@ class SubscriptionDataSeeder extends Seeder
                     ]
                 ]);
             }
-
 
             if ($plano->nome === 'Essencial') {
                 $plano->recursos()->sync(Recurso::whereIn('slug', ['painel', 'lancamentos'])->pluck('id'));

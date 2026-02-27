@@ -1,6 +1,6 @@
 <template>
   <div v-if="authStore.isAuthenticated && hasAiAccess" class="finn-chat-wrapper">
-    <!-- Toggle Arrow (when hidden) -->
+    
     <v-btn
       v-if="isHidden && !isOpen"
       color="primary"
@@ -10,7 +10,6 @@
       @click="isHidden = false"
     ></v-btn>
 
-    <!-- Chat Button (FAB) -->
     <v-btn
       v-if="!isOpen && !isHidden"
       color="primary"
@@ -22,7 +21,7 @@
       <v-avatar size="45">
         <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"></v-img>
       </v-avatar>
-      <!-- Small hide button on top of FAB -->
+      
       <v-btn
         icon="mdi-chevron-right"
         size="x-small"
@@ -33,7 +32,6 @@
       ></v-btn>
     </v-btn>
 
-    <!-- Chat Window -->
     <v-card
       v-if="isOpen"
       class="finn-window rounded-xl elevation-12 overflow-hidden"
@@ -45,7 +43,7 @@
       :width="display.xs ? '100%' : (display.sm ? '350' : '400')"
       :max-height="display.xs ? '100vh' : '650'"
     >
-    <!-- Header -->
+    
       <v-card-title class="d-flex align-center py-2 px-4 bg-primary text-white">
         <v-avatar size="32" class="mr-3">
           <v-img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Finn"></v-img>
@@ -55,7 +53,6 @@
         <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="isOpen = false"></v-btn>
       </v-card-title>
 
-    <!-- Messages Area -->
     <v-card-text ref="chatBox" class="chat-messages pa-4 bg-grey-lighten-4 flex-grow-1">
       <div v-for="(msg, i) in messages" :key="i" :class="['message-wrapper', msg.role]">
         <v-card
@@ -79,8 +76,7 @@
               </div>
           </div>
           <div v-else class="text-body-2 white-space-pre">{{ msg.text }}</div>
-          
-          <!-- Actions for user messages -->
+
           <div v-if="msg.role === 'user' && editingId !== msg.id" class="message-actions">
               <v-btn icon="mdi-pencil" size="x-small" variant="text" density="comfortable" color="white" @click="startEdit(msg)"></v-btn>
               <v-btn icon="mdi-delete" size="x-small" variant="text" density="comfortable" color="white" @click="deleteMessage(msg.id)"></v-btn>
@@ -93,7 +89,6 @@
       </div>
     </v-card-text>
 
-    <!-- Input Area -->
     <v-divider></v-divider>
     <v-card-actions class="pa-3 bg-white">
       <v-text-field
@@ -136,7 +131,6 @@ const chatBox = ref(null)
 
 const messages = ref([])
 
-// Carregar mensagens do localStorage ao iniciar
 onMounted(() => {
   const savedMessages = localStorage.getItem(`finn_chat_${authStore.user?.id}`)
   if (savedMessages) {
@@ -147,7 +141,6 @@ onMounted(() => {
     }
   }
 
-  // Se estiver vazio, bota a mensagem inicial
   if (messages.value.length === 0) {
     messages.value.push({ role: 'bot', text: t('finn.greeting') })
   }
@@ -155,14 +148,11 @@ onMounted(() => {
   scrollToBottom()
 })
 
-// Salvar no localStorage sempre que as mensagens mudarem
 watch(messages, (newVal) => {
   if (authStore.user?.id) {
     localStorage.setItem(`finn_chat_${authStore.user.id}`, JSON.stringify(newVal))
   }
 }, { deep: true })
-
-// fetchHistory removido conforme solicitado para usar apenas localStorage
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value
@@ -191,7 +181,7 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    // Pegar as últimas 10 mensagens para contexto e formatar para a API Mistral
+    
     const context = messages.value.slice(-11, -1).map(m => ({
       role: m.role === 'bot' ? 'assistant' : 'user',
       content: m.text
@@ -430,7 +420,6 @@ const saveEdit = () => {
   opacity: 0.8;
 }
 
-/* Custom scrollbar */
 .chat-messages::-webkit-scrollbar {
   width: 5px;
 }

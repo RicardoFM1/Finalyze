@@ -72,7 +72,6 @@
       </div>
     </ModalBase>
 
-    <!-- Terms Modal -->
     <ModalBase v-model="showTerms" :title="$t('auth.terms_title') || 'Termos e Condições'">
         <div class="pa-4 text-body-2">
             <p>{{ $t('auth.terms_text') }}</p>

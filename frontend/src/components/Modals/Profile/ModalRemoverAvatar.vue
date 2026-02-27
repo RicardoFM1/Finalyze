@@ -34,7 +34,7 @@ const internalValue = computed({
 })
 
 const confirmRemove = async () => {
-  // Feedback imediato
+  
   internalValue.value = false
   toast.success(t('toasts.success_update'))
   emit('removed')
@@ -53,8 +53,7 @@ const confirmRemove = async () => {
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-    // O pai pode tratar rollback via fetchUser se necessário, 
-    // mas avatar é menos crítico em termos de dados estritos.
+
   }
 }
 </script>

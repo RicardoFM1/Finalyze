@@ -15,16 +15,15 @@ class SetWorkspaceContext
         $user = $request->user();
 
         if ($workspaceId && $user) {
-            // Check if user has access
+            
             $hasAccess = Colaboracao::where('proprietario_id', $workspaceId)
                 ->where('email_convidado', $user->email)
                 ->exists();
 
             if ($hasAccess || $user->id == $workspaceId) {
-                // Set custom attribute on request
+                
                 $request->merge(['workspace_id' => $workspaceId]);
 
-                // Also set in a singleton for easy access in services
                 app()->instance('workspace_id', (int)$workspaceId);
             } else {
                 return response()->json(['message' => 'Você não tem acesso a esta área de trabalho.'], 403);

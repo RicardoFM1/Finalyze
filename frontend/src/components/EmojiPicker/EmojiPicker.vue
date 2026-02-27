@@ -15,7 +15,6 @@
       </v-btn>
     </template>
 
-    <!-- Substituído: Picker -> EmojiPicker -->
     <EmojiPicker 
       :native="true" 
       theme="light"
@@ -26,7 +25,7 @@
 
 <script setup>
 import { ref } from 'vue'
-// Importações corretas para o vue3-emoji-picker
+
 import EmojiPicker from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
 

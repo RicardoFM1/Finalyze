@@ -66,10 +66,10 @@ class EnviarAvisosRenovacao extends Command
 
                 $count++;
                 $this->line("  ✓ Aviso enviado para {$assinatura->usuario->email}");
-                Log::info("Aviso 3 dias enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
+                Log::info("Aviso 3 dias enviado: Assinatura
             } catch (\Exception $e) {
                 $this->error("  ✗ Erro ao enviar para {$assinatura->usuario->email}");
-                Log::error("Erro ao enviar aviso 3 dias: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
+                Log::error("Erro ao enviar aviso 3 dias: Assinatura
             }
         }
 
@@ -111,10 +111,10 @@ class EnviarAvisosRenovacao extends Command
 
                 $count++;
                 $this->line("  ✓ Aviso URGENTE enviado para {$assinatura->usuario->email}");
-                Log::info("Aviso urgente enviado: Assinatura #{$assinatura->id}, Usuário: {$assinatura->usuario->email}");
+                Log::info("Aviso urgente enviado: Assinatura
             } catch (\Exception $e) {
                 $this->error("  ✗ Erro ao enviar para {$assinatura->usuario->email}");
-                Log::error("Erro ao enviar aviso urgente: Assinatura #{$assinatura->id}, Erro: {$e->getMessage()}");
+                Log::error("Erro ao enviar aviso urgente: Assinatura
             }
         }
 

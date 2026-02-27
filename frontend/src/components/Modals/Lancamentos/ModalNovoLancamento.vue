@@ -139,7 +139,6 @@ const form = ref({
   descricao: ''
 })
 
-
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     form.value = {
@@ -160,14 +159,12 @@ const salvarLancamento = async () => {
     return
   }
 
-  // Preparamos o item de forma otimista para o Dashboard
   const optimisticItem = {
       ...form.value,
-      id: Date.now(), // ID temporário
+      id: Date.now(),
       valor: valor
   }
 
-  // Ação Instantânea: Fecha o modal e avisa o pai
   internalValue.value = false
   toast.success(t('toasts.success_add'))
   emit('saved', optimisticItem)
@@ -188,7 +185,7 @@ const salvarLancamento = async () => {
   } catch (e) {
     console.error(e)
     toast.error(t('toasts.error_generic'))
-    // O silent refresh do pai cuidará do rollback se necessário
+    
   }
 }
 </script>

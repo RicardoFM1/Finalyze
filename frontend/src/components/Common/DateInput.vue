@@ -105,11 +105,10 @@ const pickerFormat = computed(() => {
 
 const parseValue = (val) => {
   if (!val) return null
-  
-  // Para evitar problemas de fuso horário (T00:00:00 força o parse local)
+
   const toLocalDate = (dateStr) => {
     if (!dateStr) return null
-    // Se já for uma string YYYY-MM-DD, adiciona o componente de tempo local
+    
     if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
         return new Date(dateStr + 'T00:00:00')
     }
@@ -284,7 +283,6 @@ watch(() => props.modelValue, (newVal) => {
   border: 1px solid var(--dp-primary-color);
 }
 
-/* Fallback para garantir que o seletor de tempo nunca apareça */
 :deep(.dp__action_row),
 :deep(.dp__time_picker),
 :deep(.dp__time_input) {

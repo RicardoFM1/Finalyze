@@ -24,7 +24,6 @@ class UserController extends Controller
     {
         $usuario = $request->user();
 
-        // Como está em base64 no banco, só precisa setar null
         $usuario->avatar = null;
         $usuario->save();
 

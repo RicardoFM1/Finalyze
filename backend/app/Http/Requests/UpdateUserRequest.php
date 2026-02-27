@@ -19,7 +19,7 @@ class UpdateUserRequest extends FormRequest
                 'original_name' => $file->getClientOriginalName(),
                 'size' => $file->getSize(),
                 'mime' => $file->getMimeType(),
-                'error' => $file->getError(), // 0 = UPLOAD_ERR_OK
+                'error' => $file->getError(),
                 'valid' => $file->isValid(),
                 'path' => $file->getPathname(),
                 'php_upload_max' => ini_get('upload_max_filesize'),

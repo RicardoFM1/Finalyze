@@ -40,9 +40,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const internalValue = ref(0) // Armazena em centavos (integer)
+const internalValue = ref(0)
 
-// Formata o valor interno para exibição (ex: 1250 -> "12,50")
 const displayValue = computed({
   get: () => {
     const val = internalValue.value / 100
@@ -52,12 +51,11 @@ const displayValue = computed({
     })
   },
   set: (val) => {
-    // Apenas para evitar erros se por algum motivo o v-model tentar setar diretamente
+    
     parseAndEmit(val)
   }
 })
 
-// Sincroniza o valor externo com o interno
 watch(() => props.modelValue, (newVal) => {
   const numVal = typeof newVal === 'number' ? newVal : parseFloat(String(newVal).replace(',', '.')) || 0
   const centavos = Math.round(numVal * 100)
@@ -67,7 +65,7 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 const handleKeydown = (e) => {
-  // Teclas de controle permitidas
+  
   const controlKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Enter']
   if (controlKeys.includes(e.key)) {
     if (e.key === 'Backspace') {
@@ -82,18 +80,15 @@ const handleKeydown = (e) => {
     return
   }
 
-  // Apenas números
   if (!/^\d$/.test(e.key)) {
     e.preventDefault()
     return
   }
 
   e.preventDefault()
-  
-  // Limite razoável (1 trilhão - 1 centavo)
+
   if (internalValue.value >= 999999999999) return
 
-  // Adiciona o novo dígito ao final
   internalValue.value = (internalValue.value * 10) + parseInt(e.key)
   emitValue()
 }

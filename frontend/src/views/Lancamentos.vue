@@ -30,8 +30,6 @@
       <Planilhas :dados="serverItems" :disabled="loading" @exportar="exportarExcel" />
       <PdfExport :dados="serverItems" :disabled="loading" @exportar="exportarPdf" />
     </div>
-    
-
 
     <FilterLancamentos
       v-model="filterStore.filters"
@@ -51,7 +49,6 @@
             </span>
         </v-chip>
 
-        <!-- Active Filters Chips Grouped by Line -->
         <div class="d-flex flex-column gap-2 w-100">
             <div 
                 v-for="(group, key) in groupedActiveChips" 
@@ -81,7 +78,6 @@
             </div>
         </div>
     </div>
-
 
     <v-card class="rounded-xl glass-card border-card overflow-hidden" elevation="8">
       <v-toolbar color="transparent" density="comfortable" class="px-4 py-2">
@@ -224,10 +220,10 @@ const handleImport = async (event) => {
         if (!s) return 0
         s = s.replace(/\s/g, '').replace(/[R$€£]/g, '')
         if (s.includes(',') && s.includes('.')) {
-          // "1.234,56" -> "1234.56"
+          
           s = s.replace(/\./g, '').replace(',', '.')
         } else if (s.includes(',')) {
-          // "1234,56" -> "1234.56"
+          
           s = s.replace(',', '.')
         }
         s = s.replace(/[^\d.-]/g, '')
@@ -238,7 +234,7 @@ const handleImport = async (event) => {
       let count = 0
       let failed = 0
       for (const row of rows) {
-        // Mapeamento flexível de colunas
+        
         const getVal = (fields) => {
           for (const f of fields) {
             if (row[f] !== undefined && row[f] !== null) return row[f]
@@ -253,27 +249,24 @@ const handleImport = async (event) => {
         const tipoRaw = getVal(['Tipo', 'tipo', 'Type', 'natureza']) || 'despesa'
         const formaRaw = getVal(['Forma de Pagamento', 'Forma', 'Payment Method', 'forma_pagamento', 'method', 'pagamento']) || 'other'
 
-        // Normalização de Forma de Pagamento
         const normalizedForma = formaRaw.toString().toLowerCase().trim()
         const finalForma = formaMap[normalizedForma] || 'other'
 
-        // Normalização de Valor (caso venha como string formatada)
         const finalValor = parseAmount(valorRaw)
 
-        // Normalização de Data
         let finalData = dataRaw
         if (typeof dataRaw === 'string') {
-          // Tenta extrair YYYY-MM-DD
+          
           const match = dataRaw.match(/(\d{4})-(\d{2})-(\d{2})/)
           if (match) {
             finalData = match[0]
           } else {
-            // Tenta DD/MM/YYYY
+            
             const matchBR = dataRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/)
             if (matchBR) finalData = `${matchBR[3]}-${matchBR[2]}-${matchBR[1]}`
           }
         } else if (typeof dataRaw === 'number') {
-          // Excel date serial number
+          
           const date = XLSX.SSF.parse_date_code(dataRaw)
           finalData = `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
         }
@@ -366,13 +359,11 @@ const exportarPdf = () => {
             const bcpLocale = currentLocale.value === 'pt' ? 'pt-BR' : 'en-US'
             const exportDate = now.toLocaleDateString(bcpLocale)
             const exportTime = now.toLocaleTimeString(bcpLocale, { hour: '2-digit', minute: '2-digit' })
-            
-            // Header
+
             doc.setFontSize(18)
             doc.setTextColor(24, 103, 192)
             doc.text(`${t('reports.title')} - Finalyze`, 14, 15)
-            
-            // Subtitle with export date
+
             doc.setFontSize(10)
             doc.setTextColor(100)
             const exportLabel = currentLocale.value === 'pt' ? 'Exportado em' : 'Exported on'
@@ -402,7 +393,7 @@ const exportarPdf = () => {
                 theme: 'striped',
                 headStyles: { fillColor: [24, 103, 192] },
                 didDrawPage: (data) => {
-                    // Footer with page number
+                    
                     const str = "Page " + doc.internal.getNumberOfPages();
                     doc.setFontSize(10);
                     const pageSize = doc.internal.pageSize;
@@ -432,9 +423,6 @@ const dialogNovo = ref(false)
 const dialogEditar = ref(false)
 const dialogExcluir = ref(false)
 
-
-
-
 const headers = computed(() => [
   { title: t('transactions.table.date'), key: 'data', align: 'start', sortable: true },
   { title: t('transactions.table.description'), key: 'descricao', align: 'start', sortable: true },
@@ -449,7 +437,7 @@ const formatNumber = (val) => fmtNum(val)
 const formatDate = (date) => {
     if (!date) return ''
     const bcpLocale = currentLocale.value === 'pt' ? 'pt-BR' : 'en-US'
-    // parse YYYY-MM-DD as local date to avoid UTC offset shift
+    
     if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}/)) {
         const [y, m, d] = date.split('T')[0].split('-').map(Number)
         return new Date(y, m - 1, d).toLocaleDateString(bcpLocale)
@@ -586,7 +574,6 @@ const aplicarFiltros = () => {
   })
 }
 
-
 const limparFiltros = () => {
     filterStore.clearFilters()
 
@@ -597,13 +584,10 @@ const limparFiltros = () => {
   })
 }
 
-
-
-
 const buscarLancamentos = (isSilent = false) => {
-    // Refresh manual mantendo página e filtros
+    
     loadItems({
-        page: Math.ceil((totalItems.value || 0) / itemsPerPage.value) > 0 ? 1 : 1, // Reset para o caso de novos
+        page: Math.ceil((totalItems.value || 0) / itemsPerPage.value) > 0 ? 1 : 1,
         itemsPerPage: itemsPerPage.value,
         sortBy: [],
         search: search.value,
@@ -615,7 +599,7 @@ const options = ref({ page: 1, itemsPerPage: 10, sortBy: [] })
 
 const onLancamentoSalvo = (optimisticItem) => {
     if (optimisticItem) {
-        // Só adicionamos na lista local se estivermos na página 1 e sem filtros restritivos (ou filtros que batam com o item)
+        
         const f = filterStore.filters
         const isPage1 = options.value.page === 1
         const matchesFilter = (!f.descricao || optimisticItem.descricao.toLowerCase().includes(f.descricao.toLowerCase())) &&
@@ -634,7 +618,7 @@ const onLancamentoSalvo = (optimisticItem) => {
             }
         }
     }
-    // Sincronização silenciosa em background
+    
     buscarLancamentos(true)
 }
 
@@ -643,16 +627,13 @@ const onLancamentoEditado = (updatedItem) => {
         const index = serverItems.value.findIndex(i => i.id === updatedItem.id)
         if (index !== -1) {
             const oldItem = serverItems.value[index]
-            
-            // Reverter valor antigo nos totais
+
             if (oldItem.tipo === 'receita') totais.value.receita -= Number(oldItem.valor)
             else totais.value.despesa -= Number(oldItem.valor)
-            
-            // Aplicar valor novo nos totais
+
             if (updatedItem.tipo === 'receita') totais.value.receita += Number(updatedItem.valor)
             else totais.value.despesa += Number(updatedItem.valor)
-            
-            // Atualizar o item na lista
+
             serverItems.value[index] = { ...updatedItem }
         }
     }
@@ -662,7 +643,7 @@ const onLancamentoEditado = (updatedItem) => {
 const onLancamentoExcluido = (deletedId) => {
     if (deletedId && serverItems.value) {
         deletedIds.value.add(deletedId)
-        // Encontrar item para atualizar totais locais
+        
         const item = serverItems.value.find(i => i.id === deletedId)
         if (item) {
             if (item.tipo === 'receita') {
@@ -675,7 +656,7 @@ const onLancamentoExcluido = (deletedId) => {
         serverItems.value = serverItems.value.filter(i => i.id !== deletedId)
         totalItems.value = Math.max(0, totalItems.value - 1)
     }
-    // Refresh background, mas a ghost list vai proteger contra race conditions
+    
     buscarLancamentos(true)
 }
 
@@ -766,7 +747,6 @@ onMounted(() => {
 .filter-bar .v-btn {
   border-radius: 50%;
 }
-
 
 </style>
 

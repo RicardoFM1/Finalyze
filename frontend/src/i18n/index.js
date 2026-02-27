@@ -11,7 +11,6 @@ export const i18n = createI18n({
   messages: { pt, en }
 })
 
-
 const currencyprefix = computed(() => {
   switch (locale.value) {
     case 'pt':

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('planos', function (Blueprint $table) {
-            // Check if columns exist before dropping to avoid errors during rollback/retry
+            
             if (Schema::hasColumn('planos', 'preco')) {
                 $table->dropColumn('preco');
             }

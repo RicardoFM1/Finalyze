@@ -234,7 +234,7 @@ const selectEmoji = (emoji) => {
 
 const isEmoji = (str) => {
   if (!str) return true
-  // Allow multiple emojis or complex ones (like ZWJ sequences)
+  
   const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g
   return emojiRegex.test(str)
 }
@@ -266,17 +266,15 @@ watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     if (props.meta) {
       let formattedPrazo = null
-      let extractedHora = props.meta.hora || null
+      let extractedHora = props.meta.hora ? props.meta.hora.substring(0, 5) : null
 
       if (props.meta.prazo) {
-          // Fix date offset by ensuring we don't treat it as UTC
           formattedPrazo = typeof props.meta.prazo === 'string' ? props.meta.prazo.split('T')[0] : props.meta.prazo
           
-          // Se o prazo for uma string completa ISO/SQL datetime (com 'T' ou ' ') e não tivermos hora separada
           if (!extractedHora && typeof props.meta.prazo === 'string' && (props.meta.prazo.includes('T') || props.meta.prazo.includes(' '))) {
               const parts = props.meta.prazo.split(/[T ]/)
               if (parts[1]) {
-                  extractedHora = parts[1].substring(0, 5) // HH:mm
+                  extractedHora = parts[1].trim().substring(0, 5)
               }
           }
       }
@@ -323,16 +321,15 @@ const saveMeta = async () => {
     return
   }
 
-  // Clean empty strings to null for backend
   const cleanData = { 
     ...form.value,
-    tipo: currentTipo // Garante que o tipo vï¿½ no payload
+    tipo: currentTipo
   }
+
   Object.keys(cleanData).forEach(key => {
-    if (cleanData[key] === '') cleanData[key] = null
+    if (cleanData[key] === '' && key !== 'titulo') cleanData[key] = null
   })
 
-  // Perceived speed: Close and tell parent to refresh
   const optimisticItem = {
     ...cleanData,
     id: isEdit ? cleanData.id : 'opt-' + Date.now(),

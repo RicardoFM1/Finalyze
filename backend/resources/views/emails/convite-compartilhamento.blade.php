@@ -7,18 +7,18 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #1f2937;
+            color:
             max-width: 640px;
             margin: 0 auto;
             padding: 24px;
-            background: #f3f4f6;
+            background:
         }
 
         .card {
-            background: #ffffff;
+            background:
             border-radius: 12px;
             padding: 24px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid
         }
 
         .title {
@@ -29,8 +29,8 @@
         .btn {
             display: inline-block;
             padding: 12px 18px;
-            background: #1867c0;
-            color: #ffffff !important;
+            background:
+            color:
             text-decoration: none;
             border-radius: 8px;
             font-weight: 700;
@@ -39,7 +39,7 @@
 
         .meta {
             font-size: 12px;
-            color: #6b7280;
+            color:
             margin-top: 12px;
         }
     </style>

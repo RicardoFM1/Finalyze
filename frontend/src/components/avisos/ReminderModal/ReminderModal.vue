@@ -26,7 +26,6 @@
         </template>
       </v-textarea>
 
-
       <v-text-field
       label="cor (Hex)"
       type="color"
@@ -41,7 +40,6 @@
         item-value="value"
       />
 
-      <!-- relógio agora aparece inteiro -->
       <v-time-picker
         v-model="form.time"
         format="24hr"
@@ -49,7 +47,6 @@
 
     </v-card-text>
 
-    <!-- AÇÕES FIXAS -->
     <v-card-actions>
       <v-spacer />
       <v-btn text @click="close">Cancelar</v-btn>
@@ -62,7 +59,6 @@
 <script setup>
 import { ref, computed, reactive } from 'vue'
 import EmojiPicker from '../../EmojiPicker/EmojiPicker.vue'
-
 
 const category = ref(null)
 

@@ -18,16 +18,14 @@ class CancelarPagamentoCheckout
             ->pluck('id');
 
         if ($pendenteIds->isNotEmpty()) {
-            \Illuminate\Support\Facades\Log::info("Cancelando tentativas de pagamento pendentes para usuário #{$usuario->id}", ['ids' => $pendenteIds]);
+            \Illuminate\Support\Facades\Log::info("Cancelando tentativas de pagamento pendentes para usuário
 
             Assinatura::whereIn('id', $pendenteIds)->update(['status' => 'cancelled']);
 
-            // Cancela históricos vinculados às assinaturas encontradas
             \App\Models\HistoricoPagamento::whereIn('assinatura_id', $pendenteIds)
                 ->where('status', 'pending')
                 ->update(['status' => 'cancelled']);
 
-            // Garante que qualquer outro histórico pendente do usuário também seja cancelado
             \App\Models\HistoricoPagamento::where('user_id', $usuario->id)
                 ->where('status', 'pending')
                 ->update(['status' => 'cancelled']);

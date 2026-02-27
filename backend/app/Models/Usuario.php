@@ -93,7 +93,6 @@ class Usuario extends Authenticatable
             ->first();
     }
 
-
     public function metas()
     {
         return $this->hasMany(Meta::class, 'usuario_id');

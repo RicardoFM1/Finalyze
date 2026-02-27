@@ -27,7 +27,6 @@ return new class extends Migration
             return;
         }
 
-        // Legacy: a tabela pode existir sem data_aviso
         if (!Schema::hasColumn('lembretes', 'data_aviso')) {
             Schema::table('lembretes', function (Blueprint $table) {
                 $table->dateTime('data_aviso')->nullable();

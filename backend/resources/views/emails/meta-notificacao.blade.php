@@ -6,14 +6,14 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color:
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            border: 1px solid #e1e1e1;
+            border: 1px solid
             border-radius: 12px;
         }
 
@@ -25,25 +25,25 @@
         .logo {
             font-size: 28px;
             font-weight: bold;
-            color: #1867c0;
+            color:
         }
 
         .content {
-            background: #f9f9f9;
+            background:
             padding: 25px;
             border-radius: 8px;
-            border-left: 5px solid #1867c0;
+            border-left: 5px solid
         }
 
         .title {
             font-size: 20px;
             font-weight: bold;
-            color: #1867c0;
+            color:
             margin-bottom: 10px;
         }
 
         .description {
-            color: #555;
+            color:
             font-size: 16px;
             margin-bottom: 20px;
             white-space: pre-wrap;
@@ -53,13 +53,13 @@
             text-align: center;
             margin-top: 30px;
             font-size: 12px;
-            color: #888;
+            color:
         }
 
         .btn {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #1867c0;
+            background-color:
             color: white !important;
             text-decoration: none;
             border-radius: 8px;

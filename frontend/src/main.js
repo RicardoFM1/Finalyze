@@ -17,7 +17,6 @@ import en from './components/Language/en.json'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-
 const pinia = createPinia()
 
 const i18n = createI18n({
@@ -29,7 +28,6 @@ const i18n = createI18n({
     en,
   },
 })
-
 
 const app = createApp(App)
 
