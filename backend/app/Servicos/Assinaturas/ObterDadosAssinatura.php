@@ -14,7 +14,11 @@ class ObterDadosAssinatura
 
         $subscription = Assinatura::where('user_id', $user->id)
             ->with(['plano', 'periodo'])
-            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE 
+                WHEN status = 'active' THEN 0 
+                WHEN status = 'cancelled' AND termina_em >= NOW() THEN 1 
+                ELSE 2 
+            END")
             ->latest()
             ->first();
 

@@ -22,7 +22,7 @@ class EnviarNotificacoesMetas extends Command
         $metas = Meta::where('status', 'andamento')
             ->whereDate('prazo', '<=', $hoje)
             ->whereNull('email_notified_at')
-            ->where('notificacao_email', true)
+            ->where('notificacao_email', 'true')
             ->with('usuario')
             ->get();
 

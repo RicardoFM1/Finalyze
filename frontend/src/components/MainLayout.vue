@@ -137,6 +137,12 @@
                         <v-list-item :prepend-icon="uiAuthStore.theme === 'light' ? 'mdi-moon-waning-crescent' : 'mdi-white-balance-sunny'" @click="uiAuthStore.toggleTheme">
                             <v-list-item-title>{{ uiAuthStore.theme === 'light' ? $t('settings.dark_mode_active') : $t('settings.light_mode_active') }}</v-list-item-title>
                         </v-list-item>
+
+                        <v-divider class="my-2"></v-divider>
+
+                        <v-list-item prepend-icon="mdi-tag-multiple-outline" :to="{ name: 'Plans' }">
+                            <v-list-item-title>{{ $t('landing.btn_plans') }}</v-list-item-title>
+                        </v-list-item>
                       </v-list>
                     </v-menu>
 
@@ -175,7 +181,7 @@
           <v-spacer />
 
           <div class="d-flex align-center gap-3">
-            <template v-if="isAuthPage">
+            <template v-if="isAuthPage || !authStore.isAuthenticated">
               <v-btn
                 prepend-icon="mdi-tag-multiple-outline"
                 variant="text"
@@ -200,9 +206,11 @@
 
             <template v-else>
               <div v-if="authStore.loadingSharedAccounts || uiAuthStore.loading" class="d-flex align-center gap-2">
-                <v-skeleton-loader type="chip" class="bg-transparent" width="130"></v-skeleton-loader>
-                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
-                <v-skeleton-loader type="avatar" class="bg-transparent" size="32"></v-skeleton-loader>
+                <v-skeleton-loader type="button" class="bg-primary-lighten-2" width="130" height="36" color="primary"></v-skeleton-loader>
+                <div class="d-flex gap-1">
+                    <v-skeleton-loader type="avatar" class="bg-primary-lighten-2" size="32" color="primary"></v-skeleton-loader>
+                    <v-skeleton-loader type="avatar" class="bg-primary-lighten-2" size="32" color="primary"></v-skeleton-loader>
+                </div>
               </div>
               <template v-else>
                 <!-- Workspace Switcher -->
@@ -213,11 +221,12 @@
                             variant="tonal"
                             color="white"
                             prepend-icon="mdi-office-building"
-                            class="text-none ml-2 rounded-xl"
-                            :loading="authStore.loadingSharedAccounts"
+                             class="text-none ml-2 rounded-xl workspace-btn"
+                             :loading="authStore.loadingSharedAccounts"
+                             max-width="160"
                         >
-                            {{ activeWorkspaceName }}
-                        </v-btn>
+                             <span class="text-truncate" style="max-width: 100px; display: inline-block;">{{ activeWorkspaceName }}</span>
+                         </v-btn>
                     </template>
                      <v-list class="rounded-xl mt-2 overflow-hidden" elevation="4" min-width="220">
                         <template v-if="authStore.loadingSharedAccounts">
@@ -583,7 +592,15 @@ onMounted(async () => {
   }
   if (isDesktop.value && authStore.isAuthenticated) {
     drawer.value = true;
+    rail.value = false; // Garante que abra expandido na Home/Dashboard
   }
+})
+
+watch(() => route.name, (newName) => {
+    if (newName === 'Home' && authStore.isAuthenticated && isDesktop.value) {
+        drawer.value = true;
+        rail.value = false;
+    }
 })
 
 onUnmounted(() => {
@@ -614,14 +631,18 @@ const checkReminders = async () => {
                                 String(now.getMinutes()).padStart(2, '0')
             
             const pending = list.filter(n => {
-                const itemDate = n.prazo ? n.prazo.split('T')[0] : ''
+                // Pege apenas os primeiros 10 caracteres (YYYY-MM-DD)
+                const itemDate = n.prazo ? n.prazo.substring(0, 10) : ''
                 const isToday = itemDate === today
                 const isAfterTime = !n.hora || currentTime >= n.hora
                 
+                // Converte notificacao_site para booleano caso venha como 1/0
+                const notifySite = !!n.notificacao_site
+
                 return n.status === 'andamento' && 
                        isToday && 
                        isAfterTime &&
-                       n.notificacao_site &&
+                       notifySite &&
                        !notifiedSession.has(n.id)
             })
             

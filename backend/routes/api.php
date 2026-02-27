@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum', 'workspace', 'set_locale'])->group(function (
     Route::get('/assinaturas', [App\Http\Controllers\SubscriptionController::class, 'index']);
     Route::post('/assinaturas/ligar-auto-renovacao', [App\Http\Controllers\SubscriptionController::class, 'ativarAutoRenovacao']);
     Route::post('/assinaturas/cancelar', [App\Http\Controllers\SubscriptionController::class, 'cancelar']);
+    Route::post('/assinaturas/start-trial', [App\Http\Controllers\SubscriptionController::class, 'startTrial']);
 
 
 

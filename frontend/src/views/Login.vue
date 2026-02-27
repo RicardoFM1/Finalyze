@@ -146,7 +146,23 @@ const handleLogin = async () => {
       showVerification.value = true
     } else {
       toast.success(t('toasts.login_success'))
-      router.push({ name: 'Dashboard' })
+      
+      // Iniciar trial se houver intenção
+      const { intent, plan } = route.query
+      if (intent === 'trial' && plan) {
+        try {
+          await authStore.apiFetch('/assinaturas/start-trial', {
+            method: 'POST',
+            body: JSON.stringify({ plano_id: plan })
+          })
+          toast.success(t('plans.toast_upgrade_success'))
+        } catch (e) {
+          console.error('Falha ao iniciar trial após login', e)
+        }
+      }
+
+      const targetRoute = authStore.hasFeature('Painel Financeiro') ? 'Dashboard' : 'Home'
+      router.push({ name: targetRoute })
     }
   } catch (err) {
     error.value = err.message || t('toasts.login_error')
@@ -162,6 +178,21 @@ const handleVerify = async (code) => {
   try {
     await authStore.verifyCode(form.value.email, code)
     toast.success(t('toasts.login_success'))
+
+    // Iniciar trial se houver intenção
+    const { intent, plan } = route.query
+    if (intent === 'trial' && plan) {
+      try {
+        await authStore.apiFetch('/assinaturas/start-trial', {
+          method: 'POST',
+          body: JSON.stringify({ plano_id: plan })
+        })
+        toast.success(t('plans.toast_upgrade_success'))
+      } catch (e) {
+        console.error('Falha ao iniciar trial após verificação no login', e)
+      }
+    }
+
     router.push({ name: 'Dashboard' })
   } catch (err) {
     error.value = err.message || 'Erro ao verificar código'

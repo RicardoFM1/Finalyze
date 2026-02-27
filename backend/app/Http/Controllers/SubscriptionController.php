@@ -106,4 +106,52 @@ class SubscriptionController extends Controller
             return response()->json(['error' => 'Falha ao cancelar assinatura.'], 500);
         }
     }
+
+    /**
+     * Inicia um periodo de teste de 1 dia.
+     */
+    public function startTrial(Request $request)
+    {
+        try {
+            /** @var \App\Models\Usuario $user */
+            $user = auth()->user();
+
+            if ($user->trial_used_at) {
+                return response()->json(['error' => 'Você já utilizou seu período de teste grátis.'], 422);
+            }
+
+            if ($user->plano_id || $user->assinaturas()->where('status', 'active')->exists()) {
+                return response()->json(['error' => 'Você já possui um plano ativo e não pode iniciar um período de teste.'], 422);
+            }
+
+            $request->validate([
+                'plano_id' => 'required|exists:planos,id'
+            ]);
+
+            $plano = \App\Models\Plano::findOrFail($request->plano_id);
+
+            // Trial de 1 dia
+            $assinatura = Assinatura::create([
+                'user_id' => $user->id,
+                'plano_id' => $plano->id,
+                'status' => 'active',
+                'inicia_em' => now(),
+                'termina_em' => now()->addDay(),
+                'renovacao_automatica' => false
+            ]);
+
+            $user->update([
+                'plano_id' => $plano->id,
+                'trial_used_at' => now()
+            ]);
+
+            return response()->json([
+                'message' => 'Período de teste iniciado! Aproveite por 24 horas.',
+                'termina_em' => $assinatura->termina_em
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao iniciar trial: ' . $e->getMessage());
+            return response()->json(['error' => 'Falha ao iniciar período de teste.'], 500);
+        }
+    }
 }

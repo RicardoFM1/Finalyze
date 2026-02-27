@@ -167,7 +167,23 @@ const handleVerify = async (code) => {
   try {
     await authStore.verifyCode(form.value.email, code)
     toast.success(t('toasts.register_success'))
-    router.push({ name: 'Dashboard' })
+
+    // Iniciar trial se houver intenção
+    const { intent, plan } = router.currentRoute.value.query
+    if (intent === 'trial' && plan) {
+      try {
+        await authStore.apiFetch('/assinaturas/start-trial', {
+          method: 'POST',
+          body: JSON.stringify({ plano_id: plan })
+        })
+        toast.success(t('plans.toast_upgrade_success'))
+      } catch (e) {
+        console.error('Falha ao iniciar trial após registro', e)
+      }
+    }
+
+    const targetRoute = authStore.hasFeature('Painel Financeiro') ? 'Dashboard' : 'Home'
+    router.push({ name: targetRoute })
   } catch (err) {
     error.value = err.message || 'Erro ao verificar cÃ³digo'
     toast.error(error.value)

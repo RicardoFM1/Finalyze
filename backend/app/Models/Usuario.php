@@ -29,7 +29,8 @@ class Usuario extends Authenticatable
         'codigo_expira_em',
         'idioma',
         'aceita_termos',
-        'aceita_notificacoes'
+        'aceita_notificacoes',
+        'trial_used_at'
     ];
 
     protected $hidden = [
@@ -53,6 +54,7 @@ class Usuario extends Authenticatable
             'data_nascimento' => 'date',
             'codigo_expira_em' => 'datetime',
             'reset_code_expires_at' => 'datetime',
+            'trial_used_at' => 'datetime',
         ];
     }
 
@@ -79,7 +81,13 @@ class Usuario extends Authenticatable
     public function assinaturaAtiva()
     {
         return $this->assinaturas()
-            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->where('status', 'active')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'cancelled')
+                            ->where('termina_em', '>=', now());
+                    });
+            })
             ->where('termina_em', '>=', now())
             ->orderByDesc('termina_em')
             ->first();

@@ -110,7 +110,8 @@
     "verification_code_label": "6-digit code",
     "invalid_code": "Code must be 6 digits",
     "processing_login": "Processing login...",
-    "verify_email_title": "Verify your email"
+    "verify_email_title": "Verify your email",
+    "verify_email_sent": "We sent a verification code to your email."
   },
   "sidebar": {
     "home": "Home",
@@ -216,8 +217,17 @@
       "suporte-prioritario": "Priority Support",
       "lembretes-avisos": "Reminders & Alerts",
       "finn-ai": "Finn AI (Artificial Intelligence)",
-      "colaboracao-total": "Full Collaboration"
-    }
+      "colaboracao-total": "Full Collaboration",
+      "Finn AI": "Finn AI (Artificial Intelligence)",
+      "Lembretes": "Reminders & Alerts",
+      "Agenda": "Financial Calendar"
+    },
+    "trial_active": "Trial Active",
+    "trial_expired": "Trial Expired",
+    "already_trialed": "You already used your free trial",
+    "already_has_plan_no_trial": "You already have an active plan and cannot start a free trial.",
+    "start_trial": "Start Free Trial (1 day)",
+    "trial_days_left": "Trial expires soon"
   },
   "metas": {
     "financial_title": "Financial Goals",

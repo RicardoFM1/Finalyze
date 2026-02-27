@@ -110,7 +110,8 @@
     "verification_code_label": "Código de 6 dígitos",
     "invalid_code": "Código deve ter 6 dígitos",
     "processing_login": "Processando login...",
-    "verify_email_title": "Verifique seu e-mail"
+    "verify_email_title": "Verifique seu e-mail",
+    "verify_email_sent": "Enviamos um código de verificação para seu e-mail."
   },
   "sidebar": {
     "home": "Página inicial",
@@ -216,8 +217,17 @@
       "suporte-prioritario": "Suporte Prioritário",
       "lembretes-avisos": "Lembretes e Avisos",
       "finn-ai": "Finn AI (Inteligência Artificial)",
-      "colaboracao-total": "Colaboração Total"
-    }
+      "colaboracao-total": "Colaboração Total",
+      "Finn AI": "Finn AI (Inteligência Artificial)",
+      "Lembretes": "Lembretes e Avisos",
+      "Agenda": "Agenda Financeira"
+    },
+    "trial_active": "Teste Ativo",
+    "trial_expired": "Teste Expirado",
+    "already_trialed": "Você já utilizou seu teste grátis",
+    "already_has_plan_no_trial": "Você já possui um plano ativo e não pode iniciar um teste grátis.",
+    "start_trial": "Testar Grátis (1 dia)",
+    "trial_days_left": "Teste expira em breve"
   },
   "metas": {
     "financial_title": "Metas Financeiras",

@@ -4,17 +4,17 @@
       <h1 class="text-h3 font-weight-bold mb-2">{{ $t('plans.title') }}</h1>
       <p class="text-subtitle-1 text-medium-emphasis">{{ $t('plans.subtitle') }}</p>
       
-      <v-row justify="center" class="mt-4">
+      <v-row justify="center" class="mt-4 mb-10 alert-transition">
         <v-col cols="12" md="8">
           <v-alert
             color="info"
             variant="tonal"
             icon="mdi-swap-horizontal"
-            class="rounded-lg text-left"
-            density="comfortable"
+            class="rounded-lg text-left elevation-1"
+            density="compact"
           >
             <div class="text-subtitle-2 font-weight-bold mb-1">{{ $t('plans.upgrade_tip.title') }}</div>
-            {{ $t('plans.upgrade_tip.desc') }}
+            <div class="text-caption opacity-90">{{ $t('plans.upgrade_tip.desc') }}</div>
           </v-alert>
         </v-col>
       </v-row>
@@ -24,7 +24,7 @@
         <v-progress-circular indeterminate color="primary" size="80" width="8"></v-progress-circular>
     </v-row>
 
-    <v-row v-else justify="center" class="plan-grid">
+    <v-row v-else justify="center" class="plan-grid mt-4">
       <v-col
         v-for="(plan, index) in plans"
         :key="plan.id"
@@ -35,7 +35,14 @@
         class="d-flex justify-center px-md-4 "
         :style="{ animationDelay: (index * 0.1) + 's' }"
       >
-        <PlanCard :plan="plan" :is-featured="index === 1" class="plan-card" :disabled="checkingPreference" @select="handleSelectPlan" />
+        <PlanCard 
+          :plan="plan" 
+          :is-featured="index === 1" 
+          class="plan-card" 
+          :disabled="checkingPreference" 
+          @select="handleSelectPlan" 
+          @start-trial="handleStartTrial"
+        />
       </v-col>
     </v-row>
 
@@ -151,6 +158,12 @@
             </div>
         </div>
     </ModalBase>
+    
+    <IntegratedAuthModal 
+        v-model="showAuthModal" 
+        :initial-mode="authModalMode"
+        @success="handleAuthSuccess"
+    />
   </v-container>
 </template>
 
@@ -161,8 +174,9 @@ import PlanCard from '../components/PlanCard.vue'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue3-toastify'
 import ModalBase from '../components/Modals/modalBase.vue'
-import { useI18n } from 'vue-i18n'
 import { useMoney } from '../composables/useMoney'
+import { useI18n } from 'vue-i18n'
+import IntegratedAuthModal from '../components/Auth/IntegratedAuthModal.vue'
 
 const { t, locale } = useI18n()
 const { meta: currencyMeta, fromBRL } = useMoney()
@@ -177,6 +191,10 @@ const cancelling = ref(false)
 const continuing = ref(false)
 const currentSubscription = ref(null)
 const translatedPlanNames = ref({})
+
+const showAuthModal = ref(false)
+const authModalMode = ref('register')
+const pendingAction = ref(null)
 
 const getTargetLanguage = () => (locale.value || '').toLowerCase().startsWith('en') ? 'en' : 'pt'
 const getTranslationStorageKey = () => 'finalyze_plan_name_translations_v1'
@@ -299,9 +317,10 @@ watch(locale, async () => {
 })
 
 const handleSelectPlan = async ({ plan, period }) => {
-    // If not authenticated or same plan/period, just go to checkout (or let guard handle)
     if (!authStore.isAuthenticated) {
-        router.push({ name: 'Checkout', query: { plan: plan.id, period: period.id } })
+        pendingAction.value = { type: 'select', plan, period }
+        authModalMode.value = 'register'
+        showAuthModal.value = true
         return
     }
 
@@ -338,6 +357,66 @@ const handleSelectPlan = async ({ plan, period }) => {
         name: 'Checkout', 
         query: { plan: plan.id, period: period.id } 
     })
+}
+
+const handleStartTrial = async (plan) => {
+    if (!authStore.isAuthenticated) {
+        pendingAction.value = { type: 'trial', plan }
+        authModalMode.value = 'register'
+        showAuthModal.value = true
+        return
+    }
+
+    if (authStore.user?.plano_id) {
+        toast.info(t('plans.already_has_plan_no_trial'))
+        return
+    }
+
+    if (authStore.user?.trial_used_at) {
+        toast.error(t('plans.already_trialed'))
+        return
+    }
+
+    try {
+        loading.value = true
+        const response = await authStore.apiFetch('/assinaturas/start-trial', {
+            method: 'POST',
+            body: JSON.stringify({ plano_id: plan.id })
+        })
+
+        if (response.ok) {
+            toast.success(t('plans.toast_upgrade_success'))
+            await authStore.fetchUser()
+            router.push({ name: 'Dashboard' })
+        } else {
+            const data = await response.json()
+            toast.error(data.error || t('plans.toast_upgrade_error'))
+        }
+    } catch (e) {
+        toast.error(t('plans.toast_connection_error'))
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleAuthSuccess = async () => {
+    showAuthModal.value = false
+    
+    // Força atualização completa do usuário e workspace após login/cadastro no modal
+    try {
+        await authStore.fetchUser(true)
+    } catch (e) {
+        console.error('Erro ao atualizar usuário após auth:', e)
+    }
+
+    if (pendingAction.value) {
+        if (pendingAction.value.type === 'trial') {
+            await handleStartTrial(pendingAction.value.plan)
+        } else if (pendingAction.value.type === 'select') {
+            await handleSelectPlan({ plan: pendingAction.value.plan, period: pendingAction.value.period })
+        }
+        pendingAction.value = null
+    }
 }
 
 const showFreeUpgradeModal = ref(false)
@@ -472,6 +551,25 @@ const cancelarPagamento = async () => {
 }
 
 @keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-transition {
+    animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);

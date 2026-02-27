@@ -265,19 +265,27 @@ const form = ref({
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     if (props.meta) {
-      // Fix date offset by ensuring we don't treat it as UTC
       let formattedPrazo = null
+      let extractedHora = props.meta.hora || null
+
       if (props.meta.prazo) {
-          const d = new Date(props.meta.prazo)
-          // Se vier do banco como YYYY-MM-DD, o new Date() pode puxar UTC
-          // Vamos garantir que pegamos exatamente o que está escrito
+          // Fix date offset by ensuring we don't treat it as UTC
           formattedPrazo = typeof props.meta.prazo === 'string' ? props.meta.prazo.split('T')[0] : props.meta.prazo
+          
+          // Se o prazo for uma string completa ISO/SQL datetime (com 'T' ou ' ') e não tivermos hora separada
+          if (!extractedHora && typeof props.meta.prazo === 'string' && (props.meta.prazo.includes('T') || props.meta.prazo.includes(' '))) {
+              const parts = props.meta.prazo.split(/[T ]/)
+              if (parts[1]) {
+                  extractedHora = parts[1].substring(0, 5) // HH:mm
+              }
+          }
       }
 
       form.value = { 
         ...props.meta,
         tipo: props.meta.tipo || props.initialTipo,
         prazo: formattedPrazo,
+        hora: extractedHora,
         notificacao_site: !!props.meta.notificacao_site,
         notificacao_email: !!props.meta.notificacao_email,
         cor: props.meta.cor || (props.meta.tipo === 'financeira' ? '#4CAF50' : '#FFF9BF'),
@@ -310,8 +318,16 @@ const saveMeta = async () => {
   const currentTipo = form.value.tipo || props.meta?.tipo || props.initialTipo
   const isAnotacao = currentTipo === 'pessoal' || currentTipo === 'agenda'
   
+  if (!form.value.titulo) {
+    toast.error(t('modals.errors.title_required') || 'O título é obrigatório.')
+    return
+  }
+
   // Clean empty strings to null for backend
-  const cleanData = { ...form.value }
+  const cleanData = { 
+    ...form.value,
+    tipo: currentTipo // Garante que o tipo vï¿½ no payload
+  }
   Object.keys(cleanData).forEach(key => {
     if (cleanData[key] === '') cleanData[key] = null
   })

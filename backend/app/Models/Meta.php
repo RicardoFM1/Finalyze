@@ -29,8 +29,6 @@ class Meta extends Model
         'meta_quantidade' => 'integer',
         'atual_quantidade' => 'integer',
         'prazo' => 'date',
-        'notificacao_site' => 'boolean',
-        'notificacao_email' => 'boolean',
         'email_notified_at' => 'datetime'
     ];
 

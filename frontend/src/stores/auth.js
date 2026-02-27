@@ -46,6 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
         const {
             suppress403Redirect = false,
             suppress403Toast = false,
+            suppress401Redirect = false,
             ...fetchOptions
         } = options;
 
@@ -70,20 +71,25 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await fetch(url, { ...fetchOptions, headers });
 
             if (response.status === 401) {
-                logout();
+                // S faz logout e redireciona se no for um endpoint de login/cadastro
+                if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+                    logout();
+                }
 
-                if (router.currentRoute.value.name !== 'Login' &&
+                if (!suppress401Redirect &&
+                    router.currentRoute.value.name !== 'Login' &&
                     router.currentRoute.value.name !== 'Register' &&
-                    router.currentRoute.value.name !== 'Checkout') {
+                    router.currentRoute.value.name !== 'Checkout' &&
+                    router.currentRoute.value.name !== 'Plans') {
                     router.push({ name: 'Login' });
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Sess�o expirada. Fa�a login novamente.');
+                throw new Error(errorData.message || 'Sesso expirada. Faa login novamente.');
             }
 
             if (response.status === 403) {
                 const errorData = await response.json().catch(() => ({}));
-                const message = errorData.message || 'Seu plano atual n�o possui acesso a este recurso.';
+                const message = errorData.message || 'Seu plano atual no possui acesso a este recurso.';
 
                 if (!suppress403Toast && router.currentRoute.value.name !== 'Plans') {
                     toast.warning(message, { autoClose: 5000 });

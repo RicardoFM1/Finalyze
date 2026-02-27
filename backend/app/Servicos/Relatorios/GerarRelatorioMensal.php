@@ -9,7 +9,8 @@ class GerarRelatorioMensal
 {
     public function executar(int $mesesCount = 6)
     {
-        $user = Auth::user();
+        $workspaceId = app('workspace_id');
+        $user = \App\Models\Usuario::findOrFail($workspaceId);
 
         $mesesCount = max(1, min(24, $mesesCount)); // Entre 1 e 24 meses
         $months = [];
@@ -45,14 +46,18 @@ class GerarRelatorioMensal
                 $balanceData[] = $inc - $exp;
             }
 
-            // Breakdown por categoria (Despesas)
+            // Breakdown por categoria (Despesas) - No período selecionado
             $categories = $user->lancamentos()
                 ->where('tipo', 'despesa')
                 ->whereBetween('data', [$startMonth->toDateString(), $endMonth->toDateString()])
                 ->selectRaw("categoria, SUM(valor) as total")
                 ->groupBy('categoria')
                 ->orderByDesc('total')
-                ->get();
+                ->get()
+                ->map(fn($item) => [
+                    'categoria' => $item->categoria,
+                    'total' => (float) $item->total
+                ]);
 
             return [
                 'incomeData' => $incomeData,
