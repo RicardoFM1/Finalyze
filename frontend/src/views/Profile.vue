@@ -458,6 +458,7 @@ const user = ref({
     cpf: '',
     data_nascimento: ''
 })
+const originalCpfNormalized = ref('')
 
 const subscriptionData = ref({
     assinatura: null,
@@ -476,6 +477,11 @@ const historyFilters = ref({
     status: 'todos',
     metodo: 'todos'
 })
+
+const normalizeCpf = (value) => {
+  if (!value || typeof value !== 'string') return ''
+  return value.replace(/\D/g, '')
+}
 
 const filteredHistory = computed(() => {
     let list = subscriptionData.value.historico || []
@@ -570,6 +576,7 @@ const syncLocalUser = (data) => {
     } else if (!user.value.data_nascimento) {
         user.value.data_nascimento = '' 
     }
+    originalCpfNormalized.value = normalizeCpf(user.value.cpf)
 }
 
 const loadingUser = ref(false)
@@ -761,23 +768,14 @@ const removeAvatar = () => {
 }
 
 const saveProfile = async () => {
-    
-    toast.success(t('profile.toast_success'))
-
-    const optimisticUser = {
-        ...user.value,
-        
-        avatar_url: previewAvatar.value || user.value.avatar_url
-    }
-    authStore.user = { ...authStore.user, ...optimisticUser }
-
     try {
         const formData = new FormData()
         formData.append('nome', user.value.nome)
         formData.append('email', user.value.email)
         
-        if (user.value.cpf && typeof user.value.cpf === 'string') {
-            formData.append('cpf', user.value.cpf.replace(/\D/g, ''))
+        const currentCpfNormalized = normalizeCpf(user.value.cpf)
+        if (currentCpfNormalized && currentCpfNormalized !== originalCpfNormalized.value) {
+            formData.append('cpf', currentCpfNormalized)
         }
         if (user.value.data_nascimento) {
             formData.append('data_nascimento', user.value.data_nascimento)
@@ -796,7 +794,15 @@ const saveProfile = async () => {
         if (response.ok) {
             const updated = await response.json()
             authStore.user = updated
+            const ownIndex = authStore.sharedAccounts.findIndex(a => a.is_owner)
+            if (ownIndex >= 0) {
+                authStore.sharedAccounts[ownIndex] = {
+                    ...authStore.sharedAccounts[ownIndex],
+                    owner: updated
+                }
+            }
             user.value = { ...updated }
+            originalCpfNormalized.value = normalizeCpf(user.value.cpf)
             
             if (user.value.cpf) formatCPF({ target: { value: user.value.cpf } })
             if (user.value.data_nascimento && typeof user.value.data_nascimento === 'string') {
@@ -805,6 +811,7 @@ const saveProfile = async () => {
             
             previewAvatar.value = null 
             selectedFile.value = null 
+            toast.success(t('profile.toast_success'))
         } else {
              const errorData = await response.json().catch(() => ({}))
              toast.error(errorData.message || t('profile.warnings.update_error'))

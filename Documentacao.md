@@ -41,7 +41,7 @@ Finalyze é uma plataforma robusta de controle financeiro pessoal, permitindo qu
 - **Templates de Email Bilíngues**: Todos os e-mails (Verificação, Convites, Lembretes) utilizam strings traduzíveis do Laravel (`__()`), garantindo uma experiência premium e globalizada.
 
 ### 7. Finn AI - Assistente Financeiro com Memória
-- **Inteligência Artificial**: Utiliza o modelo **Gemini 1.5 Flash** do Google para respostas ultrarrápidas e precisas.
+- **Inteligência Artificial**: Utiliza o modelo **Mistral IA** do Google para respostas ultrarrápidas e precisas.
 - **Persistência**: Histórico de chat completo salvo no banco de dados (`mensagens_chat`).
 - **Interatividade**: Edição e exclusão de mensagens do usuário integradas.
 - **Contexto Financeiro Inteligente**: Em cada interação, o Finn recebe automaticamente:
